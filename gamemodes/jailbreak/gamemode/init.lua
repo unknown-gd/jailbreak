@@ -1,6 +1,4 @@
-AddCSLuaFile( "weapons.lua" )
 AddCSLuaFile( "shared.lua" )
-include( "weapons.lua" )
 include( "shared.lua" )
 
 resource.AddWorkshop( "2950445307" )
@@ -17,31 +15,31 @@ function GM:PlayerInitialSpawn( ply, transiton )
 end
 
 function GM:PlayerSpawn( ply, transiton )
-    local teamID = ply:Team()
-    if teamID == TEAM_SPECTATOR then
-        self:PlayerSpawnAsSpectator( ply )
-        return
-    end
-
     ply:AllowFlashlight( false )
     ply:SetCanZoom( false )
     ply:RemoveAllAmmo()
     ply:StripWeapons()
     ply:UnSpectate()
 
+    ply:SetSlowWalkSpeed( 100 )
+    ply:SetWalkSpeed( 185 )
+    ply:SetRunSpeed( 365 )
+
     ply:SetMaxHealth( 100 )
     ply:SetMaxArmor( 100 )
     ply:SetHealth( 100 )
 
+    local teamID = ply:Team()
     if teamID == TEAM_GUARD then
         ply:SetArmor( 50 )
     else
         ply:SetArmor( 0 )
     end
 
-    hook_Run( "PlayerSetSpeed", ply, teamID )
+    print( ply, teamID, TEAM_UNASSIGNED, teamID == TEAM_UNASSIGNED )
 
     if not self.PlayableTeams[ teamID ] then
+        ply:Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
         ply:SetNoCollideWithTeammates( true )
         ply:SetAvoidPlayers( false )
         ply:SetNoDraw( true )
@@ -76,19 +74,6 @@ function GM:PlayerSpawn( ply, transiton )
     ply:SetupHands()
 end
 
-function GM:PlayerSetSpeed( ply, teamID )
-    if self.PlayableTeams[ teamID ] then
-        ply:SetSlowWalkSpeed( 100 )
-        ply:SetWalkSpeed( 185 )
-        ply:SetRunSpeed( 365 )
-        return
-    end
-
-    ply:SetSlowWalkSpeed( 1 )
-    ply:SetWalkSpeed( 1 )
-    ply:SetRunSpeed( 1 )
-end
-
 function GM:PlayerLoadout( ply, teamID )
     if not self.PlayableTeams[ teamID ] then
         return
@@ -99,8 +84,7 @@ function GM:PlayerLoadout( ply, teamID )
         ply:GiveAmmo( 45, "smg1", true )
         ply:GiveAmmo( 20, "Pistol", true )
         ply:GiveAmmo( 10, "Buckshot", true )
-
-        if math.random( 1, 3 ) == 3 then
+        if math.random( 1, 10 ) == 1 then
             ply:Give( "weapon_knife" )
         end
     elseif teamID == TEAM_GUARD then
@@ -174,8 +158,16 @@ function GM:GetFallDamage( ply, speed )
     return math.max( 0, math.ceil( 0.2418 * speed - 141.75 ) )
 end
 
+function GM:AllowPlayerPickup( ply, entity )
+    return self.PlayableTeams[ ply:Team() ]
+end
+
+function GM:PlayerCanPickupItem( ply, entity )
+    return self.PlayableTeams[ ply:Team() ]
+end
+
 function GM:PlayerCanPickupWeapon( ply, weapon )
-    return not ply:HasWeapon( weapon:GetClass() )
+    return self.PlayableTeams[ ply:Team() ] and not ply:HasWeapon( weapon:GetClass() )
 end
 
 function GM:PlayerNoClip( ply, desiredState )
@@ -225,7 +217,7 @@ function GM:PlayerCanJoinTeam( ply, teamID )
             return true
         end
 
-        return ( #guards / #team.GetPlayers( TEAM_PRISONER ) ) < 0.25
+        return ( #guards / #team.GetPlayers( TEAM_PRISONER ) ) < 0.35
     end
 
     return true
