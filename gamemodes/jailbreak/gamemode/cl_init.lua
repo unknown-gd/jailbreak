@@ -4,6 +4,7 @@ CreateConVar( "cl_playercolor", "0.3 0.3 0.3", { FCVAR_ARCHIVE, FCVAR_USERINFO, 
 CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
 CreateConVar( "cl_playerskin", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The skin to use, if the model has any" )
 CreateConVar( "cl_playerbodygroups", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The bodygroups to use, if the model has any" )
+local hook_Run = hook.Run
 
 function GM:InitPostEntity()
     self:ShowTeam()
@@ -54,7 +55,7 @@ function GM:CalcView( ply, origin, angles, fov, znear, zfar )
     end
 
     if ply:InVehicle() then
-        return hook.Run( "CalcVehicleView", ply:GetVehicle(), ply, view )
+        return hook_Run( "CalcVehicleView", ply:GetVehicle(), ply, view )
     end
 
     if drive.CalcView( ply, view ) then
@@ -80,3 +81,13 @@ function GM:Think()
         ply:SetVoiceVolumeScale( math.Clamp( 1 - pos:DistToSqr( ply:EyePos() ) / self.VoiceChatDistance, 0, 1 ) )
     end
 end
+
+function GM:HUDPaint()
+    hook_Run( "HUDDrawTargetID" )
+    hook_Run( "HUDDrawPickupHistory" )
+    hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+end
+
+hook.Add( "HUDPaint", "Jailbreak::RoundInfo", function()
+    draw.DrawText( string.upper( language.GetPhrase( "jb.round." .. GAMEMODE:GetRoundState() ) ), "DermaLarge", ScrW() / 2, 32, color_white, TEXT_ALIGN_CENTER )
+end )
