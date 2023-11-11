@@ -11,10 +11,10 @@ local TEAM_UNASSIGNED = TEAM_UNASSIGNED
 local TEAM_PRISONER = TEAM_PRISONER
 local TEAM_GUARD = TEAM_GUARD
 local hook_Run = hook.Run
+local ipairs = ipairs
 
 function GM:PlayerInitialSpawn( ply, transiton )
     ply:SetTeam( TEAM_UNASSIGNED )
-    ply.NextSpawnTime = 0
 end
 
 function GM:PlayerSpawn( ply, transiton )
@@ -39,16 +39,26 @@ function GM:PlayerSpawn( ply, transiton )
         ply:SetArmor( 0 )
     end
 
-    if not self.PlayableTeams[ teamID ] then
-        ply:Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
+    if teamID == TEAM_PRISONER then
+        ply:SetNoCollideWithTeammates( false )
+        ply:SetAvoidPlayers( true )
+    else
         ply:SetNoCollideWithTeammates( true )
         ply:SetAvoidPlayers( false )
+    end
+
+    if not self.PlayableTeams[ teamID ] then
+        if ply:IsBot() then
+            for i = 1, 2 do
+                self:PlayerRequestTeam( ply, i )
+            end
+        end
+
+        ply:Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
         ply:SetNoDraw( true )
         return
     end
 
-    ply:SetNoCollideWithTeammates( false )
-    ply:SetAvoidPlayers( true )
     ply:SetNoDraw( false )
 
     if not transiton then
@@ -244,6 +254,14 @@ function GM:PlayerSwitchFlashlight( ply )
     return ply:CanUseFlashlight()
 end
 
+function GM:PlayerDeathSound( ply )
+    return ply:Team() ~= TEAM_GUARD
+end
+
+function GM:PlayerUse( ply, entity )
+    return true
+end
+
 function GM:PlayerCanHearPlayersVoice( listener, talker )
     local talkerPosition = talker:EyePos()
     if talkerPosition:DistToSqr( listener:EyePos() ) <= self.VoiceChatDistance then
@@ -326,7 +344,7 @@ function GM:PlayerDisconnected( ply )
                 table.remove( guards, index )
 
                 if guard and guard:IsValid() then
-                    guard:SetTeam( TEAM_PRISONER )
+                    self:PlayerJoinTeam( guard, TEAM_PRISONER )
                     break
                 end
             end
@@ -356,7 +374,11 @@ concommand.Add( "drop", function( ply )
     ply:SelectWeapon( nextWeapon:GetClass() )
 end )
 
+function GM:InitPostEntity()
+    RunConsoleCommand( "sv_defaultdeployspeed", "1" )
+    RunConsoleCommand( "mp_show_voice_icons", "0" )
 GetGlobal2String( "round-state", "waiting" )
+end
 
 function GM:StartRound()
     SetGlobalInt( "preparing", CurTime() + self.Preparing:GetInt() )
