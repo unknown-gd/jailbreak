@@ -8,10 +8,8 @@ local istable = istable
 local ipairs = ipairs
 local SERVER = SERVER
 local assert = assert
-local Random = table.Random
 local Create = ents.Create
 local Set = list.Set
-local WeaponHandler
 do
 	local _class_0
 	local _base_0 = {
@@ -21,7 +19,7 @@ do
 			if self:Exists(className) then
 				return
 			end
-			local alternative = Random(self.Alternatives)
+			local alternative = self.Alternatives[1]
 			if not istable(alternative) then
 				error("Weapon '" .. tostring(className) .. "' handling failed, reason: requested analogs missing.")
 				return
@@ -142,6 +140,3 @@ do
 	_base_0.__class = _class_0
 	WeaponHandler = _class_0
 end
-local weapon_knife = WeaponHandler("weapon_knife")
-weapon_knife:AddAlternative("weapon_crowbar")
-return weapon_knife:Perform()

@@ -4,11 +4,10 @@ istable = istable
 ipairs = ipairs
 SERVER = SERVER
 assert = assert
-:Random = table
 :Create = ents
 :Set = list
 
-class WeaponHandler
+global class WeaponHandler
     Weapons: list.GetForEdit( "Weapon" )
     new: ( className ) =>
         assert isstring( className ), "Second argument must be a 'string'!"
@@ -21,7 +20,7 @@ class WeaponHandler
         if @Exists( className )
             return
 
-        alternative = Random( @Alternatives )
+        alternative = @Alternatives[ 1 ]
         unless istable( alternative )
             error( "Weapon '#{className}' handling failed, reason: requested analogs missing." )
             return
@@ -90,7 +89,7 @@ class WeaponHandler
 
                                 newPhys\SetVelocity( oldPhys\GetVelocity! )
                             else
-                                newPhys\Wake!
+                                newPhys\Sleep!
 
                     @Remove!
 
@@ -113,7 +112,3 @@ class WeaponHandler
 
         @Alternatives[] = metatable
         return true
-
-weapon_knife = WeaponHandler( "weapon_knife" )
-weapon_knife\AddAlternative( "weapon_crowbar" )
-weapon_knife\Perform!
