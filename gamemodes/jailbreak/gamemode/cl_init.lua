@@ -87,7 +87,6 @@ function GM:Think()
 end
 
 function GM:HUDPaint()
-    hook_Run( "HUDDrawTargetID" )
     hook_Run( "HUDDrawPickupHistory" )
     hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 end
@@ -95,3 +94,176 @@ end
 hook.Add( "HUDPaint", "Jailbreak::RoundInfo", function()
     draw.DrawText( string.upper( language.GetPhrase( "jb.round." .. GAMEMODE:GetRoundState() ) ), "DermaLarge", ScrW() / 2, 32, color_white, TEXT_ALIGN_CENTER )
 end )
+
+---
+--- Colors
+---
+
+local color_white = Color(255, 255, 255)
+local color_red = Color(255, 0, 0)
+local color_bacground = Color(0, 0, 0, 200)
+
+---
+--- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
+---
+
+local PANEL_META = FindMetaTable("Panel")
+
+do
+    local PANEL = {}
+
+    function PANEL:Init()
+        local avatar = vgui.Create("AvatarImage", self)
+        if IsValid(avatar) then
+            self.Avatar = avatar
+        end
+
+
+    end
+
+    function PANEL:SetPlayer(ply)
+        if not IsValid(ply) and not ply:IsPlayer() then return end
+
+        self.Player = ply
+        self.Nick = ply:Nick()
+        self.Ping = ply:Ping()
+        self.Frags = ply:Frags()
+        self.Deaths = ply:Deaths()
+
+        self.Avatar:SetPlayer(ply, 32)
+    end
+
+    function PANEL:PerformLayout()
+        local tall = ScreenScaleH(16)
+
+        self:SetTall(tall)
+
+        local marginBottom = ScreenScale(3)
+        self:DockMargin(0, 0, 0, marginBottom)
+
+        local avatar = self.Avatar
+        if IsValid(avatar) then
+            local wide, tall = self:GetSize()
+            local avatarSize = tall - ScreenScale(2)
+            local marginLeft = ScreenScale(6)
+
+            avatar:SetPos(marginLeft, tall / 2 - avatarSize / 2)
+            avatar:SetSize(avatarSize, avatarSize)
+        end
+    end
+
+    function PANEL:Paint(w, h)
+        local round = 20
+
+        draw.RoundedBox(round, 0, 0, w, h, color_bacground)
+
+        if not IsValid(self.Player) then return end
+        local avatar = self.Avatar
+        if not IsValid(avatar) then return end
+
+        local marginLeft, marginTop = ScreenScale(5), ScreenScaleH(0.4)
+        draw.DrawText(self.Nick, "DermaLarge", marginLeft * 2 + avatar:GetWide(), marginTop, color_white, TEXT_ALIGN_LEFT)
+    end
+
+    vgui.Register("JB.Scoreboard.Player", PANEL)
+end
+
+---
+--- MAIN PANEL
+---
+
+do
+    local PANEL = {}
+
+    function PANEL:Init()
+    end
+
+    function PANEL:PerformLayout(w, h)
+        local wide, tall = ScreenScale(300), ScreenScaleH(380)
+
+        self:SetSize(wide, tall)
+        self:Center()
+
+        local paddingTop, paddingHorizontal = ScreenScaleH(20), ScreenScale(10)
+        self:DockPadding(paddingHorizontal, paddingTop, paddingHorizontal, 0)
+    end
+
+    function PANEL:DeletePlayers()
+        if not istable(self.Players) then
+            self.Players = {}
+
+            return
+        end
+
+        for _, ply in ipairs(self.Players) do
+            if not IsValid(ply) then continue end
+
+            ply:Remove()
+        end
+
+        self.Players = {}
+    end
+
+    function PANEL:CreatePlayers()
+        self:DeletePlayers()
+
+        local players = player.GetAll()
+        for _, ply in ipairs(players) do
+            if not IsValid(ply) then continue end
+
+            local playerPanel = vgui.Create("JB.Scoreboard.Player", self)
+            if not IsValid(playerPanel) then continue end
+            table.insert(self.Players, playerPanel)
+
+            playerPanel:SetPlayer(ply)
+            playerPanel:Dock(TOP)
+        end
+    end
+
+    function PANEL:Show()
+        self:CreatePlayers()
+
+        return PANEL_META.Show(self)
+    end
+
+    function PANEL:Hide()
+        self:DeletePlayers()
+
+        return PANEL_META.Hide(self)
+    end
+
+    function PANEL:Paint(w, h)
+        surface.SetDrawColor(color_red)
+        surface.DrawRect(0, 0, w, h)
+
+        draw.DrawText("Your mom's gamemode", "DermaLarge", w / 2, 0, color_white, TEXT_ALIGN_CENTER)
+    end
+
+    vgui.Register("JB.Scoreboard", PANEL)
+end
+
+local scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
+
+if IsValid(scoreboard) then
+    scoreboard:Remove()
+end
+
+function GM:ScoreboardShow()
+    local scoreboard = self.ScoreBoard
+    if not IsValid(scoreboard) then
+        scoreboard = vgui.Create("JB.Scoreboard", GetHUDPanel())
+        self.ScoreBoard = scoreboard
+        -- print("Created")
+    end
+
+    scoreboard:Show()
+
+    return false
+end
+
+function GM:ScoreboardHide()
+    local scoreboard = self.ScoreBoard
+    if not IsValid(scoreboard) then return end
+
+    scoreboard:Hide()
+end
