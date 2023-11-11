@@ -85,6 +85,64 @@ function GM:PlayerSpawn( ply, transiton )
     ply:SetupHands()
 end
 
+function GM:OnEntityCreated( weapon )
+    if not weapon:IsWeapon() then return end
+
+    timer.Simple( 0.025, function()
+        if not weapon:IsValid() then return end
+        weapon:SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+
+        local phys = weapon:GetPhysicsObject()
+        if not phys or not phys:IsValid() then
+            return
+        end
+
+        if weapon:GetPos():Length() <= 3 then
+            weapon:Remove()
+            return
+        end
+
+        local counter = 0
+        for _, entity in ipairs( ents.FindInSphere( weapon:GetPos(), 32 ) ) do
+            if not entity:IsWeapon() then continue end
+            counter = counter + 1
+        end
+
+        if counter >= 5 then
+            phys:EnableMotion( false )
+        end
+    end )
+end
+
+function GM:PlayerDroppedWeapon( ply, weapon )
+    local timerName = "JB_WeaponDrop #" .. weapon:EntIndex()
+    timer.Create( timerName, 1, 1, function()
+        timer.Remove( timerName )
+        if not weapon:IsValid() then return end
+
+        local phys = weapon:GetPhysicsObject()
+        if not phys or not phys:IsValid() then return end
+
+        local pos = weapon:LocalToWorld( weapon:OBBCenter() )
+        local mins, maxs = weapon:GetCollisionBounds()
+
+        local tr = util.TraceLine( {
+            ["start"] = pos,
+            ["endpos"] = pos + Vector( 0, 0, mins[ 3 ] - 2 ),
+            ["mask"] = MASK_SOLID_BRUSHONLY,
+            ["mins"] = mins,
+            ["maxs"] = maxs
+        } )
+
+        if tr.Hit then
+            phys:EnableMotion( false )
+            return
+        end
+
+        self:PlayerDroppedWeapon( ply, weapon )
+    end )
+end
+
 function GM:PlayerLoadout( ply, teamID )
     if not self.PlayableTeams[ teamID ] then
         return
