@@ -1,4 +1,3 @@
-include( "weapons.lua" )
 include( "shared.lua" )
 
 CreateConVar( "cl_playercolor", "0.3 0.3 0.3", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
@@ -76,7 +75,8 @@ end
 
 function GM:Think()
     local pos = EyePos()
-    for _, pl in ipairs( player.GetHumans() ) do
-        pl:SetVoiceVolumeScale( math.min( 1 - pos:DistToSqr( pl:EyePos() ) / self.VoiceChatDistance, 1 ) )
+    for _, ply in ipairs( player.GetHumans() ) do
+        if not ply:IsSpeaking() then continue end
+        ply:SetVoiceVolumeScale( math.Clamp( 1 - pos:DistToSqr( ply:EyePos() ) / self.VoiceChatDistance, 0, 1 ) )
     end
 end
