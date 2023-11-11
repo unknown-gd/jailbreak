@@ -100,3 +100,30 @@ end
 function GM:IsWaitingPlayers()
     return self:GetRoundState() == "waiting"
 end
+
+do
+
+    local singleHandHoldTypes = {
+        ["grenade"] = true,
+        ["normal"] = true,
+        ["melee"] = true,
+        ["knife"] = true,
+        ["fist"] = true,
+        ["slam"] = true
+    }
+
+    hook.Add( "CalcMainActivity", "Jailbreak::Additional Animations", function( ply, velocity )
+        if not ply:IsOnGround() then return end
+
+        if velocity:Length() >= ply:GetRunSpeed() then
+            local weapon = ply:GetActiveWeapon()
+            if IsValid( weapon ) and not singleHandHoldTypes[ weapon:GetHoldType() ] then return end
+            return ACT_HL2MP_RUN_FAST, -1
+        elseif ply:Crouching() and velocity:Length2DSqr() < 1 then
+            local weapon = ply:GetActiveWeapon()
+            if IsValid( weapon ) and weapon:GetHoldType() ~= "normal" then return end
+            return ACT_MP_JUMP, ply:LookupSequence( "pose_ducking_01" )
+        end
+    end )
+
+end
