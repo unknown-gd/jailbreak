@@ -269,10 +269,23 @@ function GM:PlayerDisconnected( ply )
 end
 
 concommand.Add( "drop", function( ply )
-    local weapon = ply:GetActiveWeapon()
-    if weapon and weapon:IsValid() then
-        local model = weapon:GetWeaponWorldModel()
+    local dropWeapon = ply:GetActiveWeapon()
+    if not dropWeapon or not dropWeapon:IsValid() then return end
+
+    local model = dropWeapon:GetWeaponWorldModel()
         if not model or not util.IsValidModel( model ) then return end
-        ply:DropWeapon( weapon )
+
+    ply:DropWeapon( dropWeapon )
+
+    local maxWeight, nextWeapon
+    for _, weapon in ipairs( ply:GetWeapons() ) do
+        local weight = weapon:GetWeight()
+        if not maxWeight or maxWeight <= weight then
+            nextWeapon = weapon
+            maxWeight = weight
+        end
     end
+
+    if not nextWeapon or not nextWeapon:IsValid() then return end
+    ply:SelectWeapon( nextWeapon:GetClass() )
 end )

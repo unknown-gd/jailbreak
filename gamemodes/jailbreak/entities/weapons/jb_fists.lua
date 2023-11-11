@@ -1,12 +1,12 @@
-local SERVER = SERVER
 AddCSLuaFile()
 
 SWEP.PrintName = "#GMOD_Fists"
-SWEP.Author = "Kilburn, robotboy655, MaxOfS2D & Tenrys"
+SWEP.Author = "Kilburn, robotboy655, MaxOfS2D, Tenrys and Unknown Developer"
 SWEP.Purpose = "Well we sure as hell didn't use guns! We would just wrestle Hunters to the ground with our bare hands! I used to kill ten, twenty a day, just using my fists."
 
 SWEP.Slot = 0
 SWEP.SlotPos = 4
+SWEP.Weight = -5
 
 SWEP.Spawnable = true
 
@@ -106,6 +106,7 @@ function SWEP:SecondaryAttack()
 end
 
 local phys_pushscale = GetConVar( "phys_pushscale" )
+local SERVER = SERVER
 
 function SWEP:DealDamage()
 
