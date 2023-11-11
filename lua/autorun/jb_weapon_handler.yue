@@ -1,0 +1,119 @@
+:GetStored, :Register = weapons
+isstring = isstring
+istable = istable
+ipairs = ipairs
+SERVER = SERVER
+assert = assert
+:Random = table
+:Create = ents
+:Set = list
+
+class WeaponHandler
+    Weapons: list.GetForEdit( "Weapon" )
+    new: ( className ) =>
+        assert isstring( className ), "Second argument must be a 'string'!"
+        @ClassName = className
+        @Alternatives = {}
+        @Base = nil
+
+    Perform: =>
+        className = @ClassName
+        if @Exists( className )
+            return
+
+        alternative = Random( @Alternatives )
+        unless istable( alternative )
+            error( "Weapon '#{className}' handling failed, reason: requested analogs missing." )
+            return
+
+        Register( alternative, className )
+        Set( "Weapon", className, nil )
+
+    GetWeaponInfo: ( className ) =>
+        return @Weapons[ className ]
+
+    Exists: ( className ) =>
+        return istable( @GetWeaponInfo( className ) )
+
+    AddAlternatives: ( alternatives ) =>
+        success = false
+        for _, className in ipairs( alternatives )
+            if @AddAlternative( className )
+                success = true
+        return success
+
+    AddAlternative: ( className ) =>
+        unless isstring( className )
+            return false
+
+        info = @GetWeaponInfo( className )
+        unless istable( info )
+            return false
+
+        metatable = GetStored( className )
+        unless istable( metatable )
+            metatable = {
+                PrintName: info.PrintName
+                BaseClassName: className
+                Author: info.Author
+                Spawnable: false
+            }
+
+            if SERVER
+
+                metatable.Initialize = () =>
+                    entity = Create( className )
+                    if entity and entity\IsValid!
+                        entity\SetPos( @GetPos! )
+                        entity\SetAngles( @GetAngles! )
+                        entity\Spawn!
+                        entity\Activate!
+
+                        entity\SetCollisionGroup( @GetCollisionGroup! )
+                        entity\SetMoveType( @GetMoveType! )
+                        entity\SetNoDraw( @GetNoDraw! )
+                        entity\SetColor( @GetColor! )
+
+                        newPhys = entity\GetPhysicsObject!
+                        if newPhys and newPhys\IsValid!
+                            oldPhys = @GetPhysicsObject!
+                            if oldPhys and oldPhys\IsValid!
+                                newPhys\EnableCollisions( oldPhys\IsCollisionEnabled! )
+                                newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
+                                newPhys\EnableDrag( oldPhys\IsDragEnabled! )
+                                newPhys\SetMass( oldPhys\GetMass! )
+
+                                if oldPhys\IsAsleep!
+                                    newPhys\Sleep!
+                                else
+                                    newPhys\Wake!
+
+                                newPhys\SetVelocity( oldPhys\GetVelocity! )
+                            else
+                                newPhys\Wake!
+
+                    @Remove!
+
+                metatable.Deploy = () =>
+                    owner = @GetOwner!
+                    unless owner and owner\IsValid!
+                        return
+
+                    if owner\IsPlayer! and not owner\Alive!
+                        return
+
+                    owner\Give( className )
+                    owner\SelectWeapon( className )
+                    owner\StripWeapon( @GetClass! )
+                    return true
+
+                metatable.Holster = () =>
+                    @Remove!
+                    return true
+
+        @Alternatives[] = metatable
+        return true
+
+weapon_knife = WeaponHandler( "weapon_knife" )
+weapon_knife\AddAlternative( "weapon_crowbar" )
+weapon_knife\Perform!
