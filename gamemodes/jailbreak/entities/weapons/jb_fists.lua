@@ -76,9 +76,9 @@ function SWEP:SetNextFire( curTime )
 end
 
 function SWEP:PrimaryAttack( right )
-    if self:GetHoldType() ~= "fist" then return end
+    if self:GetHoldType() == "normal" then return end
     if self:GetNextIdle() == 0 then return end
-    if self.HolsterAllowed then return end
+    if self.Pulls then return end
 
     local owner = self:GetOwner()
     owner:SetAnimation( PLAYER_ATTACK1 )
@@ -195,14 +195,20 @@ end
 function SWEP:Show()
     self:GetViewModel():SetNoDraw( false )
     self:SetHoldType( "fist" )
-    self:SetNextIdle( self:PlaySequence( "fists_draw" ) )
+    self.Pulls = true
+
+    self:SetNextIdle( self:PlaySequence( "fists_draw", function()
+        self.Pulls = false
+    end ) )
 end
 
 function SWEP:Hide()
+    self.Pulls = true
     self:SetNextIdle( 0 )
     self:SetHoldType( "normal" )
     self:PlaySequence( "fists_holster", function( _, vm )
         vm:SetNoDraw( true )
+        self.Pulls = false
     end )
 end
 
@@ -228,6 +234,7 @@ end
 
 function SWEP:Think()
     if self:GetHoldType() ~= "fist" then return end
+    if self.Pulls then return end
     local curTime = CurTime()
 
     local idletime = self:GetNextIdle()
@@ -251,6 +258,8 @@ function SWEP:Reload()
     self.LastReload = curTime
 
     if curTime - lastReload <= 0.025 then return end
+    if self.Pulls then return end
+
     if self:GetHoldType() == "normal" then
         self:Show()
     else

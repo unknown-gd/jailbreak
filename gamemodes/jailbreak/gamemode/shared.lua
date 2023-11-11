@@ -29,7 +29,7 @@ local guardModels = {
     "models/player/riot.mdl",
     "models/player/swat.mdl",
     "models/player/urban.mdl",
-    -- "models/player/odessa.mdl"
+    "models/player/odessa.mdl"
 }
 
 for _, modelPath in ipairs( guardModels ) do
