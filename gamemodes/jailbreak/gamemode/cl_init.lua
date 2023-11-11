@@ -14,6 +14,10 @@ function GM:OnSpawnMenuOpen()
     RunConsoleCommand( "lastinv" )
 end
 
+function GM:PostProcessPermitted( name )
+    return false
+end
+
 function GM:PlayerButtonUp( ply, keyCode )
     if keyCode ~= KEY_G then return end
 
