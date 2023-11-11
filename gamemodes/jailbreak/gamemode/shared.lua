@@ -80,3 +80,23 @@ function GM:FinishMove( ply, mv )
         end
     end
 end
+
+function GM:IsRoundPreparing()
+    return GetGlobalInt( "preparing", 0 ) > CurTime()
+end
+
+function GM:GetRoundState()
+    return GetGlobal2String( "round-state", "waiting" )
+end
+
+function GM:IsRoundRunning()
+    return self:GetRoundState() == "running"
+end
+
+function GM:IsRoundEnded()
+    return self:GetRoundState() == "ended"
+end
+
+function GM:IsWaitingPlayers()
+    return self:GetRoundState() == "waiting"
+end

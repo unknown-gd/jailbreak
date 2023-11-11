@@ -1,6 +1,9 @@
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
+-- TODO: Write desc
+GM.Preparing = CreateConVar( "jb_preparing", "30", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 5, 120 )
+
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "643148462" )
 
@@ -35,8 +38,6 @@ function GM:PlayerSpawn( ply, transiton )
     else
         ply:SetArmor( 0 )
     end
-
-    print( ply, teamID, TEAM_UNASSIGNED, teamID == TEAM_UNASSIGNED )
 
     if not self.PlayableTeams[ teamID ] then
         ply:Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
@@ -124,29 +125,78 @@ function GM:PlayerSetHandsModel( ply, hands )
     hands:SetBodyGroups( info.body )
 end
 
-do
+function GM:PlayerDeathThink( ply )
+    if not ply:IsBot() and self.PlayableTeams[ ply:Team() ] and not ( self:IsRoundPreparing() or self:IsWaitingPlayers() ) then return end
+    ply:Spawn()
+end
 
-    local keys = bit.bor( IN_ATTACK, IN_ATTACK2, IN_JUMP )
+function GM:TeamPlayerDeath( ply, teamID )
+    if self:IsRoundPreparing() or self:IsWaitingPlayers() then return end
+    ply:SetTeam( TEAM_SPECTATOR )
+end
 
-    function GM:PlayerDeathThink( ply )
-        if ply.InstantRespawn then
-            ply.InstantRespawn = nil
-            ply:Spawn()
-            return
-        end
+function GM:PlayerSilentDeath( ply )
+    local teamID = ply:Team()
+    if self.PlayableTeams[ teamID ] then
+        hook.Run( "TeamPlayerDeath", ply, teamID )
+    end
+end
 
-        if ply.NextSpawnTime > CurTime() then
-            return
-        end
+function GM:PlayerDeath( ply, inflictor, attacker )
+    local teamID = ply:Team()
+    if self.PlayableTeams[ teamID ] then
+        hook.Run( "TeamPlayerDeath", ply, teamID )
+    end
 
-        if ply:IsBot() or ply:KeyPressed( keys ) then
-            ply:Spawn()
+    if IsValid( attacker ) and attacker:GetClass() == "trigger_hurt" then
+        attacker = ply
+    end
+
+    if IsValid( attacker ) and attacker:IsVehicle() and IsValid( attacker:GetDriver() ) then
+        attacker = attacker:GetDriver()
+    end
+
+    if not IsValid( inflictor ) and IsValid( attacker ) then
+        inflictor = attacker
+    end
+
+    -- Convert the inflictor to the weapon that they're holding if we can.
+    -- This can be right or wrong with NPCs since combine can be holding a
+    -- pistol but kill you by hitting you with their arm.
+    if IsValid( inflictor ) and inflictor == attacker and ( inflictor:IsPlayer() or inflictor:IsNPC() ) then
+        inflictor = inflictor:GetActiveWeapon()
+        if not IsValid( inflictor ) then
+            inflictor = attacker
         end
     end
 
+    if attacker == ply then
+        self:SendDeathNotice( nil, "suicide", ply, 0 )
+        MsgAll( attacker:Nick() .. " suicided!\n" )
+        return
+    end
+
+    if attacker:IsPlayer() then
+        self:SendDeathNotice( attacker, inflictor:GetClass(), ply, 0 )
+        MsgAll( attacker:Nick() .. " killed " .. ply:Nick() .. " using " .. inflictor:GetClass() .. "\n" )
+        return
+    end
+
+    local flags = 0
+    if attacker:IsNPC() and attacker:Disposition( ply ) ~= D_HT then
+        flags = flags + DEATH_NOTICE_FRIENDLY_ATTACKER
+    end
+
+    self:SendDeathNotice( self:GetDeathNoticeEntityName( attacker ), inflictor:GetClass(), ply, 0 )
+
+    MsgAll( ply:Nick() .. " was killed by " .. attacker:GetClass() .. "\n" )
 end
 
 function GM:PlayerShouldTakeDamage( ply, attacker )
+    if self:IsRoundPreparing() then
+        return false
+    end
+
     if ply:Team() == TEAM_GUARD and attacker:IsPlayer() then
         return attacker:Team() == TEAM_PRISONER
     end
@@ -179,6 +229,10 @@ function GM:PlayerNoClip( ply, desiredState )
 end
 
 function GM:CanPlayerSuicide( ply )
+    if self:IsRoundPreparing() then
+        return false
+    end
+
     return self.PlayableTeams[ ply:Team() ]
 end
 
@@ -211,21 +265,47 @@ function GM:PlayerCanJoinTeam( ply, teamID )
         return false
     end
 
-    if teamID == TEAM_GUARD then
-        local guards = team.GetPlayers( TEAM_GUARD )
-        if #guards == 0 then
+    if self.PlayableTeams[ teamID ] then
+        if self:IsRoundPreparing() or self:IsWaitingPlayers() then
+            if teamID == TEAM_GUARD then
+                local guards = team.GetPlayers( TEAM_GUARD )
+                if #guards == 0 then
+                    return true
+                end
+
+                if ( #guards / #team.GetPlayers( TEAM_PRISONER ) ) < 0.35 then
+                    return true
+                end
+
+                -- TODO: here chat message
+                return false
+            end
+
             return true
         end
 
-        return ( #guards / #team.GetPlayers( TEAM_PRISONER ) ) < 0.35
+        -- TODO: here chat message
+        return false
     end
 
     return true
 end
 
+function GM:PlayerJoinTeam( ply, teamID )
+    if ply:Alive() then
+        if self.PlayableTeams[ ply:Team() ] then
+            ply:Kill()
+        else
+            ply:KillSilent()
+        end
+    end
+
+    ply:SetTeam( teamID )
+end
+
 function GM:PlayerRequestTeam( ply, teamID )
     if not team.Joinable( teamID ) then
-        ply:ChatPrint( "You can't join that team" )
+        -- TODO: here chat message
         return
     end
 
@@ -234,20 +314,6 @@ function GM:PlayerRequestTeam( ply, teamID )
     end
 
     self:PlayerJoinTeam( ply, teamID )
-end
-
-function GM:PlayerJoinTeam( ply, teamID )
-    if ply:Alive() then
-        if self.PlayableTeams[ ply:Team() ] then
-            ply:Kill()
-        else
-            ply.InstantRespawn = true
-            ply:KillSilent()
-        end
-    end
-
-    ply:SetTeam( teamID )
-    ply.LastTeamSwitch = CurTime()
 end
 
 function GM:PlayerDisconnected( ply )
@@ -273,7 +339,7 @@ concommand.Add( "drop", function( ply )
     if not dropWeapon or not dropWeapon:IsValid() then return end
 
     local model = dropWeapon:GetWeaponWorldModel()
-        if not model or not util.IsValidModel( model ) then return end
+    if not model or not util.IsValidModel( model ) then return end
 
     ply:DropWeapon( dropWeapon )
 
@@ -289,3 +355,14 @@ concommand.Add( "drop", function( ply )
     if not nextWeapon or not nextWeapon:IsValid() then return end
     ply:SelectWeapon( nextWeapon:GetClass() )
 end )
+
+GetGlobal2String( "round-state", "waiting" )
+
+function GM:StartRound()
+    SetGlobalInt( "preparing", CurTime() + self.Preparing:GetInt() )
+    GetGlobal2String( "round-state", "preparing" )
+end
+
+function GM:EndRound()
+    GetGlobal2String( "round-state", "ended" )
+end
