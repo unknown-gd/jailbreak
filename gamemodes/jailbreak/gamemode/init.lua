@@ -198,6 +198,25 @@ function GM:PlayerDeathThink( ply )
     ply:Spawn()
 end
 
+function GM:IsSpawnpointSuitable( ply, entity, bMakeSuitable )
+    if not self.PlayableTeams[ ply:Team() ] then
+        return true
+    end
+
+    local pos = entity:GetPos()
+    local mins, maxs = ply:GetHull()
+
+    local tr = util.TraceHull( {
+        ["start"] = pos,
+        ["endpos"] = pos,
+        ["mask"] = MASK_PLAYERSOLID,
+        ["mins"] = mins,
+        ["maxs"] = maxs
+    } )
+
+    return not tr.Hit
+end
+
 function GM:TeamPlayerDeath( ply, teamID )
     if self:IsRoundPreparing() or self:IsWaitingPlayers() then return end
     ply:SetTeam( TEAM_SPECTATOR )
@@ -435,7 +454,7 @@ end )
 function GM:InitPostEntity()
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     RunConsoleCommand( "mp_show_voice_icons", "0" )
-GetGlobal2String( "round-state", "waiting" )
+    GetGlobal2String( "round-state", "waiting" )
 end
 
 function GM:StartRound()
