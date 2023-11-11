@@ -318,8 +318,8 @@ end
 
 function GM:PlayerDisconnected( ply )
     if ply:Team() == TEAM_PRISONER then
-        local guards, prisoners = team.GetPlayers( TEAM_GUARD ), team.GetPlayers( TEAM_PRISONER )
-        local diff = #guards / ( #prisoners - 1 )
+        local guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+        local diff = #guards / ( prisonerCount - 1 )
         if diff > 0.25 then
             for i = 1, #guards do
                 local guard, index = table.Random( guards )
@@ -364,5 +364,12 @@ function GM:StartRound()
 end
 
 function GM:EndRound()
-    GetGlobal2String( "round-state", "ended" )
+    local guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+    if guardCount == 0 and prisonerCount == 0 then
+        GetGlobal2String( "round-state", "draw" )
+    elseif guardCount > prisonerCount then
+        GetGlobal2String( "round-state", "guard_victory" )
+    else
+        GetGlobal2String( "round-state", "prisoner_victory" )
+    end
 end
