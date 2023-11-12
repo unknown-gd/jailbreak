@@ -457,10 +457,6 @@ GM.InitPostEntity = =>
     @SetRoundState( "waiting" )
     @StopTeamPlayerSpawn!
 
-GM.PostCleanupMap = =>
-    @SetRoundState( "waiting" )
-    @StopTeamPlayerSpawn!
-
 GM.SetRoundState = ( state ) =>
     oldState = @GetRoundState!
     SetGlobalString( "round-state", state )
