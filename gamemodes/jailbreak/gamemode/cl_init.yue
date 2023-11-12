@@ -24,6 +24,10 @@ GM.PostCleanupMap = =>
 GM.InitPostEntity = =>
     @ShowTeam!
 
+concommand.Add( "show_team", ->
+    GAMEMODE\ShowTeam!
+)
+
 GM.OnSpawnMenuOpen = =>
     RunConsoleCommand( "lastinv" )
 
@@ -39,6 +43,11 @@ GM.PlayerButtonUp = ( ply, keyCode ) =>
         return
 
     RunConsoleCommand( "drop" )
+
+GM.FriendlyFire = ( ply, teamID ) =>
+    timer.Simple 0, ->
+        if ply\IsValid!
+            ply\RemoveAllDecals!
 
 tauntCamera = TauntCamera!
 

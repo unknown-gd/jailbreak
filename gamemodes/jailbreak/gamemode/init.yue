@@ -2,10 +2,17 @@ AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
 -- TODO: Write desc
-GM.Preparing = CreateConVar( "jb_preparing", "30", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 5, 120 )
+GM.Preparing = CreateConVar( "jb_preparing", "30", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 5, 900 )
 
+resource.AddSingleFile( "resource/localization/en/jailbreak.properties" )
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "643148462" )
+
+-- TODO: Write desc
+GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 1, game.MaxPlayers() - 1 )\GetInt! + 1 )
+cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
+    (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
+"Jailbreak" )
 
 TEAM_UNASSIGNED = TEAM_UNASSIGNED
 TEAM_PRISONER = TEAM_PRISONER
@@ -32,7 +39,7 @@ do
 GM.AutoBalancePlayer = ( ply ) =>
     teamID = TEAM_UNASSIGNED
     guardCount = team.NumPlayers( TEAM_GUARD )
-    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < 0.35
+    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
         teamID = TEAM_GUARD
     else
         teamID = TEAM_PRISONER
@@ -41,7 +48,7 @@ GM.AutoBalancePlayer = ( ply ) =>
 
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
     if ply\IsBot! and ( @IsRoundPreparing! or @IsWaitingPlayers! )
-        @AutoBalancePlayer( ply )
+        ply\SetTeam( TEAM_PRISONER )
         return
 
     ply\SetTeam( TEAM_UNASSIGNED )
@@ -382,7 +389,7 @@ GM.PlayerCanJoinTeam = ( ply, teamID ) =>
 
     if @IsRoundPreparing! or @IsWaitingPlayers!
         guardCount = team.NumPlayers( TEAM_GUARD )
-        if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < 0.35
+        if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
             return teamID == TEAM_GUARD
         else
             return teamID == TEAM_PRISONER
@@ -409,16 +416,35 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
     @PlayerJoinTeam( ply, teamID )
 
 GM.PlayerDisconnected = ( ply ) =>
-    if ply\Team! ~= TEAM_PRISONER
-        return
+    guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+    guardCount = #guards
+
+    teamID = ply\Team!
+    if teamID == TEAM_PRISONER
+        prisonerCount -= 1
+    elseif teamID == TEAM_GUARD
+        table.RemoveByValue( guards, ply )
+        guardCount -= 1
 
     unless @IsWaitingPlayers! or @IsRoundPreparing!
+        if guardCount == 0 and prisonerCount == 0
+            @SetRoundState( "draw" )
+            @NextRoundStateTime!
+        elseif guardCount == 0
+            @SetRoundState( "prisoner_victory" )
+            @NextRoundStateTime!
+        elseif prisonerCount == 0
+            @SetRoundState( "guard_victory" )
+            @NextRoundStateTime!
+
         return
 
-    guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
-    diff = #guards / ( prisonerCount - 1 )
-    if diff > 0.35
-        for i = 1, #guards do
+    if teamID ~= TEAM_PRISONER
+        return
+
+    diff = guardCount / ( prisonerCount - 1 )
+    if diff > @GuardsDiff
+        for i = 1, guardCount
             guard, index = table.Random( guards )
             table.remove( guards, index )
 
@@ -455,7 +481,6 @@ GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     RunConsoleCommand( "mp_show_voice_icons", "0" )
     @SetRoundState( "waiting" )
-    @StopTeamPlayerSpawn!
 
 GM.SetRoundState = ( state ) =>
     oldState = @GetRoundState!
@@ -479,10 +504,17 @@ GM.Think = =>
 GM.RoundStateChanged = ( old, new ) =>
     if new == "waiting" or new == "preparing" or new == "running"
         for ply in *player.GetAll!
-            if ply\IsBot!
-                @AutoBalancePlayer( ply )
+            isBot = ply\IsBot!
+            if isBot
+                if new == "running"
+                    @AutoBalancePlayer( ply )
+                else
+                    ply\SetTeam( TEAM_PRISONER )
+
             if @PlayableTeams[ ply\Team! ]
                 ply\Spawn!
+            elseif not isBot
+                ply\ConCommand( "show_team" )
         game.CleanUpMap!
 
 -- TODO: Write round system here

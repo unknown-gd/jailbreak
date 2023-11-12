@@ -157,3 +157,34 @@ WeaponHandler = WeaponHandler
 GM.PreGamemodeLoaded = =>
     for className, alternatives in pairs( @WeaponClasses )
        WeaponHandler( className, alternatives )
+
+hook_Run = hook.Run
+bodyParts = {
+    [HITGROUP_LEFTARM]: true
+    [HITGROUP_RIGHTARM]: true
+    [HITGROUP_LEFTLEG]: true
+    [HITGROUP_RIGHTLEG]: true
+    [HITGROUP_GEAR]: true
+}
+
+GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
+	if hitGroup == HITGROUP_HEAD
+		damageInfo\ScaleDamage( 2 )
+    elseif bodyParts[ hitGroup ]
+		damageInfo\ScaleDamage( 0.25 )
+
+    teamID = ply\Team!
+    if @IsRoundPreparing!
+        return hook_Run( "FriendlyFire", ply, teamID ) ~= false
+
+    unless @PlayableTeams[ teamID ]
+        return hook_Run( "FriendlyFire", ply, teamID ) ~= false
+
+    attacker = damageInfo\GetAttacker!
+    unless IsValid( attacker ) and attacker\IsPlayer!
+        return false
+
+    if teamID == TEAM_GUARD and attacker\Team! == teamID
+        return hook_Run( "FriendlyFire", ply, teamID ) ~= false
+
+    return false
