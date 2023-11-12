@@ -314,7 +314,7 @@ GM.PlayerUse = ( ply, entity ) =>
             ply.LastWorldInteractions = curTime
 
             if curTime - lastWorldInteractions > 0.025
-                if className == "prop_door_rotating" or className == "prop_door_rotating"
+                if className == "prop_door_rotating"
                     ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM )
                 elseif className == "func_button" or className == "gmod_button"
                     ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST )
@@ -433,10 +433,18 @@ concommand.Add( "drop", ( ply ) ->
     ply\SelectWeapon( nextWeapon\GetClass! )
 )
 
+GM.LockAllDoors = =>
+    for door in *ents.FindByClass( "prop_door_rotating" )
+        door\Fire( "lock", "", 0 )
+
 GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     RunConsoleCommand( "mp_show_voice_icons", "0" )
     GetGlobal2String( "round-state", "waiting" )
+    @LockAllDoors!
+
+GM.PostCleanupMap = =>
+    @LockAllDoors!
 
 GM.StartRound = =>
     SetGlobalInt( "preparing", CurTime! + @Preparing\GetInt! )

@@ -18,6 +18,9 @@ net.Receive( "AnimRestartGesture", ->
     )
 )
 
+GM.PostCleanupMap = =>
+    RunConsoleCommand( "r_cleardecals" )
+
 GM.InitPostEntity = =>
     @ShowTeam!
 
