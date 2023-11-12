@@ -1,5 +1,6 @@
 :GetStored, :Register = weapons
 isstring = isstring
+IsValid = IsValid
 istable = istable
 ipairs = ipairs
 SERVER = SERVER
@@ -9,24 +10,30 @@ assert = assert
 
 global class WeaponHandler
     Weapons: list.GetForEdit( "Weapon" )
-    new: ( className ) =>
+    new: ( className, alternative ) =>
         assert isstring( className ), "Second argument must be a 'string'!"
+        @Registered = @Exists( className )
         @ClassName = className
-        @Alternatives = {}
-        @Base = nil
+        if @Registered
+            return
 
-    Perform: =>
+        if isstring( alternative )
+            @AddAlternative( alternative )
+        elseif istable( alternative )
+            @AddAlternatives( alternative )
+
+    Register: ( metatable ) =>
+        if @Registered
+            return
+
+        unless istable( metatable )
+            error( "Weapon '#{@ClassName}' handling failed, reason: requested analogs missing." )
+            return
+
         className = @ClassName
-        if @Exists( className )
-            return
-
-        alternative = @Alternatives[ 1 ]
-        unless istable( alternative )
-            error( "Weapon '#{className}' handling failed, reason: requested analogs missing." )
-            return
-
-        Register( alternative, className )
+        Register( metatable, className )
         Set( "Weapon", className, nil )
+        @Registered = true
 
     GetWeaponInfo: ( className ) =>
         return @Weapons[ className ]
@@ -34,20 +41,15 @@ global class WeaponHandler
     Exists: ( className ) =>
         return istable( @GetWeaponInfo( className ) )
 
-    AddAlternatives: ( alternatives ) =>
-        success = false
-        for _, className in ipairs( alternatives )
-            if @AddAlternative( className )
-                success = true
-        return success
-
     AddAlternative: ( className ) =>
-        unless isstring( className )
-            return false
+        if @Registered
+            return
+
+        assert isstring( className ), "Second argument must be a 'string'!"
 
         info = @GetWeaponInfo( className )
         unless istable( info )
-            return false
+            return
 
         metatable = GetStored( className )
         unless istable( metatable )
@@ -61,6 +63,11 @@ global class WeaponHandler
             if SERVER
 
                 metatable.Initialize = () =>
+                    owner = @GetOwner!
+                    if IsValid( owner )
+                        owner\Give( className )
+                        return
+
                     entity = Create( className )
                     if entity and entity\IsValid!
                         entity\SetPos( @GetPos! )
@@ -110,5 +117,9 @@ global class WeaponHandler
                     @Remove!
                     return true
 
-        @Alternatives[] = metatable
-        return true
+        @Register( metatable )
+
+    AddAlternatives: ( alternatives ) =>
+        assert istable( alternatives ), "Second argument must be a 'table'!"
+        for _, className in ipairs( alternatives )
+            @AddAlternative( className )

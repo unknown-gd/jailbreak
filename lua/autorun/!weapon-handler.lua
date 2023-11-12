@@ -4,6 +4,7 @@ do
 	GetStored, Register = _obj_0.GetStored, _obj_0.Register
 end
 local isstring = isstring
+local IsValid = IsValid
 local istable = istable
 local ipairs = ipairs
 local SERVER = SERVER
@@ -14,18 +15,18 @@ do
 	local _class_0
 	local _base_0 = {
 		Weapons = list.GetForEdit("Weapon"),
-		Perform = function(self)
+		Register = function(self, metatable)
+			if self.Registered then
+				return
+			end
+			if not istable(metatable) then
+				error("Weapon '" .. tostring(self.ClassName) .. "' handling failed, reason: requested analogs missing.")
+				return
+			end
 			local className = self.ClassName
-			if self:Exists(className) then
-				return
-			end
-			local alternative = self.Alternatives[1]
-			if not istable(alternative) then
-				error("Weapon '" .. tostring(className) .. "' handling failed, reason: requested analogs missing.")
-				return
-			end
-			Register(alternative, className)
-			return Set("Weapon", className, nil)
+			Register(metatable, className)
+			Set("Weapon", className, nil)
+			self.Registered = true
 		end,
 		GetWeaponInfo = function(self, className)
 			return self.Weapons[className]
@@ -33,22 +34,14 @@ do
 		Exists = function(self, className)
 			return istable(self:GetWeaponInfo(className))
 		end,
-		AddAlternatives = function(self, alternatives)
-			local success = false
-			for _, className in ipairs(alternatives) do
-				if self:AddAlternative(className) then
-					success = true
-				end
-			end
-			return success
-		end,
 		AddAlternative = function(self, className)
-			if not isstring(className) then
-				return false
+			if self.Registered then
+				return
 			end
+			assert(isstring(className), "Second argument must be a 'string'!")
 			local info = self:GetWeaponInfo(className)
 			if not istable(info) then
-				return false
+				return
 			end
 			local metatable = GetStored(className)
 			if not istable(metatable) then
@@ -60,6 +53,11 @@ do
 				}
 				if SERVER then
 					metatable.Initialize = function(self)
+						local owner = self:GetOwner()
+						if IsValid(owner) then
+							owner:Give(className)
+							return
+						end
 						local entity = Create(className)
 						if entity and entity:IsValid() then
 							entity:SetPos(self:GetPos())
@@ -85,7 +83,7 @@ do
 									end
 									newPhys:SetVelocity(oldPhys:GetVelocity())
 								else
-									newPhys:Wake()
+									newPhys:Sleep()
 								end
 							end
 						end
@@ -110,22 +108,31 @@ do
 					end
 				end
 			end
-			do
-				local _obj_0 = self.Alternatives
-				_obj_0[#_obj_0 + 1] = metatable
+			return self:Register(metatable)
+		end,
+		AddAlternatives = function(self, alternatives)
+			assert(istable(alternatives), "Second argument must be a 'table'!")
+			for _, className in ipairs(alternatives) do
+				self:AddAlternative(className)
 			end
-			return true
 		end
 	}
 	if _base_0.__index == nil then
 		_base_0.__index = _base_0
 	end
 	_class_0 = setmetatable({
-		__init = function(self, className)
+		__init = function(self, className, alternative)
 			assert(isstring(className), "Second argument must be a 'string'!")
+			self.Registered = self:Exists(className)
 			self.ClassName = className
-			self.Alternatives = { }
-			self.Base = nil
+			if self.Registered then
+				return
+			end
+			if isstring(alternative) then
+				return self:AddAlternative(alternative)
+			elseif istable(alternative) then
+				return self:AddAlternatives(alternative)
+			end
 		end,
 		__base = _base_0,
 		__name = "WeaponHandler"
