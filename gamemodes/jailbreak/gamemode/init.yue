@@ -50,8 +50,8 @@ GM.PlayerSpawn = ( ply, transiton ) =>
             ply\SetNoDraw( true )
             return
 
-        for teamID = 1, 2 do
-            @PlayerRequestTeam( ply, teamID )
+        for id = 1, 2
+            @PlayerRequestTeam( ply, id )
         return
 
     ply\SetNoDraw( false )
@@ -157,7 +157,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
 GM.PlayerSetModel = ( ply, teamID ) =>
     models = @PlayerModels[ teamID ]
     if teamID == TEAM_PRISONER
-        models = models[ @FemalePrison and 1 or 2 ]
+        models = models[ @IsFemalePrison and 1 or 2 ]
 
     requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
     if requested and #requested > 0
