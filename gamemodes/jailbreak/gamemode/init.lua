@@ -339,6 +339,18 @@ function GM:PlayerUse( ply, entity )
     return true
 end
 
+function GM:PlayerCanSeePlayersChat( str, isTeam, listener, speaker )
+    if not IsValid( speaker ) then
+        return true
+    end
+
+    if isTeam then
+        return listener:Alive() and speaker:Alive() and listener:Team() == speaker:Team()
+    end
+
+    return self.PlayableTeams[ speaker:Team() ] and speaker:Alive()
+end
+
 function GM:PlayerCanHearPlayersVoice( listener, talker )
     local talkerPosition = talker:EyePos()
     if talkerPosition:DistToSqr( listener:EyePos() ) <= self.VoiceChatDistance then
