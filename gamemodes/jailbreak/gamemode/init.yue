@@ -11,7 +11,25 @@ TEAM_UNASSIGNED = TEAM_UNASSIGNED
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 hook_Run = hook.Run
-ipairs = ipairs
+
+do
+
+    util.AddNetworkString( "AnimRestartGesture" )
+    PLAYER = FindMetaTable( "Player" )
+
+    PLAYER.AnimRestartGestureServer = PLAYER.AnimRestartGestureServer or PLAYER.AnimRestartGesture
+
+    PLAYER.AnimRestartGesture = ( slot, activity, autoKill ) =>
+        autoKill = autoKill ~= true
+
+        net.Start( "AnimRestartGesture" )
+        net.WriteEntity( @ )
+        net.WriteUInt( slot, 6 )
+        net.WriteUInt( activity, 32 )
+        net.WriteBool( autoKill )
+        net.SendPVS( @GetPos! )
+
+        @AnimRestartGestureServer( slot, activity, autoKill )
 
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
     ply\SetTeam( TEAM_UNASSIGNED )
@@ -313,6 +331,14 @@ GM.PlayerCanHearPlayersVoice = ( listener, talker ) =>
 
     return false
 
+GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
+    unless entity\IsPlayer!
+        return
+
+    if new < 3 and old >= 3
+        ply\AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
+    elseif new == 3
+        ply\AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
 
 GM.PlayerCanJoinTeam = ( ply, teamID ) =>
     if ply\Team! == teamID

@@ -6,6 +6,18 @@ CreateConVar( "cl_playerskin", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTR
 CreateConVar( "cl_playerbodygroups", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The bodygroups to use, if the model has any" )
 hook_Run = hook.Run
 
+net.Receive( "AnimRestartGesture", ->
+    ply = net.ReadEntity!
+    unless ply\IsValid!
+        return
+
+    slot, activity, autoKill = net.ReadUInt( 6 ), net.ReadUInt( 32 ), net.ReadBool!
+    timer.Simple( engine.TickInterval!, ->
+        if ply\IsValid! and ply\Alive!
+            ply\AnimRestartGesture( slot, activity, autoKill )
+    )
+)
+
 GM.InitPostEntity = =>
     @ShowTeam!
 
