@@ -1,0 +1,420 @@
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
+
+-- TODO: Write desc
+GM.Preparing = CreateConVar( "jb_preparing", "30", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 5, 120 )
+
+resource.AddWorkshop( "2950445307" )
+resource.AddWorkshop( "643148462" )
+
+TEAM_UNASSIGNED = TEAM_UNASSIGNED
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+hook_Run = hook.Run
+ipairs = ipairs
+
+GM.PlayerInitialSpawn = ( ply, transiton ) =>
+    ply\SetTeam( TEAM_UNASSIGNED )
+
+GM.PlayerSpawn = ( ply, transiton ) =>
+    ply\AllowFlashlight( false )
+    ply\SetCanZoom( false )
+    ply\RemoveAllAmmo!
+    ply\StripWeapons!
+    ply\UnSpectate!
+
+    ply\SetSlowWalkSpeed( 100 )
+    ply\SetWalkSpeed( 185 )
+    ply\SetRunSpeed( 365 )
+
+    ply\SetMaxHealth( 100 )
+    ply\SetMaxArmor( 100 )
+    ply\SetHealth( 100 )
+
+    teamID = ply\Team!
+    if teamID == TEAM_GUARD
+        ply\SetArmor( 50 )
+    else
+        ply\SetArmor( 0 )
+
+    if teamID == TEAM_PRISONER
+        ply\SetNoCollideWithTeammates( false )
+        ply\SetAvoidPlayers( true )
+    else
+        ply\SetNoCollideWithTeammates( true )
+        ply\SetAvoidPlayers( false )
+
+    unless @PlayableTeams[ teamID ]
+        unless ply\IsBot!
+            ply\Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
+            ply\SetNoDraw( true )
+            return
+
+        for teamID = 1, 2 do
+            @PlayerRequestTeam( ply, teamID )
+        return
+
+    ply\SetNoDraw( false )
+
+    unless transiton
+        hook_Run( "PlayerLoadout", ply, teamID )
+    hook_Run( "PlayerSetModel", ply, teamID )
+
+    ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
+    ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
+
+    weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
+    if weaponColor\Length! < 0.001
+        weaponColor = Vector( 0.001, 0.001, 0.001 )
+    ply\SetWeaponColor( weaponColor )
+
+    groups = string.Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
+    for i = 0, ply\GetNumBodyGroups! - 1 do
+        ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
+
+    ply\SetupHands!
+    hook_Run( "TeamPlayerSpawn", ply, teamID )
+
+GM.OnEntityCreated = ( weapon ) =>
+    unless weapon\IsWeapon!
+        return
+
+    timer.Simple( 0.025, ->
+        unless weapon\IsValid!
+            return
+
+        weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+
+        phys = weapon\GetPhysicsObject!
+        unless IsValid( phys )
+            return
+
+        if weapon\GetPos!\Length! <= 3
+            weapon\Remove!
+            return
+
+        counter = 0
+        for entity in *ents.FindInSphere( weapon\GetPos!, 32 )
+            if entity\IsWeapon!
+                counter = counter + 1
+                if counter >= 5
+                    phys\EnableMotion( false )
+                    break
+    )
+
+GM.PlayerDroppedWeapon = ( ply, weapon ) =>
+    timerName = "JB_WeaponDrop #" .. weapon\EntIndex!
+    timer.Create( timerName, 1, 1, ->
+        timer.Remove( timerName )
+        unless weapon\IsValid!
+            return
+
+        phys = weapon\GetPhysicsObject!
+        unless IsValid( phys )
+            return
+
+        start = weapon\LocalToWorld( weapon\OBBCenter! )
+        mins, maxs = weapon\GetCollisionBounds!
+
+        tr = util.TraceLine( {
+            start: start
+            endpos: start + Vector( 0, 0, mins[ 3 ] - 2 )
+            mask: MASK_SOLID_BRUSHONLY
+            mins: mins
+            maxs: maxs
+        } )
+
+        if tr.Hit
+            phys\EnableMotion( false )
+            return
+
+        @PlayerDroppedWeapon( ply, weapon )
+    )
+
+GM.PlayerLoadout = ( ply, teamID ) =>
+    unless @PlayableTeams[ teamID ]
+        return
+
+    if teamID == TEAM_PRISONER
+        ply\GiveAmmo( 30, "ar2", true )
+        ply\GiveAmmo( 45, "smg1", true )
+        ply\GiveAmmo( 20, "Pistol", true )
+        ply\GiveAmmo( 10, "Buckshot", true )
+        if math.random( 1, 10 ) == 1
+            ply\Give( "weapon_knife" )
+
+    elseif teamID == TEAM_GUARD
+        ply\GiveAmmo( 7, "357", true )
+        ply\GiveAmmo( 60, "ar2", true )
+        ply\GiveAmmo( 90, "smg1", true )
+        ply\GiveAmmo( 40, "Pistol", true )
+        ply\GiveAmmo( 20, "Buckshot", true )
+
+
+    ply\Give( "jb_fists" )
+
+
+GM.PlayerSetModel = ( ply, teamID ) =>
+    models = @PlayerModels[ teamID ]
+    if teamID == TEAM_PRISONER
+        models = models[ @FemalePrison and 1 or 2 ]
+
+    requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
+    if requested and #requested > 0
+        for modelPath in *models
+            if modelPath == requested
+                ply\SetModel( modelPath )
+                return
+
+    ply\SetModel( table.Random( models ) )
+
+GM.PlayerSetHandsModel = ( ply, hands ) =>
+    info = player_manager.TranslatePlayerHands( player_manager.TranslateToPlayerModelName( ply\GetModel! ) )
+    unless info
+        return
+
+    hands\SetModel( info.model )
+    hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
+    hands\SetBodyGroups( info.body )
+
+GM.PlayerDeathThink = ( ply ) =>
+    if not ply\IsBot! and @PlayableTeams[ ply\Team! ] and not ( @IsRoundPreparing! or @IsWaitingPlayers! )
+        return
+    ply\Spawn!
+
+GM.IsSpawnpointSuitable = ( ply, entity, bMakeSuitable ) =>
+    unless @PlayableTeams[ ply\Team! ]
+        return true
+
+    start = entity\GetPos!
+    mins, maxs = ply\GetHull!
+
+    tr = util.TraceHull( {
+        start: start
+        endpos: start
+        mask: MASK_PLAYERSOLID
+        mins: mins
+        maxs: maxs
+    } )
+
+    return not tr.Hit
+
+GM.PlayerSilentDeath = ( ply ) =>
+    teamID = ply\Team!
+    if @PlayableTeams[ teamID ]
+        hook_Run( "TeamPlayerDeath", ply, teamID )
+
+GM.PlayerDeath = ( ply, inflictor, attacker ) =>
+    teamID = ply\Team!
+    if @PlayableTeams[ teamID ]
+        hook_Run( "TeamPlayerDeath", ply, teamID )
+
+    if IsValid( attacker ) and attacker\GetClass! == "trigger_hurt"
+        attacker = ply
+
+    if IsValid( attacker ) and attacker\IsVehicle! and IsValid( attacker\GetDriver! )
+        attacker = attacker\GetDriver!
+
+    if not IsValid( inflictor ) and IsValid( attacker )
+        inflictor = attacker
+
+    -- Convert the inflictor to the weapon that they're holding if we can.
+    -- This can be right or wrong with NPCs since combine can be holding a
+    -- pistol but kill you by hitting you with their arm.
+    if IsValid( inflictor ) and inflictor == attacker and ( inflictor\IsPlayer! or inflictor\IsNPC! )
+        inflictor = inflictor\GetActiveWeapon!
+        if not IsValid( inflictor )
+            inflictor = attacker
+
+    if attacker == ply
+        @SendDeathNotice( nil, "suicide", ply, 0 )
+        MsgAll( attacker\Nick! .. " suicided!\n" )
+        return
+
+    if attacker\IsPlayer!
+        @SendDeathNotice( attacker, inflictor\GetClass!, ply, 0 )
+        MsgAll( attacker\Nick! .. " killed " .. ply\Nick! .. " using " .. inflictor\GetClass! .. "\n" )
+        return
+
+    flags = 0
+    if attacker\IsNPC! and attacker\Disposition( ply ) ~= D_HT
+        flags = flags + DEATH_NOTICE_FRIENDLY_ATTACKER
+
+    @SendDeathNotice( @GetDeathNoticeEntityName( attacker ), inflictor\GetClass!, ply, 0 )
+    MsgAll( ply\Nick! .. " was killed by " .. attacker\GetClass! .. "\n" )
+
+GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
+    if @IsRoundPreparing!
+        return false
+
+    if ply\Team! == TEAM_GUARD and attacker\IsPlayer!
+        return attacker\Team! == TEAM_PRISONER
+
+    return true
+
+GM.GetFallDamage = ( ply, speed ) =>
+    return math.max( 0, math.ceil( 0.2418 * speed - 141.75 ) )
+
+GM.AllowPlayerPickup = ( ply, entity ) =>
+    return @PlayableTeams[ ply\Team! ]
+
+GM.PlayerCanPickupItem = ( ply, entity ) =>
+    return @PlayableTeams[ ply\Team! ]
+
+GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
+    return @PlayableTeams[ ply\Team! ] and not ply\HasWeapon( weapon\GetClass! )
+
+GM.PlayerNoClip = ( ply, desiredState ) =>
+    if ply\IsSuperAdmin!
+        return true
+    return not desiredState
+
+GM.CanPlayerSuicide = ( ply ) =>
+    if @IsRoundPreparing!
+        return false
+    return @PlayableTeams[ ply\Team! ]
+
+GM.PlayerSwitchFlashlight = ( ply ) =>
+    if ply\Team! == TEAM_GUARD
+        return true
+    return ply\CanUseFlashlight!
+
+GM.PlayerDeathSound = ( ply ) =>
+    return ply\Team! ~= TEAM_GUARD
+
+GM.PlayerUse = ( ply, entity ) =>
+    if entity\IsPlayer!
+        weapon = ply\GetActiveWeapon!
+        if IsValid( weapon ) and weapon\GetClass! == "jb_fists" and weapon\GetHoldType! == "fist"
+            velocity = ply\GetVelocity!\GetNormalized! * 24
+            entity\SetVelocity( velocity )
+            ply\SetVelocity( -velocity )
+            return false
+    return true
+
+GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
+    unless IsValid( speaker )
+        return true
+
+    if isTeam
+        return listener\Alive! and speaker\Alive! and listener\Team! == speaker\Team!
+
+    return @PlayableTeams[ speaker\Team! ] and speaker\Alive!
+
+GM.PlayerCanHearPlayersVoice = ( listener, talker ) =>
+    talkerPosition = talker\EyePos!
+    if talkerPosition\DistToSqr( listener\EyePos! ) <= @VoiceChatDistance
+        rf = RecipientFilter!
+        rf\AddPAS( talkerPosition )
+
+        for ply in *rf\GetPlayers!
+            if ply == listener
+                return true, true
+
+    return false
+
+
+GM.PlayerCanJoinTeam = ( ply, teamID ) =>
+    if ply\Team! == teamID
+        return false
+
+    if @PlayableTeams[ teamID ]
+        if @IsRoundPreparing! or @IsWaitingPlayers!
+            if teamID == TEAM_GUARD
+                guards = team.GetPlayers( TEAM_GUARD )
+                if #guards == 0
+                    return true
+
+                if ( #guards / #team.GetPlayers( TEAM_PRISONER ) ) < 0.35
+                    return true
+
+                -- TODO: here chat message
+                return false
+            return true
+
+        -- TODO: here chat message
+        return false
+    return true
+
+GM.PlayerJoinTeam = ( ply, teamID ) =>
+    if ply\Alive!
+        if @PlayableTeams[ ply\Team! ]
+            ply\Kill!
+        else
+            ply\KillSilent!
+    ply\SetTeam( teamID )
+
+GM.PlayerRequestTeam = ( ply, teamID ) =>
+    unless team.Joinable( teamID )
+        -- TODO: here chat message
+        return
+
+    unless @PlayerCanJoinTeam( ply, teamID )
+        return
+
+    @PlayerJoinTeam( ply, teamID )
+
+GM.PlayerDisconnected = ( ply ) =>
+    if ply\Team! == TEAM_PRISONER
+        guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+        diff = #guards / ( prisonerCount - 1 )
+        if diff > 0.25
+            for i = 1, #guards do
+                guard, index = table.Random( guards )
+                table.remove( guards, index )
+
+                if guard and guard\IsValid!
+                    @PlayerJoinTeam( guard, TEAM_PRISONER )
+                    break
+
+concommand.Add( "drop", ( ply ) ->
+    dropWeapon = ply\GetActiveWeapon!
+    unless IsValid( dropWeapon )
+        return
+
+    model = dropWeapon\GetWeaponWorldModel!
+    unless model and util.IsValidModel( model )
+        return
+
+    ply\DropWeapon( dropWeapon )
+
+    maxWeight, nextWeapon = nil, nil
+    for weapon in *ply\GetWeapons!
+        weight = weapon\GetWeight!
+
+        if not maxWeight or maxWeight <= weight
+            nextWeapon = weapon
+            maxWeight = weight
+
+    unless IsValid( nextWeapon )
+        return
+
+    ply\SelectWeapon( nextWeapon\GetClass! )
+)
+
+GM.InitPostEntity = =>
+    RunConsoleCommand( "sv_defaultdeployspeed", "1" )
+    RunConsoleCommand( "mp_show_voice_icons", "0" )
+    GetGlobal2String( "round-state", "waiting" )
+
+GM.StartRound = =>
+    SetGlobalInt( "preparing", CurTime! + @Preparing\GetInt! )
+    GetGlobal2String( "round-state", "preparing" )
+
+GM.EndRound = =>
+    guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+    if guardCount == 0 and prisonerCount == 0
+        GetGlobal2String( "round-state", "draw" )
+    elseif guardCount > prisonerCount
+        GetGlobal2String( "round-state", "guard_victory" )
+    else
+        GetGlobal2String( "round-state", "prisoner_victory" )
+
+GM.TeamPlayerSpawn = ( ply, teamID ) =>
+
+
+GM.TeamPlayerDeath = ( ply, teamID ) =>
+    if @IsRoundPreparing! or @IsWaitingPlayers!
+        return
+
+    ply\SetTeam( TEAM_SPECTATOR )

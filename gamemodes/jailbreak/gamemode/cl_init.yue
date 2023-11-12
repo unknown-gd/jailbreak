@@ -1,0 +1,225 @@
+include( "shared.lua" )
+
+CreateConVar( "cl_playercolor", "0.3 0.3 0.3", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
+CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
+CreateConVar( "cl_playerskin", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The skin to use, if the model has any" )
+CreateConVar( "cl_playerbodygroups", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The bodygroups to use, if the model has any" )
+hook_Run = hook.Run
+
+GM.InitPostEntity = =>
+    @ShowTeam!
+
+GM.OnSpawnMenuOpen = =>
+    RunConsoleCommand( "lastinv" )
+
+GM.PostProcessPermitted = ( name ) =>
+    return false
+
+GM.PlayerButtonUp = ( ply, keyCode ) =>
+    if keyCode ~= KEY_G
+        return
+
+    bind = input.LookupKeyBinding( keyCode )
+    if bind and bind ~= ""
+        return
+
+    RunConsoleCommand( "drop" )
+
+tauntCamera = TauntCamera!
+
+GM.ShouldDrawLocalPlayer = ( ply ) =>
+    return tauntCamera\ShouldDrawLocalPlayer( ply, ply\IsPlayingTaunt! )
+
+GM.CreateMove = ( cmd ) =>
+    if drive.CreateMove( cmd )
+        return true
+
+    ply = LocalPlayer!
+    if tauntCamera\CreateMove( cmd, ply, ply\IsPlayingTaunt! )
+        return true
+
+GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
+    view = { :origin, :angles, :fov, :znear, :zfar, drawviewer: false }
+
+    if tauntCamera\CalcView( view, ply, ply\IsPlayingTaunt! )
+        return view
+
+    if ply\InVehicle!
+        return hook_Run( "CalcVehicleView", ply\GetVehicle!, ply, view )
+
+    if drive.CalcView( ply, view )
+        return view
+
+    weapon = ply\GetActiveWeapon!
+    if IsValid( weapon )
+        func = weapon.CalcView
+        if func
+            origin, angles, fov = func( weapon, ply, Vector( view.origin ), Angle( view.angles ), view.fov )
+            view.origin, view.angles, view.fov = origin or view.origin, angles or view.angles, fov or view.fov
+
+    return view
+
+GM.Think = =>
+    pos = EyePos!
+    for ply in *player.GetHumans!
+        unless ply\IsSpeaking!
+            continue
+
+        ply\SetVoiceVolumeScale( math.Clamp( 1 - pos\DistToSqr( ply\EyePos! ) / @VoiceChatDistance, 0, 1 ) )
+
+GM.HUDPaint = =>
+    hook_Run( "HUDDrawPickupHistory" )
+    hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+
+    str = language.GetPhrase( "jb.round." .. @GetRoundState! )
+    if @GetRoundState! == "preparing"
+        str = string.format( str, math.max( 0, GetGlobalInt( "preparing", 0 ) - CurTime! ) )
+
+    draw.DrawText( string.upper( str ), "DermaLarge", ScrW! / 2, 32, color_white, TEXT_ALIGN_CENTER )
+
+---
+--- Colors
+---
+
+color_white = Color( 255, 255, 255 )
+color_red = Color( 255, 0, 0)
+color_bacground = Color( 0, 0, 0, 200 )
+
+---
+--- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
+---
+
+PANEL_META = FindMetaTable( "Panel" )
+
+do
+    PANEL = {}
+
+    PANEL.Init = =>
+        avatar = vgui.Create("AvatarImage", @ )
+        if IsValid(avatar)
+            @Avatar = avatar
+
+    PANEL.SetPlayer = ( ply ) =>
+        unless IsValid( ply ) and ply\IsPlayer!
+            return
+
+        @Player = ply
+        @Nick = ply\Nick!
+        @Ping = ply\Ping!
+        @Frags = ply\Frags!
+        @Deaths = ply\Deaths!
+        @Avatar\SetPlayer( ply, 32 )
+
+    PANEL.PerformLayout = =>
+        tall = ScreenScaleH( 16 )
+        @SetTall( tall )
+
+        marginBottom = ScreenScale( 3 )
+        @DockMargin( 0, 0, 0, marginBottom )
+
+        avatar = @Avatar
+        if IsValid( avatar )
+            wide, tall = @GetSize!
+            avatarSize = tall - ScreenScale( 2 )
+            marginLeft = ScreenScale( 6 )
+
+            avatar\SetPos( marginLeft, tall / 2 - avatarSize / 2 )
+            avatar\SetSize( avatarSize, avatarSize )
+
+    PANEL.Paint = ( w, h ) =>
+        draw.RoundedBox( 20, 0, 0, w, h, color_bacground )
+
+        unless IsValid( @Player )
+            return
+
+        avatar = @Avatar
+        unless IsValid( avatar )
+            return
+
+        marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
+        draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, color_white, TEXT_ALIGN_LEFT )
+
+
+    vgui.Register("JB.Scoreboard.Player", PANEL)
+
+
+---
+--- MAIN PANEL
+---
+
+do
+
+    PANEL = {}
+
+    PANEL.Init = =>
+
+
+    PANEL.PerformLayout = ( w, h ) =>
+        wide, tall = ScreenScale( 300 ), ScreenScaleH( 380 )
+        @SetSize( wide, tall )
+        @Center!
+
+        paddingTop, paddingHorizontal = ScreenScaleH( 20 ), ScreenScale( 10 )
+        @DockPadding( paddingHorizontal, paddingTop, paddingHorizontal, 0 )
+
+    PANEL.DeletePlayers = =>
+        unless istable( @Players )
+            @Players = {}
+            return
+
+        for ply in *@Players
+            unless IsValid( ply )
+                continue
+            ply\Remove!
+
+        @Players = {}
+
+    PANEL.CreatePlayers = =>
+        @DeletePlayers!
+
+        for ply in *player.GetAll!
+            unless IsValid( ply )
+                continue
+
+            playerPanel = vgui.Create( "JB.Scoreboard.Player", @ )
+            unless IsValid( playerPanel )
+                continue
+
+            table.insert( @Players, playerPanel )
+            playerPanel\SetPlayer( ply )
+            playerPanel\Dock( TOP )
+
+    PANEL.Show = =>
+        @CreatePlayers!
+        PANEL_META.Show( @ )
+
+    PANEL.Hide = =>
+        @DeletePlayers!
+        PANEL_META.Hide( @ )
+
+    PANEL.Paint = ( w, h ) =>
+        surface.SetDrawColor( color_red )
+        surface.DrawRect( 0, 0, w, h )
+
+        draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, color_white, TEXT_ALIGN_CENTER )
+
+    vgui.Register( "JB.Scoreboard", PANEL )
+
+scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
+if IsValid( scoreboard )
+    scoreboard\Remove!
+
+GM.ScoreboardShow = =>
+    scoreboard = @ScoreBoard
+    unless IsValid( scoreboard )
+        scoreboard = vgui.Create( "JB.Scoreboard", GetHUDPanel! )
+        @ScoreBoard = scoreboard
+        -- print("Created")
+
+    scoreboard\Show!
+    return false
+
+GM.ScoreboardHide = =>
+    scoreboard = @ScoreBoard
+    if IsValid( scoreboard )
+        scoreboard\Hide!
