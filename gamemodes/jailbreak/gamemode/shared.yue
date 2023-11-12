@@ -100,7 +100,7 @@ do
         unless ply\IsOnGround!
             return
 
-        if velocity\Length! >= ply\GetRunSpeed!
+        if velocity\Length! >= ply\GetRunSpeed! * 0.95
             weapon = ply\GetActiveWeapon!
             if IsValid( weapon ) and not singleHandHoldTypes[ weapon\GetHoldType! ]
                 return
