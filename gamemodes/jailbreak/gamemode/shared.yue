@@ -70,20 +70,28 @@ GM.FinishMove = ( ply, mv ) =>
             mv\SetForwardSpeed( 0 )
             mv\SetSideSpeed( 0 )
 
-GM.IsRoundPreparing = =>
-    return GetGlobalInt( "preparing", 0 ) > CurTime!
+GM.StartCommand = ( ply, cmd ) =>
+    if not @PlayableTeams[ ply\Team! ] and cmd\KeyDown( IN_DUCK )
+        cmd\RemoveKey( IN_DUCK )
 
 GM.GetRoundState = =>
-    return GetGlobal2String( "round-state", "waiting" )
+    return GetGlobalString( "round-state", "waiting" )
+
+GM.IsWaitingPlayers = =>
+    return @GetRoundState! == "waiting"
+
+GM.IsRoundPreparing = =>
+    return @GetRoundState! == "preparing"
 
 GM.IsRoundRunning = =>
     return @GetRoundState! == "running"
 
 GM.IsRoundEnded = =>
-    return @GetRoundState! == "ended"
+    state = @GetRoundState!
+    return state == "draw" or state == "guard_victory" or state == "prisoner_victory"
 
-GM.IsWaitingPlayers = =>
-    return @GetRoundState! == "waiting"
+GM.GetNextRoundStateTime = =>
+    return GetGlobal2Int( "next-round-state-time", 0 )
 
 do
 

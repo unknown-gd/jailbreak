@@ -29,7 +29,21 @@ do
 
         @AnimRestartGesture( slot, activity, autoKill )
 
+GM.AutoBalancePlayer = ( ply ) =>
+    teamID = TEAM_UNASSIGNED
+    guardCount = team.NumPlayers( TEAM_GUARD )
+    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < 0.35
+        teamID = TEAM_GUARD
+    else
+        teamID = TEAM_PRISONER
+
+    ply\SetTeam( teamID )
+
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
+    if ply\IsBot! and ( @IsRoundPreparing! or @IsWaitingPlayers! )
+        @AutoBalancePlayer( ply )
+        return
+
     ply\SetTeam( TEAM_UNASSIGNED )
 
 GM.PlayerSpawn = ( ply, transiton ) =>
@@ -61,16 +75,13 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\SetAvoidPlayers( false )
 
     unless @PlayableTeams[ teamID ]
-        unless ply\IsBot!
-            ply\Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
-            ply\SetNoDraw( true )
-            return
-
-        for id = 1, 2
-            @PlayerRequestTeam( ply, id )
+        ply\Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
+        ply\SetNoDraw( true )
+        ply\RemoveSuit!
         return
 
     ply\SetNoDraw( false )
+    ply\EquipSuit!
 
     unless transiton
         hook_Run( "PlayerLoadout", ply, teamID )
@@ -192,7 +203,7 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
     hands\SetBodyGroups( info.body )
 
 GM.PlayerDeathThink = ( ply ) =>
-    if not ply\IsBot! and @PlayableTeams[ ply\Team! ] and not ( @IsRoundPreparing! or @IsWaitingPlayers! )
+    if ( @IsRoundRunning! or @IsRoundEnded! ) and @PlayableTeams[ ply\Team! ]
         return
     ply\Spawn!
 
@@ -261,7 +272,7 @@ GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
     if @IsRoundPreparing!
         return false
 
-    if ply\Team! == TEAM_GUARD and attacker\IsPlayer!
+    if ply\Team! == TEAM_GUARD and attacker\IsPlayer! and ply ~= attacker
         return attacker\Team! == TEAM_PRISONER
 
     return true
@@ -279,9 +290,13 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
     return false
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
-    if ply\IsSuperAdmin!
+    unless desiredState
         return true
-    return not desiredState
+
+    unless @PlayableTeams[ ply\Team! ]
+        return false
+
+    return ply\IsSuperAdmin!
 
 GM.CanPlayerSuicide = ( ply ) =>
     if @IsRoundPreparing!
@@ -320,7 +335,10 @@ GM.PlayerUse = ( ply, entity ) =>
                     ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST )
 
     if entity\IsWeapon!
-        ply\PickupWeapon( entity, ply\HasWeapon( entity\GetClass! ) )
+        if ply\HasWeapon( entity\GetClass! )
+            return false
+
+        ply\PickupWeapon( entity, false )
         return false
 
     return true
@@ -351,31 +369,26 @@ GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
         return
 
     if new < 3 and old >= 3
-        ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
+        entity\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
     elseif new == 3
-        ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
+        entity\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
 
 GM.PlayerCanJoinTeam = ( ply, teamID ) =>
     if ply\Team! == teamID
         return false
 
-    if @PlayableTeams[ teamID ]
-        if @IsRoundPreparing! or @IsWaitingPlayers!
-            if teamID == TEAM_GUARD
-                guards = team.GetPlayers( TEAM_GUARD )
-                if #guards == 0
-                    return true
+    unless @PlayableTeams[ teamID ]
+        return true
 
-                if ( #guards / #team.GetPlayers( TEAM_PRISONER ) ) < 0.35
-                    return true
+    if @IsRoundPreparing! or @IsWaitingPlayers!
+        guardCount = team.NumPlayers( TEAM_GUARD )
+        if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < 0.35
+            return teamID == TEAM_GUARD
+        else
+            return teamID == TEAM_PRISONER
 
-                -- TODO: here chat message
-                return false
-            return true
-
-        -- TODO: here chat message
-        return false
-    return true
+    -- TODO: here chat message
+    return false
 
 GM.PlayerJoinTeam = ( ply, teamID ) =>
     if ply\Alive!
@@ -396,17 +409,22 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
     @PlayerJoinTeam( ply, teamID )
 
 GM.PlayerDisconnected = ( ply ) =>
-    if ply\Team! == TEAM_PRISONER
-        guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
-        diff = #guards / ( prisonerCount - 1 )
-        if diff > 0.25
-            for i = 1, #guards do
-                guard, index = table.Random( guards )
-                table.remove( guards, index )
+    if ply\Team! ~= TEAM_PRISONER
+        return
 
-                if guard and guard\IsValid!
-                    @PlayerJoinTeam( guard, TEAM_PRISONER )
-                    break
+    unless @IsWaitingPlayers! or @IsRoundPreparing!
+        return
+
+    guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+    diff = #guards / ( prisonerCount - 1 )
+    if diff > 0.35
+        for i = 1, #guards do
+            guard, index = table.Random( guards )
+            table.remove( guards, index )
+
+            if IsValid( guard )
+                @PlayerJoinTeam( guard, TEAM_PRISONER )
+                break
 
 concommand.Add( "drop", ( ply ) ->
     dropWeapon = ply\GetActiveWeapon!
@@ -433,38 +451,67 @@ concommand.Add( "drop", ( ply ) ->
     ply\SelectWeapon( nextWeapon\GetClass! )
 )
 
-GM.LockAllDoors = =>
-    for door in *ents.FindByClass( "prop_door_rotating" )
-        door\Fire( "lock", "", 0 )
-
 GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     RunConsoleCommand( "mp_show_voice_icons", "0" )
-    GetGlobal2String( "round-state", "waiting" )
-    @LockAllDoors!
+    @SetRoundState( "waiting" )
+    @StopTeamPlayerSpawn!
 
 GM.PostCleanupMap = =>
-    @LockAllDoors!
+    @SetRoundState( "waiting" )
+    @StopTeamPlayerSpawn!
 
-GM.StartRound = =>
-    SetGlobalInt( "preparing", CurTime! + @Preparing\GetInt! )
-    GetGlobal2String( "round-state", "preparing" )
+GM.SetRoundState = ( state ) =>
+    oldState = @GetRoundState!
+    SetGlobalString( "round-state", state )
+    hook_Run( "RoundStateChanged", oldState, state )
+    print( oldState, "->", state )
 
-GM.EndRound = =>
-    guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
-    if guardCount == 0 and prisonerCount == 0
-        GetGlobal2String( "round-state", "draw" )
-    elseif guardCount > prisonerCount
-        GetGlobal2String( "round-state", "guard_victory" )
-    else
-        GetGlobal2String( "round-state", "prisoner_victory" )
+GM.CanChangeRoundState = =>
+    return @GetNextRoundStateTime! <= CurTime!
+
+GM.NextRoundStateTime = =>
+    SetGlobal2Int( "next-round-state-time", CurTime! + @Preparing\GetInt! )
+
+GM.Think = =>
+    if @CanChangeRoundState!
+        if @IsRoundPreparing!
+            @SetRoundState( "running" )
+        elseif @IsRoundEnded!
+            @SetRoundState( "waiting" )
+
+GM.RoundStateChanged = ( old, new ) =>
+    if new == "waiting" or new == "preparing" or new == "running"
+        for ply in *player.GetAll!
+            if ply\IsBot!
+                @AutoBalancePlayer( ply )
+            if @PlayableTeams[ ply\Team! ]
+                ply\Spawn!
+        game.CleanUpMap!
 
 -- TODO: Write round system here
 GM.TeamPlayerSpawn = ( ply, teamID ) =>
-
+    if @IsWaitingPlayers! and team.NumPlayers( TEAM_GUARD ) > 0 and team.NumPlayers( TEAM_PRISONER ) > 0
+        @SetRoundState( "preparing" )
+        @NextRoundStateTime!
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
-    if @IsRoundPreparing! or @IsWaitingPlayers!
+    unless @IsRoundRunning!
+        return
+
+    unless @PlayableTeams[ teamID ]
         return
 
     ply\SetTeam( TEAM_SPECTATOR )
+    guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+    print( ply, ply\Alive!, guardCount, prisonerCount )
+
+    if guardCount == 0 and prisonerCount == 0
+        @SetRoundState( "draw" )
+        @NextRoundStateTime!
+    elseif guardCount == 0
+        @SetRoundState( "prisoner_victory" )
+        @NextRoundStateTime!
+    elseif prisonerCount == 0
+        @SetRoundState( "guard_victory" )
+        @NextRoundStateTime!
