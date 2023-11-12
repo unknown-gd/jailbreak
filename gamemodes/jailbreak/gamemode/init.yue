@@ -302,9 +302,12 @@ GM.PlayerDeathSound = ( ply ) =>
 
 GM.PlayerUse = ( ply, entity ) =>
     weapon = ply\GetActiveWeapon!
-    if IsValid( weapon ) and weapon\GetClass! == "jb_fists" and weapon\GetHoldType! == "fist"
+    if IsValid( weapon ) and weapon\GetHoldType! == "fist"
         className = entity\GetClass!
         if className == "player"
+            if weapon\GetClass! ~= "jb_fists"
+                return false
+
             velocity = ply\GetVelocity!\GetNormalized! * 16
             entity\SetVelocity( velocity )
             ply\SetVelocity( -velocity )
