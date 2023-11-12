@@ -1,8 +1,8 @@
 AddCSLuaFile!
 
-SWEP.PrintName = "#GMOD_Fists"
-SWEP.Author = "Kilburn, robotboy655, MaxOfS2D, Tenrys and Unknown Developer"
-SWEP.Purpose = "Well we sure as hell didn't use guns! We would just wrestle Hunters to the ground with our bare hands! I used to kill ten, twenty a day, just using my fists."
+SWEP.PrintName = "#jb.hands"
+-- SWEP.Author = "Kilburn, robotboy655, MaxOfS2D, Tenrys and Unknown Developer"
+-- SWEP.Purpose = "Well we sure as hell didn't use guns! We would just wrestle Hunters to the ground with our bare hands! I used to kill ten, twenty a day, just using my fists."
 
 SWEP.Slot = 0
 SWEP.SlotPos = 4
@@ -25,6 +25,7 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 
+SWEP.DrawWeaponInfoBox = false
 SWEP.DrawAmmo = false
 
 SWEP.HitDistance = 48
@@ -81,8 +82,47 @@ SWEP.SetNextFire = ( curTime ) =>
     @SetNextPrimaryFire( curTime )
     @SetNextSecondaryFire( curTime )
 
+SWEP.UseDoor = ( open ) =>
+    if CLIENT
+        return
+
+    owner = @GetOwner!
+    if owner\Team! ~= TEAM_GUARD
+        return
+
+    start = owner\GetShootPos!
+    tr = util.TraceLine( {
+        start: start
+        endpos: start + owner\GetAimVector! * 64
+        filter: owner
+    } )
+
+    unless tr.Hit
+        return
+
+    entity = tr.Entity
+    unless IsValid( entity )
+        return
+
+    className = entity\GetClass!
+    if className == "prop_door_rotating" or className == "prop_door_rotating"
+        curTime, lastDoorLock = CurTime!, @LastDoorLock or 0
+        @LastDoorLock = curTime
+
+        if curTime - lastDoorLock <= 0.025
+            return
+
+        owner\EmitSound( "npc/metropolice/gear" .. math.random( 1, 6 ) .. ".wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        timer.Simple 0.8, ->
+            unless entity\IsValid!
+                return
+            entity\EmitSound( "doors/door_latch3.wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        entity\Fire( open and "unlock" or "lock", "", 0 )
+        owner\AnimRestartGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_GMOD_GESTURE_ITEM_PLACE, true )
+
 SWEP.PrimaryAttack = ( right ) =>
     if @GetHoldType! == "normal"
+        @UseDoor( false )
         return
 
     if @GetNextIdle! == 0
@@ -93,7 +133,7 @@ SWEP.PrimaryAttack = ( right ) =>
 
     owner = @GetOwner!
     owner\SetAnimation( PLAYER_ATTACK1 )
-    owner\EmitSound( swingSound )
+    owner\EmitSound( swingSound, 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
     anim = "fists_left"
     if right
@@ -110,7 +150,10 @@ SWEP.PrimaryAttack = ( right ) =>
     @SetNextMeleeAttack( CurTime! + ( delay / 4 ) / math.max( combo, 1 ) )
 
 SWEP.SecondaryAttack = =>
-    @PrimaryAttack( true )
+    if @GetHoldType! ~= "normal"
+        @PrimaryAttack( true )
+    else
+        @UseDoor( true )
 
 phys_pushscale = GetConVar( "phys_pushscale" )
 SERVER = SERVER
@@ -140,7 +183,7 @@ SWEP.DealDamage = =>
 
     -- We need the second part for single player because SWEP:Think is ran shared in SP
     if tr.Hit and not ( game.SinglePlayer! and CLIENT )
-        @EmitSound( hitSound )
+        @EmitSound( hitSound, 70, math.random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
 
     hit = false
     scale = phys_pushscale\GetFloat!
