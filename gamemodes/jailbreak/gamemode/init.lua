@@ -336,6 +336,16 @@ function GM:PlayerDeathSound( ply )
 end
 
 function GM:PlayerUse( ply, entity )
+    if entity:IsPlayer() then
+        local weapon = ply:GetActiveWeapon()
+        if IsValid( weapon ) and weapon:GetClass() == "jb_fists" and weapon:GetHoldType() == "fist" then
+            local velocity = ply:GetVelocity():GetNormalized() * 24
+            entity:SetVelocity( velocity )
+            ply:SetVelocity( -velocity )
+            return false
+        end
+    end
+
     return true
 end
 
