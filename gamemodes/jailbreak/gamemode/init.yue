@@ -117,28 +117,31 @@ GM.OnEntityCreated = ( weapon ) =>
         unless weapon\IsValid!
             return
 
-        weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
-
-        phys = weapon\GetPhysicsObject!
-        unless IsValid( phys )
+        if IsValid( weapon\GetOwner! )
             return
 
         if weapon\GetPos!\Length! <= 3
             weapon\Remove!
             return
 
+        phys = weapon\GetPhysicsObject!
+        unless IsValid( phys ) and phys\IsMotionEnabled!
+            return
+
         counter = 0
         for entity in *ents.FindInSphere( weapon\GetPos!, 32 )
-            if entity\IsWeapon!
+            if entity\IsWeapon! and not IsValid( entity\GetOwner! )
                 counter = counter + 1
                 if counter >= 5
                     phys\EnableMotion( false )
                     break
+
+        weapon\SetCollisionGroup( COLLISION_GROUP_WEAPON )
     )
 
 GM.PlayerDroppedWeapon = ( ply, weapon ) =>
     timerName = "JB_WeaponDrop #" .. weapon\EntIndex!
-    timer.Create( timerName, 1, 1, ->
+    timer.Create( timerName, 3, 1, ->
         timer.Remove( timerName )
         unless weapon\IsValid!
             return
@@ -150,7 +153,7 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
         start = weapon\LocalToWorld( weapon\OBBCenter! )
         mins, maxs = weapon\GetCollisionBounds!
 
-        tr = util.TraceLine( {
+        tr = util.TraceHull( {
             start: start
             endpos: start + Vector( 0, 0, mins[ 3 ] - 2 )
             mask: MASK_SOLID_BRUSHONLY
@@ -159,6 +162,7 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
         } )
 
         if tr.Hit
+            weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
             phys\EnableMotion( false )
             return
 
@@ -388,11 +392,11 @@ GM.PlayerCanJoinTeam = ( ply, teamID ) =>
         return true
 
     if @IsRoundPreparing! or @IsWaitingPlayers!
+        if teamID ~= TEAM_GUARD then
+            return true
+
         guardCount = team.NumPlayers( TEAM_GUARD )
-        if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
-            return teamID == TEAM_GUARD
-        else
-            return teamID == TEAM_PRISONER
+        return guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
 
     -- TODO: here chat message
     return false
@@ -436,7 +440,6 @@ GM.PlayerDisconnected = ( ply ) =>
         elseif prisonerCount == 0
             @SetRoundState( "guard_victory" )
             @NextRoundStateTime!
-
         return
 
     if teamID ~= TEAM_PRISONER
@@ -508,7 +511,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 if new == "running"
                     @AutoBalancePlayer( ply )
                 else
-                    ply\SetTeam( TEAM_PRISONER )
+                    @PlayerJoinTeam( ply, TEAM_PRISONER )
 
             if @PlayableTeams[ ply\Team! ]
                 ply\Spawn!
@@ -516,7 +519,6 @@ GM.RoundStateChanged = ( old, new ) =>
                 ply\ConCommand( "show_team" )
         game.CleanUpMap!
 
--- TODO: Write round system here
 GM.TeamPlayerSpawn = ( ply, teamID ) =>
     if @IsWaitingPlayers! and team.NumPlayers( TEAM_GUARD ) > 0 and team.NumPlayers( TEAM_PRISONER ) > 0
         @SetRoundState( "preparing" )
@@ -529,7 +531,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     unless @PlayableTeams[ teamID ]
         return
 
-    ply\SetTeam( TEAM_SPECTATOR )
+    @PlayerJoinTeam( ply, TEAM_SPECTATOR )
 
     guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
     if guardCount == 0 and prisonerCount == 0
@@ -541,3 +543,33 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     elseif prisonerCount == 0
         @SetRoundState( "guard_victory" )
         @NextRoundStateTime!
+
+GM.SpectateNext = ( spectator, backward ) =>
+    lastTargetID = spectator.LastSpectateTargetID or 0
+    target = nil
+
+    for ply in *player.GetAll!
+        if @PlayableTeams[ ply\Team! ] and ply\Alive!
+            if backward and ply\EntIndex! < lastTargetID
+                target = ply
+                break
+            elseif ply\EntIndex! > lastTargetID
+                target = ply
+                break
+
+    if IsValid( target )
+        spectator\Spectate( OBS_MODE_CHASE )
+	    spectator\SpectateEntity( target )
+    elseif IsValid( spectator\GetObserverTarget! )
+        spectator\Spectate( OBS_MODE_CHASE )
+        spectator\SpectateEntity( nil )
+
+GM.KeyPress = ( ply, key ) =>
+    if ply\Team! ~= TEAM_SPECTATOR
+        return
+
+    switch key
+        when IN_ATTACK
+            @SpectateNext( ply, false )
+        when IN_ATTACK2
+            @SpectateNext( ply, true )
