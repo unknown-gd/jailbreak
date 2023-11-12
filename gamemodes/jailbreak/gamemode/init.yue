@@ -301,13 +301,25 @@ GM.PlayerDeathSound = ( ply ) =>
     return ply\Team! ~= TEAM_GUARD
 
 GM.PlayerUse = ( ply, entity ) =>
-    if entity\IsPlayer!
-        weapon = ply\GetActiveWeapon!
-        if IsValid( weapon ) and weapon\GetClass! == "jb_fists" and weapon\GetHoldType! == "fist"
-            velocity = ply\GetVelocity!\GetNormalized! * 24
+    weapon = ply\GetActiveWeapon!
+    if IsValid( weapon ) and weapon\GetClass! == "jb_fists" and weapon\GetHoldType! == "fist"
+        className = entity\GetClass!
+        if className == "player"
+            velocity = ply\GetVelocity!\GetNormalized! * 16
             entity\SetVelocity( velocity )
             ply\SetVelocity( -velocity )
             return false
+        else
+
+            curTime, lastWorldInteractions = CurTime!, ply.LastWorldInteractions or 0
+            ply.LastWorldInteractions = curTime
+
+            if curTime - lastWorldInteractions > 0.025
+                if className == "prop_door_rotating" or className == "prop_door_rotating"
+                    ply\AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM )
+                elseif className == "func_button" or className == "gmod_button"
+                    ply\AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST )
+
     return true
 
 GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
