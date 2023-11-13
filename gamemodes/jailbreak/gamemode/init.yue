@@ -607,6 +607,10 @@ GM.TeamPlayerSpawn = ( ply, teamID ) =>
         @NextRoundStateTime!
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
+    if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+        @SetRoundState( "ended" )
+        @NextRoundStateTime!
+    ply\Spectate( OBS_MODE_ROAMING )
 
 GM.PlayerDisconnected = ( ply ) =>
     if @IsRoundRunning! and ( team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0 )
