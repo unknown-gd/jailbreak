@@ -105,149 +105,149 @@ GM.HUDPaint = =>
 
     draw.DrawText( string.upper( str ), "DermaLarge", ScrW! / 2, 32, color_white, TEXT_ALIGN_CENTER )
 
----
---- Colors
----
+-- ---
+-- --- Colors
+-- ---
 
-color_white = Color( 255, 255, 255 )
-color_red = Color( 255, 0, 0)
-color_bacground = Color( 0, 0, 0, 200 )
+-- color_white = Color( 255, 255, 255 )
+-- color_red = Color( 255, 0, 0)
+-- color_bacground = Color( 0, 0, 0, 200 )
 
----
---- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
----
+-- ---
+-- --- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
+-- ---
 
-PANEL_META = FindMetaTable( "Panel" )
+-- PANEL_META = FindMetaTable( "Panel" )
 
-do
-    PANEL = {}
+-- do
+--     PANEL = {}
 
-    PANEL.Init = =>
-        avatar = vgui.Create("AvatarImage", @ )
-        if IsValid(avatar)
-            @Avatar = avatar
+--     PANEL.Init = =>
+--         avatar = vgui.Create("AvatarImage", @ )
+--         if IsValid(avatar)
+--             @Avatar = avatar
 
-    PANEL.SetPlayer = ( ply ) =>
-        unless IsValid( ply ) and ply\IsPlayer!
-            return
+--     PANEL.SetPlayer = ( ply ) =>
+--         unless IsValid( ply ) and ply\IsPlayer!
+--             return
 
-        @Player = ply
-        @Nick = ply\Nick!
-        @Ping = ply\Ping!
-        @Frags = ply\Frags!
-        @Deaths = ply\Deaths!
-        @Avatar\SetPlayer( ply, 32 )
+--         @Player = ply
+--         @Nick = ply\Nick!
+--         @Ping = ply\Ping!
+--         @Frags = ply\Frags!
+--         @Deaths = ply\Deaths!
+--         @Avatar\SetPlayer( ply, 32 )
 
-    PANEL.PerformLayout = =>
-        tall = ScreenScaleH( 16 )
-        @SetTall( tall )
+--     PANEL.PerformLayout = =>
+--         tall = ScreenScaleH( 16 )
+--         @SetTall( tall )
 
-        marginBottom = ScreenScale( 3 )
-        @DockMargin( 0, 0, 0, marginBottom )
+--         marginBottom = ScreenScale( 3 )
+--         @DockMargin( 0, 0, 0, marginBottom )
 
-        avatar = @Avatar
-        if IsValid( avatar )
-            wide, tall = @GetSize!
-            avatarSize = tall - ScreenScale( 2 )
-            marginLeft = ScreenScale( 6 )
+--         avatar = @Avatar
+--         if IsValid( avatar )
+--             wide, tall = @GetSize!
+--             avatarSize = tall - ScreenScale( 2 )
+--             marginLeft = ScreenScale( 6 )
 
-            avatar\SetPos( marginLeft, tall / 2 - avatarSize / 2 )
-            avatar\SetSize( avatarSize, avatarSize )
+--             avatar\SetPos( marginLeft, tall / 2 - avatarSize / 2 )
+--             avatar\SetSize( avatarSize, avatarSize )
 
-    PANEL.Paint = ( w, h ) =>
-        draw.RoundedBox( 20, 0, 0, w, h, color_bacground )
+--     PANEL.Paint = ( w, h ) =>
+--         draw.RoundedBox( 20, 0, 0, w, h, color_bacground )
 
-        unless IsValid( @Player )
-            return
+--         unless IsValid( @Player )
+--             return
 
-        avatar = @Avatar
-        unless IsValid( avatar )
-            return
+--         avatar = @Avatar
+--         unless IsValid( avatar )
+--             return
 
-        marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
-        draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, color_white, TEXT_ALIGN_LEFT )
-
-
-    vgui.Register("JB.Scoreboard.Player", PANEL)
+--         marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
+--         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, color_white, TEXT_ALIGN_LEFT )
 
 
----
---- MAIN PANEL
----
-
-do
-
-    PANEL = {}
-
-    PANEL.Init = =>
+--     vgui.Register("JB.Scoreboard.Player", PANEL)
 
 
-    PANEL.PerformLayout = ( w, h ) =>
-        wide, tall = ScreenScale( 300 ), ScreenScaleH( 380 )
-        @SetSize( wide, tall )
-        @Center!
+-- ---
+-- --- MAIN PANEL
+-- ---
 
-        paddingTop, paddingHorizontal = ScreenScaleH( 20 ), ScreenScale( 10 )
-        @DockPadding( paddingHorizontal, paddingTop, paddingHorizontal, 0 )
+-- do
 
-    PANEL.DeletePlayers = =>
-        unless istable( @Players )
-            @Players = {}
-            return
+--     PANEL = {}
 
-        for ply in *@Players
-            unless IsValid( ply )
-                continue
-            ply\Remove!
+--     PANEL.Init = =>
 
-        @Players = {}
 
-    PANEL.CreatePlayers = =>
-        @DeletePlayers!
+--     PANEL.PerformLayout = ( w, h ) =>
+--         wide, tall = ScreenScale( 300 ), ScreenScaleH( 380 )
+--         @SetSize( wide, tall )
+--         @Center!
 
-        for ply in *player.GetAll!
-            unless IsValid( ply )
-                continue
+--         paddingTop, paddingHorizontal = ScreenScaleH( 20 ), ScreenScale( 10 )
+--         @DockPadding( paddingHorizontal, paddingTop, paddingHorizontal, 0 )
 
-            playerPanel = vgui.Create( "JB.Scoreboard.Player", @ )
-            unless IsValid( playerPanel )
-                continue
+--     PANEL.DeletePlayers = =>
+--         unless istable( @Players )
+--             @Players = {}
+--             return
 
-            table.insert( @Players, playerPanel )
-            playerPanel\SetPlayer( ply )
-            playerPanel\Dock( TOP )
+--         for ply in *@Players
+--             unless IsValid( ply )
+--                 continue
+--             ply\Remove!
 
-    PANEL.Show = =>
-        @CreatePlayers!
-        PANEL_META.Show( @ )
+--         @Players = {}
 
-    PANEL.Hide = =>
-        @DeletePlayers!
-        PANEL_META.Hide( @ )
+--     PANEL.CreatePlayers = =>
+--         @DeletePlayers!
 
-    PANEL.Paint = ( w, h ) =>
-        surface.SetDrawColor( color_red )
-        surface.DrawRect( 0, 0, w, h )
+--         for ply in *player.GetAll!
+--             unless IsValid( ply )
+--                 continue
 
-        draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, color_white, TEXT_ALIGN_CENTER )
+--             playerPanel = vgui.Create( "JB.Scoreboard.Player", @ )
+--             unless IsValid( playerPanel )
+--                 continue
 
-    vgui.Register( "JB.Scoreboard", PANEL )
+--             table.insert( @Players, playerPanel )
+--             playerPanel\SetPlayer( ply )
+--             playerPanel\Dock( TOP )
 
-scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
-if IsValid( scoreboard )
-    scoreboard\Remove!
+--     PANEL.Show = =>
+--         @CreatePlayers!
+--         PANEL_META.Show( @ )
 
-GM.ScoreboardShow = =>
-    scoreboard = @ScoreBoard
-    unless IsValid( scoreboard )
-        scoreboard = vgui.Create( "JB.Scoreboard", GetHUDPanel! )
-        @ScoreBoard = scoreboard
-        -- print("Created")
+--     PANEL.Hide = =>
+--         @DeletePlayers!
+--         PANEL_META.Hide( @ )
 
-    scoreboard\Show!
-    return false
+--     PANEL.Paint = ( w, h ) =>
+--         surface.SetDrawColor( color_red )
+--         surface.DrawRect( 0, 0, w, h )
 
-GM.ScoreboardHide = =>
-    scoreboard = @ScoreBoard
-    if IsValid( scoreboard )
-        scoreboard\Hide!
+--         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, color_white, TEXT_ALIGN_CENTER )
+
+--     vgui.Register( "JB.Scoreboard", PANEL )
+
+-- scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
+-- if IsValid( scoreboard )
+--     scoreboard\Remove!
+
+-- GM.ScoreboardShow = =>
+--     scoreboard = @ScoreBoard
+--     unless IsValid( scoreboard )
+--         scoreboard = vgui.Create( "JB.Scoreboard", GetHUDPanel! )
+--         @ScoreBoard = scoreboard
+--         -- print("Created")
+
+--     scoreboard\Show!
+--     return false
+
+-- GM.ScoreboardHide = =>
+--     scoreboard = @ScoreBoard
+--     if IsValid( scoreboard )
+--         scoreboard\Hide!
