@@ -166,7 +166,7 @@ do
 
 GM.WeaponClasses = {
     weapon_knife: { "arc9_go_knife_bayonet", "arc9_fas_dv2", "arccw_melee_knife", "weapon_crowbar" }
-    weapon_ak47: { "swb_css_ak47", "arc9_go_ak47", "arc9_fas_ak47", "arccw_ur_ak", "arccw_ak47", "m9k_ak74m", "weapon_ar2" }
+    weapon_ak47: { "swb_css_ak47", "arc9_go_ak47", "arc9_fas_ak47", "arccw_ur_ak", "arccw_ak47", "m9k_ak74", "weapon_ar2" }
     weapon_aug: { "swb_css_aug", "arc9_go_aug", "arc9_fas_m16a2", "arccw_ud_mini14", "arccw_augpara", "9k_auga3", "weapon_ar2" }
     weapon_awp: { "swb_css_awp", "arc9_go_awp", "arc9_fas_m24", "arccw_ur_aw", "arccw_awm", "m9k_m98b", "weapon_crossbow" }
     weapon_deagle: { "swb_css_deagle", "arc9_go_deagle", "arc9_fas_deagle", "arccw_ur_deagle", "arccw_deagle357", "m9k_deagle", "weapon_357" }
