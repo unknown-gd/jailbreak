@@ -74,6 +74,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     unless @PlayableTeams[ teamID ]
         ply\Spectate( OBS_MODE_ROAMING )
         ply\SetNoDraw( true )
+        ply\SpectateEntity()
         return
 
     ply\SetNoDraw( false )
@@ -617,6 +618,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
         @SetRoundState( "ended" )
         @NextRoundStateTime!
     ply\Spectate( OBS_MODE_ROAMING )
+    ply\SpectateEntity()
 
 GM.PlayerDisconnected = ( ply ) =>
     if @IsRoundRunning! and ( team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0 )
