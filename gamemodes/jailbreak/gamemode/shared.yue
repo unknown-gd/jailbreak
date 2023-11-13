@@ -120,7 +120,7 @@ GM.GameInProgress = =>
 GM.GetNextRoundStateTime = =>
     return GetGlobal2Int( "next-round-state", 0 )
 
-GM.SetWinningTeam = =>
+GM.GetWinningTeam = =>
     return GetGlobal2Int( "winning-team", 0 )
 
 do

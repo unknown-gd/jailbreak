@@ -6,18 +6,6 @@ CreateConVar( "cl_playerskin", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTR
 CreateConVar( "cl_playerbodygroups", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The bodygroups to use, if the model has any" )
 hook_Run = hook.Run
 
-net.Receive( "AnimRestartGesture", ->
-    ply = net.ReadEntity!
-    unless ply\IsValid!
-        return
-
-    slot, activity, autoKill = net.ReadUInt( 6 ), net.ReadUInt( 32 ), net.ReadBool!
-    timer.Simple( engine.TickInterval!, ->
-        if ply\IsValid! and ply\Alive!
-            ply\AnimRestartGesture( slot, activity, autoKill )
-    )
-)
-
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
@@ -84,12 +72,16 @@ GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
     return view
 
 GM.Think = =>
+    if @AllTalk\GetInt! > 2
+        for ply in *player.GetHumans!
+            if ply\IsSpeaking! and ply\GetVoiceVolumeScale! ~= 1
+                ply\SetVoiceVolumeScale( 1 )
+        return
+
     pos = EyePos!
     for ply in *player.GetHumans!
-        unless ply\IsSpeaking!
-            continue
-
-        ply\SetVoiceVolumeScale( math.Clamp( 1 - pos\DistToSqr( ply\EyePos! ) / @VoiceChatDistance, 0, 1 ) )
+        if ply\IsSpeaking!
+            ply\SetVoiceVolumeScale( math.Clamp( 1 - pos\DistToSqr( ply\EyePos! ) / @VoiceChatDistance, 0, 1 ) )
 
 GM.HUDPaint = =>
     hook_Run( "HUDDrawPickupHistory" )
@@ -104,6 +96,9 @@ GM.HUDPaint = =>
         str = string.format( str, math.max( 0, @GetNextRoundStateTime! - CurTime! ) )
 
     draw.DrawText( string.upper( str ), "DermaLarge", ScrW! / 2, 32, color_white, TEXT_ALIGN_CENTER )
+
+    if state == "ended"
+        draw.DrawText( string.upper( language.GetPhrase( "jb.victory." .. @GetWinningTeam! ) ), "DermaLarge", ScrW! / 2, 64, color_white, TEXT_ALIGN_CENTER )
 
 -- ---
 -- --- Colors
