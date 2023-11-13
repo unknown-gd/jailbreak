@@ -2,20 +2,20 @@ AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
 -- TODO: Write desc
-GM.Preparing = CreateConVar( "jb_preparing", "30", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 5, 900 )
+GM.DoorsHealth = CreateConVar( "jb_doors_health", "250", FCVAR_ARCHIVE, "", 50, 10000 )
+GM.Preparing = CreateConVar( "jb_preparing", "30", FCVAR_ARCHIVE, "", 5, 900 )
 
 resource.AddSingleFile( "resource/localization/en/jailbreak.properties" )
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "643148462" )
 
-TEAM_UNASSIGNED = TEAM_UNASSIGNED
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 hook_Run = hook.Run
 tonumber = tonumber
 
 -- TODO: Write desc
-GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "", 1, game.MaxPlayers() - 1 )\GetInt! + 1 )
+GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", FCVAR_ARCHIVE, "", 1, game.MaxPlayers() - 1 )\GetInt! + 1 )
 cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
     (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
 "Jailbreak" )
@@ -45,10 +45,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
         ply\SetTeam( TEAM_PRISONER )
         return
 
-    ply\SetTeam( TEAM_UNASSIGNED )
-
-GM.PlayerDisconnected = ( ply ) =>
-    ply\SetTeam( TEAM_CONNECTING )
+    ply\SetTeam( TEAM_SPECTATOR )
 
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\AllowFlashlight( false )
@@ -79,7 +76,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\SetAvoidPlayers( false )
 
     unless @PlayableTeams[ teamID ]
-        ply\Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
+        ply\Spectate( OBS_MODE_ROAMING )
         ply\SetNoDraw( true )
         return
 
@@ -107,8 +104,8 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         for i = 0, ply\GetNumBodyGroups! - 1 do
             ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
 
-    ply\SetupHands!
     hook_Run( "TeamPlayerSpawn", ply, teamID )
+    ply\SetupHands!
 
 GM.OnEntityCreated = ( weapon ) =>
     unless weapon\IsWeapon!
@@ -250,6 +247,80 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
 
     -- TODO: Write here death notifies
 
+GM.EntityTakeDamage = ( entity, damageInfo ) =>
+    if bit.band( damageInfo\GetDamageType!, DMG_BULLET ) ~= DMG_BULLET
+        return
+
+    switch entity\GetClass!
+        when "prop_door_rotating"
+
+            maxHealth = entity\GetMaxHealth!
+            if maxHealth <= 1
+                maxHealth = @DoorsHealth\GetInt!
+                entity\SetHealth( maxHealth )
+                entity\SetMaxHealth( maxHealth )
+
+            health = entity\Health!
+            if health < 1
+                return true
+
+            health = math.max( 0, health - damageInfo\GetDamage! )
+            entity\SetHealth( health )
+
+            if health > 1
+                return true
+
+            model = entity\GetModel!
+            unless model and #model ~= 0 and util.IsValidModel( model )
+                return true
+
+            center = entity\OBBCenter!
+            center[ 1 ] = 0
+            center[ 2 ] = 0
+
+            origin = entity\LocalToWorld( center )
+            unless util.IsInWorld( origin )
+                return true
+
+            prop = ents.Create( "prop_physics" )
+            prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
+            prop\SetAngles( entity\GetAngles! )
+            prop\SetSkin( entity\GetSkin! )
+            prop\SetModel( model )
+            prop\SetPos( origin )
+            prop\Spawn()
+
+            name = entity\GetName!
+            if name ~= ""
+                for portal in *ents.FindByClass( "func_areaportal" )
+                    if portal\GetInternalVariable( "target" ) ~= name
+                        continue
+
+                    portal\SetSaveValue( "target", "" )
+                    portal\Fire( "open" )
+
+            prop\EmitSound( "physics/wood/wood_crate_break" .. math.random( 1, 5 ) .. ".wav", 70, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+            entity\Remove!
+
+            phys = prop\GetPhysicsObject!
+            if IsValid( phys )
+                phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
+
+            origin = damageInfo\GetDamagePosition!
+            fx = EffectData!
+            fx\SetOrigin( origin )
+            fx\SetMagnitude( 5 )
+            fx\SetRadius( 5 )
+            fx\SetScale( 2 )
+            util.Effect( "Sparks", fx )
+            util.ScreenShake( origin, 5, 10, 0.5, 150 )
+            return true
+        when "func_button"
+            attacker = damageInfo\GetAttacker!
+            if IsValid( attacker ) and attacker\IsPlayer!
+                entity\Use( attacker, attacker )
+            return true
+
 GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
     if @IsRoundPreparing!
         return false
@@ -264,6 +335,9 @@ GM.FriendlyFire = ( ply, teamID ) =>
 
 GM.GetFallDamage = ( ply, speed ) =>
     return math.max( 0, math.ceil( 0.2418 * speed - 141.75 ) )
+
+GM.PlayerShouldTaunt = ( ply, act ) =>
+    return @PlayableTeams[ ply\Team! ] and ply\Alive!
 
 GM.AllowPlayerPickup = ( ply, entity ) =>
     unless @PlayableTeams[ ply\Team! ]
@@ -432,7 +506,6 @@ concommand.Add( "drop", ( ply ) ->
 
 GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
-    RunConsoleCommand( "mp_show_voice_icons", "0" )
     @SetRoundState( "waiting" )
 
 GM.SetRoundState = ( state ) =>
