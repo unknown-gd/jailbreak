@@ -1,5 +1,9 @@
-:GetStored, :Register = weapons
+weapons_Register = weapons.Register
+vector_origin = vector_origin
+angle_zero = angle_zero
 isstring = isstring
+isvector = isvector
+isangle = isangle
 IsValid = IsValid
 istable = istable
 ipairs = ipairs
@@ -7,6 +11,7 @@ SERVER = SERVER
 assert = assert
 :Create = ents
 :Set = list
+
 
 global class WeaponHandler
     Weapons: list.GetForEdit( "Weapon" )
@@ -17,10 +22,21 @@ global class WeaponHandler
         if @Registered
             return
 
+        @Offsets = {}
         if isstring( alternative )
             @AddAlternative( alternative )
         elseif istable( alternative )
             @AddAlternatives( alternative )
+
+    SetClassOffset: ( className, vector, angles ) =>
+        assert isstring( className ), "Second argument must be a 'string'!"
+        unless isvector( vector )
+            vector = vector_origin
+
+        unless isangle( angles )
+            angles = angle_zero
+
+        @Offsets[ className ] = { vector, angles }
 
     Register: ( metatable ) =>
         if @Registered
@@ -31,7 +47,7 @@ global class WeaponHandler
             return
 
         className = @ClassName
-        Register( metatable, className )
+        weapons_Register( metatable, className )
         Set( "Weapon", className, nil )
         @Registered = true
 
@@ -51,71 +67,76 @@ global class WeaponHandler
         unless istable( info )
             return
 
-        metatable = GetStored( className )
-        unless istable( metatable )
-            metatable = {
-                PrintName: info.PrintName
-                BaseClassName: className
-                Author: info.Author
-                Spawnable: false
-            }
+        metatable = {
+            WeaponHandlerOffset: @Offsets[ className ]
+            PrintName: info.PrintName
+            BaseClassName: className
+            Author: info.Author
+            Spawnable: false
+        }
 
-            if SERVER
+        if SERVER
 
-                metatable.Initialize = () =>
-                    owner = @GetOwner!
-                    if IsValid( owner )
-                        owner\Give( className )
-                        return
-
-                    entity = Create( className )
-                    if entity and entity\IsValid!
-                        entity\SetPos( @GetPos! )
-                        entity\SetAngles( @GetAngles! )
-                        entity\Spawn!
-                        entity\Activate!
-
-                        entity\SetCollisionGroup( @GetCollisionGroup! )
-                        entity\SetMoveType( @GetMoveType! )
-                        entity\SetNoDraw( @GetNoDraw! )
-                        entity\SetColor( @GetColor! )
-
-                        newPhys = entity\GetPhysicsObject!
-                        if newPhys and newPhys\IsValid!
-                            oldPhys = @GetPhysicsObject!
-                            if oldPhys and oldPhys\IsValid!
-                                newPhys\EnableCollisions( oldPhys\IsCollisionEnabled! )
-                                newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
-                                newPhys\EnableDrag( oldPhys\IsDragEnabled! )
-                                newPhys\SetMass( oldPhys\GetMass! )
-
-                                if oldPhys\IsAsleep!
-                                    newPhys\Sleep!
-                                else
-                                    newPhys\Wake!
-
-                                newPhys\SetVelocity( oldPhys\GetVelocity! )
-                            else
-                                newPhys\Sleep!
-
-                    @Remove!
-
-                metatable.Deploy = () =>
-                    owner = @GetOwner!
-                    unless owner and owner\IsValid!
-                        return
-
-                    if owner\IsPlayer! and not owner\Alive!
-                        return
-
+            metatable.Initialize = () =>
+                owner = @GetOwner!
+                if IsValid( owner )
                     owner\Give( className )
-                    owner\SelectWeapon( className )
-                    owner\StripWeapon( @GetClass! )
-                    return true
+                    return
 
-                metatable.Holster = () =>
-                    @Remove!
-                    return true
+                entity = Create( className )
+                if entity and entity\IsValid!
+                    origin, angles = @GetPos!, @GetAngles!
+
+                    offsetData = @WeaponHandlerOffset
+                    if istable( offsetData )
+                        origin, angles = LocalToWorld( offsetData[ 1 ], offsetData[ 2 ], origin, angles )
+
+                    entity\SetPos( origin )
+                    entity\SetAngles( angles )
+                    entity\Spawn!
+                    entity\Activate!
+
+                    entity\SetCollisionGroup( @GetCollisionGroup! )
+                    entity\SetMoveType( @GetMoveType! )
+                    entity\SetNoDraw( @GetNoDraw! )
+                    entity\SetColor( @GetColor! )
+
+                    newPhys = entity\GetPhysicsObject!
+                    if newPhys and newPhys\IsValid!
+                        oldPhys = @GetPhysicsObject!
+                        if oldPhys and oldPhys\IsValid!
+                            newPhys\EnableCollisions( oldPhys\IsCollisionEnabled! )
+                            newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
+                            newPhys\EnableDrag( oldPhys\IsDragEnabled! )
+                            newPhys\SetMass( oldPhys\GetMass! )
+
+                            if oldPhys\IsAsleep!
+                                newPhys\Sleep!
+                            else
+                                newPhys\Wake!
+
+                            newPhys\SetVelocity( oldPhys\GetVelocity! )
+                        else
+                            newPhys\Sleep!
+
+                @Remove!
+
+            metatable.Deploy = () =>
+                owner = @GetOwner!
+                unless owner and owner\IsValid!
+                    return
+
+                if owner\IsPlayer! and not owner\Alive!
+                    return
+
+                owner\Give( className )
+                owner\SelectWeapon( className )
+                owner\StripWeapon( @GetClass! )
+                return true
+
+            metatable.Holster = () =>
+                @Remove!
+                return true
 
         @Register( metatable )
 
