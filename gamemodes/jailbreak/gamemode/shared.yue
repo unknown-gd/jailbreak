@@ -75,7 +75,7 @@ GM.StartCommand = ( ply, cmd ) =>
         cmd\RemoveKey( IN_DUCK )
 
 GM.GetRoundState = =>
-    return GetGlobalString( "round-state", "waiting" )
+    return GetGlobal2String( "round-state", "waiting" )
 
 GM.IsWaitingPlayers = =>
     return @GetRoundState! == "waiting"
@@ -87,11 +87,17 @@ GM.IsRoundRunning = =>
     return @GetRoundState! == "running"
 
 GM.IsRoundEnded = =>
+    return @GetRoundState! == "ended"
+
+GM.GameInProgress = =>
     state = @GetRoundState!
-    return state == "draw" or state == "guard_victory" or state == "prisoner_victory"
+    return state ~= "waiting" and state ~= "preparing"
 
 GM.GetNextRoundStateTime = =>
-    return GetGlobal2Int( "next-round-state-time", 0 )
+    return GetGlobal2Int( "next-round-state", 0 )
+
+GM.SetWinningTeam = =>
+    return GetGlobal2Int( "winning-team", 0 )
 
 do
 
