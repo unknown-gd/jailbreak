@@ -9,8 +9,6 @@ global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
 
 GM.GuardModels = {
-    "models/sirgibs/ragdolls/css/male_07_leet_player_color.mdl"
-    -- "models/player/odessa.mdl"
     "models/player/gasmask.mdl"
     "models/player/riot.mdl"
     "models/player/swat.mdl"
@@ -79,24 +77,9 @@ do
 TEAM_UNASSIGNED = TEAM_UNASSIGNED
 
 GM.FinishMove = ( ply, mv ) =>
-    if drive.FinishMove( ply, mv )
-        return true
-
-    teamID = ply\Team!
-    if teamID == TEAM_UNASSIGNED
-        return true
-
-    if @PlayableTeams[ teamID ]
-        unless ply\Alive!
-            return true
-
-        if ply\IsPlayingTaunt!
-            mv\SetForwardSpeed( 0 )
-            mv\SetSideSpeed( 0 )
-
-GM.StartCommand = ( ply, cmd ) =>
-    if not @PlayableTeams[ ply\Team! ] and cmd\KeyDown( IN_DUCK )
-        cmd\RemoveKey( IN_DUCK )
+    if ply\IsPlayingTaunt!
+        mv\SetForwardSpeed( 0 )
+        mv\SetSideSpeed( 0 )
 
 GM.GetRoundState = =>
     return GetGlobal2String( "round-state", "waiting" )
