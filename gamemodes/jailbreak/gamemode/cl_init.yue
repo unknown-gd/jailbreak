@@ -24,7 +24,7 @@ GM.PostCleanupMap = =>
 GM.InitPostEntity = =>
     @ShowTeam!
 
-concommand.Add( "show_team", ->
+concommand.Add( "jb_showteam", ->
     GAMEMODE\ShowTeam!
 )
 

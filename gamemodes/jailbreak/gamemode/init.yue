@@ -36,15 +36,8 @@ do
 
         @AnimRestartGesture( slot, activity, autoKill )
 
-GM.AutoBalancePlayer = ( ply ) =>
-    teamID = TEAM_UNASSIGNED
-    guardCount = team.NumPlayers( TEAM_GUARD )
-    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
-        teamID = TEAM_GUARD
-    else
-        teamID = TEAM_PRISONER
-
-    ply\SetTeam( teamID )
+GM.ShowTeam = ( ply ) =>
+    ply\ConCommand( "jb_showteam" )
 
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
     if ply\IsBot! and ( @IsRoundPreparing! or @IsWaitingPlayers! )
