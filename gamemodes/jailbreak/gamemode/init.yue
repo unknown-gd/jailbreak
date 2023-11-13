@@ -116,10 +116,6 @@ GM.OnEntityCreated = ( weapon ) =>
     unless weapon\IsWeapon!
         return
 
-    if @GameInProgress!
-        weapon\Remove!
-        return
-
     timer.Simple( 0.025, ->
         unless weapon\IsValid!
             return
@@ -185,7 +181,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\GiveAmmo( 45, "smg1", true )
         ply\GiveAmmo( 20, "Pistol", true )
         ply\GiveAmmo( 10, "Buckshot", true )
-        if @IsRoundPreparing! and math.random( 1, 10 ) == 1
+        if not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
             ply\Give( "weapon_knife" )
     elseif teamID == TEAM_GUARD
         ply\GiveAmmo( 7, "357", true )
@@ -370,28 +366,24 @@ GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
     elseif new == 3
         entity\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
 
-GM.PlayerCanJoinTeam = ( ply, teamID ) =>
+GM.PlayerRequestTeam = ( ply, teamID ) =>
+    unless team.Joinable( teamID )
+        return
+
     if ply\Team! == teamID
-        return false
+        return
 
-    unless @PlayableTeams[ teamID ]
-        return true
+    if @PlayableTeams[ teamID ]
+        if @IsRoundRunning!
+            -- TODO: here chat message
+            return
 
-    if @IsRoundRunning!
-        -- TODO: here chat message
-        return false
+        if teamID ~= TEAM_PRISONER
+            guardCount = team.NumPlayers( TEAM_GUARD )
+            unless guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
+                -- TODO: here chat message
+                return
 
-    if teamID == TEAM_PRISONER
-        return true
-
-    guardCount = team.NumPlayers( TEAM_GUARD )
-    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
-        return true
-
-    -- TODO: here chat message
-    return false
-
-GM.PlayerJoinTeam = ( ply, teamID ) =>
     if ply\Alive!
         if @PlayableTeams[ ply\Team! ]
             ply\Kill!
@@ -399,13 +391,6 @@ GM.PlayerJoinTeam = ( ply, teamID ) =>
             ply\KillSilent!
 
     ply\SetTeam( teamID )
-
-GM.PlayerRequestTeam = ( ply, teamID ) =>
-    unless team.Joinable( teamID ) and @PlayerCanJoinTeam( ply, teamID )
-        return
-
-    @PlayerJoinTeam( ply, teamID )
-    return
 
 concommand.Add( "drop", ( ply ) ->
     dropWeapon = ply\GetActiveWeapon!
