@@ -533,14 +533,3 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 concommand.Add( "changeteam", ( ply, _, args ) ->
     hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
 )
-
-hook.Add "PlayerSetModel", "Developer Player Model", ( ply ) ->
-    if ply\IsBot! or ply\SteamID64! ~= "76561198100459279"
-        return
-
-    developerModel = "models/prikolmen/mothica_pm.mdl"
-    unless util.IsValidModel( developerModel )
-        return
-
-    ply\SetModel( Model( developerModel ) )
-    return true
