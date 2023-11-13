@@ -249,6 +249,7 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
         hook_Run( "TeamPlayerDeath", ply, teamID )
 
     -- TODO: Write here death notify
+
 GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
     if @IsRoundPreparing!
         return false
@@ -256,6 +257,9 @@ GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
     if @GameInProgress! and ply\Team! == TEAM_GUARD and attacker\IsPlayer! and ply ~= attacker
         return attacker\Team! == TEAM_PRISONER
 
+    return true
+
+GM.FriendlyFire = ( ply, teamID ) =>
     return true
 
 GM.GetFallDamage = ( ply, speed ) =>
@@ -500,6 +504,7 @@ GM.RoundStateChanged = ( old, new ) =>
             for ply in *player.GetAll!
                 if ply\IsBot!
                     @SelectBestTeam( ply )
+                    ply\Spawn!
 
                 if @PlayableTeams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
