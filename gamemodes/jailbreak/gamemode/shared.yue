@@ -32,6 +32,16 @@ GM.CreateTeams = =>
 
 do
 
+    PLAYER = FindMetaTable( "Player" )
+
+    PLAYER.IsGuard = =>
+        return @Team! == TEAM_GUARD
+
+    PLAYER.IsPrisoner = =>
+        return @Team! == TEAM_PRISONER
+
+do
+
     util_PrecacheModel = util.PrecacheModel
     util_IsValidModel = util.IsValidModel
 

@@ -171,9 +171,6 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
     )
 
 GM.PlayerLoadout = ( ply, teamID ) =>
-    unless @PlayableTeams[ teamID ]
-        return
-
     if teamID == TEAM_PRISONER
         ply\GiveAmmo( 30, "ar2", true )
         ply\GiveAmmo( 45, "smg1", true )
@@ -230,6 +227,7 @@ GM.IsSpawnpointSuitable = ( ply, entity, bMakeSuitable ) =>
         start: start
         endpos: start
         mask: MASK_PLAYERSOLID
+        filter: entity
         mins: mins
         maxs: maxs
     } )
@@ -250,14 +248,14 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     if @PlayableTeams[ teamID ]
         hook_Run( "TeamPlayerDeath", ply, teamID )
 
-    -- TODO: Write here death notify
+    -- TODO: Write here death notifies
 
 GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
     if @IsRoundPreparing!
         return false
 
-    if @GameInProgress! and ply\Team! == TEAM_GUARD and attacker\IsPlayer! and ply ~= attacker
-        return attacker\Team! == TEAM_PRISONER
+    if @GameInProgress! and ply\IsGuard! and attacker\IsPlayer! and ply ~= attacker
+        return attacker\IsPrisoner!
 
     return true
 
@@ -293,14 +291,12 @@ GM.CanPlayerSuicide = ( ply ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
-    if ply\Team! == TEAM_GUARD
-        return true
-    return ply\CanUseFlashlight!
+    return ply\IsGuard! or ply\CanUseFlashlight!
 
 GM.PlayerDeathSound = ( ply ) =>
-    if @IsRoundRunning!
-        return ply\Team! ~= TEAM_GUARD
-    return true
+    unless @IsRoundRunning!
+        return true
+    return ply\IsPrisoner!
 
 GM.PlayerUse = ( ply, entity ) =>
     weapon = ply\GetActiveWeapon!
@@ -512,12 +508,6 @@ GM.RoundStateChanged = ( old, new ) =>
                 @SetWinningTeam( TEAM_PRISONER )
             else
                 @SetWinningTeam( 0 )
-
-GM.PlayerChangedTeam = ( ply, old, new ) =>
-    -- timer.Simple 0, ->
-    --     if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
-    --         @SetRoundState( "ended" )
-    --         @NextRoundStateTime!
 
 GM.TeamPlayerSpawn = ( ply, teamID ) =>
     if @IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
