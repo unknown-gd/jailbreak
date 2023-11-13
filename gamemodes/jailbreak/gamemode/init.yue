@@ -403,48 +403,58 @@ GM.PlayerUse = ( ply, entity ) =>
     return true
 
 GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
+    unless @GameInProgress!
+        return true
+
+    if @AllTalk\GetInt! > 2
+        return true
+
     unless IsValid( speaker )
         return true
 
-    speakerTeam, listenerTeam = speaker\Team!, listener\Team!
-    if isTeam and speakerTeam ~= listenerTeam
-        return false
+    listenerAlive, speakerAlive = listener\Alive!, speaker\Alive!
+    if not listenerAlive and not speakerAlive
+        return true
 
-    unless @PlayableTeams[ speakerTeam ]
-        return not @PlayableTeams[ listenerTeam ]
+    listenerTeam, speakerTeam = listener\Team!, speaker\Team!
+    if not @PlayableTeams[ listenerTeam ] and not speakerAlive
+        return true
 
-    unless speaker\Alive!
-        return not listener\Alive!
+    if not @PlayableTeams[ speakerTeam ] and not listenerAlive
+        return true
 
-    return true
+    if isTeam and speakerTeam == listenerTeam
+        return true
 
-GM.PlayerCanHearPlayersVoice = ( listener, talker ) =>
-    talkerPosition = talker\EyePos!
-    if talkerPosition\DistToSqr( listener\EyePos! ) <= @VoiceChatDistance
-        talkerTeam, listenerTeam = talker\Team!, listener\Team!
+    return false
 
-        unless @PlayableTeams[ talkerTeam ]
-            return not @PlayableTeams[ listenerTeam ]
+GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
+    unless @GameInProgress!
+        return true, false
 
-        unless talker\Alive!
-            return not listener\Alive!
+    if @AllTalk\GetInt! > 2
+        return true, false
 
+    listenerAlive, speakerAlive = listener\Alive!, speaker\Alive!
+    if not listenerAlive and not speakerAlive
+        return true, false
+
+    listenerTeam, speakerTeam = listener\Team!, speaker\Team!
+    if not @PlayableTeams[ listenerTeam ] and not speakerAlive
+        return true, false
+
+    if not @PlayableTeams[ speakerTeam ] and not listenerAlive
+        return true, false
+
+    speakerPosition = speaker\EyePos!
+    if speakerPosition\DistToSqr( listener\EyePos! ) <= @VoiceChatDistance
         rf = RecipientFilter!
-        rf\AddPAS( talkerPosition )
+        rf\AddPAS( speakerPosition )
         for ply in *rf\GetPlayers!
             if ply == listener
                 return true, true
 
-    return false
-
-GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
-    unless entity\IsPlayer!
-        return
-
-    if new < 3 and old >= 3
-        entity\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
-    elseif new == 3
-        entity\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
+    return false, false
 
 GM.GetTeamAliveCount = ( teamID ) =>
     alive = 0

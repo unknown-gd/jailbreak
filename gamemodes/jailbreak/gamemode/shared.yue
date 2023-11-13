@@ -3,6 +3,7 @@ GM.Author = ""
 GM.TeamBased = true
 
 GM.VoiceChatDistance = 1024 ^ 2
+GM.AllTalk = GetConVar( "sv_alltalk" )
 
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
