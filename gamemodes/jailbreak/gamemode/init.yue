@@ -460,12 +460,13 @@ GM.RoundStateChanged = ( old, new ) =>
                 if ply\IsBot!
                     @PlayerRequestTeam( ply, TEAM_PRISONER )
                 elseif @PlayableTeams[ ply\Team! ]
-                    ply\Kill!
+                    ply\KillSilent!
                 else
                     @ShowTeam( ply )
 
         when "preparing"
             @FemalePrison = math.random( 1, 10 ) == 1
+    		timer.Simple( 0, game.CleanUpMap )
 
             for ply in *player.GetAll!
                 if ply\IsBot!
@@ -474,7 +475,6 @@ GM.RoundStateChanged = ( old, new ) =>
                 if @PlayableTeams[ ply\Team! ]
                     ply\Spawn!
 
-            game.CleanUpMap!
         when "running"
             guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
             totalCount = guardCount + prisonerCount
