@@ -190,7 +190,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
 GM.PlayerSetModel = ( ply, teamID ) =>
     models = @PlayerModels[ teamID ]
     if teamID == TEAM_PRISONER
-        models = models[ @IsFemalePrison and 1 or 2 ]
+        models = models[ @FemalePrison and 1 or 2 ]
 
     requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
     if requested and #requested > 0
@@ -460,6 +460,8 @@ GM.RoundStateChanged = ( old, new ) =>
                     @ShowTeam( ply )
 
         when "preparing"
+            @FemalePrison = math.random( 1, 10 ) == 1
+
             for ply in *player.GetAll!
                 if ply\IsBot!
                     @SelectBestTeam( ply )
