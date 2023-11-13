@@ -81,11 +81,9 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     unless @PlayableTeams[ teamID ]
         ply\Spectate( ( teamID == TEAM_SPECTATOR ) and OBS_MODE_ROAMING or OBS_MODE_FIXED )
         ply\SetNoDraw( true )
-        ply\RemoveSuit!
         return
 
     ply\SetNoDraw( false )
-    ply\EquipSuit!
 
     unless transiton
         ply.Loadout = true
@@ -366,6 +364,13 @@ GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
     elseif new == 3
         entity\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_FLINCH_PHYSICS )
 
+GM.GetTeamAliveCount = ( teamID ) =>
+    alive = 0
+    for ply in *team.GetPlayers( teamID )
+        if ply\Alive!
+            alive += 1
+    return alive
+
 GM.PlayerRequestTeam = ( ply, teamID ) =>
     unless team.Joinable( teamID )
         return
@@ -379,8 +384,8 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
             return
 
         if teamID ~= TEAM_PRISONER
-            guardCount = team.NumPlayers( TEAM_GUARD )
-            unless guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
+            guardCount = @GetTeamAliveCount( TEAM_GUARD )
+            unless guardCount == 0 or ( guardCount / @GetTeamAliveCount( TEAM_PRISONER ) ) < @GuardsDiff
                 -- TODO: here chat message
                 return
 
@@ -447,8 +452,8 @@ GM.Think = =>
             @SetRoundState( "waiting" )
 
 GM.SelectBestTeam = ( ply ) =>
-    guardCount = team.NumPlayers( TEAM_GUARD )
-    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
+    guardCount = @GetTeamAliveCount( TEAM_GUARD )
+    if guardCount == 0 or ( guardCount / @GetTeamAliveCount( TEAM_PRISONER ) ) < @GuardsDiff
         ply\SetTeam( TEAM_GUARD )
     else
         ply\SetTeam( TEAM_PRISONER )
@@ -463,20 +468,20 @@ GM.RoundStateChanged = ( old, new ) =>
                     ply\KillSilent!
                 else
                     @ShowTeam( ply )
+    		timer.Simple( 0, game.CleanUpMap )
 
         when "preparing"
             @FemalePrison = math.random( 1, 10 ) == 1
-    		timer.Simple( 0, game.CleanUpMap )
-
             for ply in *player.GetAll!
                 if ply\IsBot!
                     @SelectBestTeam( ply )
 
                 if @PlayableTeams[ ply\Team! ]
                     ply\Spawn!
+    		timer.Simple( 0, game.CleanUpMap )
 
         when "running"
-            guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+            guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
             totalCount = guardCount + prisonerCount
 
             while ( guardCount / prisonerCount ) > @GuardsDiff and totalCount > ( ( 1 / @GuardsDiff ) + guardCount )
@@ -484,10 +489,9 @@ GM.RoundStateChanged = ( old, new ) =>
                     guard = table.Random( team.GetPlayers( TEAM_GUARD ) )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
-                        if guard\Alive!
-                            guard\Spawn!
+                        guard\Spawn!
                         break
-                guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+                guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
                 totalCount = guardCount + prisonerCount
 
             if guardCount == 0 or prisonerCount == 0
@@ -498,39 +502,35 @@ GM.RoundStateChanged = ( old, new ) =>
                 if ply\IsBot!
                     @SelectBestTeam( ply )
                     ply\Spawn!
-
-                if @PlayableTeams[ ply\Team! ] and not ply\Alive!
+                elseif @PlayableTeams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
 
         when "ended"
-            guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+            guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
             if guardCount > prisonerCount
+                team.AddScore( TEAM_GUARD, 1 )
                 @SetWinningTeam( TEAM_GUARD )
-                for ply in *team.GetPlayers( TEAM_GUARD )
-                    ply\AddFrags( 1 )
             elseif guardCount < prisonerCount
+                team.AddScore( TEAM_PRISONER, 1 )
                 @SetWinningTeam( TEAM_PRISONER )
-                for ply in *team.GetPlayers( TEAM_PRISONER )
-                    ply\AddFrags( 1 )
             else
                 @SetWinningTeam( 0 )
 
 GM.PlayerChangedTeam = ( ply, old, new ) =>
-    timer.Simple 0, ->
-        if @IsRoundRunning! and ( team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0 )
-            @SetRoundState( "ended" )
-            @NextRoundStateTime!
+    -- timer.Simple 0, ->
+    --     if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+    --         @SetRoundState( "ended" )
+    --         @NextRoundStateTime!
 
 GM.TeamPlayerSpawn = ( ply, teamID ) =>
-    if @IsWaitingPlayers! and team.NumPlayers( TEAM_GUARD ) > 0 and team.NumPlayers( TEAM_PRISONER ) > 0
+    if @IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
         @SetRoundState( "preparing" )
         @NextRoundStateTime!
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
-    unless @GameInProgress!
-        return
-
-    ply\SetTeam( TEAM_SPECTATOR )
+    if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+        @SetRoundState( "ended" )
+        @NextRoundStateTime!
 
 concommand.Add( "changeteam", ( ply, _, args ) ->
     hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
