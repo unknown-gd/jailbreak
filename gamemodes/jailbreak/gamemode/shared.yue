@@ -74,7 +74,36 @@ do
         [ TEAM_GUARD ]: guardModels
     }
 
-TEAM_UNASSIGNED = TEAM_UNASSIGNED
+GM.Move = ( ply, mv ) =>
+    if ply\Alive! and @PlayableTeams[ ply\Team! ]
+        return
+
+    mult = mv\KeyDown( IN_SPEED ) and 2 or 1
+    frameTimeHalf = FrameTime! * 0.5
+    ang = mv\GetMoveAngles!
+    vel = Vector!
+
+    if mv\KeyDown( IN_FORWARD )
+        vel += ang\Forward! * 600 * mult * frameTimeHalf
+
+    if mv\KeyDown( IN_BACK )
+        vel -= ang\Forward! * 600 * mult * frameTimeHalf
+
+    if mv\KeyDown( IN_MOVELEFT )
+        vel -= ang\Right! * 600 * mult * frameTimeHalf
+
+    if mv\KeyDown( IN_MOVERIGHT )
+        vel += ang\Right! * 600 * mult * frameTimeHalf
+
+    if mv\KeyDown( IN_DUCK )
+        vel -= ang\Up! * 800 * frameTimeHalf
+
+    if mv\KeyDown( IN_JUMP )
+        vel += ang\Up! * 800 * frameTimeHalf
+
+    mv\SetVelocity( vel )
+    mv\SetOrigin( mv\GetOrigin! + vel )
+    return true
 
 GM.FinishMove = ( ply, mv ) =>
     if ply\IsPlayingTaunt!
