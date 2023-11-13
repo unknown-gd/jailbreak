@@ -526,32 +526,13 @@ concommand.Add( "changeteam", ( ply, _, args ) ->
     hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
 )
 
-GM.SpectateNext = ( spectator, backward ) =>
-    lastTargetID = spectator.LastSpectateTargetID or 0
-    target = nil
-
-    for ply in *player.GetAll!
-        if @PlayableTeams[ ply\Team! ] and ply\Alive!
-            if backward and ply\EntIndex! < lastTargetID
-                target = ply
-                break
-            elseif ply\EntIndex! > lastTargetID
-                target = ply
-                break
-
-    if IsValid( target )
-        spectator\Spectate( OBS_MODE_CHASE )
-	    spectator\SpectateEntity( target )
-    elseif IsValid( spectator\GetObserverTarget! )
-        spectator\Spectate( OBS_MODE_CHASE )
-        spectator\SpectateEntity( nil )
-
-GM.KeyPress = ( ply, key ) =>
-    if ply\Team! ~= TEAM_SPECTATOR
+hook.Add "PlayerSetModel", "Developer Player Model", ( ply ) ->
+    if ply\IsBot! or ply\SteamID64! ~= "76561198100459279"
         return
 
-    switch key
-        when IN_ATTACK
-            @SpectateNext( ply, false )
-        when IN_ATTACK2
-            @SpectateNext( ply, true )
+    developerModel = "models/prikolmen/mothica_pm.mdl"
+    unless util.IsValidModel( developerModel )
+        return
+
+    ply\SetModel( Model( developerModel ) )
+    return true
