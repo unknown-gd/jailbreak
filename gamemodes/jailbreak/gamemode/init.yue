@@ -13,6 +13,7 @@ TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 hook_Run = hook.Run
 tonumber = tonumber
+IsValid = IsValid
 
 -- TODO: Write desc
 GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", FCVAR_ARCHIVE, "", 1, game.MaxPlayers() - 1 )\GetInt! + 1 )
@@ -134,6 +135,8 @@ GM.OnEntityCreated = ( weapon ) =>
                     return
     )
 
+COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
+
 GM.PlayerDroppedWeapon = ( ply, weapon ) =>
     timerName = "JB_WeaponDrop #" .. weapon\EntIndex!
     timer.Create( timerName, 3, 1, ->
@@ -243,6 +246,8 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
         hook_Run( "TeamPlayerDeath", ply, teamID )
 
     -- TODO: Write here death notifies
+
+DMG_NEVERGIB = DMG_NEVERGIB
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
@@ -386,17 +391,32 @@ GM.PlayerUse = ( ply, entity ) =>
     if ( curTime - lastUse ) <= 0.25
         return
 
-    if entity\IsWeapon!
+    if entity\IsWeapon! and not entity\IsPlayerHolding!
         if ply\HasWeapon( entity\GetClass! )
+            pickedAmmo = false
+
             clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
-            if clip1 > 0 and clip1Type >= 0
+            if clip1 > 0 and clip1Type >= 0 and ply\GetAmmoCount( clip1Type ) < ( game.GetAmmoMax( clip1Type ) / 2 )
                 ply\GiveAmmo( clip1, clip1Type, false )
                 entity\SetClip1( 0 )
+                pickedAmmo = true
 
             clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
-            if clip2 > 0 and clip2Type >= 0
+            if clip2 > 0 and clip2Type >= 0 and ply\GetAmmoCount( clip2Type ) < ( game.GetAmmoMax( clip2Type ) / 2 )
                 ply\GiveAmmo( clip2, clip2Type, false )
                 entity\SetClip2( 0 )
+                pickedAmmo = true
+
+            unless pickedAmmo
+                phys = entity\GetPhysicsObject!
+                if IsValid( phys )
+                    phys\EnableMotion( true )
+                    phys\Wake!
+                ply\PickupObject( entity )
+
+                hook.Add "Think", entity, =>
+                    if @GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
+                        @SetCollisionGroup( COLLISION_GROUP_DEBRIS )
 
         else
             ply\PickupWeapon( entity, false )
