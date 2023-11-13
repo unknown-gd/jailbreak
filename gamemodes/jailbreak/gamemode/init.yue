@@ -244,7 +244,7 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     -- TODO: Write here death notifies
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
-    if bit.band( damageInfo\GetDamageType!, DMG_BULLET ) ~= DMG_BULLET
+    if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
         return
 
     switch entity\GetClass!
@@ -378,6 +378,12 @@ GM.PlayerDeathSound = ( ply ) =>
 GM.PlayerUse = ( ply, entity ) =>
     unless @PlayableTeams[ ply\Team! ]
         return false
+
+    curTime, lastUse = CurTime!, ply.LastUse or 0
+    ply.LastUse = curTime
+
+    if ( curTime - lastUse ) <= 0.25
+        return
 
     if entity\IsWeapon!
         if ply\HasWeapon( entity\GetClass! )
