@@ -20,22 +20,18 @@ cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
     (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
 "Jailbreak" )
 
-do
+if CreateConVar( "jb_realistic", "0", FCVAR_ARCHIVE, "", 0, 1 )\GetBool!
+    RunConsoleCommand( "sv_defaultdeployspeed", "1" )
+    RunConsoleCommand( "mp_show_voice_icons", "0" )
 
-    util.AddNetworkString( "AnimRestartGesture" )
-    PLAYER = FindMetaTable( "Player" )
-
-    PLAYER.AnimRestartGestureShared = ( slot, activity, autoKill ) =>
-        autoKill = autoKill ~= true
-
-        net.Start( "AnimRestartGesture" )
-        net.WriteEntity( @ )
-        net.WriteUInt( slot, 6 )
-        net.WriteUInt( activity, 32 )
-        net.WriteBool( autoKill )
-        net.SendPVS( @GetPos! )
-
-        @AnimRestartGesture( slot, activity, autoKill )
+cvars.AddChangeCallback( "jb_realistic", ( _, __, value ) ->
+    if value == "1"
+        RunConsoleCommand( "sv_defaultdeployspeed", "1" )
+        RunConsoleCommand( "mp_show_voice_icons", "0" )
+    else
+        RunConsoleCommand( "sv_defaultdeployspeed", "4" )
+        RunConsoleCommand( "mp_show_voice_icons", "1" )
+"Jailbreak" )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
