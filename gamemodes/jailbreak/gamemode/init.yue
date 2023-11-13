@@ -365,7 +365,11 @@ GM.PlayerCanJoinTeam = ( ply, teamID ) =>
         return true
 
     guardCount = team.NumPlayers( TEAM_GUARD )
-    return guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
+    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
+        return true
+
+    -- TODO: here chat message
+    return false
 
 GM.PlayerJoinTeam = ( ply, teamID ) =>
     if ply\Alive!
