@@ -14,14 +14,17 @@ assert = assert
 
 global class WeaponHandler
     Weapons: list.GetForEdit( "Weapon" )
-    new: ( className, alternative ) =>
+    new: ( className, alternative, offsets, force ) =>
         assert isstring( className ), "Second argument must be a 'string'!"
-        @Registered = @Exists( className )
+        @Registered = @Exists( className ) and not force
         @ClassName = className
         if @Registered
             return
 
-        @Offsets = {}
+        if istable( offsets )
+            @Offsets = offsets
+        else
+            @Offsets = {}
         if isstring( alternative )
             @AddAlternative( alternative )
         elseif istable( alternative )

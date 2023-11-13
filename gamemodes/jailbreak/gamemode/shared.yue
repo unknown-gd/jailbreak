@@ -195,10 +195,20 @@ GM.WeaponClasses = {
     weapon_flashbang: { "arc9_go_nade_flashbang", "arc9_fas_m84", "arccw_nade_flash", "weapon_crowbar" }
 }
 
+GM.WeaponOffsets = {
+	arccw_ur_deagle: { Vector( -10, 0, 8 ), Angle( 0, 0, 0 ) }
+	arccw_ur_m1911: { Vector( -10, 0, 6 ), Angle( 0, 0, 0 ) }
+	weapon_crowbar: { Vector( 0, 0, 10 ), Angle( 90, 0, 0 ) }
+    arccw_ur_mp5: { Vector( 0, 0, 0 ), Angle( 0, 0, 180 ) }
+    arccw_ud_m79: { Vector( 0, 0, 0 ), Angle( -90, 0, 0 ) }
+	arccw_ud_m16: { Vector( 0, 0, 10 ), Angle( 30, 0, 0 ) }
+	arccw_ur_ak: { Vector( -5, 0, 8 ), Angle( 30, 0, 0 ) }
+}
+
 WeaponHandler = WeaponHandler
 GM.PreGamemodeLoaded = =>
     for className, alternatives in pairs( @WeaponClasses )
-       WeaponHandler( className, alternatives )
+        WeaponHandler( className, alternatives, @WeaponOffsets )
 
 hook_Run = hook.Run
 bodyParts = {
