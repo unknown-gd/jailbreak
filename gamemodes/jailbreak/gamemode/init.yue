@@ -326,9 +326,6 @@ GM.PlayerUse = ( ply, entity ) =>
                     ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST )
 
     if entity\IsWeapon!
-        if ply\HasWeapon( entity\GetClass! )
-            return false
-
         ply\PickupWeapon( entity, false )
         return false
 
