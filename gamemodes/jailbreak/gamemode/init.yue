@@ -87,7 +87,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetNoDraw( false )
     ply\EquipSuit!
 
-    unless transiton
+    if @IsRoundPreparing! and not transiton
         hook_Run( "PlayerLoadout", ply, teamID )
     hook_Run( "PlayerSetModel", ply, teamID )
 
@@ -211,7 +211,7 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
     hands\SetBodyGroups( info.body )
 
 GM.PlayerDeathThink = ( ply ) =>
-    if ( @IsRoundRunning! or @IsRoundEnded! ) and @PlayableTeams[ ply\Team! ]
+    if @GameInProgress! and @PlayableTeams[ ply\Team! ]
         return
     ply\Spawn!
 
@@ -485,6 +485,10 @@ GM.RoundStateChanged = ( old, new ) =>
                 guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
                 totalCount = guardCount + prisonerCount
 
+            if guardCount == 0 or prisonerCount == 0
+                @SetRoundState( "waiting" )
+                return
+
             for ply in *player.GetAll!
                 if ply\IsBot!
                     @SelectBestTeam( ply )
@@ -502,25 +506,8 @@ GM.RoundStateChanged = ( old, new ) =>
                 @SetWinningTeam( 0 )
 
 GM.PlayerChangedTeam = ( ply, old, new ) =>
-    print( "Team Changed", ply, old, "->", new )
-
     timer.Simple 0, ->
-        guards, prisonerCount = team.GetPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
-        guardCount = #guards
-
-        switch ( old )
-            when TEAM_PRISONER
-                prisonerCount -= 1
-            when TEAM_GUARD
-                guardCount -= 1
-
-        switch ( new )
-            when TEAM_PRISONER
-                prisonerCount += 1
-            when TEAM_GUARD
-                guardCount += 1
-
-        if @GameInProgress! and guardCount == 0 or prisonerCount == 0
+        if @GameInProgress! and team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0
             @SetRoundState( "ended" )
             @NextRoundStateTime!
 
@@ -530,7 +517,9 @@ GM.TeamPlayerSpawn = ( ply, teamID ) =>
         @NextRoundStateTime!
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
-    if @IsRoundRunning!
+    unless @GameInProgress!
+        return
+
         ply\SetTeam( TEAM_SPECTATOR )
 
 concommand.Add( "changeteam", ( ply, _, args ) ->
