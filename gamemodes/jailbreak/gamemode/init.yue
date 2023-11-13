@@ -87,8 +87,10 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetNoDraw( false )
     ply\EquipSuit!
 
-    if @IsRoundPreparing! and not transiton
+    unless transiton
+        ply.Loadout = true
         hook_Run( "PlayerLoadout", ply, teamID )
+        ply.Loadout = nil
     hook_Run( "PlayerSetModel", ply, teamID )
 
     ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
@@ -108,6 +110,10 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
 GM.OnEntityCreated = ( weapon ) =>
     unless weapon\IsWeapon!
+        return
+
+    if @GameInProgress!
+        weapon\Remove!
         return
 
     timer.Simple( 0.025, ->
@@ -175,7 +181,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\GiveAmmo( 45, "smg1", true )
         ply\GiveAmmo( 20, "Pistol", true )
         ply\GiveAmmo( 10, "Buckshot", true )
-        if math.random( 1, 10 ) == 1
+        if @IsRoundPreparing! and math.random( 1, 10 ) == 1
             ply\Give( "weapon_knife" )
     elseif teamID == TEAM_GUARD
         ply\GiveAmmo( 7, "357", true )
@@ -262,6 +268,8 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
+    if ply.Loadout
+        return true
     return false
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
@@ -493,7 +501,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 if ply\IsBot!
                     @SelectBestTeam( ply )
 
-                if not ply\Alive! and @PlayableTeams[ ply\Team! ]
+                if @PlayableTeams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
 
         when "ended"
@@ -507,7 +515,7 @@ GM.RoundStateChanged = ( old, new ) =>
 
 GM.PlayerChangedTeam = ( ply, old, new ) =>
     timer.Simple 0, ->
-        if @GameInProgress! and team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0
+        if @IsRoundRunning! and ( team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
             @NextRoundStateTime!
 
