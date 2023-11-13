@@ -93,17 +93,21 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply.Loadout = nil
     hook_Run( "PlayerSetModel", ply, teamID )
 
-    ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
-    ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
+    if ply\IsBot!
+        ply\SetPlayerColor( Vector( math.Rand( 0, 1 ), math.Rand( 0, 1 ), math.Rand( 0, 1 ) ) )
+        ply\SetWeaponColor( Vector( math.Rand( 0, 1 ), math.Rand( 0, 1 ), math.Rand( 0, 1 ) ) )
+    else
+        ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
+        ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
 
-    weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
-    if weaponColor\Length! < 0.001
-        weaponColor = Vector( 0.001, 0.001, 0.001 )
-    ply\SetWeaponColor( weaponColor )
+        weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
+        if weaponColor\Length! < 0.001
+            weaponColor = Vector( 0.001, 0.001, 0.001 )
+        ply\SetWeaponColor( weaponColor )
 
-    groups = string.Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
-    for i = 0, ply\GetNumBodyGroups! - 1 do
-        ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
+        groups = string.Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
+        for i = 0, ply\GetNumBodyGroups! - 1 do
+            ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
 
     ply\SetupHands!
     hook_Run( "TeamPlayerSpawn", ply, teamID )
@@ -237,6 +241,10 @@ GM.IsSpawnpointSuitable = ( ply, entity, bMakeSuitable ) =>
     } )
 
     return not tr.Hit
+
+GM.DoPlayerDeath = ( ply, attacker, dmginfo ) =>
+    ply\CreateRagdoll()
+    ply\AddDeaths( 1 )
 
 GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!
@@ -513,8 +521,12 @@ GM.RoundStateChanged = ( old, new ) =>
             guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
             if guardCount > prisonerCount
                 @SetWinningTeam( TEAM_GUARD )
+                for ply in *team.GetPlayers( TEAM_GUARD )
+                    ply\AddFrags( 1 )
             elseif guardCount < prisonerCount
                 @SetWinningTeam( TEAM_PRISONER )
+                for ply in *team.GetPlayers( TEAM_PRISONER )
+                    ply\AddFrags( 1 )
             else
                 @SetWinningTeam( 0 )
 
