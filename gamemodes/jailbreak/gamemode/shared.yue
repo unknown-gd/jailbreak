@@ -7,6 +7,15 @@ GM.VoiceChatDistance = 1024 ^ 2
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
 
+GM.GuardModels = {
+    "models/sirgibs/ragdolls/css/male_07_leet_player_color.mdl"
+    -- "models/player/odessa.mdl"
+    "models/player/gasmask.mdl"
+    "models/player/riot.mdl"
+    "models/player/swat.mdl"
+    "models/player/urban.mdl"
+}
+
 GM.PlayableTeams = {
     [ TEAM_PRISONER ]: true
     [ TEAM_GUARD ]: true
@@ -21,36 +30,40 @@ GM.CreateTeams = =>
 
     team.SetUp( TEAM_SPECTATOR, "#jb.spectators", Color( 50, 50, 50 ), true )
 
-util_PrecacheModel = util.PrecacheModel
-prisonerModels = { {}, {} }
-guardModels = {
-    "models/player/gasmask.mdl"
-    "models/player/riot.mdl"
-    "models/player/swat.mdl"
-    "models/player/urban.mdl"
-    -- "models/player/odessa.mdl"
-}
+do
 
-GM.PlayerModels = {
-    [ TEAM_PRISONER ]: prisonerModels
-    [ TEAM_GUARD ]: guardModels
-}
+    util_PrecacheModel = util.PrecacheModel
+    util_IsValidModel = util.IsValidModel
 
--- Guard Models
-for modelPath in *guardModels
-    util_PrecacheModel( modelPath )
+    guardModels = {}
+    for modelPath in *GM.GuardModels
+        unless util_IsValidModel( modelPath )
+            continue
 
--- Female Models
-for i = 1, 6
-    modelPath = "models/player/Group01/female_0" .. i .. ".mdl"
-    prisonerModels[ 1 ][ i ] = modelPath
-    util_PrecacheModel( modelPath )
+        util_PrecacheModel( modelPath )
+        guardModels[] = modelPath
 
--- Male Models
-for i = 1, 9
-    modelPath = "models/player/Group01/male_0" .. i .. ".mdl"
-    prisonerModels[ 2 ][ i ] = modelPath
-    util_PrecacheModel( modelPath )
+    femaleModels = {}
+    for i = 1, 6
+        modelPath = "models/player/Group01/female_0" .. i .. ".mdl"
+        util_PrecacheModel( modelPath )
+        femaleModels[] = modelPath
+
+    maleModels = {}
+    for i = 1, 9
+        modelPath = "models/player/Group01/male_0" .. i .. ".mdl"
+        util_PrecacheModel( modelPath )
+        maleModels[] = modelPath
+
+    for i = 1, 4
+        modelPath = "models/player/Group02/male_0" .. i .. ".mdl"
+        util_PrecacheModel( modelPath )
+        maleModels[] = modelPath
+
+    GM.PlayerModels = {
+        [ TEAM_PRISONER ]: { femaleModels, maleModels }
+        [ TEAM_GUARD ]: guardModels
+    }
 
 TEAM_UNASSIGNED = TEAM_UNASSIGNED
 
