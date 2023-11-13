@@ -299,13 +299,14 @@ GM.PlayerDeathSound = ( ply ) =>
     return ply\IsPrisoner!
 
 GM.PlayerUse = ( ply, entity ) =>
+    if entity\IsWeapon!
+        ply\PickupWeapon( entity, false )
+        return false
+
     weapon = ply\GetActiveWeapon!
     if IsValid( weapon ) and weapon\GetHoldType! == "fist"
         className = entity\GetClass!
         if className == "player"
-            if weapon\GetClass! ~= "jb_hands"
-                return false
-
             velocity = ply\GetVelocity!\GetNormalized! * 16
             entity\SetVelocity( velocity )
             ply\SetVelocity( -velocity )
@@ -321,27 +322,37 @@ GM.PlayerUse = ( ply, entity ) =>
                 elseif className == "func_button" or className == "gmod_button"
                     ply\AnimRestartGestureShared( GESTURE_SLOT_CUSTOM, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST )
 
-    if entity\IsWeapon!
-        ply\PickupWeapon( entity, false )
-        return false
-
     return true
 
 GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
     unless IsValid( speaker )
         return true
 
-    if isTeam
-        return listener\Alive! and speaker\Alive! and listener\Team! == speaker\Team!
+    speakerTeam, listenerTeam = speaker\Team!, listener\Team!
+    if isTeam and speakerTeam ~= listenerTeam
+        return false
 
-    return @PlayableTeams[ speaker\Team! ] and speaker\Alive!
+    unless @PlayableTeams[ speakerTeam ]
+        return not @PlayableTeams[ listenerTeam ]
+
+    unless speaker\Alive!
+        return not listener\Alive!
+
+    return true
 
 GM.PlayerCanHearPlayersVoice = ( listener, talker ) =>
     talkerPosition = talker\EyePos!
     if talkerPosition\DistToSqr( listener\EyePos! ) <= @VoiceChatDistance
+        talkerTeam, listenerTeam = talker\Team!, listener\Team!
+
+        unless @PlayableTeams[ talkerTeam ]
+            return not @PlayableTeams[ listenerTeam ]
+
+        unless talker\Alive!
+            return not listener\Alive!
+
         rf = RecipientFilter!
         rf\AddPAS( talkerPosition )
-
         for ply in *rf\GetPlayers!
             if ply == listener
                 return true, true
