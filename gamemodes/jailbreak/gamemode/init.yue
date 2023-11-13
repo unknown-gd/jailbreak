@@ -528,7 +528,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     unless @GameInProgress!
         return
 
-        ply\SetTeam( TEAM_SPECTATOR )
+    ply\SetTeam( TEAM_SPECTATOR )
 
 concommand.Add( "changeteam", ( ply, _, args ) ->
     hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
