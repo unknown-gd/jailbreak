@@ -266,7 +266,11 @@ GM.GetFallDamage = ( ply, speed ) =>
     return math.max( 0, math.ceil( 0.2418 * speed - 141.75 ) )
 
 GM.AllowPlayerPickup = ( ply, entity ) =>
-    return @PlayableTeams[ ply\Team! ]
+    unless @PlayableTeams[ ply\Team! ]
+        return false
+
+    weapon = ply\GetActiveWeapon!
+    return IsValid( weapon ) and weapon\GetClass! == "jb_hands"
 
 GM.PlayerCanPickupItem = ( ply, entity ) =>
     return @PlayableTeams[ ply\Team! ]

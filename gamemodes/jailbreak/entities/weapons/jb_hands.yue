@@ -251,6 +251,10 @@ SWEP.Hide = =>
     )
 
 SWEP.Deploy = =>
+    @SetNextFire( CurTime! + 1.5 )
+    @SetNextMeleeAttack( 0 )
+    @SetNextIdle( 0 )
+
     if @GetHoldType! == "normal"
         @GetViewModel!\SetNoDraw( true )
     else
