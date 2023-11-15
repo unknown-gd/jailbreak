@@ -152,7 +152,7 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
         unless IsValid( phys )
             return
 
-        start = weapon\LocalToWorld( weapon\OBBCenter! )
+        start = weapon\WorldSpaceCenter!
         mins, maxs = weapon\GetCollisionBounds!
 
         tr = util.TraceHull( {
