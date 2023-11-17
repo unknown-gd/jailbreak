@@ -31,7 +31,33 @@ GM.CreateTeams = =>
 
 do
 
+    ENTITY = FindMetaTable( "Entity" )
+
+    ENTITY.IsPlayerRagdoll = =>
+        return @GetNW2Bool( "player-ragdoll" )
+
+    ENTITY.GetRagdollOwner = =>
+        return @GetNW2Entity( "ragdoll-owner" )
+
+    do
+
+        defaultColor = Vector( 0.25, 0.35, 0.4 )
+
+        ENTITY.GetPlayerColor = =>
+            return @GetNW2Var( "player-color", defaultColor )
+
+    ENTITY.SetPlayerColor = ( vector ) =>
+        @SetNW2Var( "player-color", vector )
+
+    ENTITY.GetCreator = =>
+        return @GetNW2Entity( "entity-owner" )
+
+do
+
     PLAYER = FindMetaTable( "Player" )
+
+    PLAYER.GetRagdollEntity = =>
+        return @GetNW2Entity( "player-ragdoll" )
 
     PLAYER.IsGuard = =>
         return @Team! == TEAM_GUARD

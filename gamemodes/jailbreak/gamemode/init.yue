@@ -1,9 +1,42 @@
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
--- TODO: Write desc
-GM.DoorsHealth = CreateConVar( "jb_doors_health", "250", FCVAR_ARCHIVE, "", 50, 10000 )
-GM.Preparing = CreateConVar( "jb_preparing", "30", FCVAR_ARCHIVE, "", 5, 900 )
+do
+
+    RunConsoleCommand = RunConsoleCommand
+
+    GM.SetRealistic = ( enable ) =>
+        enable = enable == true
+        @RealisticMode = enable
+
+        if enable
+            RunConsoleCommand( "sv_defaultdeployspeed", "1" )
+            RunConsoleCommand( "mp_show_voice_icons", "0" )
+            RunConsoleCommand( "sv_alltalk", "2" )
+        else
+            RunConsoleCommand( "sv_defaultdeployspeed", "4" )
+            RunConsoleCommand( "mp_show_voice_icons", "1" )
+            RunConsoleCommand( "sv_alltalk", "3" )
+
+do
+
+    Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
+    CreateConVar = CreateConVar
+
+    -- TODO: Write desc
+    GM.DoorsHealth = CreateConVar( "jb_doors_health", "250", Flags, "", 50, 10000 )
+    GM.Preparing = CreateConVar( "jb_preparing", "30", Flags, "", 5, 900 )
+    GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
+
+    GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", Flags, "", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
+    cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
+        (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
+    "Jailbreak" )
+
+    GM\SetRealistic( CreateConVar( "jb_realistic", "0", Flags, "", 0, 1 )\GetBool! )
+    cvars.AddChangeCallback( "jb_realistic", ( _, __, value ) ->
+        (GM or GAMEMODE)\SetRealistic( value == "1" )
+    "Jailbreak" )
 
 resource.AddSingleFile( "resource/localization/en/jailbreak.properties" )
 resource.AddWorkshop( "2950445307" )
@@ -15,34 +48,146 @@ hook_Run = hook.Run
 tonumber = tonumber
 IsValid = IsValid
 
--- TODO: Write desc
-GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", FCVAR_ARCHIVE, "", 1, game.MaxPlayers() - 1 )\GetInt! + 1 )
-cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
-    (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
-"Jailbreak" )
+do
+
+    ENTITY = FindMetaTable( "Entity" )
+
+    ENTITY.SetCreator = ( entity ) =>
+        @SetNW2Entity( "entity-owner", entity )
 
 do
 
-    setRealistic = ( boolean ) ->
-        if boolean
-            RunConsoleCommand( "sv_defaultdeployspeed", "1" )
-            RunConsoleCommand( "mp_show_voice_icons", "0" )
-            RunConsoleCommand( "sv_alltalk", "2" )
-        else
-            RunConsoleCommand( "sv_defaultdeployspeed", "4" )
-            RunConsoleCommand( "mp_show_voice_icons", "1" )
-            RunConsoleCommand( "sv_alltalk", "3" )
+    PLAYER = FindMetaTable( "Player" )
 
-    setRealistic( CreateConVar( "jb_realistic", "0", FCVAR_ARCHIVE, "", 0, 1 )\GetBool! )
-    cvars.AddChangeCallback( "jb_realistic", ( _, __, value ) ->
-        setRealistic( value == "1" )
-    "Jailbreak" )
+    PLAYER.RemoveRagdoll = =>
+        ragdoll = @GetRagdollEntity!
+        if ragdoll\IsValid!
+            ragdoll\Remove!
+
+    PLAYER.CreateRagdoll = =>
+        @RemoveRagdoll!
+
+        modelPath = @GetModel!
+        unless util.IsValidModel( modelPath )
+            return
+
+        spawnOrigin = @WorldSpaceCenter!
+        unless util.IsInWorld( spawnOrigin )
+            return
+
+        ragdoll = ents.Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
+        ragdoll\SetPos spawnOrigin
+        ragdoll\SetAngles @GetAngles!
+        ragdoll\SetModel( modelPath )
+        ragdoll\Spawn!
+
+        (GM or GAMEMODE).PlayerRagdolls[] = ragdoll
+
+        ragdoll.Team = @Team!
+        ragdoll.Alive = @Alive!
+
+        ragdoll\SetMaxHealth( @GetMaxHealth! )
+        ragdoll\SetHealth( @Health! )
+
+        -- TODO: Custom take damage
+        ragdoll.MaxArmor = @GetMaxArmor!
+        ragdoll.Armor = @Armor!
+
+        ragdoll.PlayerAngles = @EyeAngles!
+
+        for bodygroup in *@GetBodyGroups!
+            ragdoll\SetBodygroup( bodygroup.id, @GetBodygroup( bodygroup.id ) )
+
+        ragdoll\SetFlexScale( @GetFlexScale! )
+        for flexID = 0, @GetFlexNum!
+            ragdoll\SetFlexWeight( flexID, @GetFlexWeight( flexID ) )
+
+        ragdoll\SetMaterial( @GetMaterial! )
+        ragdoll\SetColor( @GetColor! )
+        ragdoll\SetSkin( @GetSkin! )
+
+        for index = 1, #@GetMaterials!
+            materialPath = @GetSubMaterial( index )
+            if materialPath ~= ""
+                ragdoll\SetSubMaterial( index, materialPath )
+
+        ragdoll\SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
+        ragdoll\SetNW2Bool( "player-ragdoll", true )
+        ragdoll\SetNW2Entity( "ragdoll-owner", @ )
+        @SetNW2Entity( "player-ragdoll", ragdoll )
+
+        if @IsBot!
+            ragdoll\SetNW2String( "steamid", @SteamID64! )
+        ragdoll\SetNW2String( "nickname", @Nick! )
+        ragdoll\SetCreator( @ )
+
+        for boneID = 0, @GetBoneCount!
+            ragdoll\ManipulateBonePosition( boneID, @GetManipulateBonePosition( boneID ) )
+            ragdoll\ManipulateBoneAngles( boneID, @GetManipulateBoneAngles( boneID ) )
+            ragdoll\ManipulateBoneJiggle( boneID, @GetManipulateBoneJiggle( boneID ) )
+            ragdoll\ManipulateBoneScale( boneID, @GetManipulateBoneScale( boneID ) )
+
+            velocity = @GetVelocity!
+            if ragdoll\IsRagdoll!
+                for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+                    phys = ragdoll\GetPhysicsObjectNum( physNum )
+                    unless IsValid( phys )
+                        continue
+
+                    boneID = ragdoll\TranslatePhysBoneToBone( physNum )
+                    if boneID < 0
+                        continue
+
+                    origin, angles = @GetBonePosition( boneID )
+                    phys\SetVelocity( velocity )
+                    phys\SetAngles( angles )
+                    phys\SetPos( origin )
+                    phys\Wake!
+
+            else
+                phys = ragdoll\GetPhysicsObject!
+                if IsValid( phys )
+                    phys\SetVelocity( velocity )
+                    phys\Wake!
+
+        if @IsOnFire!
+            ragdoll\Ignite( 16, 64 )
+            @Extinguish!
+
+        hook_Run( "PlayerRagdollCreated", @, ragdoll )
+
+        weapons = {}
+        for weapon in *@GetWeapons!
+            @DropWeapon( weapon )
+
+            weapon\SetPos( spawnOrigin )
+            weapon\SetParent( ragdoll )
+            weapon\SetNotSolid( true )
+            weapon\SetNoDraw( true )
+
+            weapon.PickupForbidden = true
+            weapons[] = weapon
+        ragdoll.Weapons = weapons
+        ragdoll.Ammo = @GetAmmo!
+
+        return ragdoll
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
 
+GM.PlayerRagdolls = GM.PlayerRagdolls or {}
+
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
-    if ply\IsBot! and not @GameInProgress!
+    ply.NextRespawnTime = 0
+    isBot = ply\IsBot!
+
+    sid64 = isBot and ply\Nick! or ply\SteamID64!
+    for ragdoll in *@PlayerRagdolls
+        if sid64 == ( isBot and ragdoll\GetNW2String( "nickname" ) or ragdoll\GetNW2String( "steamid" ) )
+            ply\SetNW2Entity( "player-ragdoll", ragdoll )
+            break
+
+    if isBot and not @GameInProgress!
         ply\SetTeam( TEAM_PRISONER )
         return
 
@@ -51,6 +196,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\AllowFlashlight( false )
     ply\SetCanZoom( false )
+    ply\RemoveRagdoll!
     ply\RemoveAllAmmo!
     ply\StripWeapons!
     ply\UnSpectate!
@@ -79,7 +225,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     unless @PlayableTeams[ teamID ]
         ply\Spectate( OBS_MODE_ROAMING )
         ply\SetNoDraw( true )
-        ply\SpectateEntity()
+        ply\SpectateEntity!
         return
 
     ply\SetNoDraw( false )
@@ -111,6 +257,10 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
 GM.OnEntityCreated = ( weapon ) =>
     unless weapon\IsWeapon!
+        return
+
+    if @IsRoundRunning!
+        weapon\Remove!
         return
 
     timer.Simple( 0.025, ->
@@ -173,10 +323,6 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
 
 GM.PlayerLoadout = ( ply, teamID ) =>
     if teamID == TEAM_PRISONER
-        ply\GiveAmmo( 30, "ar2", true )
-        ply\GiveAmmo( 45, "smg1", true )
-        ply\GiveAmmo( 20, "Pistol", true )
-        ply\GiveAmmo( 10, "Buckshot", true )
         if not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
             ply\Give( "weapon_knife" )
     elseif teamID == TEAM_GUARD
@@ -213,18 +359,18 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
     hands\SetBodyGroups( info.body )
 
 GM.PlayerDeathThink = ( ply ) =>
-    if @GameInProgress! and @PlayableTeams[ ply\Team! ]
+    if @PlayableTeams[ ply\Team! ] and ( @GameInProgress! or ply.NextRespawnTime > CurTime! )
         return
     ply\Spawn!
 
-GM.IsSpawnpointSuitable = ( ply, entity, bMakeSuitable ) =>
+GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     unless @PlayableTeams[ ply\Team! ]
         return true
 
     start = entity\GetPos!
     mins, maxs = ply\GetHull!
 
-    tr = util.TraceHull( {
+    traceResult = util.TraceHull( {
         start: start
         endpos: start
         mask: MASK_PLAYERSOLID
@@ -233,11 +379,32 @@ GM.IsSpawnpointSuitable = ( ply, entity, bMakeSuitable ) =>
         maxs: maxs
     } )
 
-    return not tr.Hit
+    if traceResult.Hit
+        if makeSuitable
+            traceEntity = traceResult.Entity
+            if traceEntity\IsValid! and traceEntity\IsPlayer! and traceEntity\Alive! and @PlayableTeams[ traceEntity\Team! ]
+                traceEntity\Kill!
+                return true
+        return false
+    return true
 
-GM.DoPlayerDeath = ( ply, attacker, dmginfo ) =>
-    ply\CreateRagdoll()
+GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
+	spawnPoints = team.GetSpawnPoints( teamID )
+    unless spawnPoints and not table.IsEmpty( spawnPoints )
+        return
+
+	for i = 0, 16
+		spawnPoint = table.Random( spawnPoints )
+		if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 10 )
+			return spawnPoint
+
+GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
+    ply\SetVelocity( -damageInfo\GetDamageForce! )
     ply\AddDeaths( 1 )
+
+    teamID = ply\Team!
+    if @PlayableTeams[ teamID ]
+        ply\CreateRagdoll!
 
 GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!
@@ -251,11 +418,44 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
 
     -- TODO: Write here death notifies
 
+GM.PreCleanupMap = =>
+    table.Empty( @PlayerRagdolls )
+
+GM.EntityRemoved = ( entity, fullUpdate ) =>
+    if fullUpdate
+        return
+
+    if entity\IsPlayerRagdoll!
+        table.RemoveByValue( @PlayerRagdolls, entity )
+
+GM.PlayerDisconnected = ( ply ) =>
+    teamID = ply\Team!
+    if @PlayableTeams[ teamID ]
+        hook_Run( "TeamPlayerDisconnected", ply, teamID )
+
 DMG_NEVERGIB = DMG_NEVERGIB
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
         return
+
+    if entity\IsPlayerRagdoll!
+        damage = damageInfo\GetDamage!
+
+        armor = entity.Armor
+        if isnumber( armor ) and armor > 0
+            entity.Armor = math.max( 0, armor - damage )
+            damage = math.max( 0, damage - armor )
+
+        health = math.max( 0, entity\Health! - damage )
+        if health <= 0
+            if entity\PrecacheGibs! > 0
+                entity\GibBreakClient( entity\GetVelocity! )
+            entity\Remove!
+            return
+
+        entity\SetHealth( health )
+        return true
 
     switch entity\GetClass!
         when "prop_door_rotating"
@@ -294,7 +494,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             prop\SetSkin( entity\GetSkin! )
             prop\SetModel( model )
             prop\SetPos( origin )
-            prop\Spawn()
+            prop\Spawn!
 
             name = entity\GetName!
             if name ~= ""
@@ -359,9 +559,7 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    if ply.Loadout
-        return true
-    return false
+    return not weapon.PickupForbidden and ply.Loadout
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
     unless desiredState
@@ -385,7 +583,44 @@ GM.PlayerDeathSound = ( ply ) =>
         return true
     return ply\IsPrisoner!
 
+GM.PlayerRagdollUse = ( ragdoll, ply ) =>
+    if @PlayableTeams[ ply\Team! ] and ply\Alive!
+        looted = false
+
+        weapons = ragdoll.Weapons
+        if istable( weapons )
+            for weapon in *weapons
+                unless weapon\IsValid! and not IsValid( weapon\GetOwner! )
+                    continue
+
+                weapon.PickupForbidden = nil
+                weapon\SetNotSolid( false )
+                weapon\SetNoDraw( false )
+                weapon\SetParent!
+                looted = true
+
+                ply\PickupWeapon( weapon )
+        ragdoll.Weapons = nil
+
+        ammo = ragdoll.Ammo
+        if istable( ammo )
+            for ammoType, ammoCount in pairs( ammo )
+                ply\GiveAmmo( ammoCount, ammoType )
+                looted = true
+        ragdoll.Ammo = nil
+
+        if looted
+            phys = ragdoll\GetPhysicsObject!
+            if IsValid( phys )
+                phys\ApplyForceCenter( VectorRand( 0, 100 ) )
+
+        return
+
 GM.PlayerUse = ( ply, entity ) =>
+    if entity\IsPlayerRagdoll!
+        hook_Run( "PlayerRagdollUse", entity, ply )
+        return false
+
     unless @PlayableTeams[ ply\Team! ]
         return false
 
@@ -395,7 +630,7 @@ GM.PlayerUse = ( ply, entity ) =>
     if ( curTime - lastUse ) <= 0.25
         return
 
-    if entity\IsWeapon! and not entity\IsPlayerHolding!
+    if entity\IsWeapon! and not entity\IsPlayerHolding! and not entity.PickupForbidden
         if ply\HasWeapon( entity\GetClass! )
             pickedAmmo = false
 
@@ -418,9 +653,9 @@ GM.PlayerUse = ( ply, entity ) =>
                     phys\Wake!
                 ply\PickupObject( entity )
 
-                hook.Add "Think", entity, =>
-                    if @GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
-                        @SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+                hook.Add "Think", entity, ->
+                    if entity\GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
+                        entity\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
 
         else
             ply\PickupWeapon( entity, false )
@@ -632,22 +867,90 @@ GM.RoundStateChanged = ( old, new ) =>
             else
                 @SetWinningTeam( 0 )
 
-GM.TeamPlayerSpawn = ( ply, teamID ) =>
+GM.TeamPlayerDeath = ( ply, teamID ) =>
+    ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
+    ply\Spectate( OBS_MODE_ROAMING )
+    ply\SpectateEntity!
+
+    if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+        @SetRoundState( "ended" )
+        @NextRoundStateTime!
+
+GM.TeamPlayerDisconnected = ( ply, teamID ) =>
+    timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
+        timer.Remove "Jailbreak::TeamPlayerDisconnected"
+
+        print @IsRoundRunning!, @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
+
+        if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+            @SetRoundState( "ended" )
+            @NextRoundStateTime!
+
+    ply\CreateRagdoll!
+
+GM.TeamPlayerSpawn = ( ply ) =>
     if @IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
         @SetRoundState( "preparing" )
         @NextRoundStateTime!
 
-GM.TeamPlayerDeath = ( ply, teamID ) =>
-    if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
-        @SetRoundState( "ended" )
-        @NextRoundStateTime!
-    ply\Spectate( OBS_MODE_ROAMING )
-    ply\SpectateEntity()
+    ragdoll = ply\GetRagdollEntity!
+    if ragdoll\IsValid!
+        ply\SetTeam( ragdoll.Team )
+        unless ragdoll.Alive and ragdoll\Health! > 1
+            ply\KillSilent!
+            return
 
-GM.PlayerDisconnected = ( ply ) =>
-    if @IsRoundRunning! and ( team.NumPlayers( TEAM_GUARD ) == 0 or team.NumPlayers( TEAM_PRISONER ) == 0 )
-        @SetRoundState( "ended" )
-        @NextRoundStateTime!
+        ply\SetEyeAngles( Angle( 0, ragdoll.PlayerAngles[ 2 ], 0 ) )
+        ply\SetPos( ragdoll\WorldSpaceCenter! )
+        ply\SetModel( ragdoll\GetModel! )
+
+        ply\SetHealth( ply\GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
+        ply\SetArmor( ply\GetMaxArmor! * ( ragdoll.Armor / ragdoll.MaxArmor ) )
+
+        ply\SetMaterial( ragdoll\GetMaterial! )
+        ply\SetColor( ragdoll\GetColor! )
+        ply\SetSkin( ragdoll\GetSkin! )
+
+        for bodygroup in *ply\GetBodyGroups!
+            ply\SetBodygroup( bodygroup.id, ragdoll\GetBodygroup( bodygroup.id ) )
+
+        ply\SetFlexScale( ragdoll\GetFlexScale! )
+        for flexID = 0, ply\GetFlexNum!
+            ply\SetFlexWeight( flexID, ragdoll\GetFlexWeight( flexID ) )
+
+        for index = 1, #ply\GetMaterials!
+            materialPath = ragdoll\GetSubMaterial( index )
+            if materialPath ~= ""
+                ply\SetSubMaterial( index, materialPath )
+
+        if ragdoll\IsOnFire!
+            ply\Ignite( 16, 64 )
+            ragdoll\Extinguish!
+
+        for boneID = 0, ply\GetBoneCount!
+            ply\ManipulateBonePosition( boneID, ragdoll\GetManipulateBonePosition( boneID ) )
+            ply\ManipulateBoneAngles( boneID, ragdoll\GetManipulateBoneAngles( boneID ) )
+            ply\ManipulateBoneJiggle( boneID, ragdoll\GetManipulateBoneJiggle( boneID ) )
+            ply\ManipulateBoneScale( boneID, ragdoll\GetManipulateBoneScale( boneID ) )
+
+        if ragdoll\IsRagdoll!
+            velocity = Vector!
+
+            count = ragdoll\GetPhysicsObjectCount!
+            for physNum = 0, count - 1
+                phys = ragdoll\GetPhysicsObjectNum( physNum )
+                if IsValid( phys )
+                    velocity += phys\GetVelocity!
+
+            velocity /= count
+            ply\SetVelocity( velocity )
+        else
+            phys = ragdoll\GetPhysicsObject!
+            if IsValid( phys )
+                ply\SetVelocity( phys\GetVelocity! )
+
+        hook_Run( "PlayerRagdollUse", ragdoll, ply )
+        ragdoll\Remove!
 
 concommand.Add( "changeteam", ( ply, _, args ) ->
     hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
