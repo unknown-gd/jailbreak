@@ -348,8 +348,9 @@ GM.PlayerSetModel = ( ply, teamID ) =>
 
     requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
     if requested and #requested > 0
+        requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
         for modelPath in *models
-            if modelPath == requested
+            if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
                 ply\SetModel( modelPath )
                 return
 
@@ -821,28 +822,16 @@ GM.SetRoundState = ( state ) =>
 GM.SetWinningTeam = ( teamID ) =>
     SetGlobal2Int( "winning-team", teamID )
 
-GM.CanChangeRoundState = =>
-    return @GetNextRoundStateTime! <= CurTime!
-
-GM.NextRoundStateTime = =>
-    SetGlobal2Int( "next-round-state", CurTime! + @Preparing\GetInt! )
+GM.SetRoundTime = ( int ) =>
+    SetGlobal2Int( "next-round-state", CurTime! + ( int or @Preparing\GetInt! ) )
 
 GM.Think = =>
-    unless @CanChangeRoundState!
-        return
-
-    switch @GetRoundState!
-        when "preparing"
-            @SetRoundState( "running" )
-        when "ended"
-            @SetRoundState( "waiting" )
-
-GM.SelectBestTeam = ( ply ) =>
-    guardCount = team.NumPlayers( TEAM_GUARD )
-    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
-        ply\SetTeam( TEAM_GUARD )
-    else
-        ply\SetTeam( TEAM_PRISONER )
+    if @GetNextRoundStateTime! <= CurTime!
+        switch @GetRoundState!
+            when "preparing"
+                @SetRoundState( "running" )
+            when "ended"
+                @SetRoundState( "waiting" )
 
 GM.GetBotFromTeam = ( teamID ) =>
     for ply in *team.GetPlayers( teamID )
@@ -889,7 +878,11 @@ GM.RoundStateChanged = ( old, new ) =>
 
             for ply in *player.GetAll!
                 if ply\IsBot!
-                    @SelectBestTeam( ply )
+                    guardCount = team.NumPlayers( TEAM_GUARD )
+                    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
+                        ply\SetTeam( TEAM_GUARD )
+                    else
+                        ply\SetTeam( TEAM_PRISONER )
                     ply\Spawn!
                 elseif @PlayableTeams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
@@ -915,7 +908,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
-            @NextRoundStateTime!
+            @SetRoundTime!
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     timer.Create "Jailbreak::TeamPlayerDisconnected", 1, 1, ->
@@ -923,14 +916,14 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
-            @NextRoundStateTime!
+            @SetRoundTime!
 
     ply\CreateRagdoll!
 
 GM.TeamPlayerSpawn = ( ply ) =>
     if @IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
         @SetRoundState( "preparing" )
-        @NextRoundStateTime!
+        @SetRoundTime!
 
     ragdoll = ply\GetRagdollEntity!
     if ragdoll\IsValid!

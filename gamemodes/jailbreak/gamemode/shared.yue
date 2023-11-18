@@ -93,7 +93,7 @@ do
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 
-    for i = 2, 4, 2
+    for i = 2, 8, 2
         modelPath = "models/player/Group02/male_0" .. i .. ".mdl"
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
