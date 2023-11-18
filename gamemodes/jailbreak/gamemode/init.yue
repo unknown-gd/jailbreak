@@ -832,6 +832,11 @@ GM.SelectBestTeam = ( ply ) =>
     else
         ply\SetTeam( TEAM_PRISONER )
 
+GM.GetBotFromTeam = ( teamID ) =>
+    for ply in *team.GetPlayers( teamID )
+        if ply\IsBot!
+            return ply
+
 GM.RoundStateChanged = ( old, new ) =>
     switch ( new )
         when "waiting"
@@ -846,7 +851,7 @@ GM.RoundStateChanged = ( old, new ) =>
             @FemalePrison = math.random( 1, 10 ) == 1
             for ply in *player.GetAll!
                 if ply\IsBot!
-                    @SelectBestTeam( ply )
+                    ply\SetTeam( TEAM_PRISONER )
 
                 if @PlayableTeams[ ply\Team! ]
                     ply\Spawn!
@@ -858,7 +863,7 @@ GM.RoundStateChanged = ( old, new ) =>
 
             while ( guardCount / prisonerCount ) > @GuardsDiff and totalCount > ( ( 1 / @GuardsDiff ) + guardCount )
                 for i = 1, guardCount
-                    guard = table.Random( team.GetPlayers( TEAM_GUARD ) )
+                    guard = @GetBotFromTeam( TEAM_GUARD ) or table.Random( team.GetPlayers( TEAM_GUARD ) )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!
@@ -914,10 +919,12 @@ GM.TeamPlayerSpawn = ( ply ) =>
 
     ragdoll = ply\GetRagdollEntity!
     if ragdoll\IsValid!
-        ply\SetTeam( ragdoll.Team )
         unless ragdoll.Alive and ragdoll\Health! > 1
             ply\KillSilent!
             return
+
+        ply\SetTeam( ragdoll.Team )
+        ply\Spawn!
 
         ply\SetEyeAngles( Angle( 0, ragdoll.PlayerAngles[ 2 ], 0 ) )
         ply\SetPos( ragdoll\WorldSpaceCenter! )
