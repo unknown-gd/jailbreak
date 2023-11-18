@@ -102,6 +102,7 @@ do
         for flexID = 0, @GetFlexNum!
             ragdoll\SetFlexWeight( flexID, @GetFlexWeight( flexID ) )
 
+        ragdoll\SetPlayerColor( @GetPlayerColor! )
         ragdoll\SetMaterial( @GetMaterial! )
         ragdoll\SetColor( @GetColor! )
         ragdoll\SetSkin( @GetSkin! )
@@ -462,7 +463,6 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
 
     switch entity\GetClass!
         when "prop_door_rotating"
-
             maxHealth = entity\GetMaxHealth!
             if maxHealth <= 1
                 maxHealth = @DoorsHealth\GetInt!
@@ -620,18 +620,18 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
         return
 
 GM.PlayerUse = ( ply, entity ) =>
+    curTime, lastUse = CurTime!, ply.LastUse or 0
+    ply.LastUse = curTime
+
+    if ( curTime - lastUse ) <= 0.025
+        return
+
     if entity\IsPlayerRagdoll!
         hook_Run( "PlayerRagdollUse", entity, ply )
         return false
 
     unless @PlayableTeams[ ply\Team! ]
         return false
-
-    curTime, lastUse = CurTime!, ply.LastUse or 0
-    ply.LastUse = curTime
-
-    if ( curTime - lastUse ) <= 0.025
-        return
 
     if entity\IsWeapon! and not entity\IsPlayerHolding! and not entity.PickupForbidden
         if ply\HasWeapon( entity\GetClass! )
@@ -882,8 +882,6 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDisconnected"
-
-        print @IsRoundRunning!, @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
