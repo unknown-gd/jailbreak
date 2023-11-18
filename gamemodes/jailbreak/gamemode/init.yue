@@ -630,7 +630,7 @@ GM.PlayerUse = ( ply, entity ) =>
     curTime, lastUse = CurTime!, ply.LastUse or 0
     ply.LastUse = curTime
 
-    if ( curTime - lastUse ) <= 0.25
+    if ( curTime - lastUse ) <= 0.025
         return
 
     if entity\IsWeapon! and not entity\IsPlayerHolding! and not entity.PickupForbidden
