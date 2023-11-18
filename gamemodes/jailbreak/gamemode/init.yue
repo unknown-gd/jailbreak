@@ -323,10 +323,10 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
     )
 
 GM.PlayerLoadout = ( ply, teamID ) =>
-    if teamID == TEAM_PRISONER
-        if not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
-            ply\Give( "weapon_knife" )
-    elseif teamID == TEAM_GUARD
+    if @IsRoundRunning! and teamID == TEAM_PRISONER and not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
+        ply\Give( "weapon_knife" )
+
+    if teamID == TEAM_GUARD
         ply\GiveAmmo( 7, "357", true )
         ply\GiveAmmo( 60, "ar2", true )
         ply\GiveAmmo( 90, "smg1", true )
