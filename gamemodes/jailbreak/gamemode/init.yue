@@ -588,7 +588,10 @@ GM.PlayerDeathSound = ( ply ) =>
 
 GM.PlayerRagdollUse = ( ragdoll, ply ) =>
     if @PlayableTeams[ ply\Team! ] and ply\Alive!
-        looted = false
+        velocity = Vector!
+
+        direction = ply\EyePos! - ragdoll\WorldSpaceCenter!
+        direction\Normalize!
 
         weapons = ragdoll.Weapons
         if istable( weapons )
@@ -600,7 +603,7 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
                 weapon\SetNotSolid( false )
                 weapon\SetNoDraw( false )
                 weapon\SetParent!
-                looted = true
+                velocity += direction * 200
 
                 ply\PickupWeapon( weapon )
         ragdoll.Weapons = nil
@@ -609,13 +612,28 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
         if istable( ammo )
             for ammoType, ammoCount in pairs( ammo )
                 ply\GiveAmmo( ammoCount, ammoType )
-                looted = true
+                velocity += direction * 100
         ragdoll.Ammo = nil
 
-        if looted
+        if velocity\Length! < 100
+            return
+
+        if ragdoll\IsRagdoll!
+            physParts = {}
+            for physNum = 1, ragdoll\GetPhysicsObjectCount! - 1 do
+                phys = ragdoll\GetPhysicsObjectNum( physNum )
+                if IsValid( phys )
+                    physParts[] = phys
+
+            table.Shuffle( physParts )
+
+            for index = 1, math.min( #physParts, 4 )
+                physParts[ index ]\ApplyForceCenter( velocity )
+
+        else
             phys = ragdoll\GetPhysicsObject!
             if IsValid( phys )
-                phys\ApplyForceCenter( VectorRand( 0, 100 ) )
+                phys\ApplyForceCenter( velocity )
 
         return
 
