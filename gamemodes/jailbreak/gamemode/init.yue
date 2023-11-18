@@ -905,12 +905,15 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\Spectate( OBS_MODE_ROAMING )
     ply\SpectateEntity!
 
-    if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
-        @SetRoundState( "ended" )
-        @NextRoundStateTime!
+    timer.Create "Jailbreak::TeamPlayerDeath", 1, 1, ->
+        timer.Remove "Jailbreak::TeamPlayerDeath"
+
+        if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+            @SetRoundState( "ended" )
+            @NextRoundStateTime!
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
-    timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
+    timer.Create "Jailbreak::TeamPlayerDisconnected", 1, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDisconnected"
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
