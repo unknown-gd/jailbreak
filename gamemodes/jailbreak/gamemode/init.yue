@@ -404,9 +404,25 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
 
     ply\AddDeaths( 1 )
 
-    teamID = ply\Team!
-    if @PlayableTeams[ teamID ]
-        ply\CreateRagdoll!
+    ragdoll = ply\CreateRagdoll!
+    unless IsValid( ragdoll )
+        return
+
+    damageOrigin = damageInfo\GetDamagePosition!
+    if damageOrigin\Length! < 1
+        damageOrigin = ragdoll\WorldSpaceCenter!
+
+    if ragdoll\IsRagdoll!
+        velocity = damageInfo\GetDamageForce!
+        for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+            phys = ragdoll\GetPhysicsObjectNum( physNum )
+            if IsValid( phys )
+                phys\ApplyForceOffset( velocity / phys\GetMass!, damageOrigin )
+
+    else
+        phys = ragdoll\GetPhysicsObject!
+        if IsValid( phys )
+            phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
 GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!

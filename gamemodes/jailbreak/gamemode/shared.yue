@@ -131,10 +131,16 @@ GM.Move = ( ply, mv ) =>
     mv\SetOrigin( mv\GetOrigin! + vel )
     return true
 
+SERVER = SERVER
+
 GM.FinishMove = ( ply, mv ) =>
-    if ply\IsPlayingTaunt!
-        mv\SetForwardSpeed( 0 )
-        mv\SetSideSpeed( 0 )
+    if @PlayableTeams[ ply\Team! ] and ply\Alive!
+        if SERVER
+            ply.LastMoveVelocity = mv\GetVelocity!
+
+        if ply\IsPlayingTaunt!
+            mv\SetForwardSpeed( 0 )
+            mv\SetSideSpeed( 0 )
 
 GM.GetRoundState = =>
     return GetGlobal2String( "round-state", "waiting" )
