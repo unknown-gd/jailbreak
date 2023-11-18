@@ -1,1 +1,8 @@
 ENT.Type = "point"
+ENT.Amount = 50
+ENT.Think = =>
+    for entity in *ents.FindInSphere( @GetPos!, 32 )
+        if entity\IsPlayer! and entity\Alive! and GAMEMODE.PlayableTeams[ entity\Team! ] and entity\Armor! < @Amount
+            entity\SetArmor( math.min( 50, entity\GetMaxArmor! ) )
+            @Remove!
+            break

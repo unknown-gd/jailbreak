@@ -27,6 +27,7 @@ do
     GM.DoorsHealth = CreateConVar( "jb_doors_health", "250", Flags, "", 50, 10000 )
     GM.Preparing = CreateConVar( "jb_preparing", "30", Flags, "", 5, 900 )
     GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
+    GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", Flags, "", 0, 1000 )
 
     GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", Flags, "", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
     cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
@@ -216,7 +217,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     teamID = ply\Team!
     if teamID == TEAM_GUARD
-        ply\SetArmor( 50 )
+        ply\SetArmor( @GuardsArmor\GetInt! )
     else
         ply\SetArmor( 0 )
 
