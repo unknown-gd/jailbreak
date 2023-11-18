@@ -59,6 +59,9 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.SetMutedByWarden = ( bool ) =>
+        @SetNW2Bool( "warden-mute", bool )
+
     PLAYER.RemoveRagdoll = =>
         ragdoll = @GetRagdollEntity!
         if ragdoll\IsValid!
@@ -195,6 +198,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
     ply\SetTeam( TEAM_SPECTATOR )
 
 GM.PlayerSpawn = ( ply, transiton ) =>
+    ply\DisableWorldClicking( true )
     ply\AllowFlashlight( false )
     ply\SetCanZoom( false )
     ply\RemoveRagdoll!
@@ -727,6 +731,9 @@ GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
     listenerAlive, speakerAlive = listener\Alive!, speaker\Alive!
     if not listenerAlive and not speakerAlive
         return true, false
+
+    if speakerAlive and speaker\IsMutedByWarden!
+        return false, false
 
     listenerTeam, speakerTeam = listener\Team!, speaker\Team!
     if not @PlayableTeams[ listenerTeam ] and not speakerAlive

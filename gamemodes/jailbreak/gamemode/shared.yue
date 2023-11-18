@@ -65,6 +65,9 @@ do
     PLAYER.IsPrisoner = =>
         return @Team! == TEAM_PRISONER
 
+    PLAYER.IsMutedByWarden = =>
+        return @GetNW2Bool( "warden-mute" )
+
 do
 
     util_PrecacheModel = util.PrecacheModel
