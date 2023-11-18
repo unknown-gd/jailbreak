@@ -531,6 +531,9 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             util.ScreenShake( origin, 5, 10, 0.5, 150 )
             return true
         when "func_button"
+            if bit.band( damageInfo\GetDamageType!, DMG_BLAST ) == DMG_BLAST
+                return true
+
             attacker = damageInfo\GetAttacker!
             if IsValid( attacker ) and attacker\IsPlayer!
                 entity\Use( attacker, attacker )
