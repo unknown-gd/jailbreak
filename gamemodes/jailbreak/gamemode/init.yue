@@ -127,28 +127,28 @@ do
             ragdoll\ManipulateBoneJiggle( boneID, @GetManipulateBoneJiggle( boneID ) )
             ragdoll\ManipulateBoneScale( boneID, @GetManipulateBoneScale( boneID ) )
 
-            velocity = @GetVelocity!
-            if ragdoll\IsRagdoll!
-                for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
-                    phys = ragdoll\GetPhysicsObjectNum( physNum )
-                    unless IsValid( phys )
-                        continue
+        if ragdoll\IsRagdoll!
+            velocity = @LastMoveVelocity
+            for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+                phys = ragdoll\GetPhysicsObjectNum( physNum )
+                unless IsValid( phys )
+                    continue
 
-                    boneID = ragdoll\TranslatePhysBoneToBone( physNum )
-                    if boneID < 0
-                        continue
+                boneID = ragdoll\TranslatePhysBoneToBone( physNum )
+                if boneID < 0
+                    continue
 
-                    origin, angles = @GetBonePosition( boneID )
-                    phys\SetVelocity( velocity )
-                    phys\SetAngles( angles )
-                    phys\SetPos( origin )
-                    phys\Wake!
+                origin, angles = @GetBonePosition( boneID )
+                phys\SetVelocity( velocity )
+                phys\SetAngles( angles )
+                phys\SetPos( origin )
+                phys\Wake!
 
-            else
-                phys = ragdoll\GetPhysicsObject!
-                if IsValid( phys )
-                    phys\SetVelocity( velocity )
-                    phys\Wake!
+        else
+            phys = ragdoll\GetPhysicsObject!
+            if IsValid( phys )
+                phys\SetVelocity( @LastMoveVelocity )
+                phys\Wake!
 
         if @IsOnFire!
             ragdoll\Ignite( 16, 64 )
