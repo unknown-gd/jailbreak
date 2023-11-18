@@ -112,7 +112,7 @@ do
                 ragdoll\SetSubMaterial( index, materialPath )
 
         ragdoll\SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
-        ragdoll\SetNW2Bool( "player-ragdoll", true )
+        ragdoll\SetNW2Bool( "is-player-ragdoll", true )
         ragdoll\SetNW2Entity( "ragdoll-owner", @ )
         @SetNW2Entity( "player-ragdoll", ragdoll )
 
@@ -399,7 +399,9 @@ GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
 			return spawnPoint
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
-    ply\SetVelocity( -damageInfo\GetDamageForce! )
+    unless @PlayableTeams[ ply\Team! ]
+        return
+
     ply\AddDeaths( 1 )
 
     teamID = ply\Team!
@@ -440,21 +442,6 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
         return
 
     if entity\IsPlayerRagdoll!
-        damage = damageInfo\GetDamage!
-
-        armor = entity.Armor
-        if isnumber( armor ) and armor > 0
-            entity.Armor = math.max( 0, armor - damage )
-            damage = math.max( 0, damage - armor )
-
-        health = math.max( 0, entity\Health! - damage )
-        if health <= 0
-            if entity\PrecacheGibs! > 0
-                entity\GibBreakClient( entity\GetVelocity! )
-            entity\Remove!
-            return
-
-        entity\SetHealth( health )
         return true
 
     switch entity\GetClass!
@@ -805,8 +792,8 @@ GM.Think = =>
             @SetRoundState( "waiting" )
 
 GM.SelectBestTeam = ( ply ) =>
-    guardCount = @GetTeamAliveCount( TEAM_GUARD )
-    if guardCount == 0 or ( guardCount / @GetTeamAliveCount( TEAM_PRISONER ) ) < @GuardsDiff
+    guardCount = team.NumPlayers( TEAM_GUARD )
+    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < @GuardsDiff
         ply\SetTeam( TEAM_GUARD )
     else
         ply\SetTeam( TEAM_PRISONER )
@@ -832,7 +819,7 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer.Simple( 0, game.CleanUpMap )
 
         when "running"
-            guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
+            guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
             totalCount = guardCount + prisonerCount
 
             while ( guardCount / prisonerCount ) > @GuardsDiff and totalCount > ( ( 1 / @GuardsDiff ) + guardCount )
@@ -842,7 +829,7 @@ GM.RoundStateChanged = ( old, new ) =>
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!
                         break
-                guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
+                guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
                 totalCount = guardCount + prisonerCount
 
             if guardCount == 0 or prisonerCount == 0

@@ -34,7 +34,7 @@ do
     ENTITY = FindMetaTable( "Entity" )
 
     ENTITY.IsPlayerRagdoll = =>
-        return @GetNW2Bool( "player-ragdoll" )
+        return @GetNW2Bool( "is-player-ragdoll" )
 
     ENTITY.GetRagdollOwner = =>
         return @GetNW2Entity( "ragdoll-owner" )
