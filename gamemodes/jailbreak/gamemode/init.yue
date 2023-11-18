@@ -369,9 +369,6 @@ GM.PlayerDeathThink = ( ply ) =>
     ply\Spawn!
 
 GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
-    unless @PlayableTeams[ ply\Team! ]
-        return true
-
     start = entity\GetPos!
     mins, maxs = ply\GetHull!
 
@@ -398,10 +395,14 @@ GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
     unless spawnPoints and not table.IsEmpty( spawnPoints )
         return
 
-	for i = 0, 16
-		spawnPoint = table.Random( spawnPoints )
-		if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 10 )
-			return spawnPoint
+    if teamID == TEAM_GUARD
+        return table.Random( spawnPoints )
+
+    if teamID == TEAM_PRISONER
+        for i = 0, 16
+            spawnPoint = table.Random( spawnPoints )
+            if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 10 )
+                return spawnPoint
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     unless @PlayableTeams[ ply\Team! ]
