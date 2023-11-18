@@ -221,6 +221,8 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     else
         ply\SetArmor( 0 )
 
+    ply\SetMaxArmor( math.max( 100, ply\Armor! ) )
+
     if teamID == TEAM_PRISONER
         ply\SetNoCollideWithTeammates( false )
         ply\SetAvoidPlayers( true )
