@@ -41,6 +41,7 @@ do
 
 resource.AddSingleFile( "resource/localization/en/jailbreak.properties" )
 resource.AddWorkshop( "2950445307" )
+resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
 
 TEAM_PRISONER = TEAM_PRISONER
@@ -264,14 +265,13 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetupHands!
 
 GM.OnEntityCreated = ( weapon ) =>
+    if weapon\GetClass! == "game_player_equip"
+        weapon\Remove!
+
     unless weapon\IsWeapon!
         return
 
-    if @IsRoundRunning!
-        weapon\Remove!
-        return
-
-    timer.Simple( 0.025, ->
+    timer.Simple 0.025, ->
         unless weapon\IsValid!
             return
 
@@ -295,7 +295,6 @@ GM.OnEntityCreated = ( weapon ) =>
                 if counter >= 5
                     phys\EnableMotion( false )
                     return
-    )
 
 COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
 
@@ -611,13 +610,13 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
                 unless weapon\IsValid! and not IsValid( weapon\GetOwner! )
                     continue
 
-                weapon.PickupForbidden = nil
                 weapon\SetNotSolid( false )
                 weapon\SetNoDraw( false )
                 weapon\SetParent!
-                velocity += direction * 200
 
+                weapon.PickupForbidden = nil
                 ply\PickupWeapon( weapon )
+                velocity += direction * 200
         ragdoll.Weapons = nil
 
         ammo = ragdoll.Ammo
