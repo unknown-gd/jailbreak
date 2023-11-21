@@ -1,154 +1,187 @@
-weapons_Register = weapons.Register
 vector_origin = vector_origin
+LocalToWorld = LocalToWorld
 angle_zero = angle_zero
+:Register = weapons
 isstring = isstring
 isvector = isvector
 isangle = isangle
-IsValid = IsValid
 istable = istable
-ipairs = ipairs
 SERVER = SERVER
 assert = assert
 :Create = ents
 :Set = list
 
+Handlers = WeaponHandlers
+unless istable Handlers
+    Handlers = {}
+    global WeaponHandlers = Handlers
+
+TemporaryWeapon = {
+    WorldModel: "models/weapons/w_smg1.mdl"
+    ViewModel: "models/weapons/c_smg1.mdl"
+    IsTemporaryWeapon: true
+    Base: "weapon_base"
+    Spawnable: false
+}
+
+if SERVER
+
+    TemporaryWeapon.Deploy = =>
+        @Remove!
+        return false
+
+    TemporaryWeapon.Initialize = =>
+        handler = Handlers[ @GetClass! ]
+        unless handler
+            @Remove!
+            return
+
+        className = handler.Alternative
+
+        spawnOffsets = handler.SpawnOffsets
+        if istable spawnOffsets
+            spawnOffsets = spawnOffsets[ className ]
+            unless istable spawnOffsets
+                spawnOffsets = nil
+        else
+            spawnOffsets = nil
+
+        timer.Simple 0, ->
+            unless @IsValid! and not @GetOwner!\IsValid!
+                return
+
+            entity = Create( className )
+            unless entity\IsValid!
+                return
+
+            origin, angles = @GetPos!, @GetAngles!
+            if spawnOffsets ~= nil
+                origin, angles = LocalToWorld( spawnOffsets[ 1 ], spawnOffsets[ 2 ], origin, angles )
+
+            entity\SetPos( origin )
+            entity\SetAngles( angles )
+
+            entity\AddFlags( @GetFlags! )
+            entity\AddEFlags( @GetEFlags! )
+            entity\AddSolidFlags( @GetSolidFlags! )
+
+            entity\Spawn!
+            entity\Activate!
+
+            @SetParent( entity )
+
+            entity\SetCollisionGroup( @GetCollisionGroup! )
+            entity\SetMoveType( @GetMoveType! )
+            entity\SetNoDraw( @GetNoDraw! )
+            entity\SetColor( @GetColor! )
+
+            newPhys = entity\GetPhysicsObject!
+            if newPhys and newPhys\IsValid!
+                oldPhys = @GetPhysicsObject!
+                if oldPhys and oldPhys\IsValid!
+                    newPhys\EnableCollisions( oldPhys\IsCollisionEnabled! )
+                    newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
+                    newPhys\EnableDrag( oldPhys\IsDragEnabled! )
+                    newPhys\SetMass( oldPhys\GetMass! )
+
+                    if oldPhys\IsAsleep!
+                        newPhys\Sleep!
+                    else
+                        newPhys\Wake!
+
+                    newPhys\SetVelocity( oldPhys\GetVelocity! )
+                else
+                    newPhys\Sleep!
+
+    TemporaryWeapon.Equip = ( owner ) =>
+        weapon = @GetParent!
+        if weapon\IsValid! and weapon\IsWeapon!
+            owner\PickupWeapon( weapon, false )
+        @Remove!
+
+    TemporaryWeapon.OnRemove = =>
+        parent = @GetParent!
+        if parent\IsValid! and not parent\GetOwner!\IsValid!
+            parent\Remove!
+
+if CLIENT
+
+    TemporaryWeapon.DrawWorldModel = ->
+
+    TemporaryWeapon.Deploy = =>
+        return false
+
 global class WeaponHandler
     Weapons: list.GetForEdit( "Weapon" )
-    new: ( className, alternative, offsets, force ) =>
-        assert isstring( className ), "Second argument must be a 'string'!"
-        @Registered = @Exists( className ) and not force
-        @ClassName = className
-        if @Registered
-            return
-
-        if istable( offsets )
-            @Offsets = offsets
-        else
-            @Offsets = {}
-        if isstring( alternative )
-            @AddAlternative( alternative )
-        elseif istable( alternative )
-            @AddAlternatives( alternative )
-
-    GetClassOffset: ( className ) =>
-        return @Offsets[ className ]
-
-    SetClassOffset: ( className, vector, angles ) =>
-        unless isvector( vector )
-            vector = vector_origin
-
-        unless isangle( angles )
-            angles = angle_zero
-
-        @Offsets[ className ] = { vector, angles }
-
-    SetClassOffsets: ( tbl ) =>
-        assert istable( tbl ), "Second argument must be a 'table'!"
-        @Offsets = tbl
-
-    Register: ( metatable ) =>
-        if @Registered
-            return
-
-        unless istable( metatable )
-            error( "Weapon '#{@ClassName}' handling failed, reason: requested analogs missing." )
-            return
-
-        className = @ClassName
-        weapons_Register( metatable, className )
-        Set( "Weapon", className, nil )
-        @Registered = true
-
-    GetWeaponInfo: ( className ) =>
-        return @Weapons[ className ]
 
     Exists: ( className ) =>
-        return istable( @GetWeaponInfo( className ) )
+        return istable @Weapons[ className ]
 
-    AddAlternative: ( className ) =>
+    new: ( className, alternative, spawnOffsets, force ) =>
+        assert isstring( className ), "Second argument must be a 'string'!"
+        Handlers[ className ] = @
+        @ClassName = className
+
+        @Registered = @Exists( className ) and not force
         if @Registered
             return
 
-        assert isstring( className ), "Second argument must be a 'string'!"
+        if isstring alternative
+            @AddAlternative( alternative )
+        elseif istable alternative
+            @AddAlternatives( alternative )
 
-        info = @GetWeaponInfo( className )
-        unless istable( info )
-            return
+        if istable spawnOffsets
+            @SpawnOffsets = spawnOffsets
+        else
+            @SpawnOffsets = {}
 
-        metatable = {
-            WeaponHandlerOffset: @Offsets[ className ]
-            PrintName: info.PrintName
-            BaseClassName: className
-            Author: info.Author
-            Spawnable: false
-        }
+    GetClassSpawnOffsets: ( className ) =>
+        return @SpawnOffsets[ className ]
 
-        if SERVER
+    SetClassSpawnOffsets: ( className, vector, angles ) =>
+        unless isvector vector
+            vector = vector_origin
 
-            metatable.Initialize = () =>
-                owner = @GetOwner!
-                if IsValid( owner )
-                    owner\Give( className )
-                    return
+        unless isangle angles
+            angles = angle_zero
 
-                entity = Create( className )
-                if entity and entity\IsValid!
-                    origin, angles = @GetPos!, @GetAngles!
+        @SpawnOffsets[ className ] = { vector, angles }
 
-                    offsetData = @WeaponHandlerOffset
-                    if istable( offsetData )
-                        origin, angles = LocalToWorld( offsetData[ 1 ], offsetData[ 2 ], origin, angles )
+    SetClassSpawnOffsets: ( value ) =>
+        assert istable( value ), "Second argument must be a 'table'!"
+        @SpawnOffsets = value
 
-                    entity\SetPos( origin )
-                    entity\SetAngles( angles )
-                    entity\Spawn!
-                    entity\Activate!
+    Register: =>
+        unless @Registered
+            className = @ClassName
+            Register( TemporaryWeapon, className )
+            Set( "Weapon", className, nil )
+            @Registered = true
 
-                    entity\SetCollisionGroup( @GetCollisionGroup! )
-                    entity\SetMoveType( @GetMoveType! )
-                    entity\SetNoDraw( @GetNoDraw! )
-                    entity\SetColor( @GetColor! )
-
-                    newPhys = entity\GetPhysicsObject!
-                    if newPhys and newPhys\IsValid!
-                        oldPhys = @GetPhysicsObject!
-                        if oldPhys and oldPhys\IsValid!
-                            newPhys\EnableCollisions( oldPhys\IsCollisionEnabled! )
-                            newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
-                            newPhys\EnableDrag( oldPhys\IsDragEnabled! )
-                            newPhys\SetMass( oldPhys\GetMass! )
-
-                            if oldPhys\IsAsleep!
-                                newPhys\Sleep!
-                            else
-                                newPhys\Wake!
-
-                            newPhys\SetVelocity( oldPhys\GetVelocity! )
-                        else
-                            newPhys\Sleep!
-
-                @Remove!
-
-            metatable.Deploy = () =>
-                owner = @GetOwner!
-                unless owner and owner\IsValid!
-                    return
-
-                if owner\IsPlayer! and not owner\Alive!
-                    return
-
-                owner\Give( className )
-                owner\SelectWeapon( className )
-                owner\StripWeapon( @GetClass! )
-                return true
-
-            metatable.Holster = () =>
-                @Remove!
-                return true
-
-        @Register( metatable )
+    AddAlternative: ( className ) =>
+        if not @Registered and @Exists( className )
+            @Alternative = className
+            @Register!
 
     AddAlternatives: ( alternatives ) =>
         assert istable( alternatives ), "Second argument must be a 'table'!"
-        for _, className in ipairs( alternatives )
+        for className in *alternatives
+            if @Registered
+                break
+
             @AddAlternative( className )
+
+if SERVER
+
+    hook.Add "PlayerCanPickupWeapon", "WeaponHandler::Block temporary weapon pickup", ( weapon ) =>
+        if weapon\IsTemporaryWeapon
+            return false
+
+    hook.Add "WeaponEquip", "WeaponHandler::Remove temporary weapon on real weapon pickup", ( owner ) =>
+        if @IsTemporaryWeapon
+            return
+
+        for weapon in *@GetChildren!
+            if weapon\IsValid! and weapon.IsTemporaryWeapon
+                weapon\Remove!
