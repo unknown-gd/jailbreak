@@ -68,6 +68,9 @@ do
     PLAYER.IsMutedByWarden = =>
         return @GetNW2Bool( "warden-mute" )
 
+    PLAYER.HasElectroCollar = =>
+        return @GetNW2Bool( "electro-collar" )
+
     PLAYER.HasSecurityAccess = =>
         return @GetNW2Bool( "security-access" )
 

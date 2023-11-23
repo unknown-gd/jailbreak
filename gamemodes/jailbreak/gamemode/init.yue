@@ -46,6 +46,9 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.SetElectroCollar = ( bool ) =>
+        @SetNW2Bool( "electro-collar", bool )
+
     PLAYER.AllowSecurityAccess = ( bool ) =>
         @SetNW2Bool( "security-access", bool )
 
@@ -236,10 +239,12 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     if teamID == TEAM_PRISONER
         ply\SetNoCollideWithTeammates( false )
+        ply\SetElectroCollar( true )
         ply\SetAvoidPlayers( true )
         ply\AllowFlashlight( false )
     else
         ply\SetNoCollideWithTeammates( true )
+        ply\SetElectroCollar( false )
         ply\SetAvoidPlayers( false )
 
     if teamID == TEAM_GUARD
@@ -486,6 +491,45 @@ GM.PlayerDisconnected = ( ply ) =>
         hook_Run( "TeamPlayerDisconnected", ply, teamID )
 
 DMG_NEVERGIB = DMG_NEVERGIB
+
+do
+
+    GM.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
+
+    GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
+        damageType = damageInfo\GetDamageType!
+        if ply\HasElectroCollar! and bit.band( damageType, DMG_SHOCK ) == DMG_SHOCK
+            ply\SetElectroCollar( false )
+
+        for int in *@CloseRangeDamageTypes
+            if bit.band( damageType, int ) == int
+                attacker = damageInfo\GetAttacker!
+                unless attacker\IsValid! and attacker\IsPlayer!
+                    return
+
+                if attacker\HasElectroCollar!
+                    fx = EffectData!
+                    fx\SetScale( 0.5 )
+                    origin = nil
+
+                    headBone = attacker\LookupBone( "ValveBiped.Bip01_Head1" )
+                    if headBone >= 0
+                        matrix = attacker\GetBoneMatrix( headBone )
+                        if matrix
+                            origin = matrix\GetTranslation!
+
+                    fx\SetOrigin( origin or attacker\EyePos! )
+                    fx\SetMagnitude( math.random( 3, 5 ) )
+                    fx\SetRadius( math.random( 1, 5 ) )
+                    util.Effect( "ElectricSpark", fx )
+
+                    damageInfo\SetDamageType( DMG_SONIC )
+                    damageInfo\ScaleDamage( 0.5 )
+                    attacker\TakeDamageInfo( damageInfo )
+
+                    damageInfo\SetDamageType( damageType )
+                    damageInfo\ScaleDamage( 0.5 )
+                return
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if entity\IsPlayerRagdoll!
