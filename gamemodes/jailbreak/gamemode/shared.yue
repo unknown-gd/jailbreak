@@ -145,7 +145,7 @@ GM.FinishMove = ( ply, mv ) =>
             mv\SetForwardSpeed( 0 )
             mv\SetSideSpeed( 0 )
 
-GM.GetRoundState = =>
+GM.GetRoundState = ->
     return GetGlobal2String( "round-state", "waiting" )
 
 GM.IsWaitingPlayers = =>
@@ -164,11 +164,14 @@ GM.GameInProgress = =>
     state = @GetRoundState!
     return state ~= "waiting" and state ~= "preparing"
 
-GM.GetNextRoundStateTime = =>
-    return GetGlobal2Int( "next-round-state", 0 )
+GM.GetNextRoundStateTime = ->
+    return GetGlobal2Int( "next-round-state" )
 
-GM.GetWinningTeam = =>
-    return GetGlobal2Int( "winning-team", 0 )
+GM.GetWinningTeam = ->
+    return GetGlobal2Int( "winning-team" )
+
+GM.IsElectroCollarsActive = ->
+    return GetGlobal2Bool( "electro-collars", true )
 
 do
 
@@ -269,9 +272,10 @@ GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
 
     attacker = damageInfo\GetAttacker!
     unless IsValid( attacker ) and attacker\IsPlayer!
-        return false
+        return
+
+    if attacker == ply
+        return
 
     if teamID == TEAM_GUARD and attacker\Team! == teamID
         return hook_Run( "FriendlyFire", ply, teamID ) ~= false
-
-    return false
