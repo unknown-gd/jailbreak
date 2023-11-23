@@ -755,7 +755,7 @@ GM.PlayerUse = ( ply, entity ) =>
         if entity.PickupForbidden or entity.IsTemporaryWeapon or entity\IsPlayerHolding!
             return false
 
-        unless ply\HasWeapon( entity\GetClass! )
+        if not ply\HasWeapon( entity\GetClass! ) and not @Arcade\GetBool!
             ply\PickupWeapon( entity, false )
             return false
 
@@ -773,7 +773,7 @@ GM.PlayerUse = ( ply, entity ) =>
             entity\SetClip2( 0 )
             pickedAmmo = true
 
-        unless pickedAmmo
+        if not pickedAmmo and not @Arcade\GetBool!
             phys = entity\GetPhysicsObject!
             if IsValid( phys )
                 phys\EnableMotion( true )
