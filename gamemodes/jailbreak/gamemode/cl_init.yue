@@ -1,15 +1,21 @@
 include( "shared.lua" )
 
-CreateConVar( "cl_playercolor", "0.3 0.3 0.3", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
-CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The value is a Vector - so between 0-1 - not between 0-255" )
-CreateConVar( "cl_playerskin", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The skin to use, if the model has any" )
-CreateConVar( "cl_playerbodygroups", "0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "The bodygroups to use, if the model has any" )
+do
+
+    Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
+
+    CreateConVar( "cl_playercolor", "0.3 0.3 0.3", Flags, "The value is a Vector - so between 0-1 - not between 0-255" )
+    CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", Flags, "The value is a Vector - so between 0-1 - not between 0-255" )
+    CreateConVar( "cl_playerbodygroups", "0", Flags, "The bodygroups to use, if the model has any" )
+    CreateConVar( "cl_playerskin", "0", Flags, "The skin to use, if the model has any" )
+
 hook_Run = hook.Run
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
 GM.InitPostEntity = =>
+    chat.Open( 1 )
     @ShowTeam!
 
 concommand.Add( "jb_showteam", ->
@@ -248,3 +254,196 @@ GM.HUDPaint = =>
 --     scoreboard = @ScoreBoard
 --     if IsValid( scoreboard )
 --         scoreboard\Hide!
+
+GM.ContextMenuEnabled = ->
+    return true
+
+GM.ContextMenuOpen = ->
+    return true
+
+do
+
+    PANEL = {}
+
+    AccessorFunc( PANEL, "m_bHangOpen", "HangOpen" )
+
+    PANEL.Init = =>
+        @SetWorldClicker( true )
+        @m_bHangOpen = false
+        @Dock( FILL )
+
+    PANEL.Open = =>
+        @SetHangOpen( false )
+
+        if IsValid( g_SpawnMenu ) and g_SpawnMenu\IsVisible!
+            g_SpawnMenu\Close( true )
+
+        if @IsVisible!
+            return
+
+        CloseDermaMenus!
+
+        @MakePopup!
+        @SetVisible( true )
+        @SetKeyboardInputEnabled( false )
+        @SetMouseInputEnabled( true )
+
+        RestoreCursorPosition!
+        @InvalidateLayout( true )
+
+    PANEL.Close = ( bSkipAnim ) =>
+        if @GetHangOpen!
+            @SetHangOpen( false )
+            return
+
+        RememberCursorPosition!
+        CloseDermaMenus!
+
+        @SetKeyboardInputEnabled( false )
+        @SetMouseInputEnabled( false )
+
+        @SetAlpha( 255 )
+        @SetVisible( false )
+        @RestoreControlPanel!
+
+    PANEL.StartKeyFocus = ( pPanel ) =>
+        @SetKeyboardInputEnabled( true )
+        @SetHangOpen( true )
+
+    PANEL.EndKeyFocus = ( pPanel ) =>
+        @SetKeyboardInputEnabled( false )
+
+    vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
+
+    CreateContextMenu = ->
+        unless hook_Run( "ContextMenuEnabled" )
+            return
+
+        contextMenu = g_ContextMenu
+        if IsValid( contextMenu )
+            contextMenu\Remove!
+
+        contextMenu = vgui.Create( "ContextMenu" )
+        unless IsValid( contextMenu )
+            return
+
+        global g_ContextMenu = contextMenu
+        contextMenu\SetVisible( false )
+
+        contextMenu.OnMousePressed = ( _, code ) ->
+            hook_Run( "GUIMousePressed", code, gui.ScreenToVector( input.GetCursorPos! ) )
+
+        contextMenu.OnMouseReleased = ( _, code ) ->
+            hook_Run( "GUIMouseReleased", code, gui.ScreenToVector( input.GetCursorPos! ) )
+
+        hook_Run( "ContextMenuCreated", contextMenu )
+
+        iconLayout = contextMenu\Add( "DIconLayout" )
+        iconLayout\SetBorder( 8 )
+        iconLayout\SetSpaceX( 8 )
+        iconLayout\SetSpaceY( 8 )
+        iconLayout\SetLayoutDir( LEFT )
+        iconLayout\SetWorldClicker( true )
+        iconLayout\SetStretchWidth( true )
+        iconLayout\SetStretchHeight( false ) -- No infinite re-layouts
+        iconLayout\Dock( LEFT )
+
+        iconLayout.OnMousePressed = ( ... ) =>
+            @GetParent!\OnMousePressed( ... )
+
+        for windowName, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
+            icon = iconLayout\Add( "DButton" )
+            icon\SetText( "" )
+            icon\SetSize( 80, 82 )
+            icon.Paint = ->
+
+            image = icon\Add( "DImage" )
+            image\SetImage( desktopWindow.icon )
+            image\SetSize( 64, 64 )
+            image\Dock( TOP )
+            image\DockMargin( 8, 0, 8, 0 )
+
+            label = icon\Add( "DLabel" )
+            label\Dock( BOTTOM )
+            label\SetText( desktopWindow.title )
+            label\SetContentAlignment( 5 )
+            label\SetTextColor( color_white )
+            label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
+
+            icon.DoClick = ->
+                desktopWindow = list.Get( "DesktopWindows" )[ windowName ]
+                window = icon.Window
+                if desktopWindow.onewindow and IsValid( window )
+                    window\Center!
+                    return
+
+                window = contextMenu\Add( "DFrame" )
+                icon.Window = window
+
+                window\SetSize( desktopWindow.width, desktopWindow.height )
+                window\SetTitle( desktopWindow.title )
+                window\Center!
+
+                desktopWindow.init( icon, window )
+
+        return contextMenu
+
+    GM.OnContextMenuOpen = =>
+        unless hook_Run( "ContextMenuOpen" )
+            return
+
+        contextMenu = g_ContextMenu
+        unless IsValid( contextMenu )
+            contextMenu = CreateContextMenu!
+
+        unless contextMenu\IsVisible!
+            contextMenu\Open!
+        hook_Run( "ContextMenuOpened" )
+
+    GM.OnContextMenuClose = =>
+        contextMenu = g_ContextMenu
+        if IsValid( contextMenu )
+            contextMenu\Close!
+        hook_Run( "ContextMenuClosed" )
+
+GM.ReColorList = {
+    CHudSecondaryAmmo: true
+    CHudSuitPower: true
+    CHudBattery: true
+    CHudHealth: true
+    CHudAmmo: true
+}
+
+GM.StartChat = ( isTeam ) =>
+    if @Reskined
+        return
+
+    hook.Add 'Think', 'JB::CHudReskin', ->
+        viewport = vgui.GetKeyboardFocus!
+        unless IsValid( viewport )
+            return
+
+        hook.Remove 'Think', 'JB::CHudReskin'
+        @Reskined = true
+        chat.Close!
+
+        for i = 1, 5
+            panel = viewport\GetParent!
+            unless IsValid( panel )
+                break
+
+            viewport = panel
+
+        unless IsValid( viewport )
+            return
+
+        for panel in *viewport\GetChildren!
+            unless @ReColorList[ panel\GetClassName! ]
+                continue
+
+            ply = LocalPlayer!
+            unless IsValid( ply )
+                return
+
+            hook.Add "Think", panel, =>
+                @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )

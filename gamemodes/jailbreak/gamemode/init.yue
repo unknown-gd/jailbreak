@@ -7,11 +7,13 @@ do
     CreateConVar = CreateConVar
 
     -- TODO: Write desc
-    GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", Flags, "", 50, 10000 )
+    GM.PrepareTime = CreateConVar( "jb_prepare_time", "30", Flags, "", 10, 2 * 60 * 60 )
     GM.RoundTime = CreateConVar( "jb_round_time", "0", Flags, "", 0, 12 * 60 * 60 )
-    GM.Preparing = CreateConVar( "jb_preparing", "30", Flags, "", 5, 900 )
+
     GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
+    GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", Flags, "", 50, 10000 )
     GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", Flags, "", 0, 1000 )
+
     GM.ServerSideRagdolls = CreateConVar( "jb_serverside_ragdolls", "1", Flags, "", 0, 1000 )
 
     RunConsoleCommand( "mp_show_voice_icons", GM.Arcade\GetString! )
@@ -54,6 +56,9 @@ do
 
     PLAYER.AllowSecurityAccess = ( bool ) =>
         @SetNW2Bool( "security-access", bool )
+
+    PLAYER.AllowSecurityRadio = ( bool ) =>
+        @SetNW2Bool( "security-radio", bool )
 
     do
 
@@ -187,6 +192,7 @@ do
         hook_Run( "PlayerRagdollCreated", @, ragdoll )
 
         ragdoll.HasSecurityAccess = @HasSecurityAccess!
+        ragdoll.HasSecurityRadio = @HasSecurityRadio!
         ragdoll.HasFlashlight = @CanUseFlashlight!
 
         weapons = {}
@@ -255,7 +261,6 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\SetNoCollideWithTeammates( false )
         ply\SetElectroCollar( true )
         ply\SetAvoidPlayers( true )
-        ply\AllowFlashlight( false )
     else
         ply\SetNoCollideWithTeammates( true )
         ply\SetElectroCollar( false )
@@ -263,9 +268,12 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     if teamID == TEAM_GUARD
         ply\AllowSecurityAccess( true )
+        ply\AllowSecurityRadio( true )
         ply\AllowFlashlight( true )
     else
         ply\AllowSecurityAccess( false )
+        ply\AllowSecurityRadio( false )
+        ply\AllowFlashlight( false )
 
     unless @PlayableTeams[ teamID ]
         ply\Spectate( OBS_MODE_ROAMING )
@@ -698,6 +706,11 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
             ply\AllowSecurityAccess( true )
             ragdoll.HasSecurityAccess = nil
 
+        if ragdoll.HasSecurityRadio and not ply\HasSecurityRadio!
+            velocity += direction * 50
+            ply\AllowSecurityRadio( true )
+            ragdoll.HasSecurityRadio = nil
+
         weapons = ragdoll.Weapons
         if istable( weapons )
             for weapon in *weapons
@@ -928,7 +941,7 @@ GM.SetWinningTeam = ( teamID ) =>
     SetGlobal2Int( "winning-team", teamID )
 
 GM.SetRoundTime = ( int ) =>
-    SetGlobal2Int( "next-round-state", CurTime! + ( int or @Preparing\GetInt! ) )
+    SetGlobal2Int( "next-round-state", CurTime! + ( int or @PrepareTime\GetInt! ) )
 
 GM.Think = =>
     if @GetRoundTime! <= CurTime!

@@ -82,6 +82,9 @@ do
     PLAYER.HasSecurityAccess = =>
         return @GetNW2Bool( "security-access" )
 
+    PLAYER.HasSecurityRadio = =>
+        return @GetNW2Bool( "security-radio" )
+
 do
 
     util_PrecacheModel = util.PrecacheModel
