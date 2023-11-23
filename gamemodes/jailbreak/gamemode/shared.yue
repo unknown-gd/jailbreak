@@ -272,7 +272,7 @@ GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
     unless attacker\IsValid! and attacker\IsPlayer!
         return true
 
-    if attacker ~= ply
+    if attacker == ply
         return true
 
     if teamID == TEAM_GUARD and teamID == attacker\Team!

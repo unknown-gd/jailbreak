@@ -913,10 +913,11 @@ GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     @SetRoundState( "waiting" )
 
-GM.SetRoundState = ( state ) =>
+GM.SetRoundState = ( state, silent ) =>
     oldState = @GetRoundState!
     SetGlobal2String( "round-state", state )
-    hook_Run( "RoundStateChanged", oldState, state )
+    unless silent
+        hook_Run( "RoundStateChanged", oldState, state )
 
 GM.SetWinningTeam = ( teamID ) =>
     SetGlobal2Int( "winning-team", teamID )
