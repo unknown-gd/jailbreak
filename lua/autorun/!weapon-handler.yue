@@ -68,30 +68,22 @@ if SERVER
             entity\Spawn!
             entity\Activate!
 
-            @SetParent( entity )
-
             entity\SetCollisionGroup( @GetCollisionGroup! )
             entity\SetMoveType( @GetMoveType! )
             entity\SetNoDraw( @GetNoDraw! )
             entity\SetColor( @GetColor! )
 
-            newPhys = entity\GetPhysicsObject!
-            if newPhys and newPhys\IsValid!
-                oldPhys = @GetPhysicsObject!
-                if oldPhys and oldPhys\IsValid!
-                    newPhys\EnableCollisions( oldPhys\IsCollisionEnabled! )
-                    newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
-                    newPhys\EnableDrag( oldPhys\IsDragEnabled! )
-                    newPhys\SetMass( oldPhys\GetMass! )
+            oldPhys, newPhys = @GetPhysicsObject!, entity\GetPhysicsObject!
+            if oldPhys and oldPhys\IsValid! and newPhys and newPhys\IsValid!
+                newPhys\EnableMotion( oldPhys\IsMotionEnabled! )
+                newPhys\SetVelocity( oldPhys\GetVelocity! )
 
-                    if oldPhys\IsAsleep!
-                        newPhys\Sleep!
-                    else
-                        newPhys\Wake!
-
-                    newPhys\SetVelocity( oldPhys\GetVelocity! )
-                else
+                if oldPhys\IsAsleep!
                     newPhys\Sleep!
+                else
+                    newPhys\Wake!
+
+            @SetParent( entity )
 
     TemporaryWeapon.Equip = ( owner ) =>
         weapon = @GetParent!
@@ -175,6 +167,10 @@ global class WeaponHandler
 if SERVER
 
     hook.Add "PlayerCanPickupWeapon", "WeaponHandler::Block temporary weapon pickup", ( weapon ) =>
+        if weapon\IsTemporaryWeapon
+            return false
+
+    hook.Add "AllowPlayerPickup", "WeaponHandler::Block temporary weapon pickup", ( weapon ) =>
         if weapon\IsTemporaryWeapon
             return false
 

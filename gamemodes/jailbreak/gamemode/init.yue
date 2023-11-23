@@ -61,6 +61,24 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.Give = ( className, noAmmo ) =>
+        weapon = ents.Create( className )
+        unless weapon\IsValid!
+            return
+
+        weapon\SetAngles( @GetAngles! )
+        weapon\SetPos( @GetPos! )
+
+        weapon\Spawn!
+        weapon\Activate!
+
+        if weapon\IsWeapon!
+            if noAmmo
+                weapon\SetClip1( 0 )
+                weapon\SetClip2( 0 )
+            @PickupWeapon( weapon, false )
+        return weapon
+
     PLAYER.SetMutedByWarden = ( bool ) =>
         @SetNW2Bool( "warden-mute", bool )
 
@@ -240,9 +258,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetNoDraw( false )
 
     unless transiton
-        ply.Loadout = true
         hook_Run( "PlayerLoadout", ply, teamID )
-        ply.Loadout = nil
     hook_Run( "PlayerSetModel", ply, teamID )
 
     if ply\IsBot!
@@ -573,7 +589,7 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    return not weapon.PickupForbidden and ply.Loadout
+    return false
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
     unless desiredState
@@ -662,35 +678,40 @@ GM.PlayerUse = ( ply, entity ) =>
     unless @PlayableTeams[ ply\Team! ]
         return false
 
-    if entity\IsWeapon! and not entity\IsPlayerHolding! and not entity.PickupForbidden
-        if ply\HasWeapon( entity\GetClass! )
-            pickedAmmo = false
+    if entity\IsWeapon!
+        if entity.PickupForbidden or entity\IsPlayerHolding!
+            return false
 
-            clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
-            if clip1 > 0 and clip1Type >= 0 and ply\GetAmmoCount( clip1Type ) < ( game.GetAmmoMax( clip1Type ) / 2 )
-                ply\GiveAmmo( clip1, clip1Type, false )
-                entity\SetClip1( 0 )
-                pickedAmmo = true
-
-            clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
-            if clip2 > 0 and clip2Type >= 0 and ply\GetAmmoCount( clip2Type ) < ( game.GetAmmoMax( clip2Type ) / 2 )
-                ply\GiveAmmo( clip2, clip2Type, false )
-                entity\SetClip2( 0 )
-                pickedAmmo = true
-
-            unless pickedAmmo
-                phys = entity\GetPhysicsObject!
-                if IsValid( phys )
-                    phys\EnableMotion( true )
-                    phys\Wake!
-                ply\PickupObject( entity )
-
-                hook.Add "Think", entity, ->
-                    if entity\GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
-                        entity\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
-
-        else
+        unless ply\HasWeapon( entity\GetClass! )
             ply\PickupWeapon( entity, false )
+            return false
+
+        pickedAmmo = false
+
+        clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
+        if clip1 > 0 and clip1Type >= 0 and ply\GetAmmoCount( clip1Type ) < ( game.GetAmmoMax( clip1Type ) / 2 )
+            ply\GiveAmmo( clip1, clip1Type, false )
+            entity\SetClip1( 0 )
+            pickedAmmo = true
+
+        clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
+        if clip2 > 0 and clip2Type >= 0 and ply\GetAmmoCount( clip2Type ) < ( game.GetAmmoMax( clip2Type ) / 2 )
+            ply\GiveAmmo( clip2, clip2Type, false )
+            entity\SetClip2( 0 )
+            pickedAmmo = true
+
+        unless pickedAmmo
+            phys = entity\GetPhysicsObject!
+            if IsValid( phys )
+                phys\EnableMotion( true )
+                phys\Wake!
+            ply\PickupObject( entity )
+
+            hook.Add "Think", entity, ->
+                if entity\GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
+                    entity\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+                unless entity\IsPlayerHolding!
+                    hook.Remove "Think", entity
 
         return false
 
