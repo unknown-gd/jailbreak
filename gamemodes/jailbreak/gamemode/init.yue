@@ -12,7 +12,6 @@ do
     GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
     GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", Flags, "", 0, 1000 )
     GM.ServerSideRagdolls = CreateConVar( "jb_serverside_ragdolls", "1", Flags, "", 0, 1000 )
-    GM.Arcade = CreateConVar( "jb_arcade", "0", Flags, "", 0, 1 )
 
     RunConsoleCommand( "mp_show_voice_icons", GM.Arcade\GetString! )
     cvars.AddChangeCallback( "jb_arcade", ( _, __, value ) ->

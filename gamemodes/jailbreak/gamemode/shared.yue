@@ -5,6 +5,11 @@ GM.TeamBased = true
 GM.VoiceChatDistance = 1024 ^ 2
 GM.AllTalk = GetConVar( "sv_alltalk" )
 
+do
+
+    Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
+    GM.Arcade = CreateConVar( "jb_arcade", "0", Flags, "", 0, 1 )
+
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
 

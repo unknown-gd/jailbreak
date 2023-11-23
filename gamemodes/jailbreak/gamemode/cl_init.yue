@@ -80,8 +80,10 @@ GM.Think = =>
         if ply\IsSpeaking!
             ply\SetVoiceVolumeScale( math.Clamp( 1 - pos\DistToSqr( ply\EyePos! ) / @VoiceChatDistance, 0, 1 ) )
 
-GM.HUDDrawTargetID = nil
 GM.HUDPaint = =>
+    if @Arcade\GetBool!
+        hook_Run( "HUDDrawTargetID" )
+
     hook_Run( "HUDDrawPickupHistory" )
     hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 
