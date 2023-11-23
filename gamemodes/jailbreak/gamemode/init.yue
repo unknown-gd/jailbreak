@@ -535,6 +535,13 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if entity\IsPlayerRagdoll!
         return true
 
+    if entity\IsPlayer!
+        if entity\Alive!
+            teamID = entity\Team!
+            if hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
+                return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
+        return true
+
     if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
         return
 

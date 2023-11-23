@@ -255,6 +255,27 @@ GM.PreGamemodeLoaded = =>
         WeaponHandler( className, alternatives, @WeaponOffsets )
 
 hook_Run = hook.Run
+
+GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
+    if @IsRoundPreparing! or not @PlayableTeams[ teamID ]
+        return false
+
+    attacker = damageInfo\GetAttacker!
+    unless attacker\IsValid! and attacker\IsPlayer!
+        return true
+
+    if attacker ~= ply
+        return true
+
+    if teamID == TEAM_GUARD and teamID == attacker\Team!
+        return false
+
+    return true
+
+HITGROUP_HEAD = HITGROUP_HEAD
+timer_Simple = timer.Simple
+CLIENT = CLIENT
+
 bodyParts = {
     [HITGROUP_LEFTARM]: true
     [HITGROUP_RIGHTARM]: true
@@ -263,49 +284,14 @@ bodyParts = {
     [HITGROUP_GEAR]: true
 }
 
-GM.CleanUpBloodDecals = ( entity ) =>
-    entity\RemoveAllDecals!
-
-timer_Simple = timer.Simple
-
--- TODO: IsElectroCollarsActive and ScalePlayerDamage features move here
-GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
-    print "PlayerShouldTakeDamage", ply
-    if @IsRoundPreparing!
-        timer_Simple 0, ->
-            if ply\IsValid!
-                hook_Run( "CleanUpBloodDecals", ply )
-        return false
-
-    teamID = ply\Team!
-    unless @PlayableTeams[ teamID ]
-        timer_Simple 0, ->
-            if ply\IsValid!
-                hook_Run( "CleanUpBloodDecals", ply )
-        return false
-
-    unless attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
-        return true
-
-    attackerTeamID = attacker\Team!
-    if teamID == attackerTeamID
-        if teamID == TEAM_GUARD
-            timer_Simple 0, ->
-                if ply\IsValid!
-                    hook_Run( "CleanUpBloodDecals", ply )
-            return false
-        elseif teamID == TEAM_PRISONER
-            print "p v p"
-    return true
-
-HITGROUP_HEAD = HITGROUP_HEAD
-CLIENT = CLIENT
-
 GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
 	if hitGroup == HITGROUP_HEAD
 		damageInfo\ScaleDamage( 2 )
     elseif bodyParts[ hitGroup ]
 		damageInfo\ScaleDamage( 0.25 )
 
-    if CLIENT
-        return not @PlayerShouldTakeDamage( ply, damageInfo\GetAttacker! )
+    if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) == false
+        timer_Simple 0, ->
+            if ply\IsValid!
+                ply\RemoveAllDecals!
+        return true
