@@ -3,40 +3,25 @@ include( "shared.lua" )
 
 do
 
-    RunConsoleCommand = RunConsoleCommand
-
-    GM.SetRealistic = ( enable ) =>
-        enable = enable == true
-        @RealisticMode = enable
-
-        if enable
-            RunConsoleCommand( "sv_defaultdeployspeed", "1" )
-            RunConsoleCommand( "mp_show_voice_icons", "0" )
-            RunConsoleCommand( "sv_alltalk", "2" )
-        else
-            RunConsoleCommand( "sv_defaultdeployspeed", "4" )
-            RunConsoleCommand( "mp_show_voice_icons", "1" )
-            RunConsoleCommand( "sv_alltalk", "3" )
-
-do
-
     Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
     CreateConVar = CreateConVar
 
     -- TODO: Write desc
-    GM.DoorsHealth = CreateConVar( "jb_doors_health", "250", Flags, "", 50, 10000 )
+    GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", Flags, "", 50, 10000 )
     GM.Preparing = CreateConVar( "jb_preparing", "30", Flags, "", 5, 900 )
     GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
     GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", Flags, "", 0, 1000 )
+    GM.ServerSideRagdolls = CreateConVar( "jb_serverside_ragdolls", "1", Flags, "", 0, 1000 )
+    GM.Arcade = CreateConVar( "jb_arcade", "0", Flags, "", 0, 1 )
+
+    RunConsoleCommand( "mp_show_voice_icons", GM.Arcade\GetString! )
+    cvars.AddChangeCallback( "jb_arcade", ( _, __, value ) ->
+        RunConsoleCommand( "mp_show_voice_icons", value )
+    "Jailbreak" )
 
     GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", Flags, "", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
     cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
         (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
-    "Jailbreak" )
-
-    GM\SetRealistic( CreateConVar( "jb_realistic", "0", Flags, "", 0, 1 )\GetBool! )
-    cvars.AddChangeCallback( "jb_realistic", ( _, __, value ) ->
-        (GM or GAMEMODE)\SetRealistic( value == "1" )
     "Jailbreak" )
 
 resource.AddSingleFile( "resource/localization/en/jailbreak.properties" )
@@ -87,6 +72,7 @@ do
         if ragdoll\IsValid!
             ragdoll\Remove!
 
+    PLAYER.CreateClientsideRagdoll = PLAYER.CreateClientsideRagdoll or PLAYER.CreateRagdoll
     PLAYER.CreateRagdoll = =>
         @RemoveRagdoll!
 
@@ -205,11 +191,12 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
     ply.NextRespawnTime = 0
     isBot = ply\IsBot!
 
-    sid64 = isBot and ply\Nick! or ply\SteamID64!
-    for ragdoll in *@PlayerRagdolls
-        if sid64 == ( isBot and ragdoll\GetNW2String( "nickname" ) or ragdoll\GetNW2String( "steamid" ) )
-            ply\SetNW2Entity( "player-ragdoll", ragdoll )
-            break
+    if @ServerSideRagdolls\GetBool!
+        sid64 = isBot and ply\Nick! or ply\SteamID64!
+        for ragdoll in *@PlayerRagdolls
+            if sid64 == ( isBot and ragdoll\GetNW2String( "nickname" ) or ragdoll\GetNW2String( "steamid" ) )
+                ply\SetNW2Entity( "player-ragdoll", ragdoll )
+                break
 
     if isBot and not @GameInProgress!
         ply\SetTeam( TEAM_PRISONER )
@@ -345,15 +332,19 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
     )
 
 GM.PlayerLoadout = ( ply, teamID ) =>
-    if @IsRoundRunning! and teamID == TEAM_PRISONER and not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
-        ply\Give( "weapon_knife" )
-
     if teamID == TEAM_GUARD
         ply\GiveAmmo( 7, "357", true )
         ply\GiveAmmo( 60, "ar2", true )
         ply\GiveAmmo( 90, "smg1", true )
         ply\GiveAmmo( 40, "Pistol", true )
         ply\GiveAmmo( 20, "Buckshot", true )
+
+    unless @Arcade\GetBool!
+        ply\Give( "weapon_knife" )
+        return
+
+    if @IsRoundRunning! and teamID == TEAM_PRISONER and not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
+        ply\Give( "weapon_knife" )
 
     ply\Give( "jb_hands" )
     ply\SelectWeapon( "jb_hands" )
@@ -429,6 +420,10 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
 
     ply\AddDeaths( 1 )
 
+    unless @ServerSideRagdolls\GetBool!
+        ply\CreateClientsideRagdoll!
+        return
+
     ragdoll = ply\CreateRagdoll!
     unless IsValid( ragdoll )
         return
@@ -462,13 +457,14 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     -- TODO: Write here death notifies
 
 GM.PreCleanupMap = =>
-    table.Empty( @PlayerRagdolls )
+    if @ServerSideRagdolls\GetBool!
+        table.Empty( @PlayerRagdolls )
 
 GM.EntityRemoved = ( entity, fullUpdate ) =>
     if fullUpdate
         return
 
-    if entity\IsPlayerRagdoll!
+    if @ServerSideRagdolls\GetBool! and entity\IsPlayerRagdoll!
         table.RemoveByValue( @PlayerRagdolls, entity )
 
 GM.PlayerDisconnected = ( ply ) =>
@@ -479,17 +475,20 @@ GM.PlayerDisconnected = ( ply ) =>
 DMG_NEVERGIB = DMG_NEVERGIB
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
-    if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
-        return
-
     if entity\IsPlayerRagdoll!
         return true
+
+    if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
+        return
 
     switch entity\GetClass!
         when "prop_door_rotating"
             maxHealth = entity\GetMaxHealth!
             if maxHealth <= 1
                 maxHealth = @DoorsHealth\GetInt!
+                if maxHealth <= 0
+                    return true
+
                 entity\SetHealth( maxHealth )
                 entity\SetMaxHealth( maxHealth )
 
@@ -582,6 +581,9 @@ GM.AllowPlayerPickup = ( ply, entity ) =>
     unless @PlayableTeams[ ply\Team! ]
         return false
 
+    if @Arcade\GetBool!
+        return true
+
     weapon = ply\GetActiveWeapon!
     return IsValid( weapon ) and weapon\GetClass! == "jb_hands"
 
@@ -589,6 +591,8 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
+    if @Arcade\GetBool! and not ply\HasWeapon( weapon\GetClass! )
+        return true
     return false
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
@@ -606,12 +610,10 @@ GM.CanPlayerSuicide = ( ply ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
-    return ply\IsGuard! or ply\CanUseFlashlight!
+    return @Arcade\GetBool! or ply\IsGuard! or ply\CanUseFlashlight!
 
 GM.PlayerDeathSound = ( ply ) =>
-    unless @IsRoundRunning!
-        return true
-    return ply\IsPrisoner!
+    return not @IsRoundRunning! or @Arcade\GetBool! or ply\IsPrisoner!
 
 GM.PlayerRagdollUse = ( ragdoll, ply ) =>
     if @PlayableTeams[ ply\Team! ] and ply\Alive!
@@ -665,17 +667,17 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
         return
 
 GM.PlayerUse = ( ply, entity ) =>
+    unless @PlayableTeams[ ply\Team! ]
+        return false
+
     curTime, lastUse = CurTime!, ply.LastUse or 0
     ply.LastUse = curTime
 
     if ( curTime - lastUse ) <= 0.025
         return
 
-    if entity\IsPlayerRagdoll!
+    if entity\IsPlayerRagdoll! and @ServerSideRagdolls\GetBool!
         hook_Run( "PlayerRagdollUse", entity, ply )
-        return false
-
-    unless @PlayableTeams[ ply\Team! ]
         return false
 
     if entity\IsWeapon!
@@ -714,6 +716,9 @@ GM.PlayerUse = ( ply, entity ) =>
                     hook.Remove "Think", entity
 
         return false
+
+    if @Arcade\GetBool!
+        return true
 
     weapon = ply\GetActiveWeapon!
     if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
@@ -834,6 +839,7 @@ concommand.Add( "drop", ( ply ) ->
 )
 
 GM.InitPostEntity = =>
+    RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     @SetRoundState( "waiting" )
 
 GM.SetRoundState = ( state ) =>
@@ -925,7 +931,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\Spectate( OBS_MODE_ROAMING )
     ply\SpectateEntity!
 
-    timer.Create "Jailbreak::TeamPlayerDeath", 1, 1, ->
+    timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
@@ -933,19 +939,23 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
             @SetRoundTime!
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
-    timer.Create "Jailbreak::TeamPlayerDisconnected", 1, 1, ->
+    timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDisconnected"
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
             @SetRoundTime!
 
-    ply\CreateRagdoll!
+    if @ServerSideRagdolls\GetBool!
+        ply\CreateRagdoll!
 
 GM.TeamPlayerSpawn = ( ply ) =>
     if @IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
         @SetRoundState( "preparing" )
         @SetRoundTime!
+
+    unless @ServerSideRagdolls\GetBool!
+        return
 
     ragdoll = ply\GetRagdollEntity!
     if ragdoll\IsValid!
