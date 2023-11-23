@@ -257,25 +257,49 @@ bodyParts = {
     [HITGROUP_GEAR]: true
 }
 
+GM.CleanUpBloodDecals = ( entity ) =>
+    entity\RemoveAllDecals!
+
+timer_Simple = timer.Simple
+
+-- TODO: IsElectroCollarsActive and ScalePlayerDamage features move here
+GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
+    print "PlayerShouldTakeDamage", ply
+    if @IsRoundPreparing!
+        timer_Simple 0, ->
+            if ply\IsValid!
+                hook_Run( "CleanUpBloodDecals", ply )
+        return false
+
+    teamID = ply\Team!
+    unless @PlayableTeams[ teamID ]
+        timer_Simple 0, ->
+            if ply\IsValid!
+                hook_Run( "CleanUpBloodDecals", ply )
+        return false
+
+    unless attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
+        return true
+
+    attackerTeamID = attacker\Team!
+    if teamID == attackerTeamID
+        if teamID == TEAM_GUARD
+            timer_Simple 0, ->
+                if ply\IsValid!
+                    hook_Run( "CleanUpBloodDecals", ply )
+            return false
+        elseif teamID == TEAM_PRISONER
+            print "p v p"
+    return true
+
+HITGROUP_HEAD = HITGROUP_HEAD
+CLIENT = CLIENT
+
 GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
 	if hitGroup == HITGROUP_HEAD
 		damageInfo\ScaleDamage( 2 )
     elseif bodyParts[ hitGroup ]
 		damageInfo\ScaleDamage( 0.25 )
 
-    teamID = ply\Team!
-    if @IsRoundPreparing!
-        return hook_Run( "FriendlyFire", ply, teamID ) ~= false
-
-    unless @PlayableTeams[ teamID ]
-        return hook_Run( "FriendlyFire", ply, teamID ) ~= false
-
-    attacker = damageInfo\GetAttacker!
-    unless IsValid( attacker ) and attacker\IsPlayer!
-        return
-
-    if attacker == ply
-        return
-
-    if teamID == TEAM_GUARD and attacker\Team! == teamID
-        return hook_Run( "FriendlyFire", ply, teamID ) ~= false
+    if CLIENT
+        return not @PlayerShouldTakeDamage( ply, damageInfo\GetAttacker! )

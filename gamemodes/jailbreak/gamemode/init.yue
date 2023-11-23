@@ -557,18 +557,6 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                 entity\Use( attacker, attacker )
             return true
 
-GM.PlayerShouldTakeDamage = ( ply, attacker ) =>
-    unless @PlayableTeams[ ply\Team! ]
-        return false
-
-    if @IsRoundPreparing!
-        return false
-
-    if @GameInProgress! and ply\IsGuard! and attacker\IsPlayer! and ply ~= attacker
-        return attacker\IsPrisoner!
-
-    return true
-
 GM.FriendlyFire = ( ply, teamID ) =>
     return true
 
