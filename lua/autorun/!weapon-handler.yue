@@ -167,11 +167,11 @@ global class WeaponHandler
 if SERVER
 
     hook.Add "PlayerCanPickupWeapon", "WeaponHandler::Block temporary weapon pickup", ( weapon ) =>
-        if weapon\IsTemporaryWeapon
+        if weapon.IsTemporaryWeapon
             return false
 
     hook.Add "AllowPlayerPickup", "WeaponHandler::Block temporary weapon pickup", ( weapon ) =>
-        if weapon\IsTemporaryWeapon
+        if weapon.IsTemporaryWeapon
             return false
 
     hook.Add "WeaponEquip", "WeaponHandler::Remove temporary weapon on real weapon pickup", ( owner ) =>
