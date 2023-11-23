@@ -37,39 +37,41 @@ GM.FriendlyFire = ( ply, teamID ) =>
         if ply\IsValid!
             ply\RemoveAllDecals!
 
-tauntCamera = TauntCamera!
+do
 
-GM.ShouldDrawLocalPlayer = ( ply ) =>
-    return tauntCamera\ShouldDrawLocalPlayer( ply, ply\IsPlayingTaunt! )
+    tauntCamera = TauntCamera!
 
-GM.CreateMove = ( cmd ) =>
-    if drive.CreateMove( cmd )
-        return true
+    GM.ShouldDrawLocalPlayer = ( ply ) =>
+        return tauntCamera\ShouldDrawLocalPlayer( ply, ply\IsPlayingTaunt! )
 
-    ply = LocalPlayer!
-    if tauntCamera\CreateMove( cmd, ply, ply\IsPlayingTaunt! )
-        return true
+    GM.CreateMove = ( cmd ) =>
+        if drive.CreateMove( cmd )
+            return true
 
-GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
-    view = { :origin, :angles, :fov, :znear, :zfar, drawviewer: false }
+        ply = LocalPlayer!
+        if tauntCamera\CreateMove( cmd, ply, ply\IsPlayingTaunt! )
+            return true
 
-    if tauntCamera\CalcView( view, ply, ply\IsPlayingTaunt! )
+    GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
+        view = { :origin, :angles, :fov, :znear, :zfar, drawviewer: false }
+
+        if tauntCamera\CalcView( view, ply, ply\IsPlayingTaunt! )
+            return view
+
+        if ply\InVehicle!
+            return hook_Run( "CalcVehicleView", ply\GetVehicle!, ply, view )
+
+        if drive.CalcView( ply, view )
+            return view
+
+        weapon = ply\GetActiveWeapon!
+        if IsValid( weapon )
+            func = weapon.CalcView
+            if func
+                origin, angles, fov = func( weapon, ply, Vector( view.origin ), Angle( view.angles ), view.fov )
+                view.origin, view.angles, view.fov = origin or view.origin, angles or view.angles, fov or view.fov
+
         return view
-
-    if ply\InVehicle!
-        return hook_Run( "CalcVehicleView", ply\GetVehicle!, ply, view )
-
-    if drive.CalcView( ply, view )
-        return view
-
-    weapon = ply\GetActiveWeapon!
-    if IsValid( weapon )
-        func = weapon.CalcView
-        if func
-            origin, angles, fov = func( weapon, ply, Vector( view.origin ), Angle( view.angles ), view.fov )
-            view.origin, view.angles, view.fov = origin or view.origin, angles or view.angles, fov or view.fov
-
-    return view
 
 GM.Think = =>
     if @AllTalk\GetInt! > 2

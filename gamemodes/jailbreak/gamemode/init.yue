@@ -270,6 +270,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 GM.OnEntityCreated = ( weapon ) =>
     if weapon\GetClass! == "game_player_equip"
         weapon\Remove!
+        return
 
     unless weapon\IsWeapon!
         return
@@ -339,7 +340,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\GiveAmmo( 40, "Pistol", true )
         ply\GiveAmmo( 20, "Buckshot", true )
 
-    unless @Arcade\GetBool!
+    if @Arcade\GetBool!
         ply\Give( "weapon_knife" )
         return
 
@@ -591,9 +592,7 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    if @Arcade\GetBool! and not ply\HasWeapon( weapon\GetClass! )
-        return true
-    return false
+    return @Arcade\GetBool! and not ply\HasWeapon( weapon\GetClass! )
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
     unless desiredState
