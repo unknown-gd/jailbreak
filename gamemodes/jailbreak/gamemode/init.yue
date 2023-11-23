@@ -46,6 +46,9 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.SetWarden = ( bool ) =>
+        @SetNW2Bool( "warden", bool )
+
     PLAYER.SetElectroCollar = ( bool ) =>
         @SetNW2Bool( "electro-collar", bool )
 

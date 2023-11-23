@@ -67,6 +67,9 @@ do
     PLAYER.IsGuard = =>
         return @Team! == TEAM_GUARD
 
+    PLAYER.IsWarden = =>
+        return @GetNW2Bool( "warden" )
+
     PLAYER.IsPrisoner = =>
         return @Team! == TEAM_PRISONER
 
