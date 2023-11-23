@@ -94,16 +94,16 @@ SWEP.UseDoor = ( open ) =>
 
     owner = @GetOwner!
     start = owner\GetShootPos!
-    tr = util.TraceLine( {
+    traceResult = util.TraceLine( {
         start: start
         endpos: start + owner\GetAimVector! * 64
         filter: owner
     } )
 
-    unless tr.Hit
+    unless traceResult.Hit
         return
 
-    entity = tr.Entity
+    entity = traceResult.Entity
     unless IsValid( entity )
         return
 
@@ -168,15 +168,15 @@ SWEP.DealDamage = =>
     owner\LagCompensation( true )
 
     start = owner\GetShootPos!
-    tr = util.TraceLine( {
+    traceResult = util.TraceLine( {
         start: start
         endpos: start + owner\GetAimVector! * @HitDistance
         filter: owner
         mask: MASK_SHOT_HULL
     } )
 
-    unless IsValid( tr.Entity )
-        tr = util.TraceHull( {
+    unless IsValid( traceResult.Entity )
+        traceResult = util.TraceHull( {
             start: start
             endpos: start + owner\GetAimVector! * @HitDistance
             filter: owner
@@ -186,42 +186,43 @@ SWEP.DealDamage = =>
         } )
 
     -- We need the second part for single player because SWEP:Think is ran shared in SP
-    if tr.Hit and not ( game.SinglePlayer! and CLIENT )
+    if traceResult.Hit and not ( game.SinglePlayer! and CLIENT )
         @EmitSound( hitSound, 70, math.random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
 
-    hit = false
-    scale = phys_pushscale\GetFloat!
-
-    if SERVER and IsValid( tr.Entity ) and ( tr.Entity\IsNPC! or tr.Entity\IsPlayer! or tr.Entity\Health! > 0 )
-        dmginfo = DamageInfo!
-
-        attacker = owner
-        unless IsValid( attacker )
-            attacker = @
-
-        dmginfo\SetAttacker( attacker )
-        dmginfo\SetInflictor( @ )
-        dmginfo\SetDamage( math.random( 8, 12 ) )
-
-        if anim == "fists_left"
-            dmginfo\SetDamageForce( owner\GetRight! * 4912 * scale + owner\GetForward! * 9998 * scale ) -- Yes we need those specific numbers
-        elseif anim == "fists_right"
-            dmginfo\SetDamageForce( owner\GetRight! * -4912 * scale + owner\GetForward! * 9989 * scale )
-        elseif anim == "fists_uppercut"
-            dmginfo\SetDamageForce( owner\GetUp! * 5158 * scale + owner\GetForward! * 10012 * scale )
-            dmginfo\SetDamage( math.random( 12, 24 ) )
-
-        SuppressHostEvents( NULL ) -- Let the breakable gibs spawn in multiplayer on client
-        tr.Entity\TakeDamageInfo( dmginfo )
-        SuppressHostEvents( owner )
-        hit = true
-
-    if IsValid( tr.Entity )
-        phys = tr.Entity\GetPhysicsObject!
-        if IsValid( phys )
-            phys\ApplyForceOffset( owner\GetAimVector! * 80 * phys\GetMass! * scale, tr.HitPos )
-
+    entity = traceResult.Entity
     if SERVER
+        hit = false
+        if IsValid( entity )
+            scale = phys_pushscale\GetFloat!
+            if ( entity\IsNPC! or entity\IsPlayer! or entity\Health! > 0 )
+                damageInfo = DamageInfo!
+
+                attacker = owner
+                unless IsValid( attacker )
+                    attacker = @
+
+                damageInfo\SetAttacker( attacker )
+                damageInfo\SetInflictor( @ )
+                damageInfo\SetDamage( math.random( 8, 12 ) )
+                damageInfo\SetDamageType( DMG_SLASH )
+
+                if anim == "fists_left"
+                    damageInfo\SetDamageForce( owner\GetRight! * 4912 * scale + owner\GetForward! * 9998 * scale ) -- Yes we need those specific numbers
+                elseif anim == "fists_right"
+                    damageInfo\SetDamageForce( owner\GetRight! * -4912 * scale + owner\GetForward! * 9989 * scale )
+                elseif anim == "fists_uppercut"
+                    damageInfo\SetDamageForce( owner\GetUp! * 5158 * scale + owner\GetForward! * 10012 * scale )
+                    damageInfo\SetDamage( math.random( 12, 24 ) )
+
+                SuppressHostEvents( NULL ) -- Let the breakable gibs spawn in multiplayer on client
+                entity\TakeDamageInfo( damageInfo )
+                SuppressHostEvents( owner )
+                hit = true
+
+            phys = entity\GetPhysicsObject!
+            if IsValid( phys )
+                phys\ApplyForceOffset( owner\GetAimVector! * 80 * phys\GetMass! * scale, traceResult.HitPos )
+
         if hit and anim ~= "fists_uppercut"
             @SetCombo( @GetCombo! + 1 )
         else
