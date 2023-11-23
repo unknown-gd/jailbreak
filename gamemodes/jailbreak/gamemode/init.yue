@@ -8,6 +8,7 @@ do
 
     -- TODO: Write desc
     GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", Flags, "", 50, 10000 )
+    GM.RoundTime = CreateConVar( "jb_round_time", "0", Flags, "", 0, 12 * 60 * 60 )
     GM.Preparing = CreateConVar( "jb_preparing", "30", Flags, "", 5, 900 )
     GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
     GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", Flags, "", 0, 1000 )
@@ -928,6 +929,15 @@ GM.Think = =>
         switch @GetRoundState!
             when "preparing"
                 @SetRoundState( "running" )
+            when "running"
+                if @RoundTime\GetInt! == 0
+                    return
+
+                team.AddScore( TEAM_GUARD, 1 )
+                @SetWinningTeam( TEAM_GUARD )
+
+                @SetRoundState( "ended", true )
+                @SetRoundTime!
             when "ended"
                 @SetRoundState( "waiting" )
 
@@ -984,6 +994,10 @@ GM.RoundStateChanged = ( old, new ) =>
                     ply\Spawn!
                 elseif @PlayableTeams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
+
+            roundTime = @RoundTime\GetInt!
+            if roundTime > 0
+                @SetRoundTime( roundTime )
 
         when "ended"
             guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
