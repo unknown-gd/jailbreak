@@ -166,6 +166,8 @@ do
 
         hook_Run( "PlayerRagdollCreated", @, ragdoll )
 
+        ragdoll.HasFlashlight = @CanUseFlashlight!
+
         weapons = {}
         for weapon in *@GetWeapons!
             @DropWeapon( weapon )
@@ -206,7 +208,6 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
 
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\DisableWorldClicking( true )
-    ply\AllowFlashlight( false )
     ply\SetCanZoom( false )
     ply\RemoveRagdoll!
     ply\RemoveAllAmmo!
@@ -232,9 +233,13 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     if teamID == TEAM_PRISONER
         ply\SetNoCollideWithTeammates( false )
         ply\SetAvoidPlayers( true )
+        ply\AllowFlashlight( false )
     else
         ply\SetNoCollideWithTeammates( true )
         ply\SetAvoidPlayers( false )
+
+    if teamID == TEAM_GUARD
+        ply\AllowFlashlight( true )
 
     unless @PlayableTeams[ teamID ]
         ply\Spectate( OBS_MODE_ROAMING )
@@ -597,7 +602,7 @@ GM.CanPlayerSuicide = ( ply ) =>
     return @PlayableTeams[ ply\Team! ]
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
-    return @Arcade\GetBool! or ply\IsGuard! or ply\CanUseFlashlight!
+    return @Arcade\GetBool! or ply\CanUseFlashlight!
 
 GM.PlayerDeathSound = ( ply ) =>
     return not @IsRoundRunning! or @Arcade\GetBool! or ply\IsPrisoner!
@@ -608,6 +613,11 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
 
         direction = ply\EyePos! - ragdoll\WorldSpaceCenter!
         direction\Normalize!
+
+        if ragdoll.HasFlashlight and not ply\CanUseFlashlight!
+            velocity += direction * 150
+            ply\AllowFlashlight( true )
+            ragdoll.HasFlashlight = nil
 
         weapons = ragdoll.Weapons
         if istable( weapons )
