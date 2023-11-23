@@ -46,6 +46,9 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.AllowSecurityAccess = ( bool ) =>
+        @SetNW2Bool( "security-access", bool )
+
     PLAYER.Give = ( className, noAmmo ) =>
         weapon = ents.Create( className )
         unless weapon\IsValid!
@@ -166,6 +169,7 @@ do
 
         hook_Run( "PlayerRagdollCreated", @, ragdoll )
 
+        ragdoll.HasSecurityAccess = @HasSecurityAccess!
         ragdoll.HasFlashlight = @CanUseFlashlight!
 
         weapons = {}
@@ -239,7 +243,10 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\SetAvoidPlayers( false )
 
     if teamID == TEAM_GUARD
+        ply\AllowSecurityAccess( true )
         ply\AllowFlashlight( true )
+    else
+        ply\AllowSecurityAccess( false )
 
     unless @PlayableTeams[ teamID ]
         ply\Spectate( OBS_MODE_ROAMING )
@@ -618,6 +625,11 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
             velocity += direction * 150
             ply\AllowFlashlight( true )
             ragdoll.HasFlashlight = nil
+
+        if ragdoll.HasSecurityAccess and not ply\HasSecurityAccess!
+            velocity += direction * 50
+            ply\AllowSecurityAccess( true )
+            ragdoll.HasSecurityAccess = nil
 
         weapons = ragdoll.Weapons
         if istable( weapons )

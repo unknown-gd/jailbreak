@@ -68,6 +68,9 @@ do
     PLAYER.IsMutedByWarden = =>
         return @GetNW2Bool( "warden-mute" )
 
+    PLAYER.HasSecurityAccess = =>
+        return @GetNW2Bool( "security-access" )
+
 do
 
     util_PrecacheModel = util.PrecacheModel
