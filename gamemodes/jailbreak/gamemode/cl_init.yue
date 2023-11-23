@@ -88,12 +88,14 @@ GM.HUDPaint = =>
     hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 
     state = @GetRoundState!
-    if state == "running"
-        return
 
     str = language.GetPhrase( "jb.round." .. state )
     if state ~= "waiting"
-        str = string.format( str, math.max( 0, @GetNextRoundStateTime! - CurTime! ) )
+        remainingTime = @GetRemainingTime!
+        if remainingTime == 0
+            return
+
+        str = string.format( str, remainingTime )
 
     draw.DrawText( string.upper( str ), "DermaLarge", ScrW! / 2, 32, color_white, TEXT_ALIGN_CENTER )
 

@@ -175,8 +175,11 @@ GM.GameInProgress = =>
     state = @GetRoundState!
     return state ~= "waiting" and state ~= "preparing"
 
-GM.GetNextRoundStateTime = ->
+GM.GetRoundTime = ->
     return GetGlobal2Int( "next-round-state" )
+
+GM.GetRemainingTime = =>
+    return math.max( 0, @GetRoundTime! - CurTime! )
 
 GM.GetWinningTeam = ->
     return GetGlobal2Int( "winning-team" )

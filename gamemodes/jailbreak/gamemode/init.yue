@@ -917,7 +917,7 @@ GM.SetRoundTime = ( int ) =>
     SetGlobal2Int( "next-round-state", CurTime! + ( int or @Preparing\GetInt! ) )
 
 GM.Think = =>
-    if @GetNextRoundStateTime! <= CurTime!
+    if @GetRoundTime! <= CurTime!
         switch @GetRoundState!
             when "preparing"
                 @SetRoundState( "running" )
@@ -988,6 +988,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 @SetWinningTeam( TEAM_PRISONER )
             else
                 @SetWinningTeam( 0 )
+            @SetRoundTime!
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
@@ -999,7 +1000,6 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
-            @SetRoundTime!
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
@@ -1007,7 +1007,6 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
 
         if @IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
             @SetRoundState( "ended" )
-            @SetRoundTime!
 
     if @ServerSideRagdolls\GetBool!
         ply\CreateRagdoll!
