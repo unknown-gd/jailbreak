@@ -2,6 +2,7 @@ include( "shared.lua" )
 
 do
 
+    -- TODO: Write desc
     Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
 
     CreateConVar( "cl_playercolor", "0.3 0.3 0.3", Flags, "The value is a Vector - so between 0-1 - not between 0-255" )
@@ -305,7 +306,6 @@ do
 
         @SetAlpha( 255 )
         @SetVisible( false )
-        @RestoreControlPanel!
 
     PANEL.StartKeyFocus = ( pPanel ) =>
         @SetKeyboardInputEnabled( true )

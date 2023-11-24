@@ -890,7 +890,7 @@ do
                 if speaker\IsBot! or speaker\EntIndex! == listenerIndex
                     continue
 
-                volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / VoiceChatDistance, 0, 1 ), 2 )
+                volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
                 if volume > 0
                     speakers[ speaker ] = volume
 
