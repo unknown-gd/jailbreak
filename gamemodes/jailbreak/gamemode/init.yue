@@ -735,9 +735,6 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                 entity\Use( attacker, attacker )
             return true
 
-GM.FriendlyFire = ( ply, teamID ) =>
-    return true
-
 do
 
     :ceil = math
@@ -749,7 +746,7 @@ GM.PlayerShouldTaunt = ( ply ) =>
     return ply\Team! <= 1000 and ply\Alive!
 
 GM.AllowPlayerPickup = ( ply, entity ) =>
-    if ply\Team! > 1000
+    if ply\Team! > 1000 or not ply\Alive!
         return false
 
     if @Arcade\GetBool!
@@ -759,19 +756,19 @@ GM.AllowPlayerPickup = ( ply, entity ) =>
     return IsValid( weapon ) and weapon\GetClass! == "jb_hands"
 
 GM.PlayerCanPickupItem = ( ply, entity ) =>
-    return ply\Team! <= 1000
+    return ply\Team! <= 1000 and ply\Alive!
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    return @Arcade\GetBool! and not ply\HasWeapon( weapon\GetClass! )
+    return @Arcade\GetBool! and not ply\HasWeapon( weapon\GetClass! ) and ply\Alive!
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
-    return not desiredState or ply\Team! <= 1000 and ply\IsSuperAdmin!
+    return not desiredState or ply\Team! <= 1000 and ply\IsSuperAdmin! and ply\Alive!
 
 GM.CanPlayerSuicide = ( ply ) =>
-    return ply\Team! <= 1000 and not Jailbreak.IsRoundPreparing!
+    return ply\Team! <= 1000 and not Jailbreak.IsRoundPreparing! and ply\Alive!
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
-    return @Arcade\GetBool! or ply\CanUseFlashlight!
+    return ( @Arcade\GetBool! or ply\CanUseFlashlight! ) and ply\Alive!
 
 GM.PlayerDeathSound = ( ply ) =>
     return not Jailbreak.IsRoundRunning! or @Arcade\GetBool! or ply\IsPrisoner!
