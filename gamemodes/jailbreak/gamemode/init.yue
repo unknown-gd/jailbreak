@@ -508,6 +508,16 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
     hands\SetBodyGroups( info.body )
 
 GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
+    if entity\GetClass! == "info_player_teamspawn"
+        if entity.Disabled
+            return false
+
+        spawnTeam = entity.Team
+        if spawnTeam == 1 and ply\Team! ~= TEAM_PRISONER
+            return false
+        elseif spawnTeam == 2 and ply\Team! ~= TEAM_GUARD
+            return false
+
     start = entity\GetPos!
     mins, maxs = ply\GetHull!
 
@@ -534,14 +544,10 @@ GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
     unless spawnPoints and not table.IsEmpty( spawnPoints )
         return
 
-    if teamID == TEAM_GUARD
-        return table.Random( spawnPoints )
-
-    if teamID == TEAM_PRISONER
-        for i = 0, 16
-            spawnPoint = table.Random( spawnPoints )
-            if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 10 )
-                return spawnPoint
+    for i = 1, 128
+        spawnPoint = table.Random( spawnPoints )
+        if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 16 )
+            return spawnPoint
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     if ply\Team! > 1000

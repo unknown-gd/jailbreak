@@ -1,0 +1,23 @@
+tonumber = tonumber
+tobool = tobool
+
+ENT.Type = "point"
+
+ENT.Initialize = =>
+	@Disabled = false
+
+ENT.AcceptInput = ( key, activator, caller, data ) =>
+    switch key
+        when "Disable"
+            @Disabled = true
+        when "Enable"
+            @Disabled = false
+        when "Toggle"
+            @Disabled = not @Disabled
+
+ENT.KeyValue = ( key, value ) =>
+	if key == "TeamNum"
+		@Team = tonumber( value ) - 1
+
+	if key == "StartDisabled"
+		@Disabled = tobool( value )
