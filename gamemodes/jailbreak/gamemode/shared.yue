@@ -2,26 +2,33 @@ GM.Name = "Jailbreak"
 GM.Author = "Unknown Developer"
 GM.TeamBased = true
 
-GM.AllTalk = GetConVar( "sv_alltalk" )
+global Jailbreak = Jailbreak or {}
 
 do
 
-    Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
-    GM.Arcade = CreateConVar( "jb_arcade", "0", Flags, "", 0, 1 )
+    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
+    GM.Arcade = CreateConVar( "jb_arcade", "0", ConVarFlags, "", 0, 1 )
+
 
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
+
+macro lua = (code)-> {
+    :code
+    type: "lua"
+}
+
+$lua[==[
+local Jailbreak = Jailbreak
+local TEAM_GUARD = TEAM_GUARD
+local TEAM_PRISONER = TEAM_PRISONER
+]==]
 
 GM.GuardModels = {
     "models/player/gasmask.mdl"
     "models/player/riot.mdl"
     "models/player/swat.mdl"
     "models/player/urban.mdl"
-}
-
-GM.PlayableTeams = {
-    [ TEAM_PRISONER ]: true
-    [ TEAM_GUARD ]: true
 }
 
 GM.CreateTeams = =>
@@ -119,78 +126,52 @@ do
         [ TEAM_GUARD ]: guardModels
     }
 
-GM.Move = ( ply, mv ) =>
-    if ply\Alive! and @PlayableTeams[ ply\Team! ]
-        return
-
-    mult = mv\KeyDown( IN_SPEED ) and 2 or 1
-    frameTimeHalf = FrameTime! * 0.5
-    ang = mv\GetMoveAngles!
-    vel = Vector!
-
-    if mv\KeyDown( IN_FORWARD )
-        vel += ang\Forward! * 600 * mult * frameTimeHalf
-
-    if mv\KeyDown( IN_BACK )
-        vel -= ang\Forward! * 600 * mult * frameTimeHalf
-
-    if mv\KeyDown( IN_MOVELEFT )
-        vel -= ang\Right! * 600 * mult * frameTimeHalf
-
-    if mv\KeyDown( IN_MOVERIGHT )
-        vel += ang\Right! * 600 * mult * frameTimeHalf
-
-    if mv\KeyDown( IN_DUCK )
-        vel -= ang\Up! * 800 * frameTimeHalf
-
-    if mv\KeyDown( IN_JUMP )
-        vel += ang\Up! * 800 * frameTimeHalf
-
-    mv\SetVelocity( vel )
-    mv\SetOrigin( mv\GetOrigin! + vel )
-    return true
-
 SERVER = SERVER
 
 GM.FinishMove = ( ply, mv ) =>
-    if @PlayableTeams[ ply\Team! ] and ply\Alive!
-        if SERVER
-            ply.LastMoveVelocity = mv\GetVelocity!
+    unless ply\Alive!
+        return
 
-        if ply\IsPlayingTaunt!
-            mv\SetForwardSpeed( 0 )
-            mv\SetSideSpeed( 0 )
+    if SERVER
+        ply.LastMoveVelocity = mv\GetVelocity!
 
-GM.GetRoundState = ->
-    return GetGlobal2String( "round-state", "waiting" )
+    if ply\IsPlayingTaunt!
+        mv\SetForwardSpeed( 0 )
+        mv\SetSideSpeed( 0 )
+do
 
-GM.IsWaitingPlayers = =>
-    return @GetRoundState! == "waiting"
+    GetRoundState = ->
+        return GetGlobal2String( "round-state", "waiting" )
+    Jailbreak.GetRoundState = GetRoundState
 
-GM.IsRoundPreparing = =>
-    return @GetRoundState! == "preparing"
+    Jailbreak.IsWaitingPlayers = =>
+        return GetRoundState! == "waiting"
 
-GM.IsRoundRunning = =>
-    return @GetRoundState! == "running"
+    Jailbreak.IsRoundPreparing = =>
+        return GetRoundState! == "preparing"
 
-GM.IsRoundEnded = =>
-    return @GetRoundState! == "ended"
+    Jailbreak.IsRoundRunning = =>
+        return GetRoundState! == "running"
 
-GM.GameInProgress = =>
-    state = @GetRoundState!
-    return state ~= "waiting" and state ~= "preparing"
+    Jailbreak.IsRoundEnded = =>
+        return GetRoundState! == "ended"
 
-GM.GetRoundTime = ->
-    return GetGlobal2Int( "next-round-state" )
+    Jailbreak.GameInProgress = =>
+        state = GetRoundState!
+        return state ~= "waiting" and state ~= "preparing"
 
-GM.GetRemainingTime = =>
-    return math.max( 0, @GetRoundTime! - CurTime! )
+    GetRoundTime = ->
+        return GetGlobal2Int( "next-round-state" )
+    Jailbreak.GetRoundTime = GetRoundTime
 
-GM.GetWinningTeam = ->
-    return GetGlobal2Int( "winning-team" )
+    Jailbreak.GetRemainingTime = =>
+        return math.max( 0, GetRoundTime! - CurTime! )
 
-GM.IsElectroCollarsActive = ->
-    return GetGlobal2Bool( "electro-collars", true )
+    Jailbreak.GetWinningTeam = ->
+        return GetGlobal2Int( "winning-team" )
+
+    Jailbreak.IsElectroCollarsActive = ->
+        return GetGlobal2Bool( "electro-collars", true )
 
 do
 
@@ -270,7 +251,7 @@ GM.PreGamemodeLoaded = =>
 hook_Run = hook.Run
 
 GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
-    if @IsRoundPreparing! or not @PlayableTeams[ teamID ]
+    if Jailbreak.IsRoundPreparing!
         return false
 
     attacker = damageInfo\GetAttacker!
