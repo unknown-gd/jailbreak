@@ -1,37 +1,39 @@
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
-do
+ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
+CreateConVar = CreateConVar
 
-    Flags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
-    CreateConVar = CreateConVar
+-- TODO: Write desc
+GM.PrepareTime = CreateConVar( "jb_prepare_time", "30", ConVarFlags, "", 10, 2 * 60 * 60 )
+GM.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "", 0, 12 * 60 * 60 )
 
-    -- TODO: Write desc
-    GM.PrepareTime = CreateConVar( "jb_prepare_time", "30", Flags, "", 10, 2 * 60 * 60 )
-    GM.RoundTime = CreateConVar( "jb_round_time", "0", Flags, "", 0, 12 * 60 * 60 )
+GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "", 0, 300 )
+GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "", 50, 10000 )
+GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "", 0, 1000 )
 
-    GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", Flags, "", 0, 300 )
-    GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", Flags, "", 50, 10000 )
-    GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", Flags, "", 0, 1000 )
+GM.ServerSideRagdolls = CreateConVar( "jb_serverside_ragdolls", "1", ConVarFlags, "", 0, 1000 )
+GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "", 0, 100 )
 
-    GM.ServerSideRagdolls = CreateConVar( "jb_serverside_ragdolls", "1", Flags, "", 0, 1000 )
+RunConsoleCommand( "mp_show_voice_icons", GM.Arcade\GetString! )
+cvars.AddChangeCallback( "jb_arcade", ( _, __, value ) ->
+    RunConsoleCommand( "mp_show_voice_icons", value )
+"Jailbreak" )
 
-    RunConsoleCommand( "mp_show_voice_icons", GM.Arcade\GetString! )
-    cvars.AddChangeCallback( "jb_arcade", ( _, __, value ) ->
-        RunConsoleCommand( "mp_show_voice_icons", value )
-    "Jailbreak" )
-
-    GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", Flags, "", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
-    cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
-        (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
-    "Jailbreak" )
+GM.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", ConVarFlags, "", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
+cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
+    (GM or GAMEMODE).GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
+"Jailbreak" )
 
 resource.AddWorkshop( "3093227948" )
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
 
+math = math
+:Rand, :random, :max, :min = math
 TEAM_PRISONER = TEAM_PRISONER
+table_Empty = table.Empty
 TEAM_GUARD = TEAM_GUARD
 hook_Run = hook.Run
 tonumber = tonumber
@@ -255,7 +257,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     else
         ply\SetArmor( 0 )
 
-    ply\SetMaxArmor( math.max( 100, ply\Armor! ) )
+    ply\SetMaxArmor( max( 100, ply\Armor! ) )
 
     if teamID == TEAM_PRISONER
         ply\SetNoCollideWithTeammates( false )
@@ -288,8 +290,8 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     hook_Run( "PlayerSetModel", ply, teamID )
 
     if ply\IsBot!
-        ply\SetPlayerColor( Vector( math.Rand( 0, 1 ), math.Rand( 0, 1 ), math.Rand( 0, 1 ) ) )
-        ply\SetWeaponColor( Vector( math.Rand( 0, 1 ), math.Rand( 0, 1 ), math.Rand( 0, 1 ) ) )
+        ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+        ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
     else
         ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
         ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
@@ -383,7 +385,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\Give( "weapon_knife" )
         return
 
-    if @IsRoundRunning! and teamID == TEAM_PRISONER and not ply\HasWeapon( "weapon_knife" ) and math.random( 1, 10 ) == 1
+    if @IsRoundRunning! and teamID == TEAM_PRISONER and not ply\HasWeapon( "weapon_knife" ) and random( 1, 10 ) == 1
         ply\Give( "weapon_knife" )
 
     ply\Give( "jb_hands" )
@@ -498,7 +500,7 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
 
 GM.PreCleanupMap = =>
     if @ServerSideRagdolls\GetBool!
-        table.Empty( @PlayerRagdolls )
+        table_Empty( @PlayerRagdolls )
 
 GM.EntityRemoved = ( entity, fullUpdate ) =>
     if fullUpdate
@@ -543,8 +545,8 @@ do
                         origin = matrix\GetTranslation!
 
                 fx\SetOrigin( origin or attacker\EyePos! )
-                fx\SetMagnitude( math.random( 3, 5 ) )
-                fx\SetRadius( math.random( 1, 5 ) )
+                fx\SetMagnitude( random( 3, 5 ) )
+                fx\SetRadius( random( 1, 5 ) )
                 util.Effect( "ElectricSpark", fx )
 
                 damageInfo\SetDamageType( DMG_SONIC )
@@ -584,7 +586,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             if health < 1
                 return true
 
-            health = math.max( 0, health - damageInfo\GetDamage! )
+            health = max( 0, health - damageInfo\GetDamage! )
             entity\SetHealth( health )
 
             if health > 1
@@ -619,7 +621,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                     portal\SetSaveValue( "target", "" )
                     portal\Fire( "open" )
 
-            prop\EmitSound( "physics/wood/wood_crate_break" .. math.random( 1, 5 ) .. ".wav", 70, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+            prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
             entity\Remove!
 
             phys = prop\GetPhysicsObject!
@@ -647,8 +649,12 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
 GM.FriendlyFire = ( ply, teamID ) =>
     return true
 
-GM.GetFallDamage = ( ply, speed ) =>
-    return math.max( 0, math.ceil( 0.2418 * speed - 141.75 ) )
+do
+
+    :ceil = math
+
+    GM.GetFallDamage = ( ply, speed ) =>
+        return max( 0, ceil( 0.2418 * speed - 141.75 ) )
 
 GM.PlayerShouldTaunt = ( ply, act ) =>
     return @PlayableTeams[ ply\Team! ] and ply\Alive!
@@ -755,9 +761,20 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
 
         return
 
+GM.PlayerSpray = ( ply ) =>
+    return ply\Alive! and ply\IsPrisoner!
+
 GM.PlayerUse = ( ply, entity ) =>
     unless @PlayableTeams[ ply\Team! ]
         return false
+
+    unless @Arcade\GetBool!
+        weapon = ply\GetActiveWeapon!
+        if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
+            velocity = ply\GetVelocity!\GetNormalized! * 16
+            entity\SetVelocity( velocity )
+            ply\SetVelocity( -velocity )
+            return false
 
     curTime, lastUse = CurTime!, ply.LastUse or 0
     ply.LastUse = curTime
@@ -806,15 +823,6 @@ GM.PlayerUse = ( ply, entity ) =>
 
         return false
 
-    if @Arcade\GetBool!
-        return true
-
-    weapon = ply\GetActiveWeapon!
-    if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
-        velocity = ply\GetVelocity!\GetNormalized! * 16
-        entity\SetVelocity( velocity )
-        ply\SetVelocity( -velocity )
-        return false
     return true
 
 GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
@@ -976,7 +984,7 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer.Simple( 0, game.CleanUpMap )
 
         when "preparing"
-            @FemalePrison = math.random( 1, 10 ) == 1
+            @FemalePrison = random( 1, 100 ) <= @FemalePrisonChance\GetInt!
             for ply in *player.GetAll!
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
