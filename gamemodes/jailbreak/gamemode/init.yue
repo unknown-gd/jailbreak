@@ -925,7 +925,7 @@ GM.PlayerUse = ( ply, entity ) =>
         if entity.PickupForbidden or entity.IsTemporaryWeapon or entity\IsPlayerHolding!
             return false
 
-        if @ManualWeaponPickup\GetBool! and not ply\HasWeapon( entity\GetClass! )
+        unless ply\HasWeapon( entity\GetClass! )
             ply\PickupWeapon( entity, false )
             return false
 
