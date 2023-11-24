@@ -270,7 +270,6 @@ do
     AccessorFunc( PANEL, "m_bHangOpen", "HangOpen" )
 
     PANEL.Init = =>
-        @SetWorldClicker( true )
         @m_bHangOpen = false
         @Dock( FILL )
 
@@ -344,7 +343,6 @@ do
         iconLayout\SetSpaceX( 8 )
         iconLayout\SetSpaceY( 8 )
         iconLayout\SetLayoutDir( LEFT )
-        iconLayout\SetWorldClicker( true )
         iconLayout\SetStretchWidth( true )
         iconLayout\SetStretchHeight( false ) -- No infinite re-layouts
         iconLayout\Dock( LEFT )
@@ -419,12 +417,12 @@ GM.StartChat = ( isTeam ) =>
     if @Reskined
         return
 
-    hook.Add 'Think', 'JB::CHudReskin', ->
+    hook.Add "Think", "JB::CHudReskin", ->
         viewport = vgui.GetKeyboardFocus!
         unless IsValid( viewport )
             return
 
-        hook.Remove 'Think', 'JB::CHudReskin'
+        hook.Remove "Think", "JB::CHudReskin"
         @Reskined = true
         chat.Close!
 

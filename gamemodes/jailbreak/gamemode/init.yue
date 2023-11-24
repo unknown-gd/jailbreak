@@ -32,8 +32,10 @@ resource.AddWorkshop( "643148462" )
 
 math = math
 :Rand, :random, :max, :min = math
+:Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
 TEAM_PRISONER = TEAM_PRISONER
 table_Empty = table.Empty
+ents_Create = ents.Create
 TEAM_GUARD = TEAM_GUARD
 hook_Run = hook.Run
 tonumber = tonumber
@@ -71,9 +73,9 @@ do
 
             handler = WeaponHandlers[ className ]
             if handler
-                weapon = ents.Create( handler.Alternative or className )
+                weapon = ents_Create( handler.Alternative or className )
             else
-                weapon = ents.Create( className )
+                weapon = ents_Create( className )
 
             unless weapon and weapon\IsValid!
                 return
@@ -100,21 +102,23 @@ do
             ragdoll\Remove!
 
     PLAYER.CreateClientsideRagdoll = PLAYER.CreateClientsideRagdoll or PLAYER.CreateRagdoll
+    COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
+
     PLAYER.CreateRagdoll = =>
         @RemoveRagdoll!
 
         modelPath = @GetModel!
-        unless util.IsValidModel( modelPath )
+        unless IsValidModel( modelPath )
             return
 
         spawnOrigin = @WorldSpaceCenter!
-        unless util.IsInWorld( spawnOrigin )
+        unless IsInWorld( spawnOrigin )
             return
 
-        ragdoll = ents.Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
-        ragdoll\SetPos spawnOrigin
-        ragdoll\SetAngles @GetAngles!
+        ragdoll = ents_Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
+        ragdoll\SetAngles( @GetAngles! )
         ragdoll\SetModel( modelPath )
+        ragdoll\SetPos( spawnOrigin )
         ragdoll\Spawn!
 
         (GM or GAMEMODE).PlayerRagdolls[] = ragdoll
@@ -360,7 +364,7 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
         start = weapon\WorldSpaceCenter!
         mins, maxs = weapon\GetCollisionBounds!
 
-        tr = util.TraceHull( {
+        tr = TraceHull( {
             start: start
             endpos: start + Vector( 0, 0, mins[ 3 ] - 2 )
             mask: MASK_SOLID_BRUSHONLY
@@ -427,7 +431,7 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     start = entity\GetPos!
     mins, maxs = ply\GetHull!
 
-    traceResult = util.TraceHull( {
+    traceResult = TraceHull( {
         start: start
         endpos: start
         mask: MASK_PLAYERSOLID
@@ -550,7 +554,7 @@ do
                 fx\SetOrigin( origin or attacker\EyePos! )
                 fx\SetMagnitude( random( 3, 5 ) )
                 fx\SetRadius( random( 1, 5 ) )
-                util.Effect( "ElectricSpark", fx )
+                Effect( "ElectricSpark", fx )
 
                 damageInfo\SetDamageType( DMG_SONIC )
                 damageInfo\ScaleDamage( 0.5 )
@@ -596,7 +600,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                 return true
 
             model = entity\GetModel!
-            unless model and #model ~= 0 and util.IsValidModel( model )
+            unless model and #model ~= 0 and IsValidModel( model )
                 return true
 
             center = entity\OBBCenter!
@@ -604,10 +608,10 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             center[ 2 ] = 0
 
             origin = entity\LocalToWorld( center )
-            unless util.IsInWorld( origin )
+            unless IsInWorld( origin )
                 return true
 
-            prop = ents.Create( "prop_physics" )
+            prop = ents_Create( "prop_physics" )
             prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
             prop\SetAngles( entity\GetAngles! )
             prop\SetSkin( entity\GetSkin! )
@@ -637,8 +641,8 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             fx\SetMagnitude( 5 )
             fx\SetRadius( 5 )
             fx\SetScale( 2 )
-            util.Effect( "Sparks", fx )
-            util.ScreenShake( origin, 5, 10, 0.5, 150 )
+            Effect( "Sparks", fx )
+            ScreenShake( origin, 5, 10, 0.5, 150 )
             return true
         when "func_button"
             if bit.band( damageInfo\GetDamageType!, DMG_BLAST ) == DMG_BLAST
@@ -950,7 +954,7 @@ concommand.Add( "drop", ( ply ) ->
         return
 
     model = dropWeapon\GetWeaponWorldModel!
-    unless model and util.IsValidModel( model )
+    unless model and IsValidModel( model )
         return
 
     ply\DropWeapon( dropWeapon )
