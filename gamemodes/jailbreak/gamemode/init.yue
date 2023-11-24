@@ -26,6 +26,8 @@ cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
     Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
 "Jailbreak" )
 
+util.AddNetworkString( "Jailbreak::Networking" )
+
 resource.AddWorkshop( "3093227948" )
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
@@ -1008,7 +1010,8 @@ do
                     if speaker\HasSecurityRadio! and speaker\GetInfo( "cl_security_radio" )
                         speakers[ speaker ] = 1
 
-            net.Start( "JB::Voice Chat" )
+            net.Start( "Jailbreak::Networking" )
+            net.WriteUInt( 0, 2 )
             net.WriteTable( speakers )
             net.Send( listener )
 
@@ -1100,6 +1103,31 @@ concommand.Add( "drop", ( ply ) ->
 GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     Jailbreak.SetRoundState( "waiting" )
+
+    if #ents.FindByClass( "info_player_teamspawn" ) > 0
+        resource.AddWorkshop( "105181283" )
+        SoundHandler( "tf" )
+        @MapGameName = "tf"
+    elseif ( #ents.FindByClass( "info_player_counterterrorist" ) + #ents.FindByClass( "info_player_counterterrorist" ) ) > 0
+        SoundHandler( "cstrike" )
+        @MapGameName = "cstrike"
+
+GM.PlayerInitialized = ( ply ) =>
+    gameName = @MapGameName
+    unless gameName
+        return
+
+    net.Start( "Jailbreak::Networking" )
+    net.WriteUInt( 1, 2 )
+    net.WriteString( gameName )
+    net.Send( ply )
+
+GM.SetupMove = ( ply, _, cmd ) =>
+    if ply\IsFullyConnected! or not cmd\IsForced!
+        return
+
+    ply\SetNW2Bool( "fully-connected", true )
+    hook_Run( "PlayerInitialized", ply )
 
 GM.Think = =>
     if Jailbreak.GetRoundTime! <= CurTime!

@@ -83,10 +83,20 @@ do
 
     PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
     net_ReadTable = net.ReadTable
+    net_ReadUInt = net.ReadUInt
 
-    net.Receive( "JB::Voice Chat", ->
-        for ply, volume in pairs( net_ReadTable! )
-            PLAYER_SetVoiceVolumeScale( ply, volume )
+    Functions = {
+        [0]: ->
+            for ply, volume in pairs( net_ReadTable! )
+                PLAYER_SetVoiceVolumeScale( ply, volume )
+        [1]: ->
+            SoundHandler( net.ReadString! )
+    }
+
+    net.Receive( "Jailbreak::Networking", ->
+        func = Functions[ net_ReadUInt( 2 ) ]
+        if func
+            func!
     )
 
 GM.HUDPaint = =>
