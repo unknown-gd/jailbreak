@@ -358,17 +358,24 @@ do
             icon.Paint = ->
 
             image = icon\Add( "DImage" )
+            icon.Image = image
+
             image\SetImage( desktopWindow.icon )
             image\SetSize( 64, 64 )
             image\Dock( TOP )
             image\DockMargin( 8, 0, 8, 0 )
 
             label = icon\Add( "DLabel" )
+            icon.Label = label
+
             label\Dock( BOTTOM )
             label\SetText( desktopWindow.title )
             label\SetContentAlignment( 5 )
             label\SetTextColor( color_white )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
+
+            if isfunction( desktopWindow.create )
+                desktopWindow.create( icon )
 
             icon.DoClick = ->
                 desktopWindow = list.Get( "DesktopWindows" )[ windowName ]
@@ -447,3 +454,34 @@ GM.StartChat = ( isTeam ) =>
 
             hook.Add "Think", panel, =>
                 @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
+
+do
+
+    SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
+
+    list.Set "DesktopWindows", "", {
+        title: "#jb.toggle.radio"
+        icon: "icon16/phone.png"
+        create: ( icon ) ->
+            icon.Image\SetImage( SecurityRadio\GetBool! and "icon16/phone_sound.png" or "icon16/phone.png" )
+
+            ply = LocalPlayer!
+            if ply\HasSecurityRadio!
+                icon\Show!
+            else
+                icon\Hide!
+
+            ply\SetNW2VarProxy "security-radio", ( _, __, ___, newState ) ->
+                unless IsValid( icon )
+                    return
+
+                if newState
+                    icon.Image\SetImage( SecurityRadio\GetBool! and "icon16/phone_sound.png" or "icon16/phone.png" )
+                    icon\Show!
+                else
+                    icon\Hide!
+        init: ( icon ) ->
+            bool = not SecurityRadio\GetBool!
+            SecurityRadio\SetBool( bool )
+            icon.Image\SetImage( bool and "icon16/phone_sound.png" or "icon16/phone.png" )
+    }

@@ -912,7 +912,7 @@ do
     util.AddNetworkString( "JB::Voice Chat" )
 
     MinDistance = CreateConVar( "jb_voice_chat_distance_min", "64", ConVarFlags, "", 32, 16384 )\GetInt! ^ 2
-    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "1024", ConVarFlags, "", 128, 16384 )\GetInt! ^ 2
+    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "512", ConVarFlags, "", 128, 16384 )\GetInt! ^ 2
 
     cvars.AddChangeCallback( "jb_voice_chat_distance_min", ( _, __, value ) ->
         MinDistance = ( tonumber( value ) or 100 ) ^ 2
@@ -939,7 +939,8 @@ do
             return not listenerAlive, false
 
     timer.Create "JB:Voice Chat Think", 1, 0, ->
-        for listener in *player_GetHumans!
+        players = player_GetHumans!
+        for listener in *players
             speakers = listener.AvailableSpeakers
             table_Empty( speakers )
 
@@ -955,6 +956,11 @@ do
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
                 if volume > 0
                     speakers[ speaker ] = volume
+
+            if listener\HasSecurityRadio!
+                for speaker in *players
+                    if speaker\HasSecurityRadio! and speaker\GetInfo( "cl_security_radio" )
+                        speakers[ speaker ] = 1
 
             net.Start( "JB::Voice Chat" )
             net.WriteTable( speakers )
@@ -1138,6 +1144,11 @@ GM.RoundStateChanged = ( old, new ) =>
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
+
+    ply\AllowSecurityAccess( false )
+    ply\AllowSecurityRadio( false )
+    ply\SetElectroCollar( false )
+    ply\AllowFlashlight( false )
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
