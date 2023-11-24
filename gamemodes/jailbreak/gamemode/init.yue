@@ -6,7 +6,7 @@ ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
 CreateConVar = CreateConVar
 
 -- TODO: Write desc
-GM.PrepareTime = CreateConVar( "jb_prepare_time", "30", ConVarFlags, "", 10, 2 * 60 * 60 )
+GM.PrepareTime = CreateConVar( "jb_prepare_time", "10", ConVarFlags, "", 5, 2 * 60 * 60 )
 GM.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "", 0, 12 * 60 * 60 )
 
 GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "", 0, 300 )
@@ -81,6 +81,12 @@ do
 
     PLAYER.AllowSecurityRadio = ( bool ) =>
         @SetNW2Bool( "security-radio", bool )
+
+    PLAYER.MoveSpectateID = ( move, players ) =>
+        spectateID = ( ( @SpectateID or 1 ) + move + #players ) % #players
+        @SetupHands( players[ spectateID + 1 ] )
+        @SpectateEntity( players[ spectateID + 1 ] )
+        @SpectateID = spectateID
 
     do
 
@@ -262,7 +268,6 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
 
         unless ragdoll.Alive and ragdoll\Health! > 1
             ply\KillSilent!
-            ply\Spectate( OBS_MODE_ROAMING )
             return
 
         ply\SetEyeAngles( Angle( 0, ragdoll.PlayerAngles[ 2 ], 0 ) )
@@ -361,7 +366,6 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     if teamID > 1000
         ply\KillSilent!
-        ply\Spectate( OBS_MODE_ROAMING )
         return
 
     unless transiton
@@ -560,27 +564,54 @@ GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!
     if teamID <= 1000
         hook_Run( "TeamPlayerDeath", ply, teamID )
-    ply\Spectate( OBS_MODE_ROAMING )
 
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     teamID = ply\Team!
     if teamID <= 1000
         hook_Run( "TeamPlayerDeath", ply, teamID )
+    -- TODO: Write here death notifies
+do
 
-    if attacker\IsPlayer! and attacker\Alive! and attacker\Team! <= 1000
-        if attacker == ply
+    MovementKeys = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT, IN_JUMP )
+
+    GM.SpectatorThink = ( ply ) =>
+        observerMode = ply\GetObserverMode!
+        if observerMode ~= OBS_MODE_ROAMING and observerMode ~= OBS_MODE_CHASE
             ply\Spectate( OBS_MODE_ROAMING )
         else
-            ply\Spectate( OBS_MODE_CHASE )
-            ply\SpectateEntity( attacker )
+            if ply\KeyPressed( MovementKeys )
+                if observerMode ~= OBS_MODE_ROAMING
+                    ply\Spectate( OBS_MODE_ROAMING )
+                    ply\SpectateEntity!
+                    ply\SetupHands!
+            elseif ply\KeyPressed( IN_ATTACK )
+                players = {}
+                for pl in *player.GetAll!
+                    if pl\Alive!
+                        players[] = pl
 
-    -- TODO: Write here death notifies
+                if #players == 0
+                    return
+
+                ply\MoveSpectateID( 1, players )
+                if observerMode ~= OBS_MODE_CHASE
+                    ply\Spectate( OBS_MODE_CHASE )
+            elseif ply\KeyPressed( IN_ATTACK2 )
+                players = {}
+                for pl in *player.GetAll!
+                    if pl\Alive!
+                        players[] = pl
+
+                if #players == 0
+                    return
+
+                ply\MoveSpectateID( -1, players )
+                if observerMode ~= OBS_MODE_CHASE
+                    ply\Spectate( OBS_MODE_CHASE )
 
 GM.PlayerDeathThink = ( ply ) =>
-    if ply\Team! > 1000
-        return
-
-    if Jailbreak.GameInProgress!
+    if ply\Team! > 1000 or Jailbreak.GameInProgress!
+        @SpectatorThink( ply )
         return
 
     if ply.NextRespawnTime > CurTime!
@@ -837,7 +868,7 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
             phys\ApplyForceCenter( velocity )
 
 GM.PlayerSpray = ( ply ) =>
-    return ply\Alive! and ply\IsPrisoner!
+    return not ply\Alive! or not ply\IsPrisoner!
 
 GM.PlayerUse = ( ply, entity ) =>
     unless ply\Alive! and ply\Team! <= 1000

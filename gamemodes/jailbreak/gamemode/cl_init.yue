@@ -459,7 +459,7 @@ do
 
     SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
 
-    list.Set "DesktopWindows", "", {
+    list.Set "DesktopWindows", "security-radio", {
         title: "#jb.toggle.radio"
         icon: "icon16/phone.png"
         create: ( icon ) ->
@@ -485,3 +485,12 @@ do
             SecurityRadio\SetBool( bool )
             icon.Image\SetImage( bool and "icon16/phone_sound.png" or "icon16/phone.png" )
     }
+
+-- list.Set "DesktopWindows", "warden", {
+--     title: "#jb.toggle.warden"
+--     icon: "icon16/user_suit.png"
+--     create: ( icon ) ->
+
+--     init: ( icon ) ->
+
+-- }
