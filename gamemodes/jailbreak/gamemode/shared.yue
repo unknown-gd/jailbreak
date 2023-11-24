@@ -1,8 +1,7 @@
 GM.Name = "Jailbreak"
-GM.Author = ""
+GM.Author = "Unknown Developer"
 GM.TeamBased = true
 
-GM.VoiceChatDistance = 1024 ^ 2
 GM.AllTalk = GetConVar( "sv_alltalk" )
 
 do

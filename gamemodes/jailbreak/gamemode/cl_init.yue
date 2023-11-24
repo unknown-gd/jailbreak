@@ -10,6 +10,7 @@ do
     CreateConVar( "cl_playerskin", "0", Flags, "The skin to use, if the model has any" )
 
 hook_Run = hook.Run
+pairs = pairs
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
@@ -74,17 +75,17 @@ do
 
         return view
 
-GM.Think = =>
-    if @AllTalk\GetInt! > 2
-        for ply in *player.GetHumans!
-            if ply\IsSpeaking! and ply\GetVoiceVolumeScale! ~= 1
-                ply\SetVoiceVolumeScale( 1 )
-        return
+do
 
-    pos = EyePos!
-    for ply in *player.GetHumans!
-        if ply\IsSpeaking!
-            ply\SetVoiceVolumeScale( math.Clamp( 1 - pos\DistToSqr( ply\EyePos! ) / @VoiceChatDistance, 0, 1 ) )
+    PLAYER = FindMetaTable( "Player" )
+
+    PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
+    net_ReadTable = net.ReadTable
+
+    net.Receive( "JB::Voice Chat", ->
+        for ply, volume in pairs( net_ReadTable! )
+            PLAYER_SetVoiceVolumeScale( ply, volume )
+    )
 
 GM.HUDPaint = =>
     if @Arcade\GetBool!

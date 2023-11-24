@@ -229,9 +229,12 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
                 ply\SetNW2Entity( "player-ragdoll", ragdoll )
                 break
 
-    if isBot and not @GameInProgress!
-        ply\SetTeam( TEAM_PRISONER )
-        return
+    if isBot
+        unless @GameInProgress!
+            ply\SetTeam( TEAM_PRISONER )
+            return
+    else
+        ply.AvailableSpeakers = {}
 
     ply\SetTeam( TEAM_SPECTATOR )
 
@@ -751,7 +754,7 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
 
             table.Shuffle( physParts )
 
-            for index = 1, math.min( #physParts, 4 )
+            for index = 1, min( #physParts, 4 )
                 physParts[ index ]\ApplyForceCenter( velocity )
 
         else
@@ -851,34 +854,65 @@ GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
 
     return false
 
-GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
-    unless @GameInProgress!
-        return true, false
+do
 
-    if @AllTalk\GetInt! > 2
+    DistToSqr = FindMetaTable( "Vector" ).DistToSqr
+    EyePos = FindMetaTable( "Entity" ).EyePos
+    player_GetHumans = player.GetHumans
+    RecipientFilter = RecipientFilter
+    :Clamp, :Round = math
+    net = net
+
+    util.AddNetworkString( "JB::Voice Chat" )
+
+    MinDistance = CreateConVar( "jb_voice_chat_distance_min", "64", ConVarFlags, "", 32, 16384 )\GetInt! ^ 2
+    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "1024", ConVarFlags, "", 128, 16384 )\GetInt! ^ 2
+
+    cvars.AddChangeCallback( "jb_voice_chat_distance_min", ( _, __, value ) ->
+        MinDistance = ( tonumber( value ) or 100 ) ^ 2
+    "Jailbreak" )
+
+    cvars.AddChangeCallback( "jb_voice_chat_distance_max", ( _, __, value ) ->
+        MaxDistance = ( tonumber( value ) or 100 ) ^ 2
+    "Jailbreak" )
+
+    timer.Create "JB:Voice Chat Think", 1, 0, ->
+        for listener in *player_GetHumans!
+            speakers = listener.AvailableSpeakers
+            table_Empty( speakers )
+
+            origin = EyePos( listener )
+            rf = RecipientFilter!
+            rf\AddPAS( origin )
+
+            listenerIndex = listener\EntIndex!
+            for speaker in *rf\GetPlayers!
+                if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                    continue
+
+                volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / VoiceChatDistance, 0, 1 ), 2 )
+                if volume > 0
+                    speakers[ speaker ] = volume
+
+            net.Start( "JB::Voice Chat" )
+            net.WriteTable( speakers )
+            net.Send( listener )
+
+            listener.AvailableSpeakers = speakers
+
+GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
+    if not @GameInProgress! or @AllTalk\GetInt! > 2
         return true, false
 
     listenerAlive, speakerAlive = listener\Alive!, speaker\Alive!
-    if not listenerAlive and not speakerAlive
-        return true, false
+    if speakerAlive
+        if speaker\IsMutedByWarden!
+            return false, false
+    else
+        return not listenerAlive, false
 
-    if speakerAlive and speaker\IsMutedByWarden!
-        return false, false
-
-    listenerTeam, speakerTeam = listener\Team!, speaker\Team!
-    if not @PlayableTeams[ listenerTeam ] and not speakerAlive
-        return true, false
-
-    if not @PlayableTeams[ speakerTeam ] and not listenerAlive
-        return true, false
-
-    speakerPosition = speaker\EyePos!
-    if speakerPosition\DistToSqr( listener\EyePos! ) <= @VoiceChatDistance
-        rf = RecipientFilter!
-        rf\AddPAS( speakerPosition )
-        for ply in *rf\GetPlayers!
-            if ply == listener
-                return true, true
+    if listener.AvailableSpeakers[ speaker ]
+        return true, true
 
     return false, false
 
