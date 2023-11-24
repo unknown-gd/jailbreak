@@ -33,15 +33,17 @@ resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
 
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
 math = math
 :Rand, :random, :max, :min = math
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
-TEAM_PRISONER = TEAM_PRISONER
 table_Empty = table.Empty
 ents_Create = ents.Create
-TEAM_GUARD = TEAM_GUARD
 hook_Run = hook.Run
 tonumber = tonumber
+CurTime = CurTime
 IsValid = IsValid
 
 do
@@ -807,7 +809,9 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return ply\Team! <= 1000 and ply\Alive!
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    return @Arcade\GetBool! and not ply\HasWeapon( weapon\GetClass! ) and ply\Alive!
+    if @ManualWeaponPickup\GetBool! or ply\HasWeapon( weapon\GetClass! )
+        return false
+    return ply\Alive!
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
     return not desiredState or ply\Team! <= 1000 and ply\IsSuperAdmin! and ply\Alive!
@@ -913,25 +917,23 @@ GM.PlayerUse = ( ply, entity ) =>
         if entity.PickupForbidden or entity.IsTemporaryWeapon or entity\IsPlayerHolding!
             return false
 
-        if not ply\HasWeapon( entity\GetClass! ) and not @Arcade\GetBool!
+        if @ManualWeaponPickup\GetBool! and not ply\HasWeapon( entity\GetClass! )
             ply\PickupWeapon( entity, false )
             return false
-
-        pickedAmmo = false
 
         clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
         if clip1 > 0 and clip1Type >= 0 and ply\GetAmmoCount( clip1Type ) < ( game.GetAmmoMax( clip1Type ) / 2 )
             ply\GiveAmmo( clip1, clip1Type, false )
             entity\SetClip1( 0 )
-            pickedAmmo = true
+            return false
 
         clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
         if clip2 > 0 and clip2Type >= 0 and ply\GetAmmoCount( clip2Type ) < ( game.GetAmmoMax( clip2Type ) / 2 )
             ply\GiveAmmo( clip2, clip2Type, false )
             entity\SetClip2( 0 )
-            pickedAmmo = true
+            return false
 
-        if not pickedAmmo and not @Arcade\GetBool!
+        if @WeaponThrowing\GetBool!
             phys = entity\GetPhysicsObject!
             if IsValid( phys )
                 phys\EnableMotion( true )
@@ -943,8 +945,7 @@ GM.PlayerUse = ( ply, entity ) =>
                     entity\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
                 unless entity\IsPlayerHolding!
                     hook.Remove "Think", entity
-
-        return false
+            return false
 
     return true
 
@@ -1223,6 +1224,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\AllowSecurityRadio( false )
     ply\SetElectroCollar( false )
     ply\AllowFlashlight( false )
+    ply\UnSpectate!
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"

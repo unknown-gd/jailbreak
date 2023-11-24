@@ -33,10 +33,28 @@ GM.GuardModels = {
 
 GM.CreateTeams = =>
     team.SetUp( TEAM_PRISONER, "#jb.prisoners", Color( 255, 89, 50 ), true )
-    team.SetSpawnPoint( TEAM_PRISONER, { "info_player_terrorist", "info_player_rebel" } )
+    team.SetSpawnPoint( TEAM_PRISONER, {
+        "info_player_terrorist"
+        "info_player_teamspawn"
+        "diprip_start_team_red"
+        "info_player_human"
+        "info_player_rebel"
+        "info_player_axis"
+        "info_player_red"
+    } )
 
     team.SetUp( TEAM_GUARD, "#jb.guards", Color( 50, 185, 255 ), true )
-    team.SetSpawnPoint( TEAM_GUARD, { "info_player_counterterrorist", "info_player_combine" } )
+    team.SetSpawnPoint( TEAM_GUARD, {
+        "info_player_counterterrorist"
+        "diprip_start_team_blue"
+        "info_player_deathmatch"
+        "info_player_teamspawn"
+        "info_player_combine"
+        "info_player_allies"
+        "gmod_player_start"
+        "info_player_human"
+        "info_player_blue"
+    } )
 
     team.SetUp( TEAM_SPECTATOR, "#jb.spectators", Color( 50, 50, 50 ), true )
 
@@ -91,6 +109,9 @@ do
     PLAYER.HasSecurityRadio = =>
         return @GetNW2Bool( "security-radio" )
 
+    PLAYER.IsFullyConnected = =>
+        return @GetNW2Bool( "fully-connected" )
+
 do
 
     util_PrecacheModel = util.PrecacheModel
@@ -98,9 +119,6 @@ do
 
     guardModels = {}
     for modelPath in *GM.GuardModels
-        unless util_IsValidModel( modelPath )
-            continue
-
         util_PrecacheModel( modelPath )
         guardModels[] = modelPath
 
