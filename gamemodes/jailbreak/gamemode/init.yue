@@ -12,6 +12,8 @@ GM.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "", 0, 12 * 60 *
 GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "", 0, 300 )
 GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "", 50, 10000 )
 GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "", 0, 1000 )
+GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "", 0, 1 )
+GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "", 0, 1 )
 
 GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "", 0, 100 )
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "", 0, 100 )
