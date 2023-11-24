@@ -83,10 +83,15 @@ do
         @SetNW2Bool( "security-radio", bool )
 
     PLAYER.MoveSpectateID = ( move, players ) =>
-        spectateID = ( ( @SpectateID or 1 ) + move + #players ) % #players
-        @SetupHands( players[ spectateID + 1 ] )
-        @SpectateEntity( players[ spectateID + 1 ] )
-        @SpectateID = spectateID
+        index, length = ( @LastSpectatedEntity or 0 ) + move, #players
+        if index > length
+            index = 1
+        elseif index < 1
+            index = length
+
+        @SpectateEntity( players[ index ] )
+        @SetupHands( players[ index ] )
+        @LastSpectatedEntity = index
 
     do
 
@@ -561,15 +566,23 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
             phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
 GM.PlayerSilentDeath = ( ply ) =>
+    if ply\IsBot!
+        ply.LastSpectatedEntity = 0
+
     teamID = ply\Team!
     if teamID <= 1000
         hook_Run( "TeamPlayerDeath", ply, teamID )
 
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
+    if ply\IsBot!
+        ply.LastSpectatedEntity = 0
+
     teamID = ply\Team!
     if teamID <= 1000
         hook_Run( "TeamPlayerDeath", ply, teamID )
+
     -- TODO: Write here death notifies
+
 do
 
     MovementKeys = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT, IN_JUMP )
@@ -594,6 +607,7 @@ do
                     return
 
                 ply\MoveSpectateID( 1, players )
+
                 if observerMode ~= OBS_MODE_CHASE
                     ply\Spectate( OBS_MODE_CHASE )
             elseif ply\KeyPressed( IN_ATTACK2 )
@@ -606,6 +620,7 @@ do
                     return
 
                 ply\MoveSpectateID( -1, players )
+
                 if observerMode ~= OBS_MODE_CHASE
                     ply\Spectate( OBS_MODE_CHASE )
 
