@@ -26,6 +26,13 @@ do
     Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "", 0, 1 )
     GM.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "", 0, 1 )
 
+do
+
+    :gsub, :lower = string
+
+    Jailbreak.FixModelPath = ( modelPath ) ->
+        return gsub( lower( modelPath ), "[\\/]+", "/" )
+
 GM.GuardModels = {
     "models/player/gasmask.mdl"
     "models/player/riot.mdl"
@@ -125,23 +132,24 @@ do
 
     guardModels = {}
     for modelPath in *GM.GuardModels
+        modelPath = Jailbreak.FixModelPath( modelPath )
         util_PrecacheModel( modelPath )
         guardModels[] = modelPath
 
     femaleModels = {}
     for i = 1, 6
-        modelPath = "models/player/group01/female_0" .. i .. ".mdl"
+        modelPath = Jailbreak.FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
         util_PrecacheModel( modelPath )
         femaleModels[] = modelPath
 
     maleModels = {}
     for i = 1, 9
-        modelPath = "models/player/group01/male_0" .. i .. ".mdl"
+        modelPath = Jailbreak.FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 
     for i = 2, 8, 2
-        modelPath = "models/player/group02/male_0" .. i .. ".mdl"
+        modelPath = Jailbreak.FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 

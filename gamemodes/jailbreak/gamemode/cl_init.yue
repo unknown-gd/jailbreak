@@ -34,6 +34,7 @@ do
     "Jailbreak" )
 
     default_animations = { "idle_all_01", "menu_walk" }
+    :PrecacheModel = util
 
     list.Set "DesktopWindows", "player-editor", {
         title: "#smwidget.playermodel"
@@ -82,29 +83,15 @@ do
             selectPanel = modelsTab\Add( "DPanelSelect" )
             selectPanel\Dock( FILL )
 
-
-            customModelsAllowed, allowedPlayerModels = Jailbreak.CustomPlayerModels\GetBool!, nil
-            unless customModelsAllowed
-                teamID = LocalPlayer!\Team!
-                models = Jailbreak.PlayerModels[ teamID ]
-                if teamID == TEAM_PRISONER
-                    models = models[ Jailbreak.IsFemalePrison! ]
-
-                allowedPlayerModels = {}
-                for modelPath in *models
-                    allowedPlayerModels[ modelPath ] = true
-
             for name, modelPath in SortedPairs( player_manager.AllValidModels! )
-                modelPath = string.lower( modelPath )
-                unless customModelsAllowed or allowedPlayerModels[ modelPath ]
-                    continue
+                modelPath = Jailbreak.FixModelPath( modelPath )
 
                 icon = vgui.Create( "SpawnIcon" )
                 icon\SetModel( modelPath )
                 icon\SetSize( 64, 64 )
                 icon\SetTooltip( name )
-                icon.playermodel = name
-                icon.model_path = modelPath
+                icon.ModelName = name
+                icon.ModelPath = modelPath
                 icon.OpenMenu = ->
                     menu = DermaMenu!
                     menu\AddOption( "#spawnmenu.menu.copy", ->
@@ -117,9 +104,34 @@ do
                 } )
 
             modelsSearch.OnValueChange = ( _, str ) ->
-                for id, pnl in pairs( selectPanel\GetItems! )
-                    pnl\SetVisible( pnl.playermodel\find( str, 1, true ) and pnl.model_path\find( str, 1, true ) )
+                for _, icon in pairs( selectPanel\GetItems! )
+                    icon\SetVisible( icon.Allowed and icon.ModelName\find( str, 1, true ) and icon.ModelPath\find( str, 1, true ) )
                 selectPanel\InvalidateLayout!
+
+            do
+
+                allowedPlayerModels = {}
+                for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ]
+                    allowedPlayerModels[ modelPath ] = true
+
+                for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ true ]
+                    allowedPlayerModels[ modelPath ] = true
+
+                for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ false ]
+                    allowedPlayerModels[ modelPath ] = true
+
+                UpdateAvalibleModels = ( _, __, str ) ->
+                    unless selectPanel\IsValid!
+                        return
+
+                    for _, icon in pairs( selectPanel\GetItems! )
+                        allowed = str == "1" or allowedPlayerModels[ icon.ModelPath or "" ]
+                        icon.Allowed = allowed
+                        icon\SetVisible( allowed )
+                    selectPanel\InvalidateLayout!
+
+                cvars.AddChangeCallback( "jb_custom_player_models", UpdateAvalibleModels, "Jailbreak" )
+                UpdateAvalibleModels( nil, nil, Jailbreak.CustomPlayerModels\GetString! )
 
             sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
 
@@ -236,42 +248,9 @@ do
                 unless modelPreview
                     return
 
-                requested = player_manager.TranslatePlayerModel( modelName )
-                if Jailbreak.CustomPlayerModels\GetBool!
-                    util.PrecacheModel( requested )
-                    modelPreview\SetModel( requested )
-                else
-                    ply = LocalPlayer!
-
-                    teamID = ply\Team!
-                    models = Jailbreak.PlayerModels[ teamID ]
-                    if teamID == TEAM_PRISONER
-                        models = models[ Jailbreak.IsFemalePrison! ]
-
-                    currentModel = ply\GetModel!
-
-                    hasValue = false
-                    for modelPath in *models
-                        if modelPath == currentModel
-                            requested = currentModel
-
-                        if modelPath == requested
-                            hasValue = true
-                            break
-
-                    if hasValue
-                        util.PrecacheModel( requested )
-                        modelPreview\SetModel( requested )
-                    else
-                        modelPath = table.Random( models )
-                        modelName = player_manager.TranslateToPlayerModelName( modelPath )
-                        if modelName == "kleiner"
-                            util.PrecacheModel( modelPath )
-                            modelPreview\SetModel( modelPath )
-                            return
-
-                        RunConsoleCommand( "cl_playermodel", modelName )
-                        return
+                requested = Jailbreak.FixModelPath( player_manager.TranslatePlayerModel( modelName ) )
+                PrecacheModel( requested )
+                modelPreview\SetModel( requested )
 
                 bodygroupsList\Clear!
 

@@ -524,8 +524,8 @@ GM.PlayerLoadout = ( ply, teamID ) =>
     ply\SelectWeapon( "jb_hands" )
 
 GM.PlayerSetModel = ( ply, teamID ) =>
-    requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
-    if #requested ~= 0 and Jailbreak.CustomPlayerModels\GetBool!
+    requested = Jailbreak.FixModelPath( player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
+    if Jailbreak.CustomPlayerModels\GetBool! and IsValidModel( requested )
         util.PrecacheModel( requested )
         ply\SetModel( requested )
         return
@@ -534,7 +534,7 @@ GM.PlayerSetModel = ( ply, teamID ) =>
     if teamID == TEAM_PRISONER
         models = models[ Jailbreak.IsFemalePrison! ]
 
-    if #requested ~= 0
+    if IsValidModel( requested )
         requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
         for modelPath in *models
             if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
