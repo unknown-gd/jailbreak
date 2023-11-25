@@ -17,9 +17,10 @@ ENT.Initialize = =>
 
     @ResetSequence( @Sequence )
 
-    @Init()
+    @Init!
 
-ENT.Action = ( ply ) =>
+ENT.Action = ->
+ENT.Init = ->
 
 ENT.Touch = ( entity ) =>
     if @IsDisabled!
