@@ -14,3 +14,5 @@
     [ ] game_text_tf
     [ ] trigger_apply_impulse
     [ ] trigger_ignite
+[ ] Системные сообщения
+[ ] Перевести весь текст на en и ru остальное передать алиуму

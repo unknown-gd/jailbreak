@@ -272,7 +272,7 @@ do
         return GetGlobal2Int( "winning-team" )
 
     Jailbreak.IsElectroCollarsActive = ->
-        return GetGlobal2Bool( "electro-collars", true )
+        return GetGlobal2Bool( "electro-collars" )
 
     do
 

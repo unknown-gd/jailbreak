@@ -51,6 +51,7 @@ IsValid = IsValid
 do
 
     SetGlobal2String = SetGlobal2String
+    SetGlobal2Bool = SetGlobal2Bool
     SetGlobal2Int = SetGlobal2Int
 
     Jailbreak.SetRoundState = ( state, silent ) ->
@@ -66,9 +67,20 @@ do
         SetGlobal2Int( "next-round-state", CurTime! + int )
 
     Jailbreak.SetFemalePrison = ( bool, silent ) ->
+        if bool == Jailbreak.IsFemalePrison!
+            return
+
         SetGlobal2Bool( "female-prison", bool )
         unless silent
             hook_Run( "FemalePrison", bool )
+
+    Jailbreak.SetElectroCollars = ( bool, silent ) ->
+        if bool == Jailbreak.IsElectroCollarsActive!
+            return
+
+        SetGlobal2Bool( "electro-collars", bool )
+        unless silent
+            hook_Run( "ElectroCollars", bool )
 
 do
 
@@ -82,6 +94,9 @@ do
     PLAYER = FindMetaTable( "Player" )
 
     PLAYER.SetWarden = ( bool, silent ) =>
+        if bool == @IsWarden!
+            return
+
         @SetNW2Bool( "warden", bool )
         if bool and not silent
             hook_Run( "CreatedWarden", @ )
@@ -274,6 +289,10 @@ GM.CreatedWarden = ( ply ) =>
 GM.FemalePrison = ( isFemalePrison ) =>
     if isFemalePrison
         PrintMessage( HUD_PRINTCENTER, "Female Prison!" )
+
+GM.ElectroCollars = ( bool ) =>
+    -- TODO: make disable sound
+    PrintMessage( HUD_PRINTCENTER, "Electro collars is " .. ( bool and "ON" or "OFF" ) )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
@@ -1218,6 +1237,8 @@ GM.GetBotFromTeam = ( teamID ) =>
 GM.RoundStateChanged = ( old, new ) =>
     switch ( new )
         when "waiting"
+            Jailbreak.SetElectroCollars( false )
+
             for ply in *player.GetAll!
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
@@ -1226,6 +1247,8 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer.Simple( 0, game.CleanUpMap )
 
         when "preparing"
+            Jailbreak.SetElectroCollars( true )
+
             if random( 1, 100 ) <= @FemalePrisonChance\GetInt!
                 Jailbreak.SetFemalePrison( true )
             for ply in *player.GetAll!
@@ -1237,6 +1260,8 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer.Simple( 0, game.CleanUpMap )
 
         when "running"
+            Jailbreak.SetElectroCollars( true )
+
             guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
             totalCount = guardCount + prisonerCount
 
@@ -1321,14 +1346,17 @@ concommand.Add( "changeteam", ( ply, _, args ) ->
 )
 
 concommand.Add( "jb_warden_request", ( ply, _, args ) ->
-    unless IsValid( ply ) and ply\Alive! and ply\IsGuard!
-        return
-
-    if Jailbreak.HasWarden! or not Jailbreak.GameInProgress!
-        return
-
-    ply\SetWarden( true )
+    if Jailbreak.GameInProgress! and IsValid( ply ) and ply\Alive! and ply\IsGuard! and not Jailbreak.HasWarden!
+        ply\SetWarden( true )
 )
 
-GM.SetElectroCollars = ( enable ) =>
-    SetGlobal2Bool( "electro-collars", enable )
+concommand.Add( "jb_toggle_electro_collars", ( ply, _, args ) ->
+    unless Jailbreak.GameInProgress! and IsValid( ply ) and ply\Alive! and ply\IsWarden!
+        return
+
+    requested = args[ 1 ]
+    if requested and #requested ~= 0
+        Jailbreak.SetElectroCollars( requested == "1" )
+    else
+        Jailbreak.SetElectroCollars( not Jailbreak.IsElectroCollarsActive! )
+)

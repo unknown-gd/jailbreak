@@ -41,13 +41,15 @@ do
         icon: "icon64/playermodel.png"
         click: =>
             window = @Window
-            unless IsValid( window )
-                window = g_ContextMenu\Add( "DFrame" )
-                @Window = window
+            if IsValid( window )
+                return
 
-                window\SetTitle( "#smwidget.playermodel_title" )
-                window\SetSize( 960, 700 )
-                window\Center!
+            window = g_ContextMenu\Add( "DFrame" )
+            @Window = window
+
+            window\SetTitle( "#smwidget.playermodel_title" )
+            window\SetSize( 960, 700 )
+            window\Center!
 
             window\SetSize( math.min( ScrW! - 16, window\GetWide! ), math.min( ScrH! - 16, window\GetTall! ) )
             window\SetMinWidth( window\GetWide! )
@@ -826,7 +828,10 @@ do
     GM.OnContextMenuClose = =>
         contextMenu = g_ContextMenu
         if IsValid( contextMenu )
-            contextMenu\Close!
+            if cvars.Number( "developer", 0 ) > 2
+                contextMenu\Remove!
+            else
+                contextMenu\Close!
         hook_Run( "ContextMenuClosed" )
 
 do
@@ -844,6 +849,9 @@ do
                 @Show!
             elseif @IsVisible!
                 @Hide!
+
+            @GetParent!\Layout!
+
         click: =>
             SecurityRadio\SetBool( not SecurityRadio\GetBool! )
     }
@@ -852,13 +860,41 @@ list.Set "DesktopWindows", "warden-request", {
     title: "#jb.become.warden"
     icon: "icon16/user_suit.png"
     think: =>
-        if Jailbreak.HasWarden! or not Jailbreak.GameInProgress!
-            if @IsVisible!
-                @Hide!
-        elseif not @IsVisible!
-            @Show!
+        if Jailbreak.GameInProgress! and not Jailbreak.HasWarden!
+            ply = LocalPlayer!
+            if ply\IsGuard! and ply\Alive!
+                unless @IsVisible!
+                    @Show!
+                    @GetParent!\Layout!
+            return
+
+        if @IsVisible!
+            @Hide!
+            @GetParent!\Layout!
+
     click: =>
         RunConsoleCommand( "jb_warden_request" )
+}
+
+list.Set "DesktopWindows", "electro-collars", {
+    title: "#jb.toggle.electro_collars"
+    icon: "icon16/lightning.png"
+    think: =>
+        if Jailbreak.GameInProgress!
+            ply = LocalPlayer!
+            if ply\IsWarden! and ply\Alive!
+                @Image\SetImage( Jailbreak.IsElectroCollarsActive! and "icon16/lightning.png" or "icon16/lightning_delete.png" )
+                unless @IsVisible!
+                    @Show!
+                    @GetParent!\Layout!
+                return
+
+        if @IsVisible!
+            @Hide!
+            @GetParent!\Layout!
+
+    click: =>
+        RunConsoleCommand( "jb_toggle_electro_collars" )
 }
 
 GM.ReColorList = {
