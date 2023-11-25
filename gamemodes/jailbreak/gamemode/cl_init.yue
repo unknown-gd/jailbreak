@@ -417,6 +417,37 @@ concommand.Add( "jb_showteam", ->
     GAMEMODE\ShowTeam!
 )
 
+GM.PreDrawViewModel = ( vm, ply, weapon ) =>
+	unless IsValid( weapon )
+        return false
+
+    func = weapon.PreDrawViewModel
+    if func
+    	return func( weapon, vm, weapon, ply )
+    return false
+
+GM.PostDrawViewModel = ( vm, ply, weapon ) =>
+	unless IsValid( weapon )
+        return false
+
+	if weapon.UseHands or not weapon\IsScripted!
+		hands = ply\GetHands!
+		if IsValid( hands ) and IsValid( hands\GetParent! )
+            hands\SetColor( Color( 0, 0, 0, 100 ))
+			unless hook_Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
+				if weapon.ViewModelFlip
+                    render.CullMode( MATERIAL_CULLMODE_CW )
+
+				hands\DrawModel!
+				render.CullMode( MATERIAL_CULLMODE_CCW )
+
+			hook_Run( "PostDrawPlayerHands", hands, vm, ply, weapon )
+
+    func = weapon.PostDrawViewModel
+	if func
+	    return func( weapon, vm, weapon, ply )
+    return false
+
 GM.OnSpawnMenuOpen = =>
     RunConsoleCommand( "lastinv" )
 
