@@ -26,7 +26,7 @@ do
     cl_weaponcolor = CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
     cl_playerbodygroups = CreateConVar( "cl_playerbodygroups", "0", ConVarFlags, "The bodygroups to use, if the model has any" )
     cl_playerskin = CreateConVar( "cl_playerskin", "0", ConVarFlags, "The skin to use, if the model has any" )
-    jb_custom_player_models = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "", 0, 1 )
+    jb_custom_player_models = CreateConVar( "jb_custom_player_models", "0", bit.bor( FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "", 0, 1 )
 
     cvars.AddChangeCallback( "cl_playermodel", ->
         RunConsoleCommand( "cl_playerbodygroups", "0" )
@@ -82,7 +82,18 @@ do
             selectPanel = modelsTab\Add( "DPanelSelect" )
             selectPanel\Dock( FILL )
 
-            customModelsAllowed, allowedPlayerModels = jb_custom_player_models\GetBool!, Jailbreak.AllowedPlayerModels
+
+            customModelsAllowed, allowedPlayerModels = jb_custom_player_models\GetBool!, nil
+            unless customModelsAllowed
+                teamID = LocalPlayer!\Team!
+                models = Jailbreak.PlayerModels[ teamID ]
+                if teamID == TEAM_PRISONER
+                    models = models[ Jailbreak.IsFemalePrison! ]
+
+                allowedPlayerModels = {}
+                for modelPath in *models
+                    allowedPlayerModels[ modelPath ] = true
+
             for name, modelPath in SortedPairs( player_manager.AllValidModels! )
                 modelPath = string.lower( modelPath )
                 unless customModelsAllowed or allowedPlayerModels[ modelPath ]

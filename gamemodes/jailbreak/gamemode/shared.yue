@@ -144,7 +144,6 @@ do
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 
-    GM.PlayerModels = {
     Jailbreak.PlayerModels = {
         [ TEAM_GUARD ]: guardModels
         [ TEAM_PRISONER ]: {
