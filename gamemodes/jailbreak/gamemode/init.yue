@@ -14,6 +14,7 @@ GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "", 50, 10
 GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "", 0, 1000 )
 GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "", 0, 1 )
 GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "", 0, 1 )
+GM.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "", 0, 1 )
 
 GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "", 0, 100 )
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "", 0, 100 )
@@ -65,6 +66,11 @@ do
     Jailbreak.SetRoundTime = ( int ) ->
         SetGlobal2Int( "next-round-state", CurTime! + int )
 
+    Jailbreak.SetFemalePrison = ( bool, silent ) ->
+        SetGlobal2Bool( "female-prison", bool )
+        unless silent
+            hook_Run( "FemalePrison", bool )
+
 do
 
     ENTITY = FindMetaTable( "Entity" )
@@ -76,8 +82,10 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
-    PLAYER.SetWarden = ( bool ) =>
+    PLAYER.SetWarden = ( bool, silent ) =>
         @SetNW2Bool( "warden", bool )
+        if bool and not silent
+            hook_Run( "CreatedWarden", @ )
 
     PLAYER.SetElectroCollar = ( bool ) =>
         @SetNW2Bool( "electro-collar", bool )
@@ -96,7 +104,6 @@ do
             index = length
 
         @SpectateEntity( players[ index ] )
-        @SetupHands( players[ index ] )
         @LastSpectatedEntity = index
 
     do
@@ -251,6 +258,13 @@ do
         ragdoll.Ammo = @GetAmmo!
 
         return ragdoll
+
+GM.CreatedWarden = ( ply ) =>
+    PrintMessage( HUD_PRINTCENTER, "New warden: " .. ply\Nick! )
+
+GM.FemalePrison = ( isFemalePrison ) =>
+    if isFemalePrison
+        PrintMessage( HUD_PRINTCENTER, "Female Prison!" )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
@@ -486,12 +500,17 @@ GM.PlayerLoadout = ( ply, teamID ) =>
     ply\SelectWeapon( "jb_hands" )
 
 GM.PlayerSetModel = ( ply, teamID ) =>
-    models = @PlayerModels[ teamID ]
-    if teamID == TEAM_PRISONER
-        models = models[ @FemalePrison and 1 or 2 ]
-
     requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
-    if requested and #requested > 0
+    if #requested ~= 0 and @CustomPlayerModels\GetBool!
+        util.PrecacheModel( requested )
+        ply\SetModel( requested )
+        return
+
+    models = Jailbreak.PlayerModels[ teamID ]
+    if teamID == TEAM_PRISONER
+        models = models[ Jailbreak.IsFemalePrison! ]
+
+    if #requested ~= 0
         requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
         for modelPath in *models
             if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
@@ -514,10 +533,7 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
         if entity.Disabled
             return false
 
-        spawnTeam = entity.Team
-        if spawnTeam == 1 and ply\Team! ~= TEAM_PRISONER
-            return false
-        elseif spawnTeam == 2 and ply\Team! ~= TEAM_GUARD
+        if entity.Team % 2 + 1 ~= ply\Team!
             return false
 
     start = entity\GetPos!
@@ -562,9 +578,6 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
         return
 
     damageOrigin = damageInfo\GetDamagePosition!
-    if damageOrigin\Length! < 1
-        damageOrigin = ragdoll\WorldSpaceCenter!
-
     if ragdoll\IsRagdoll!
         velocity = damageInfo\GetDamageForce!
         for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
@@ -608,7 +621,6 @@ do
                 if observerMode ~= OBS_MODE_ROAMING
                     ply\Spectate( OBS_MODE_ROAMING )
                     ply\SpectateEntity!
-                    ply\SetupHands!
             elseif ply\KeyPressed( IN_ATTACK )
                 players = {}
                 for pl in *player.GetAll!
@@ -793,6 +805,15 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                 entity\Use( attacker, attacker )
             return true
 
+    if entity\GetNoDraw! or not entity\IsSolid!
+        return
+
+    velocity = damageInfo\GetDamageForce!
+    for physNum = 0, entity\GetPhysicsObjectCount! - 1 do
+        phys = entity\GetPhysicsObjectNum( physNum )
+        if IsValid( phys )
+            phys\ApplyForceOffset( velocity, damageInfo\GetDamagePosition! )
+
 do
 
     :ceil = math
@@ -831,7 +852,9 @@ GM.PlayerSwitchFlashlight = ( ply ) =>
     return ( @Arcade\GetBool! or ply\CanUseFlashlight! ) and ply\Alive!
 
 GM.PlayerDeathSound = ( ply ) =>
-    return not Jailbreak.IsRoundRunning! or @Arcade\GetBool! or ply\IsPrisoner!
+    if ply\IsGuard!
+        ply\EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_VOICE, 0, 1 )
+    return true
 
 GM.PlayerRagdollUse = ( ragdoll, ply ) =>
     velocity = Vector!
@@ -1171,7 +1194,8 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer.Simple( 0, game.CleanUpMap )
 
         when "preparing"
-            @FemalePrison = random( 1, 100 ) <= @FemalePrisonChance\GetInt!
+            if random( 1, 100 ) <= @FemalePrisonChance\GetInt!
+                Jailbreak.SetFemalePrison( true )
             for ply in *player.GetAll!
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
@@ -1209,6 +1233,10 @@ GM.RoundStateChanged = ( old, new ) =>
                 elseif ply\Team! <= 1000 and not ply\Alive!
                     ply\Spawn!
 
+            guards = team.GetPlayers( TEAM_GUARD )
+            if #guards == 1
+                guards[ 1 ]\SetWarden( true )
+
             roundTime = @RoundTime\GetInt!
             if roundTime > 0
                 Jailbreak.SetRoundTime( roundTime )
@@ -1224,6 +1252,7 @@ GM.RoundStateChanged = ( old, new ) =>
             else
                 Jailbreak.SetWinningTeam( 0 )
             Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
+            Jailbreak.SetFemalePrison( false )
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!

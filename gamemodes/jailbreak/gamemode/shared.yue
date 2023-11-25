@@ -2,13 +2,14 @@ GM.Name = "Jailbreak"
 GM.Author = "Unknown Developer"
 GM.TeamBased = true
 
+hook_Run = hook.Run
+
 global Jailbreak = Jailbreak or {}
 
 do
 
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
     GM.Arcade = CreateConVar( "jb_arcade", "0", ConVarFlags, "", 0, 1 )
-
 
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
@@ -81,6 +82,10 @@ do
     ENTITY.GetCreator = =>
         return @GetNW2Entity( "entity-owner" )
 
+    Jailbreak.HasWarden = ->
+        warden = Jailbreak.GetWarden!
+        return warden and warden\IsValid! and warden\Alive! and warden\Team! <= 1000
+
 do
 
     PLAYER = FindMetaTable( "Player" )
@@ -124,24 +129,28 @@ do
 
     femaleModels = {}
     for i = 1, 6
-        modelPath = "models/player/Group01/female_0" .. i .. ".mdl"
+        modelPath = "models/player/group01/female_0" .. i .. ".mdl"
         util_PrecacheModel( modelPath )
         femaleModels[] = modelPath
 
     maleModels = {}
     for i = 1, 9
-        modelPath = "models/player/Group01/male_0" .. i .. ".mdl"
+        modelPath = "models/player/group01/male_0" .. i .. ".mdl"
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 
     for i = 2, 8, 2
-        modelPath = "models/player/Group02/male_0" .. i .. ".mdl"
+        modelPath = "models/player/group02/male_0" .. i .. ".mdl"
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 
     GM.PlayerModels = {
-        [ TEAM_PRISONER ]: { femaleModels, maleModels }
+    Jailbreak.PlayerModels = {
         [ TEAM_GUARD ]: guardModels
+        [ TEAM_PRISONER ]: {
+            [ true ]: femaleModels
+            [ false ]: maleModels
+        }
     }
 
     GM.WeaponClasses = {
@@ -251,6 +260,19 @@ do
     Jailbreak.IsElectroCollarsActive = ->
         return GetGlobal2Bool( "electro-collars", true )
 
+    do
+
+        NULL = NULL
+
+        Jailbreak.GetWarden = ->
+            for ply in *team.GetPlayers( TEAM_GUARD )
+                if ply\IsWarden!
+                    return ply
+            return NULL
+
+    Jailbreak.IsFemalePrison = ->
+        return GetGlobal2Bool( "female-prison" )
+
 do
 
     singleHandHoldTypes = {
@@ -279,8 +301,6 @@ do
 
             return ACT_MP_JUMP, ply\LookupSequence( "pose_ducking_01" )
     )
-
-hook_Run = hook.Run
 
 GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
     if Jailbreak.IsRoundPreparing!
