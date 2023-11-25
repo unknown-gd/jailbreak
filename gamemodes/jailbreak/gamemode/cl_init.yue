@@ -384,24 +384,17 @@ do
             label\SetTextColor( color_white )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
 
-            if isfunction( desktopWindow.create )
-                desktopWindow.create( icon )
+            create = desktopWindow.create
+            if isfunction( create )
+                create( icon )
 
-            icon.DoClick = ->
-                desktopWindow = list.Get( "DesktopWindows" )[ windowName ]
-                window = icon.Window
-                if desktopWindow.onewindow and IsValid( window )
-                    window\Center!
-                    return
+            think = desktopWindow.think
+            if isfunction( think )
+                hook.Add "Think", icon, think
 
-                window = contextMenu\Add( "DFrame" )
-                icon.Window = window
-
-                window\SetSize( desktopWindow.width, desktopWindow.height )
-                window\SetTitle( desktopWindow.title )
-                window\Center!
-
-                desktopWindow.init( icon, window )
+            click = desktopWindow.click
+            if isfunction( click )
+                icon.DoClick = click
 
         return contextMenu
 
@@ -422,6 +415,26 @@ do
         if IsValid( contextMenu )
             contextMenu\Close!
         hook_Run( "ContextMenuClosed" )
+
+do
+
+    SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
+
+    list.Set "DesktopWindows", "security-radio", {
+        title: "#jb.toggle.radio"
+        icon: "icon16/phone.png"
+        think: =>
+            if LocalPlayer!\HasSecurityRadio!
+                @Image\SetImage( SecurityRadio\GetBool! and "icon16/phone_sound.png" or "icon16/phone.png" )
+                if @IsVisible!
+                    return
+                @Show!
+            elseif @IsVisible!
+                @Hide!
+        click: =>
+            SecurityRadio\SetBool( not SecurityRadio\GetBool! )
+    }
+
 
 GM.ReColorList = {
     CHudSecondaryAmmo: true
@@ -444,7 +457,7 @@ GM.StartChat = ( isTeam ) =>
         @Reskined = true
         chat.Close!
 
-        for i = 1, 5
+        for index = 1, 5
             panel = viewport\GetParent!
             unless IsValid( panel )
                 break
@@ -464,43 +477,4 @@ GM.StartChat = ( isTeam ) =>
 
             hook.Add "Think", panel, =>
                 @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
-
-do
-
-    SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
-
-    list.Set "DesktopWindows", "security-radio", {
-        title: "#jb.toggle.radio"
-        icon: "icon16/phone.png"
-        create: ( icon ) ->
-            icon.Image\SetImage( SecurityRadio\GetBool! and "icon16/phone_sound.png" or "icon16/phone.png" )
-
-            ply = LocalPlayer!
-            if ply\HasSecurityRadio!
-                icon\Show!
-            else
-                icon\Hide!
-
-            ply\SetNW2VarProxy "security-radio", ( _, __, ___, newState ) ->
-                unless IsValid( icon )
-                    return
-
-                if newState
-                    icon.Image\SetImage( SecurityRadio\GetBool! and "icon16/phone_sound.png" or "icon16/phone.png" )
-                    icon\Show!
-                else
-                    icon\Hide!
-        init: ( icon ) ->
-            bool = not SecurityRadio\GetBool!
-            SecurityRadio\SetBool( bool )
-            icon.Image\SetImage( bool and "icon16/phone_sound.png" or "icon16/phone.png" )
-    }
-
--- list.Set "DesktopWindows", "warden", {
---     title: "#jb.toggle.warden"
---     icon: "icon16/user_suit.png"
---     create: ( icon ) ->
-
---     init: ( icon ) ->
-
--- }
+                -- @SetFontInternal( "ChatFont" )
