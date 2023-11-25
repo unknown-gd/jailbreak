@@ -1,0 +1,35 @@
+ENT.Base = "base_filter"
+ENT.Teams = {
+    [ 1 ]: TEAM_SPECTATOR
+    [ 2 ]: TEAM_PRISONER
+    [ 3 ]: TEAM_GUARD
+}
+
+ENT.Initialize = =>
+    @Negated = false
+
+ENT.PassesFilter = ( entity, ply ) =>
+    unless IsValid( ply ) and ply\IsPlayer! and ply\Alive!
+        return false
+
+    requestedTeam = @TeamNum
+    unless requestedTeam
+        return @Negated
+
+    if requestedTeam == ply\Team!
+        return not @Negated
+
+    if ply\HasSecurityAccess! and requestedTeam == TEAM_GUARD
+        return not @Negated
+    return @Negated
+
+ENT.KeyValue = ( key, value ) =>
+    switch key
+        when "Negated"
+            @Negated = tobool( value )
+        when "TeamNum"
+            @TeamNum = @Teams[ tonumber( value ) or 0 ]
+
+ENT.AcceptInput = ( key, _, __, value ) =>
+    if key == "SetTeam"
+        @TeamNum = @Teams[ tonumber( value ) or 0 ]

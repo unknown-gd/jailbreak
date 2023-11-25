@@ -1,0 +1,25 @@
+ENT.Type = "brush"
+
+ENT.SetupDataTables = =>
+    @NetworkVar( "Int", 0, "Team" )
+    @NetworkVar( "Bool", 0, "Disabled" )
+
+    if SERVER
+        @SetDisabled( false )
+        @SetTeam( 0 )
+
+ENT.Initialize = =>
+    @SetCustomCollisionCheck( true )
+
+    if SERVER
+        @SetMoveType( MOVETYPE_NONE )
+        @PhysicsInit( SOLID_BSP )
+
+    hook.Add "ShouldCollide", @, ( entity, ply ) =>
+        if entity ~= @
+            return
+
+        unless ply\IsPlayer! and ply\Alive!
+            return false
+
+        return ply\Team! ~= @GetTeam!

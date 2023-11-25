@@ -1,1 +1,1 @@
-ENT.Type = "anim"
+include( "shared.lua" )

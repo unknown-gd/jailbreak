@@ -1,42 +1,40 @@
 AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
 
-ENT.Type = "brush"
-
-ENT.Initialize = =>
-    @SetMoveType( MOVETYPE_NONE )
-    @PhysicsInit( SOLID_BSP )
-    @Disabled = false
-    @Team = 0
+ENT.Teams = {
+    [ 1 ]: TEAM_SPECTATOR
+    [ 2 ]: TEAM_PRISONER
+    [ 3 ]: TEAM_GUARD
+}
 
 ENT.KeyValue = ( key, value ) =>
     switch key
         when "respawnroomname"
             @RoomName = value
 
-            for entity in *ents.FindByName( value )
-                teamID = entity.Team
-                unless teamID
-                    continue
+            timer.Simple 0.5, ->
+                unless @IsValid!
+                    return
 
-                @Team = teamID
-                break
+                for entity in *ents.FindByName( value )
+                    teamID = entity.Team
+                    if teamID
+                        @SetTeam( @Teams[ tonumber( teamID ) or 0 ] )
+                        break
         when "StartDisabled"
-            @Disabled = tobool( value )
+            @SetDisabled( tobool( value ) )
 
 ENT.Disable = =>
-    @Disabled = true
+    @SetDisabled( true )
 
 ENT.Enable = =>
-    @Disabled = false
+    @SetDisabled( false )
 
 ENT.Toggle = =>
-    @Disabled = not @Disabled
+    @SetDisabled( not @GetDisabled! )
 
 ENT.AcceptInput = ( key, activator, caller, data ) =>
-    switch key
-        when "Disable"
-            @Disabled = true
-        when "Enable"
-            @Disabled = false
-        when "Toggle"
-            @Disabled = not @Disabled
+    func = @[ key ]
+    if func
+        func( @ )
