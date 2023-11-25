@@ -38,11 +38,11 @@ resource.AddWorkshop( "643148462" )
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
-math = math
+math, table = math, table
 :Rand, :random, :max, :min = math
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
-table_Empty = table.Empty
 ents_Create = ents.Create
+:Empty, :Random = table
 hook_Run = hook.Run
 tonumber = tonumber
 CurTime = CurTime
@@ -498,12 +498,26 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\GiveAmmo( 40, "Pistol", true )
         ply\GiveAmmo( 20, "Buckshot", true )
 
-    if @Arcade\GetBool!
-        ply\Give( "weapon_knife" )
-        return
+        if @MapGameName ~= "cstrike"
+            avaliableWeapons = @AvaliableWeapons
+            count = #avaliableWeapons / 4
+            gived = {}
 
-    if teamID == TEAM_PRISONER and not ply\HasWeapon( "weapon_knife" ) and random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
-        ply\Give( "weapon_knife" )
+            while count > 0
+                className = Random( avaliableWeapons )
+                if ply\HasWeapon( className ) or gived[ className ]
+                    continue
+
+                gived[ className ] = true
+                ply\Give( className )
+                count -= 1
+    elseif teamID == TEAM_PRISONER
+        unless ply\HasWeapon( "weapon_knife" )
+            if @Classic\GetBool!
+                ply\Give( "weapon_knife" )
+                return
+            elseif random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
+                ply\Give( "weapon_knife" )
 
     ply\Give( "jb_hands" )
     ply\SelectWeapon( "jb_hands" )
@@ -526,7 +540,7 @@ GM.PlayerSetModel = ( ply, teamID ) =>
                 ply\SetModel( modelPath )
                 return
 
-    ply\SetModel( table.Random( models ) )
+    ply\SetModel( Random( models ) )
 
 GM.PlayerSetHandsModel = ( ply, hands ) =>
     info = player_manager.TranslatePlayerHands( player_manager.TranslateToPlayerModelName( ply\GetModel! ) )
@@ -566,15 +580,19 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
         return false
     return true
 
-GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
-	spawnPoints = team.GetSpawnPoints( teamID )
-    unless spawnPoints and not table.IsEmpty( spawnPoints )
-        return
+do
 
-    for i = 1, 128
-        spawnPoint = table.Random( spawnPoints )
-        if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 16 )
-            return spawnPoint
+    :IsEmpty = table
+
+    GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
+        spawnPoints = team.GetSpawnPoints( teamID )
+        unless spawnPoints and not IsEmpty( spawnPoints )
+            return
+
+        for i = 1, 128
+            spawnPoint = Random( spawnPoints )
+            if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 16 )
+                return spawnPoint
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     if ply\Team! > 1000
@@ -668,14 +686,18 @@ GM.PlayerDeathThink = ( ply ) =>
     ply\Spawn!
 
 GM.PreCleanupMap = =>
-    table_Empty( Jailbreak.PlayerRagdolls )
+    Empty( Jailbreak.PlayerRagdolls )
 
-GM.EntityRemoved = ( entity, fullUpdate ) =>
-    if fullUpdate
-        return
+do
 
-    if entity\IsPlayerRagdoll!
-        table.RemoveByValue( Jailbreak.PlayerRagdolls, entity )
+    :RemoveByValue = table
+
+    GM.EntityRemoved = ( entity, fullUpdate ) =>
+        if fullUpdate
+            return
+
+        if entity\IsPlayerRagdoll!
+            RemoveByValue( Jailbreak.PlayerRagdolls, entity )
 
 GM.PlayerDisconnected = ( ply ) =>
     teamID = ply\Team!
@@ -1031,7 +1053,7 @@ do
         players = player_GetHumans!
         for listener in *players
             speakers = listener.AvailableSpeakers
-            table_Empty( speakers )
+            Empty( speakers )
 
             origin = EyePos( listener )
             rf = RecipientFilter!
@@ -1219,7 +1241,7 @@ GM.RoundStateChanged = ( old, new ) =>
 
             while ( guardCount / prisonerCount ) > Jailbreak.GuardsDiff and totalCount > ( ( 1 / Jailbreak.GuardsDiff ) + guardCount )
                 for i = 1, guardCount
-                    guard = @GetBotFromTeam( TEAM_GUARD ) or table.Random( team.GetPlayers( TEAM_GUARD ) )
+                    guard = @GetBotFromTeam( TEAM_GUARD ) or Random( team.GetPlayers( TEAM_GUARD ) )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!

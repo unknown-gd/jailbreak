@@ -194,9 +194,13 @@ do
         arccw_ur_ak: { Vector( -5, 0, 8 ), Angle( 30, 0, 0 ) }
     }
 
+    avaliableWeapons = {}
+
     WeaponHandler = WeaponHandler
     GM.PreGamemodeLoaded = =>
         for className, alternatives in pairs( @WeaponClasses )
+            avaliableWeapons[] = className
+
             alternative = WeaponHandler( className, alternatives, @WeaponOffsets ).Alternative
             unless alternative
                 continue
@@ -212,6 +216,8 @@ do
             worldModel = weapon.WorldModel
             if worldModel and #worldModel ~= 0 and util_IsValidModel( worldModel )
                 util_PrecacheModel( worldModel )
+
+    GM.AvaliableWeapons = avaliableWeapons
 
 SERVER = SERVER
 
