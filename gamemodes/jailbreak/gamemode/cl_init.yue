@@ -26,7 +26,6 @@ do
     cl_weaponcolor = CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
     cl_playerbodygroups = CreateConVar( "cl_playerbodygroups", "0", ConVarFlags, "The bodygroups to use, if the model has any" )
     cl_playerskin = CreateConVar( "cl_playerskin", "0", ConVarFlags, "The skin to use, if the model has any" )
-    jb_custom_player_models = CreateConVar( "jb_custom_player_models", "0", bit.bor( FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "", 0, 1 )
 
     cvars.AddChangeCallback( "cl_playermodel", ->
         RunConsoleCommand( "cl_playerbodygroups", "0" )
@@ -83,7 +82,7 @@ do
             selectPanel\Dock( FILL )
 
 
-            customModelsAllowed, allowedPlayerModels = jb_custom_player_models\GetBool!, nil
+            customModelsAllowed, allowedPlayerModels = Jailbreak.CustomPlayerModels\GetBool!, nil
             unless customModelsAllowed
                 teamID = LocalPlayer!\Team!
                 models = Jailbreak.PlayerModels[ teamID ]
@@ -237,7 +236,7 @@ do
                     return
 
                 requested = player_manager.TranslatePlayerModel( modelName )
-                if jb_custom_player_models\GetBool!
+                if Jailbreak.CustomPlayerModels\GetBool!
                     util.PrecacheModel( requested )
                     modelPreview\SetModel( requested )
                 else
@@ -534,7 +533,7 @@ do
     )
 
 GM.HUDPaint = =>
-    if @Arcade\GetBool!
+    if @Classic\GetBool!
         hook_Run( "HUDDrawTargetID" )
 
     hook_Run( "HUDDrawPickupHistory" )

@@ -5,12 +5,6 @@ GM.TeamBased = true
 hook_Run = hook.Run
 
 global Jailbreak = Jailbreak or {}
-
-do
-
-    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
-    GM.Arcade = CreateConVar( "jb_arcade", "0", ConVarFlags, "", 0, 1 )
-
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
 
@@ -24,6 +18,13 @@ local Jailbreak = Jailbreak
 local TEAM_GUARD = TEAM_GUARD
 local TEAM_PRISONER = TEAM_PRISONER
 ]==]
+
+do
+
+    -- TODO: Write desc
+    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+    Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "", 0, 1 )
+    GM.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "", 0, 1 )
 
 GM.GuardModels = {
     "models/player/gasmask.mdl"

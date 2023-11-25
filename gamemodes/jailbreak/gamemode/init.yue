@@ -14,12 +14,11 @@ GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "", 50, 10
 GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "", 0, 1000 )
 GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "", 0, 1 )
 GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "", 0, 1 )
-GM.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", bit.bor( FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "", 0, 1 )
 
 GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "", 0, 100 )
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "", 0, 100 )
 
-RunConsoleCommand( "mp_show_voice_icons", GM.Arcade\GetString! )
+RunConsoleCommand( "mp_show_voice_icons", GM.Classic\GetString! )
 cvars.AddChangeCallback( "jb_arcade", ( _, __, value ) ->
     RunConsoleCommand( "mp_show_voice_icons", value )
 "Jailbreak" )
@@ -511,7 +510,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
 
 GM.PlayerSetModel = ( ply, teamID ) =>
     requested = player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
-    if #requested ~= 0 and @CustomPlayerModels\GetBool!
+    if #requested ~= 0 and Jailbreak.CustomPlayerModels\GetBool!
         util.PrecacheModel( requested )
         ply\SetModel( requested )
         return
@@ -838,7 +837,7 @@ GM.AllowPlayerPickup = ( ply, entity ) =>
     if ply\Team! > 1000 or not ply\Alive!
         return false
 
-    if @Arcade\GetBool!
+    if @Classic\GetBool!
         return true
 
     weapon = ply\GetActiveWeapon!
@@ -859,7 +858,7 @@ GM.CanPlayerSuicide = ( ply ) =>
     return ply\Team! <= 1000 and not Jailbreak.IsRoundPreparing! and ply\Alive!
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
-    return ( @Arcade\GetBool! or ply\CanUseFlashlight! ) and ply\Alive!
+    return ( @Classic\GetBool! or ply\CanUseFlashlight! ) and ply\Alive!
 
 GM.PlayerDeathSound = ( ply ) =>
     if ply\IsGuard!
@@ -936,7 +935,7 @@ GM.PlayerUse = ( ply, entity ) =>
     unless ply\Alive! and ply\Team! <= 1000
         return
 
-    unless @Arcade\GetBool!
+    unless @Classic\GetBool!
         weapon = ply\GetActiveWeapon!
         if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
             velocity = ply\GetVelocity!\GetNormalized! * 16
