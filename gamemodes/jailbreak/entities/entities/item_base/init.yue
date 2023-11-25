@@ -6,17 +6,15 @@ ENT.Sequence = "idle"
 ENT.Initialize = =>
     @SetModel( @Model )
 
-    @PhysicsInit( SOLID_OBB )
-    @SetMoveType( MOVETYPE_NONE )
-    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
-
     @SetPos( @Origin )
     @SetAngles( @Angles )
-
     @SetTrigger( true )
 
-    @ResetSequence( @Sequence )
+    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
+    @SetMoveType( MOVETYPE_NONE )
+    @PhysicsInit( SOLID_OBB )
 
+    @ResetSequence( @Sequence )
     @Init!
 
 ENT.Action = ->
@@ -54,9 +52,10 @@ ENT.AcceptInput = ( key, activator, caller, data ) =>
             @Disabled = not @Disabled
 
 ENT.KeyValue = ( key, value ) =>
-	if key == "origin"
-		@Origin = Vector( value )
-	elseif key == "angles"
-		@Angles = Angle( value )
-    elseif key == "StartDisabled"
-		@Disabled = tobool( value )
+    switch key
+        when "origin"
+            @Origin = Vector( value )
+        when "angles"
+            @Angles = Angle( value )
+        when "StartDisabled"
+            @Disabled = tobool( value )

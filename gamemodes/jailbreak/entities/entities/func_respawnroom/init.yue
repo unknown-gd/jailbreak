@@ -1,0 +1,41 @@
+AddCSLuaFile( "cl_init.lua" )
+
+ENT.Type = "brush"
+
+ENT.Initialize = =>
+	@SetTrigger( true )
+
+ENT.StartTouch = ( ply ) =>
+	if @Disabled
+		return
+
+ENT.EndTouch = ( ply ) =>
+	if @Disabled
+		return
+
+ENT.Disable = =>
+	@Disabled = true
+
+ENT.Enable = =>
+	@Disabled = false
+
+ENT.Toggle = =>
+	@Disabled = not @Disabled
+
+ENT.AcceptInput = ( key, activator, caller, data ) =>
+    switch key
+        when "Disable"
+            @Disabled = true
+        when "Enable"
+            @Disabled = false
+        when "Toggle"
+            @Disabled = not @Disabled
+
+ENT.KeyValue = ( key, value ) =>
+	switch key
+		when "targetname"
+			@Targets = value
+		when "TeamNum"
+        	@Team = ( tonumber( value ) or 0 ) % 2 + 1
+		when "StartDisabled"
+        	@Disabled = tobool( value )

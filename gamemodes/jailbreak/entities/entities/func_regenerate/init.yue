@@ -77,7 +77,8 @@ ENT.AcceptInput = ( key, activator, caller, data ) =>
         func( @ )
 
 ENT.KeyValue = ( key, value ) =>
-	if key == "associatedmodel"
-        @AssociatedName = value
-    elseif key == "StartDisabled"
-		@Disabled = tobool( value )
+	switch key
+        when "associatedmodel"
+            @AssociatedName = value
+        when "StartDisabled"
+            @Disabled = tobool( value )

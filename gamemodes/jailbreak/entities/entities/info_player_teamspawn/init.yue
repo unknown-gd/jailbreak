@@ -16,8 +16,8 @@ ENT.AcceptInput = ( key, activator, caller, data ) =>
             @Disabled = not @Disabled
 
 ENT.KeyValue = ( key, value ) =>
-	if key == "TeamNum"
-		@Team = tonumber( value ) - 1
-
-	if key == "StartDisabled"
-		@Disabled = tobool( value )
+    switch key
+        when "TeamNum"
+            @Team = tonumber( value ) - 1
+        when "StartDisabled"
+            @Disabled = tobool( value )
