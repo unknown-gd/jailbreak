@@ -2,7 +2,6 @@ GM.Name = "Jailbreak"
 GM.Author = "Unknown Developer"
 GM.TeamBased = true
 
-hook_Run = hook.Run
 
 global Jailbreak = Jailbreak or {}
 global TEAM_GUARD = 1
@@ -23,8 +22,48 @@ do
 
     -- TODO: Write desc
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+    CreateConVar = CreateConVar
+
     Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "", 0, 1 )
     GM.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "", 0, 1 )
+
+    do
+
+        timer_Simple = timer.Simple
+        hook_Run = hook.Run
+        tonumber = tonumber
+        isnumber = isnumber
+        CLIENT = CLIENT
+
+        HitGroups = {
+            [HITGROUP_GENERIC]: 1
+            [HITGROUP_HEAD]: 2
+            [HITGROUP_CHEST]: 1
+            [HITGROUP_STOMACH]: 1
+            [HITGROUP_LEFTARM]: 0.25
+            [HITGROUP_RIGHTARM]: 0.25
+            [HITGROUP_LEFTLEG]: 0.25
+            [HITGROUP_RIGHTLEG]: 0.25
+            [HITGROUP_GEAR]: 0.25
+        }
+
+        for index, default in pairs( HitGroups )
+            conVarName = "jb_hitgroup" .. index .. "_scale"
+            HitGroups[ index ] = CreateConVar( conVarName, tostring( default ), ConVarFlags, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 )\GetFloat!
+            cvars.AddChangeCallback( conVarName, ( _, __, str ) ->
+                HitGroups[ index ] = tonumber( str ) or 0
+            "Jailbreak" )
+
+        GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
+            damageScale = HitGroups[ hitGroup ]
+            if isnumber( damageScale )
+                damageInfo\ScaleDamage( damageScale )
+
+            if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) == false
+                timer_Simple 0, ->
+                    if ply\IsValid!
+                        ply\RemoveAllDecals!
+                return true
 
 do
 
@@ -331,27 +370,3 @@ GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         return false
 
     return true
-
-HITGROUP_HEAD = HITGROUP_HEAD
-timer_Simple = timer.Simple
-CLIENT = CLIENT
-
-bodyParts = {
-    [HITGROUP_LEFTARM]: true
-    [HITGROUP_RIGHTARM]: true
-    [HITGROUP_LEFTLEG]: true
-    [HITGROUP_RIGHTLEG]: true
-    [HITGROUP_GEAR]: true
-}
-
-GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
-	if hitGroup == HITGROUP_HEAD
-		damageInfo\ScaleDamage( 2 )
-    elseif bodyParts[ hitGroup ]
-		damageInfo\ScaleDamage( 0.25 )
-
-    if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) == false
-        timer_Simple 0, ->
-            if ply\IsValid!
-                ply\RemoveAllDecals!
-        return true
