@@ -103,8 +103,18 @@ do
         elseif index < 1
             index = length
 
-        @SpectateEntity( players[ index ] )
+        entity = players[ index ]
+        if entity\IsPlayer!
+            @SpectateEntity( entity )
+            if @GetObserverMode! ~= OBS_MODE_CHASE
+                @Spectate( OBS_MODE_CHASE )
+        else
+            if @GetObserverMode! ~= OBS_MODE_ROAMING
+                @Spectate( OBS_MODE_ROAMING )
+            @SetPos( entity\GetPos! )
+            @SetAngles( entity\GetAngles! )
         @LastSpectatedEntity = index
+
 
     do
 
@@ -622,31 +632,31 @@ do
                     ply\Spectate( OBS_MODE_ROAMING )
                     ply\SpectateEntity!
             elseif ply\KeyPressed( IN_ATTACK )
-                players = {}
+                targets = {}
                 for pl in *player.GetAll!
-                    if pl\Alive!
-                        players[] = pl
+                    if pl\Alive! and pl\Team! <= 1000
+                        targets[] = pl
 
-                if #players == 0
+                for entity in *ents.FindByClass( "info_observer_point" )
+                    targets[] = entity
+
+                if #targets == 0
                     return
 
-                ply\MoveSpectateID( 1, players )
-
-                if observerMode ~= OBS_MODE_CHASE
-                    ply\Spectate( OBS_MODE_CHASE )
+                ply\MoveSpectateID( 1, targets )
             elseif ply\KeyPressed( IN_ATTACK2 )
-                players = {}
+                targets = {}
                 for pl in *player.GetAll!
-                    if pl\Alive!
-                        players[] = pl
+                    if pl\Alive! and pl\Team! <= 1000
+                        targets[] = pl
 
-                if #players == 0
+                for entity in *ents.FindByClass( "info_observer_point" )
+                    targets[] = entity
+
+                if #targets == 0
                     return
 
-                ply\MoveSpectateID( -1, players )
-
-                if observerMode ~= OBS_MODE_CHASE
-                    ply\Spectate( OBS_MODE_CHASE )
+                ply\MoveSpectateID( -1, targets )
 
 GM.PlayerDeathThink = ( ply ) =>
     if ply\Team! > 1000 or Jailbreak.GameInProgress!
