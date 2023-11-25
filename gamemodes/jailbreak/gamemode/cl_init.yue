@@ -866,7 +866,7 @@ list.Set "DesktopWindows", "warden-request", {
                 unless @IsVisible!
                     @Show!
                     @GetParent!\Layout!
-            return
+                return
 
         if @IsVisible!
             @Hide!
