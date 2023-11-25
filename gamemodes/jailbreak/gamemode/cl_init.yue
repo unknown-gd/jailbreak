@@ -1,4 +1,5 @@
 include( "shared.lua" )
+RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
 Jailbreak = Jailbreak
 
@@ -868,6 +869,18 @@ do
             SecurityRadio\SetBool( not SecurityRadio\GetBool! )
     }
 
+list.Set "DesktopWindows", "warden-request", {
+    title: "#jb.become.warden"
+    icon: "icon16/user_suit.png"
+    think: =>
+        if Jailbreak.HasWarden! or not Jailbreak.GameInProgress!
+            if @IsVisible!
+                @Hide!
+        elseif not @IsVisible!
+            @Show!
+    click: =>
+        RunConsoleCommand( "jb_warden_request" )
+}
 
 GM.ReColorList = {
     CHudSecondaryAmmo: true

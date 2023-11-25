@@ -359,6 +359,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\DisableWorldClicking( true )
     ply\SetCanZoom( false )
+    ply\SetWarden( false )
     ply\RemoveRagdoll!
     ply\RemoveAllAmmo!
     ply\StripWeapons!
@@ -1292,6 +1293,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\AllowSecurityRadio( false )
     ply\SetElectroCollar( false )
     ply\AllowFlashlight( false )
+    ply\SetWarden( false )
     ply\UnSpectate!
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
@@ -1316,6 +1318,16 @@ GM.TeamPlayerSpawn = ( ply ) =>
 
 concommand.Add( "changeteam", ( ply, _, args ) ->
     hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
+)
+
+concommand.Add( "jb_warden_request", ( ply, _, args ) ->
+    unless IsValid( ply ) and ply\Alive! and ply\IsGuard!
+        return
+
+    if Jailbreak.HasWarden! or not Jailbreak.GameInProgress!
+        return
+
+    ply\SetWarden( true )
 )
 
 GM.SetElectroCollars = ( enable ) =>
