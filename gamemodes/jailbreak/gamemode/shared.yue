@@ -202,7 +202,6 @@ do
 
     Weapons = {
         Classes: {
-
             weapon_knife: {
                 "arc9_go_knife_bayonet"
                 "arc9_fas_dv2"
@@ -472,6 +471,11 @@ do
                 "weapon_crowbar"
             }
 
+            weapon_c4: {
+                "arc9_go_nade_c4"
+                "m9k_suicide_bomb"
+                "weapon_slam"
+            }
         }
 
         Offsets: {
@@ -513,6 +517,8 @@ do
             weapon = weapons.GetStored( alternative )
             unless weapon
                 continue
+
+            weapon.DrawWeaponInfoBox = false
 
             viewModel = weapon.ViewModel
             if viewModel and #viewModel ~= 0 and util_IsValidModel( viewModel )
