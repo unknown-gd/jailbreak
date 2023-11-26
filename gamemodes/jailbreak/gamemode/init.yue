@@ -729,6 +729,8 @@ DMG_NEVERGIB = DMG_NEVERGIB
 do
 
     GM.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
+    GM.ElectroCollarVictimDamage = CreateConVar( "jb_electro_collar_victim_damage", "0.5", ConVarFlags, "", 0, 1000 )
+    GM.ElectroCollarAttackerDamage = CreateConVar( "jb_electro_collar_attacker_damage", "1", ConVarFlags, "", 0, 1000 )
 
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         damageType = damageInfo\GetDamageType!
@@ -759,12 +761,20 @@ do
                 fx\SetRadius( random( 1, 5 ) )
                 Effect( "ElectricSpark", fx )
 
-                damageInfo\SetDamageType( DMG_SONIC )
-                damageInfo\ScaleDamage( 0.5 )
-                attacker\TakeDamageInfo( damageInfo )
+                damage = damageInfo\GetDamage!
+
+                newDamage = damage * @ElectroCollarAttackerDamage\GetFloat!
+                if newDamage >= 1
+                    damageInfo\SetDamageType( DMG_SONIC )
+                    damageInfo\SetDamage( newDamage )
+                    attacker\TakeDamageInfo( damageInfo )
+
+                newDamage = damage * @ElectroCollarVictimDamage\GetFloat!
+                if newDamage < 1
+                    return true
 
                 damageInfo\SetDamageType( damageType )
-                damageInfo\ScaleDamage( 0.5 )
+                damageInfo\SetDamage( newDamage )
                 break
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
