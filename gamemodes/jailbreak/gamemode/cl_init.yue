@@ -36,7 +36,7 @@ do
     default_animations = { "idle_all_01", "menu_walk" }
     :PrecacheModel = util
 
-    list.Set "DesktopWindows", "player-editor", {
+    list.Set "DesktopWindows", "!1player-editor", {
         title: "#smwidget.playermodel"
         icon: "icon64/playermodel.png"
         click: =>
@@ -105,11 +105,6 @@ do
                     cl_playermodel: name
                 } )
 
-            modelsSearch.OnValueChange = ( _, str ) ->
-                for _, icon in pairs( selectPanel\GetItems! )
-                    icon\SetVisible( icon.Allowed and icon.ModelName\find( str, 1, true ) and icon.ModelPath\find( str, 1, true ) )
-                selectPanel\InvalidateLayout!
-
             do
 
                 allowedPlayerModels = {}
@@ -122,18 +117,23 @@ do
                 for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ false ]
                     allowedPlayerModels[ modelPath ] = true
 
-                UpdateAvalibleModels = ( _, __, str ) ->
-                    unless selectPanel\IsValid!
+                UpdateAvalibleModels = ->
+                    unless selectPanel\IsValid! and selectPanel\IsVisible!
                         return
 
+                    filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
                     for _, icon in pairs( selectPanel\GetItems! )
-                        allowed = str == "1" or allowedPlayerModels[ icon.ModelPath or "" ]
-                        icon.Allowed = allowed
-                        icon\SetVisible( allowed )
+                        allowed = Jailbreak.CustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath or "" ]
+                        unless allowed
+                            icon\SetVisible( false )
+                            continue
+
+                        icon\SetVisible( icon.ModelName\find( filter, 1, true ) and icon.ModelPath\find( filter, 1, true ) )
                     selectPanel\InvalidateLayout!
 
-                cvars.AddChangeCallback( "jb_custom_player_models", UpdateAvalibleModels, "Jailbreak" )
-                UpdateAvalibleModels( nil, nil, Jailbreak.CustomPlayerModels\GetString! )
+                timer.Create( "player-editor-models", 0.5, 0, UpdateAvalibleModels )
+                modelsSearch.OnValueChange = UpdateAvalibleModels
+                UpdateAvalibleModels!
 
             sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
 
@@ -503,7 +503,8 @@ do
     Functions = {
         [0]: ->
             for ply, volume in pairs( net_ReadTable! )
-                PLAYER_SetVoiceVolumeScale( ply, volume )
+                if ply\IsValid!
+                    PLAYER_SetVoiceVolumeScale( ply, volume )
         [1]: ->
             SoundHandler( net.ReadString! )
     }
@@ -776,7 +777,7 @@ do
         iconLayout.OnMousePressed = ( ... ) =>
             @GetParent!\OnMousePressed( ... )
 
-        for windowName, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
+        for windowName, desktopWindow in SortedPairs( list.Get( "DesktopWindows" ) )
             icon = iconLayout\Add( "DButton" )
             icon\SetText( "" )
             icon\SetSize( 80, 82 )
@@ -838,7 +839,7 @@ do
 
     SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
 
-    list.Set "DesktopWindows", "security-radio", {
+    list.Set "DesktopWindows", "!2security-radio", {
         title: "#jb.toggle.radio"
         icon: "icon16/phone.png"
         think: =>
@@ -856,7 +857,7 @@ do
             SecurityRadio\SetBool( not SecurityRadio\GetBool! )
     }
 
-list.Set "DesktopWindows", "warden-request", {
+list.Set "DesktopWindows", "!4warden-request", {
     title: "#jb.become.warden"
     icon: "icon16/user_suit.png"
     think: =>
@@ -876,7 +877,7 @@ list.Set "DesktopWindows", "warden-request", {
         RunConsoleCommand( "jb_warden_request" )
 }
 
-list.Set "DesktopWindows", "electro-collars", {
+list.Set "DesktopWindows", "!3electro-collars", {
     title: "#jb.toggle.electro_collars"
     icon: "icon16/lightning.png"
     think: =>

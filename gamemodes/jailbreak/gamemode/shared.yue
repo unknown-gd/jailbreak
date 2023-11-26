@@ -131,7 +131,10 @@ do
 
     Jailbreak.HasWarden = ->
         warden = Jailbreak.GetWarden!
-        return warden and warden\IsValid! and warden\Alive! and warden\Team! <= 1000
+        unless warden and warden\IsValid!
+            return false
+
+        return warden\Alive! and warden\Team! <= 1000
 
 do
 
@@ -144,7 +147,7 @@ do
         return @Team! == TEAM_GUARD
 
     PLAYER.IsWarden = =>
-        return @GetNW2Bool( "warden" )
+        return @GetNW2Bool( "is-warden" )
 
     PLAYER.IsPrisoner = =>
         return @Team! == TEAM_PRISONER
@@ -577,11 +580,17 @@ do
 
     do
 
+        team_GetPlayers = team.GetPlayers
         NULL = NULL
 
         Jailbreak.GetWarden = ->
-            for ply in *team.GetPlayers( TEAM_GUARD )
+            warden = @Warden
+            if IsValid( warden ) and warden\IsWarden! and warden\Alive! and warden\IsGuard!
+                return warden
+
+            for ply in *team_GetPlayers( TEAM_GUARD )
                 if ply\IsWarden!
+                    @Warden = ply
                     return ply
             return NULL
 
