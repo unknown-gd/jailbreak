@@ -106,7 +106,7 @@ do
         if bool == @IsWarden!
             return
 
-        @SetNW2Bool( "warden", bool )
+        @SetNW2Bool( "is-warden", bool )
         if bool and not silent
             hook_Run( "CreatedWarden", @ )
 
