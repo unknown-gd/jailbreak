@@ -28,8 +28,6 @@ SWEP.Secondary.Ammo = "none"
 SWEP.DrawWeaponInfoBox = false
 SWEP.DrawAmmo = false
 
-SWEP.HitDistance = 48
-
 swingSound = Sound( "WeaponFrag.Throw" )
 hitSound = Sound( "Flesh.ImpactHard" )
 CurTime = CurTime
@@ -162,6 +160,11 @@ SWEP.SecondaryAttack = =>
 phys_pushscale = GetConVar( "phys_pushscale" )
 SERVER = SERVER
 
+ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+SWEP.HitDistance = CreateConVar( "jb_hands_distance", "48", ConVarFlags, "", 16, 4096 )
+SWEP.MinDamage = CreateConVar( "jb_hands_damage_min", "8", ConVarFlags, "", 0, 16384 )
+SWEP.MaxDamage = CreateConVar( "jb_hands_damage_max", "12", ConVarFlags, "", 0, 16384 )
+
 SWEP.DealDamage = =>
     owner = @GetOwner!
     anim = @GetSequenceName( owner\GetViewModel!\GetSequence! )
@@ -170,7 +173,7 @@ SWEP.DealDamage = =>
     start = owner\GetShootPos!
     traceResult = util.TraceLine( {
         start: start
-        endpos: start + owner\GetAimVector! * @HitDistance
+        endpos: start + owner\GetAimVector! * @HitDistance\GetInt!
         filter: owner
         mask: MASK_SHOT_HULL
     } )
@@ -178,7 +181,7 @@ SWEP.DealDamage = =>
     unless IsValid( traceResult.Entity )
         traceResult = util.TraceHull( {
             start: start
-            endpos: start + owner\GetAimVector! * @HitDistance
+            endpos: start + owner\GetAimVector! * @HitDistance\GetInt!
             filter: owner
             mins: Vector( -10, -10, -8 )
             maxs: Vector( 10, 10, 8 )
@@ -194,17 +197,17 @@ SWEP.DealDamage = =>
         hit = false
         if IsValid( entity )
             scale = phys_pushscale\GetFloat!
-            if ( entity\IsNPC! or entity\IsPlayer! or entity\Health! > 0 )
+            if entity\IsNPC! or entity\IsPlayer! or entity\Health! > 0
                 damageInfo = DamageInfo!
 
                 attacker = owner
                 unless IsValid( attacker )
                     attacker = @
 
-                damageInfo\SetAttacker( attacker )
                 damageInfo\SetInflictor( @ )
-                damageInfo\SetDamage( math.random( 8, 12 ) )
+                damageInfo\SetAttacker( attacker )
                 damageInfo\SetDamageType( DMG_SLASH )
+                damageInfo\SetDamage( math.random( @MinDamage\GetInt!, @MaxDamage\GetInt! ) )
 
                 if anim == "fists_left"
                     damageInfo\SetDamageForce( owner\GetRight! * 4912 * scale + owner\GetForward! * 9998 * scale ) -- Yes we need those specific numbers
@@ -212,9 +215,10 @@ SWEP.DealDamage = =>
                     damageInfo\SetDamageForce( owner\GetRight! * -4912 * scale + owner\GetForward! * 9989 * scale )
                 elseif anim == "fists_uppercut"
                     damageInfo\SetDamageForce( owner\GetUp! * 5158 * scale + owner\GetForward! * 10012 * scale )
-                    damageInfo\SetDamage( math.random( 12, 24 ) )
+                    damageInfo\ScaleDamage( 2 )
 
-                SuppressHostEvents( NULL ) -- Let the breakable gibs spawn in multiplayer on client
+                -- Let the breakable gibs spawn in multiplayer on client
+                SuppressHostEvents( NULL )
                 entity\TakeDamageInfo( damageInfo )
                 SuppressHostEvents( owner )
                 hit = true
