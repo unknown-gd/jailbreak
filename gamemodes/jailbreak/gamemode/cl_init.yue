@@ -509,6 +509,8 @@ do
             mapGame = net.ReadString!
             SoundHandler( mapGame )
             ( GM or GAMEMODE ).MapGame = mapGame
+        [2]: ->
+            hook_Run( "HUDItemPickedUp", net.ReadString! )
     }
 
     net.Receive( "Jailbreak::Networking", ->

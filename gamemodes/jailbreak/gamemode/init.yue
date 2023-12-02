@@ -102,6 +102,12 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.SendPickupNotify = ( itemName ) =>
+        net.Start( "Jailbreak::Networking" )
+        net.WriteUInt( 2, 2 )
+        net.WriteString( itemName )
+        net.Send( @ )
+
     PLAYER.SetWarden = ( bool, silent ) =>
         if bool == @IsWarden!
             return
@@ -767,6 +773,7 @@ do
                     damageInfo\SetDamageType( DMG_SONIC )
                     damageInfo\SetDamage( newDamage )
                     attacker\TakeDamageInfo( damageInfo )
+                    attacker\EmitSound( "Jailbreak.Shock" )
 
                 newDamage = damage * @ElectroCollarVictimDamage\GetFloat!
                 if newDamage < 1
@@ -925,16 +932,19 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
     if ragdoll.HasFlashlight and not ply\CanUseFlashlight!
         velocity += direction * 150
         ply\AllowFlashlight( true )
+        ply\SendPickupNotify( "jb.security-flashlight" )
         ragdoll.HasFlashlight = nil
 
     if ragdoll.HasSecurityAccess and not ply\HasSecurityAccess!
         velocity += direction * 50
         ply\AllowSecurityAccess( true )
+        ply\SendPickupNotify( "jb.security-card" )
         ragdoll.HasSecurityAccess = nil
 
     if ragdoll.HasSecurityRadio and not ply\HasSecurityRadio!
         velocity += direction * 50
         ply\AllowSecurityRadio( true )
+        ply\SendPickupNotify( "jb.security-radio" )
         ragdoll.HasSecurityRadio = nil
 
     weapons = ragdoll.Weapons

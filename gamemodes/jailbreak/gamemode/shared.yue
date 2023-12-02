@@ -655,3 +655,18 @@ GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         return false
 
     return true
+
+do
+
+    sounds = {}
+    for number = 1, 6 do
+        sounds[ number ] = "ambient/energy/spark" .. number .. ".wav"
+
+    sound.Add {
+        name: "Jailbreak.Shock"
+        channel: CHAN_WEAPON
+        level: SNDLVL_70dB
+        sound: sounds
+        pitch: 100
+        volume: 1
+    }
