@@ -19,7 +19,7 @@ GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFla
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "", 0, 100 )
 
 RunConsoleCommand( "mp_show_voice_icons", GM.Classic\GetString! )
-cvars.AddChangeCallback( "jb_arcade", ( _, __, value ) ->
+cvars.AddChangeCallback( "jb_classic", ( _, __, value ) ->
     RunConsoleCommand( "mp_show_voice_icons", value )
 "Jailbreak" )
 
@@ -27,6 +27,8 @@ Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", ConVarF
 cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
     Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
 "Jailbreak" )
+
+Jailbreak.VoiceChatPVS = CreateConVar( "jb_voice_chat_pvs", "0", ConVarFlags, "", 0, 1 )
 
 util.AddNetworkString( "Jailbreak::Networking" )
 
@@ -104,7 +106,7 @@ do
 
     PLAYER.SendPickupNotify = ( itemName ) =>
         net.Start( "Jailbreak::Networking" )
-        net.WriteUInt( 2, 2 )
+        net.WriteUInt( 1, 2 )
         net.WriteString( itemName )
         net.Send( @ )
 
@@ -1078,7 +1080,7 @@ do
     "Jailbreak" )
 
     CanHear = ( listener, speaker ) ->
-        if not Jailbreak.GameInProgress! or OOC
+        if not Jailbreak.GameInProgress!
             return true, false
 
         listenerAlive, speakerAlive = listener\Alive!, speaker\Alive!
@@ -1088,19 +1090,35 @@ do
         else
             return not listenerAlive, false
 
-    timer.Create "JB:Voice Chat Think", 1, 0, ->
+    timer.Create "JB:Voice Chat Think", 0.5, 0, ->
         players = player_GetHumans!
         for listener in *players
             speakers = listener.AvailableSpeakers
             Empty( speakers )
 
+            if OOC
+                for speaker in *players
+                    speakers[ speaker ] = 1
+
+                net.Start( "JB::Voice Chat", true )
+                net.WriteTable( speakers )
+                net.Send( listener )
+                continue
+
             origin = EyePos( listener )
+
             rf = RecipientFilter!
-            rf\AddPAS( origin )
+            if Jailbreak.VoiceChatPVS\GetBool!
+                rf\AddPVS( origin )
+            else
+                rf\AddPAS( origin )
 
             listenerIndex = listener\EntIndex!
             for speaker in *rf\GetPlayers!
-                if speaker\IsBot! or speaker\EntIndex! == listenerIndex or not CanHear( listener, speaker )
+                if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                    continue
+
+                if CanHear( listener, speaker ) == false
                     continue
 
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
@@ -1112,16 +1130,16 @@ do
                     if speaker\HasSecurityRadio! and speaker\GetInfo( "cl_security_radio" )
                         speakers[ speaker ] = 1
 
-            net.Start( "Jailbreak::Networking" )
-            net.WriteUInt( 0, 2 )
+            net.Start( "JB::Voice Chat", true )
             net.WriteTable( speakers )
             net.Send( listener )
 
-            listener.AvailableSpeakers = speakers
-
     GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
+        if OOC
+            return true
+
         if listener\IsBot!
-            return false
+            return
 
         unless IsValid( speaker )
             return true
@@ -1136,8 +1154,14 @@ do
         return listener.AvailableSpeakers[ speaker ] ~= nil
 
     GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
-        if listener\IsBot!
-            return false, false
+        if OOC
+            return true, false
+
+        if listener\IsBot! or speaker\IsBot!
+            return
+
+        if listener\EntIndex! == speaker\EntIndex!
+            return true, true
 
         canHear, is3D = CanHear( listener, speaker )
         if canHear ~= nil
@@ -1220,7 +1244,7 @@ GM.PlayerInitialized = ( ply ) =>
         return
 
     net.Start( "Jailbreak::Networking" )
-    net.WriteUInt( 1, 2 )
+    net.WriteUInt( 0, 2 )
     net.WriteString( gameName )
     net.Send( ply )
 

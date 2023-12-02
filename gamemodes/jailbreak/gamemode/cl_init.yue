@@ -2,6 +2,8 @@ include( "shared.lua" )
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
 Jailbreak = Jailbreak
+hook_Run = hook.Run
+pairs = pairs
 
 do
 
@@ -395,9 +397,6 @@ do
     list.Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
     list.Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
 
-hook_Run = hook.Run
-pairs = pairs
-
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
@@ -494,30 +493,34 @@ do
 
 do
 
-    PLAYER = FindMetaTable( "Player" )
-
-    PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
-    net_ReadTable = net.ReadTable
-    net_ReadUInt = net.ReadUInt
+    :ReadString, :ReadUInt = net
 
     Functions = {
         [0]: ->
-            for ply, volume in pairs( net_ReadTable! )
-                if ply\IsValid!
-                    PLAYER_SetVoiceVolumeScale( ply, volume )
-        [1]: ->
-            mapGame = net.ReadString!
+            mapGame = ReadString!
             SoundHandler( mapGame )
             ( GM or GAMEMODE ).MapGame = mapGame
-        [2]: ->
-            hook_Run( "HUDItemPickedUp", net.ReadString! )
+        [1]: ->
+            hook_Run( "HUDItemPickedUp", ReadString! )
     }
 
     net.Receive( "Jailbreak::Networking", ->
-        func = Functions[ net_ReadUInt( 2 ) ]
+        func = Functions[ ReadUInt( 2 ) ]
         if func
             func!
     )
+
+do
+
+    PLAYER = FindMetaTable( "Player" )
+    PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
+    net_ReadTable = net.ReadTable
+
+    net.Receive "JB::Voice Chat", ->
+        for ply, volume in pairs( net_ReadTable! )
+            if ply\IsValid!
+                PLAYER_SetVoiceVolumeScale( ply, volume )
+
 
 GM.HUDPaint = =>
     if @Classic\GetBool!
