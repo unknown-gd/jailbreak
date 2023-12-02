@@ -581,6 +581,9 @@ do
     Jailbreak.IsElectroCollarsActive = ->
         return GetGlobal2Bool( "electro-collars" )
 
+    Jailbreak.GetWardenCoins = ->
+        return GetGlobal2Int( "warden-coins" )
+
     do
 
         team_GetPlayers = team.GetPlayers

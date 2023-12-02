@@ -82,6 +82,15 @@ do
         unless silent
             hook_Run( "ElectroCollars", bool )
 
+    Jailbreak.SetWardenCoins = ( value, silent ) ->
+        oldValue = Jailbreak.GetWardenCoins!
+        if value == oldValue
+            return
+
+        SetGlobal2Int( "warden-coins", value )
+        unless silent
+            hook_Run( "WardenCoins", oldValue, value )
+
 do
 
     ENTITY = FindMetaTable( "Entity" )
