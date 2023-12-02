@@ -546,6 +546,15 @@ GM.FinishMove = ( ply, mv ) =>
     if ply\IsPlayingTaunt!
         mv\SetForwardSpeed( 0 )
         mv\SetSideSpeed( 0 )
+
+GM.ShouldCollide = ( entity, ply ) =>
+    unless ply\IsPlayer! and ply\Alive!
+        return
+
+    switch entity\GetClass!
+        when "func_respawnroomvisualizer"
+            return ply\Team! ~= @GetTeam!
+
 do
 
     GetRoundState = ->
