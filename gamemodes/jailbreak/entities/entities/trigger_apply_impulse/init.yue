@@ -1,0 +1,29 @@
+ENT.Type = "brush"
+
+ENT.Initialize = =>
+	@SetTrigger( true )
+
+ENT.Touch = ( entity ) =>
+	if @Disabled
+		return
+
+	print @, "push", entity
+
+ENT.Disable = =>
+	@Disabled = true
+
+ENT.Enable = =>
+	@Disabled = false
+
+ENT.Toggle = =>
+	@Disabled = not @Disabled
+
+ENT.AcceptInput = ( key, activator, caller, data ) =>
+    func = @[ key ]
+    if func
+        func( @ )
+
+ENT.KeyValue = ( key, value ) =>
+	switch key
+		when "StartDisabled"
+        	@Disabled = tobool( value )

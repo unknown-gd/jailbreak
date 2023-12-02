@@ -1,0 +1,26 @@
+ENT.Type = "point"
+
+ENT.Teams = {
+    [ 1 ]: TEAM_SPECTATOR
+    [ 2 ]: TEAM_PRISONER
+    [ 3 ]: TEAM_GUARD
+}
+
+ENT.Display = =>
+    teamID = @Teams[ @GetInternalVariable( "display_to_team" ) ]
+    print "teamID:", teamID
+    unless teamID
+        return
+
+    message = @GetInternalVariable( "message" )
+    unless message
+        return
+
+    for ply in *team.GetPlayers( teamID )
+        unless ply\IsBot!
+            ply\PrintMessage( HUD_PRINTCENTER, message )
+
+ENT.AcceptInput = ( key, activator, caller, data ) =>
+    func = @[ key ]
+    if func
+        func( @ )
