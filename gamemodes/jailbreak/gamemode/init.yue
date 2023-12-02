@@ -319,11 +319,7 @@ do
         return ragdoll
 
 GM.CreatedWarden = ( ply ) =>
-    PrintMessage( HUD_PRINTCENTER, "New warden: " .. ply\Nick! )
-
-GM.FemalePrison = ( isFemalePrison ) =>
-    if isFemalePrison
-        PrintMessage( HUD_PRINTCENTER, "Female Prison!" )
+    PrintMessage( HUD_PRINTTALK, string.format( "#jb.alert.new_warden", ply\Nick! ) )
 
 GM.ElectroCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
@@ -342,10 +338,10 @@ GM.ElectroCollarEffect = ( ply ) =>
     ply\EmitSound( "Jailbreak.Shock" )
 
 GM.ElectroCollars = ( bool ) =>
-    PrintMessage( HUD_PRINTCENTER, "Electro collars is " .. ( bool and "ON" or "OFF" ) )
     for ply in *player.GetAll!
         if ply\Alive! and ply\HasElectroCollar!
             @ElectroCollarEffect( ply )
+            ply\SendNotify( "#jb.notify.electro_collar." .. ( bool and "on" or "off" ), bool and NOTIFY_GENERIC or NOTIFY_UNDO, 30 )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
@@ -428,6 +424,10 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
         hook_Run( "PlayerRagdollUse", ragdoll, ply )
         ragdoll\Remove!
 
+GM.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "100", ConVarFlags, "", 0, 3000 )
+GM.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "185", ConVarFlags, "", 0, 3000 )
+GM.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "365", ConVarFlags, "", 0, 3000 )
+
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\DisableWorldClicking( true )
     ply\SetCanZoom( false )
@@ -437,9 +437,9 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\StripWeapons!
     ply\UnSpectate!
 
-    ply\SetSlowWalkSpeed( 100 )
-    ply\SetWalkSpeed( 185 )
-    ply\SetRunSpeed( 365 )
+    ply\SetSlowWalkSpeed( @PlayerSlowWalkSpeed\GetInt! )
+    ply\SetWalkSpeed( @PlayerWalkSpeed\GetInt! )
+    ply\SetRunSpeed( @PlayerRunSpeed\GetInt! )
 
     ply\SetMaxHealth( 100 )
     ply\SetMaxArmor( 100 )
