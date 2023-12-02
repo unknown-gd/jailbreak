@@ -184,11 +184,11 @@ do
 
         modelPath = @GetModel!
         unless IsValidModel( modelPath )
-            return
+            return NULL
 
         spawnOrigin = @WorldSpaceCenter!
         unless IsInWorld( spawnOrigin )
-            return
+            return NULL
 
         ragdoll = ents_Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
         ragdoll\SetAngles( @GetAngles! )
@@ -624,13 +624,14 @@ do
                 return spawnPoint
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
-    if ply\Team! > 1000
+    teamID = ply\Team!
+    if teamID > 1000
         return
 
     ply\AddDeaths( 1 )
 
     ragdoll = ply\CreateRagdoll!
-    unless IsValid( ragdoll )
+    unless ragdoll\IsValid!
         return
 
     damageOrigin = damageInfo\GetDamagePosition!
@@ -646,22 +647,9 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
         if IsValid( phys )
             phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
-GM.PlayerSilentDeath = ( ply ) =>
-    if ply\IsBot!
-        ply.LastSpectatedEntity = 0
-
-    teamID = ply\Team!
-    if teamID <= 1000
-        hook_Run( "TeamPlayerDeath", ply, teamID )
+    hook_Run( "TeamPlayerDeath", ply, teamID )
 
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
-    if ply\IsBot!
-        ply.LastSpectatedEntity = 0
-
-    teamID = ply\Team!
-    if teamID <= 1000
-        hook_Run( "TeamPlayerDeath", ply, teamID )
-
     -- TODO: Write here death notifies
 
 do
@@ -730,8 +718,10 @@ do
 
 GM.PlayerDisconnected = ( ply ) =>
     teamID = ply\Team!
-    if teamID <= 1000
-        hook_Run( "TeamPlayerDisconnected", ply, teamID )
+    if teamID > 1000
+        return
+
+    hook_Run( "TeamPlayerDisconnected", ply, teamID )
 
 DMG_NEVERGIB = DMG_NEVERGIB
 

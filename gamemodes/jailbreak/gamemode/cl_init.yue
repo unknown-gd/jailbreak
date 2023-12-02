@@ -525,6 +525,8 @@ GM.HUDPaint = =>
     hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 
     state = Jailbreak.GetRoundState!
+    if state == "running"
+        return
 
     str = language.GetPhrase( "jb.round." .. state )
     if state ~= "waiting"
@@ -741,6 +743,16 @@ do
 
     PANEL.EndKeyFocus = ( pPanel ) =>
         @SetKeyboardInputEnabled( false )
+
+    PANEL.Paint = ( width, height ) =>
+        if Jailbreak.GetRoundState! ~= "running"
+            return
+
+        remainingTime = Jailbreak.GetRemainingTime!
+        if remainingTime == 0
+            return
+
+        draw.DrawText( string.upper( string.format( language.GetPhrase( "jb.round.running" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 

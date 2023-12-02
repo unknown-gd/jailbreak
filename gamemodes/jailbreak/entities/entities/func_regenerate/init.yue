@@ -13,13 +13,13 @@ ENT.Regenerate = ( ply ) =>
     for weapon in *ply\GetWeapons!
         clip1Type = weapon\GetPrimaryAmmoType!
         if clip1Type >= 0
-            amount = GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type )
+            amount = math.ceil( GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) )
             if amount > 0
                 ply\GiveAmmo( amount, clip1Type, false )
 
         clip2Type = weapon\GetSecondaryAmmoType!
         if clip2Type >= 0
-            amount = GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type )
+            amount = math.ceil( GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) )
             if amount > 0
                 ply\GiveAmmo( amount, clip2Type, false )
 
