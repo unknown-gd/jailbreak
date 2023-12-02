@@ -22,6 +22,10 @@ ENT.Initialize = =>
     @ResetSequence( @Sequence )
     @Show!
 
+    init = @Init
+    if init ~= nil
+        init( @ )
+
 ENT.Hide = =>
     @SetNoDraw( true )
     @SetTrigger( false )
@@ -41,7 +45,6 @@ ENT.Show = =>
         @EmitSound( Sound( "Item.Show" ) )
         @SetNoDraw( false )
         @MuzzleFlash!
-
     @SetTrigger( true )
 
 ENT.Touch = ( entity ) =>
@@ -59,7 +62,8 @@ ENT.Touch = ( entity ) =>
     if hook.Run( "PlayerCanPickupItem", entity, @ ) == false
         return
 
-    unless @PlayerGotItem( entity )
+    playerGotItem = @PlayerGotItem
+    unless playerGotItem and playerGotItem( @, entity )
         return
 
     soundName = @Sound
@@ -100,5 +104,3 @@ ENT.KeyValue = ( key, value ) =>
             @Angles = Angle( value )
         when "StartDisabled"
             @Disabled = tobool( value )
-
-ENT.PlayerGotItem = ->

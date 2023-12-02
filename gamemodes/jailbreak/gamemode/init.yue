@@ -157,7 +157,9 @@ do
             if @GetObserverMode! ~= OBS_MODE_ROAMING
                 @Spectate( OBS_MODE_ROAMING )
             @SetPos( entity\GetPos! )
-            @SetAngles( entity\GetAngles! )
+            angles = entity\GetAngles!
+            angles[ 3 ] = 0
+            @SetEyeAngles( angles )
         @LastSpectatedEntity = index
 
     PLAYER.UsingSecurityRadio = =>
