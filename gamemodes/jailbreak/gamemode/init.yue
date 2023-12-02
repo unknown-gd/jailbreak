@@ -518,7 +518,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\GiveAmmo( 40, "Pistol", true )
         ply\GiveAmmo( 20, "Buckshot", true )
 
-        if @MapGameName ~= "cstrike"
+        if @MapGame ~= "cstrike"
             avaliableWeapons = @AvaliableWeapons
             count = #avaliableWeapons / 4
             gived = {}
@@ -1200,13 +1200,13 @@ GM.InitPostEntity = =>
     if #ents.FindByClass( "info_player_teamspawn" ) > 0
         resource.AddWorkshop( "105181283" )
         SoundHandler( "tf" )
-        @MapGameName = "tf"
+        @MapGame = "tf"
     elseif ( #ents.FindByClass( "info_player_counterterrorist" ) + #ents.FindByClass( "info_player_counterterrorist" ) ) > 0
         SoundHandler( "cstrike" )
-        @MapGameName = "cstrike"
+        @MapGame = "cstrike"
 
 GM.PlayerInitialized = ( ply ) =>
-    gameName = @MapGameName
+    gameName = @MapGame
     unless gameName
         return
 

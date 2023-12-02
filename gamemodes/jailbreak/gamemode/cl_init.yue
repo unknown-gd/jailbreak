@@ -506,7 +506,9 @@ do
                 if ply\IsValid!
                     PLAYER_SetVoiceVolumeScale( ply, volume )
         [1]: ->
-            SoundHandler( net.ReadString! )
+            mapGame = net.ReadString!
+            SoundHandler( mapGame )
+            ( GM or GAMEMODE ).MapGame = mapGame
     }
 
     net.Receive( "Jailbreak::Networking", ->
