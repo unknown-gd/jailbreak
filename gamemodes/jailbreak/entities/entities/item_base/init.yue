@@ -2,30 +2,71 @@ AddCSLuaFile( "cl_init.lua" )
 
 ENT.Type = "anim"
 ENT.Sequence = "idle"
+ENT.RenderGroup = RENDERGROUP_OPAQUE
+
+ENT.RespawnTime = 20
 
 ENT.Initialize = =>
-    @SetModel( @Model )
+    @SetModel( Model( @Model ) )
+    @PhysicsInit( SOLID_VPHYSICS )
+    @SetMoveType( MOVETYPE_NONE )
+    @SetSolid( SOLID_BBOX )
+
+    @AddEFlags( EFL_NO_ROTORWASH_PUSH )
+	@SetNotSolid( true )
+    @SetNoDraw( true )
+
+    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
+    @UseTriggerBounds( true, 24 )
+
+    @ResetSequence( @Sequence )
+    @Show!
+
+ENT.Hide = =>
+    @SetNoDraw( true )
+    @SetTrigger( false )
 
     @SetPos( @Origin )
     @SetAngles( @Angles )
+
+    @DropToFloor!
+    @RemoveAllDecals!
+
+    timer.Simple @RespawnTime, ->
+        if @IsValid!
+            @Show!
+
+ENT.Show = =>
+    if @GetNoDraw!
+        @EmitSound( Sound( "Item.Show" ) )
+        @SetNoDraw( false )
+        @MuzzleFlash!
+
     @SetTrigger( true )
 
-    @PhysicsInit( SOLID_BBOX )
-    @SetMoveType( MOVETYPE_NONE )
-    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
-
-    @ResetSequence( @Sequence )
-    @Init!
-
-ENT.Action = ->
-ENT.Init = ->
-
 ENT.Touch = ( entity ) =>
-    if @IsDisabled!
+    if @IsDisabled! or @GetNoDraw!
         return
 
-    if entity\IsPlayer! and entity\Alive!
-        @Action( entity )
+    if entity\IsVehicle!
+        entity = entity\GetPassenger( 1 )
+        unless entity\IsValid!
+            return
+
+    unless entity\IsPlayer!
+        return
+
+    if hook.Run( "PlayerCanPickupItem", entity, @ ) == false
+        return
+
+    unless @PlayerGotItem( entity )
+        return
+
+    soundName = @Sound
+    if soundName
+        entity\EmitSound( soundName )
+
+    @Hide!
 
 ENT.IsDisabled = =>
     return @Disabled or false
@@ -59,3 +100,5 @@ ENT.KeyValue = ( key, value ) =>
             @Angles = Angle( value )
         when "StartDisabled"
             @Disabled = tobool( value )
+
+ENT.PlayerGotItem = ->

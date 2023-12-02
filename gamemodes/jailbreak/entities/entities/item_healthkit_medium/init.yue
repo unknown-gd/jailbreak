@@ -5,15 +5,10 @@ ENT.Model = "models/items/medkit_medium.mdl"
 ENT.Sound = Sound( "HealthKit.Touch" )
 ENT.Healing = 0.5
 
-ENT.Action = ( ply ) =>
-    if @IsDisabled! or ply\Health! >= ply\GetMaxHealth!
+ENT.PlayerGotItem = ( ply ) =>
+    if ply\Health! >= ply\GetMaxHealth!
         return
 
     maxHealth = ply\GetMaxHealth!
     ply\SetHealth( math.Clamp( ply\Health! + math.floor( maxHealth * @Healing ), 0, maxHealth ) )
-    ply\EmitSound( @Sound )
-
-    @Disable!
-    timer.Simple 20, ->
-        if IsValid( @ )
-            @Enable!
+    return true

@@ -6,34 +6,22 @@ ENT.Model = "models/items/ammopack_medium.mdl"
 ENT.Sound = Sound( "AmmoPack.Touch" )
 ENT.Ammo = 0.5
 
-ENT.GiveAmmo = ( ply ) =>
+ENT.PlayerGotItem = ( ply ) =>
     gived = false
 
     for weapon in *ply\GetWeapons!
         clip1Type = weapon\GetPrimaryAmmoType!
         if clip1Type >= 0
-            amount = GetAmmoMax( clip1Type ) * @Ammo - ply\GetAmmoCount( clip1Type )
+            amount = math.ceil( ( GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) ) * @Ammo )
             if amount > 0
-                ply\GiveAmmo( amount, clip1Type, true )
+                ply\GiveAmmo( amount, clip1Type, false )
                 gived = true
 
         clip2Type = weapon\GetSecondaryAmmoType!
         if clip2Type >= 0
-            amount = GetAmmoMax( clip2Type ) * @Ammo - ply\GetAmmoCount( clip2Type )
+            amount = math.ceil( ( GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) ) * @Ammo )
             if amount > 0
-                ply\GiveAmmo( amount, clip2Type, true )
+                ply\GiveAmmo( amount, clip2Type, false )
                 gived = true
 
     return gived
-
-ENT.Action = ( ply ) =>
-    if @IsDisabled!
-        return
-
-    if @GiveAmmo( ply )
-        ply\EmitSound( @Sound )
-        @Disable!
-
-        timer.Simple 20, ->
-            if IsValid( @ )
-                @Enable!
