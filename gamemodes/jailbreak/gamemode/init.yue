@@ -587,8 +587,9 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
         return
 
     hands\SetModel( info.model )
-    hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
     hands\SetBodyGroups( info.body )
+    hands\SetPlayerColor( ply\GetPlayerColor! )
+    hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
 
 GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     if entity\GetClass! == "info_player_teamspawn"
