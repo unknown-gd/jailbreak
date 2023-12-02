@@ -10,9 +10,9 @@ ENT.Initialize = =>
     @SetAngles( @Angles )
     @SetTrigger( true )
 
-    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
+    @PhysicsInit( SOLID_BBOX )
     @SetMoveType( MOVETYPE_NONE )
-    @PhysicsInit( SOLID_OBB )
+    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
     @ResetSequence( @Sequence )
     @Init!

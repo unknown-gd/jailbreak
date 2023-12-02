@@ -584,13 +584,13 @@ do
         NULL = NULL
 
         Jailbreak.GetWarden = ->
-            warden = @Warden
+            warden = Jailbreak.Warden
             if IsValid( warden ) and warden\IsWarden! and warden\Alive! and warden\IsGuard!
                 return warden
 
             for ply in *team_GetPlayers( TEAM_GUARD )
                 if ply\IsWarden!
-                    @Warden = ply
+                    Jailbreak.Warden = ply
                     return ply
             return NULL
 
