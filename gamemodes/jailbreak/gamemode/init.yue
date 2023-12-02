@@ -146,6 +146,8 @@ do
             @SetAngles( entity\GetAngles! )
         @LastSpectatedEntity = index
 
+    PLAYER.UsingSecurityRadio = =>
+        return @HasSecurityRadio! and @GetInfo( "cl_security_radio" ) == "1"
 
     do
 
@@ -1080,15 +1082,11 @@ do
     "Jailbreak" )
 
     CanHear = ( listener, speaker ) ->
-        if not Jailbreak.GameInProgress!
-            return true, false
-
-        listenerAlive, speakerAlive = listener\Alive!, speaker\Alive!
-        if speakerAlive
+        if speaker\Alive!
             if speaker\IsMutedByWarden!
                 return false, false
         else
-            return not listenerAlive, false
+            return not listener\Alive!, false
 
     timer.Create "JB:Voice Chat Think", 0.5, 0, ->
         players = player_GetHumans!
@@ -1096,7 +1094,7 @@ do
             speakers = listener.AvailableSpeakers
             Empty( speakers )
 
-            if OOC
+            if OOC or not Jailbreak.IsRoundRunning!
                 for speaker in *players
                     speakers[ speaker ] = 1
 
@@ -1113,7 +1111,9 @@ do
             else
                 rf\AddPAS( origin )
 
+            hasRadio = listener\HasSecurityRadio!
             listenerIndex = listener\EntIndex!
+
             for speaker in *rf\GetPlayers!
                 if speaker\IsBot! or speaker\EntIndex! == listenerIndex
                     continue
@@ -1121,13 +1121,16 @@ do
                 if CanHear( listener, speaker ) == false
                     continue
 
+                if hasRadio and speaker\UsingSecurityRadio!
+                    continue
+
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
                 if volume > 0
                     speakers[ speaker ] = volume
 
-            if listener\HasSecurityRadio!
+            if hasRadio
                 for speaker in *players
-                    if speaker\HasSecurityRadio! and speaker\GetInfo( "cl_security_radio" )
+                    if speaker\UsingSecurityRadio!
                         speakers[ speaker ] = 1
 
             net.Start( "JB::Voice Chat", true )
@@ -1135,11 +1138,11 @@ do
             net.Send( listener )
 
     GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
-        if OOC
-            return true
-
         if listener\IsBot!
             return
+
+        if OOC or not Jailbreak.IsRoundRunning!
+            return true
 
         unless IsValid( speaker )
             return true
@@ -1154,21 +1157,18 @@ do
         return listener.AvailableSpeakers[ speaker ] ~= nil
 
     GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
-        if OOC
-            return true, false
-
-        if listener\IsBot! or speaker\IsBot!
+        if listener\EntIndex! == speaker\EntIndex! or listener\IsBot! or speaker\IsBot!
             return
 
-        if listener\EntIndex! == speaker\EntIndex!
-            return true, true
+        if OOC or not Jailbreak.IsRoundRunning!
+            return true, false
 
         canHear, is3D = CanHear( listener, speaker )
         if canHear ~= nil
             return canHear, is3D
 
         if listener.AvailableSpeakers[ speaker ] ~= nil
-            return true, true
+            return true, not speaker\UsingSecurityRadio!
 
         return false, false
 
