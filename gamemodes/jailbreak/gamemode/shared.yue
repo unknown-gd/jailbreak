@@ -500,7 +500,10 @@ do
             if isstring( json )
                 data = util.JSONToTable( json )
                 if istable( data )
-                    table.Merge( Weapons, data )
+                    table.Empty( Weapons )
+                    for key, value in pairs( data )
+                        Weapons[ key ] = value
+
         else
             file.Write( fileName, util.TableToJSON( Weapons, true ) )
 
