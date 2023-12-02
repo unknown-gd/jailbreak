@@ -2,6 +2,12 @@ AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 Jailbreak = Jailbreak
 
+global NOTIFY_GENERIC = 0
+global NOTIFY_ERROR = 1
+global NOTIFY_UNDO = 2
+global NOTIFY_HINT = 3
+global NOTIFY_CLEANUP = 4
+
 ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
 CreateConVar = CreateConVar
 
@@ -108,6 +114,14 @@ do
         net.Start( "Jailbreak::Networking" )
         net.WriteUInt( 1, 2 )
         net.WriteString( itemName )
+        net.Send( @ )
+
+    PLAYER.SendNotify = ( text, typeID, length ) =>
+        net.Start( "Jailbreak::Networking" )
+        net.WriteUInt( 2, 2 )
+        net.WriteString( text )
+        net.WriteUInt( typeID, 3 )
+        net.WriteUInt( length, 16 )
         net.Send( @ )
 
     PLAYER.SetWarden = ( bool, silent ) =>
@@ -309,9 +323,27 @@ GM.FemalePrison = ( isFemalePrison ) =>
     if isFemalePrison
         PrintMessage( HUD_PRINTCENTER, "Female Prison!" )
 
+GM.ElectroCollarEffect = ( ply ) =>
+    headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
+    if headBone >= 0
+        matrix = ply\GetBoneMatrix( headBone )
+        if matrix
+            origin = matrix\GetTranslation!
+
+    fx = EffectData!
+    fx\SetScale( 0.5 )
+    fx\SetOrigin( origin or ply\EyePos! )
+    fx\SetMagnitude( random( 3, 5 ) )
+    fx\SetRadius( random( 1, 5 ) )
+    Effect( "ElectricSpark", fx )
+
+    ply\EmitSound( "Jailbreak.Shock" )
+
 GM.ElectroCollars = ( bool ) =>
-    -- TODO: make disable sound
     PrintMessage( HUD_PRINTCENTER, "Electro collars is " .. ( bool and "ON" or "OFF" ) )
+    for ply in *player.GetAll!
+        if ply\Alive! and ply\HasElectroCollar!
+            @ElectroCollarEffect( ply )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
@@ -660,9 +692,6 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
 
     hook_Run( "TeamPlayerDeath", ply, teamID )
 
-GM.PlayerDeath = ( ply, inflictor, attacker ) =>
-    -- TODO: Write here death notifies
-
 do
 
     MovementKeys = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT, IN_JUMP )
@@ -756,29 +785,14 @@ do
 
         for int in *@CloseRangeDamageTypes
             if bit.band( damageType, int ) == int
-                fx = EffectData!
-                fx\SetScale( 0.5 )
-                origin = nil
-
-                headBone = attacker\LookupBone( "ValveBiped.Bip01_Head1" )
-                if headBone >= 0
-                    matrix = attacker\GetBoneMatrix( headBone )
-                    if matrix
-                        origin = matrix\GetTranslation!
-
-                fx\SetOrigin( origin or attacker\EyePos! )
-                fx\SetMagnitude( random( 3, 5 ) )
-                fx\SetRadius( random( 1, 5 ) )
-                Effect( "ElectricSpark", fx )
-
                 damage = damageInfo\GetDamage!
 
                 newDamage = damage * @ElectroCollarAttackerDamage\GetFloat!
                 if newDamage >= 1
-                    damageInfo\SetDamageType( DMG_SONIC )
+                    @ElectroCollarEffect( attacker )
                     damageInfo\SetDamage( newDamage )
+                    damageInfo\SetDamageType( DMG_SONIC )
                     attacker\TakeDamageInfo( damageInfo )
-                    attacker\EmitSound( "Jailbreak.Shock" )
 
                 newDamage = damage * @ElectroCollarVictimDamage\GetFloat!
                 if newDamage < 1
@@ -1190,8 +1204,8 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
 
     if teamID == TEAM_GUARD
         guardCount = @GetTeamAliveCount( TEAM_GUARD )
-        unless guardCount == 0 or ( guardCount / @GetTeamAliveCount( TEAM_PRISONER ) ) < Jailbreak.GuardsDiff
-            -- TODO: here chat message
+        if guardCount ~= 0 and ( guardCount / max( 1, @GetTeamAliveCount( TEAM_PRISONER ) ) ) >= Jailbreak.GuardsDiff
+            ply\SendNotify( "#jb.error.too_many_guards", NOTIFY_ERROR, 10 )
             return
 
     if ply\Alive!
@@ -1273,11 +1287,6 @@ GM.Think = =>
             when "ended"
                 Jailbreak.SetRoundState( "waiting" )
 
-GM.GetBotFromTeam = ( teamID ) =>
-    for ply in *team.GetPlayers( teamID )
-        if ply\IsBot!
-            return ply
-
 GM.RoundStateChanged = ( old, new ) =>
     switch ( new )
         when "waiting"
@@ -1311,11 +1320,12 @@ GM.RoundStateChanged = ( old, new ) =>
 
             while ( guardCount / prisonerCount ) > Jailbreak.GuardsDiff and totalCount > ( ( 1 / Jailbreak.GuardsDiff ) + guardCount )
                 for i = 1, guardCount
-                    guard = @GetBotFromTeam( TEAM_GUARD ) or Random( team.GetPlayers( TEAM_GUARD ) )
+                    guard = Random( team.GetPlayers( TEAM_GUARD ) )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!
                         break
+
                 guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
                 totalCount = guardCount + prisonerCount
 
@@ -1326,7 +1336,7 @@ GM.RoundStateChanged = ( old, new ) =>
             for ply in *player.GetAll!
                 if ply\IsBot!
                     guardCount = team.NumPlayers( TEAM_GUARD )
-                    if guardCount == 0 or ( guardCount / team.NumPlayers( TEAM_PRISONER ) ) < Jailbreak.GuardsDiff
+                    if guardCount == 0 or ( ( guardCount + 1 ) / team.NumPlayers( TEAM_PRISONER ) ) < Jailbreak.GuardsDiff
                         ply\SetTeam( TEAM_GUARD )
                     else
                         ply\SetTeam( TEAM_PRISONER )

@@ -502,6 +502,8 @@ do
             ( GM or GAMEMODE ).MapGame = mapGame
         [1]: ->
             hook_Run( "HUDItemPickedUp", ReadString! )
+        [2]: ->
+            notification.AddLegacy( ReadString!, ReadUInt( 3 ), ReadUInt( 16 ) )
     }
 
     net.Receive( "Jailbreak::Networking", ->
