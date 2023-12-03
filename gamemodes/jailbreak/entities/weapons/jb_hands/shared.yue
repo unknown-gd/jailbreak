@@ -4,6 +4,9 @@ SWEP.PrintName = "#jb.hands"
 -- SWEP.Author = "Kilburn, robotboy655, MaxOfS2D, Tenrys and Unknown Developer"
 -- SWEP.Purpose = "Well we sure as hell didn't use guns! We would just wrestle Hunters to the ground with our bare hands! I used to kill ten, twenty a day, just using my fists."
 
+if CLIENT
+    SWEP.WepSelectIcon = surface.GetTextureID( "weapons/jb_hands" )
+
 SWEP.Slot = 0
 SWEP.SlotPos = 4
 SWEP.Weight = -5
