@@ -105,6 +105,15 @@ do
         unless silent
             hook_Run( "WardenCoins", oldValue, value )
 
+    Jailbreak.BroadcastNotify = ( text, typeID, length, ... ) ->
+        net.Start( "Jailbreak::Networking" )
+        net.WriteUInt( 2, 2 )
+        net.WriteString( text )
+        net.WriteTable( { ... }, true )
+        net.WriteUInt( typeID, 3 )
+        net.WriteUInt( length, 16 )
+        net.Broadcast!
+
 do
 
     ENTITY = FindMetaTable( "Entity" )
@@ -122,10 +131,11 @@ do
         net.WriteString( itemName )
         net.Send( @ )
 
-    PLAYER.SendNotify = ( text, typeID, length ) =>
+    PLAYER.SendNotify = ( text, typeID, length, ... ) =>
         net.Start( "Jailbreak::Networking" )
         net.WriteUInt( 2, 2 )
         net.WriteString( text )
+        net.WriteTable( { ... }, true )
         net.WriteUInt( typeID, 3 )
         net.WriteUInt( length, 16 )
         net.Send( @ )
@@ -325,7 +335,7 @@ do
         return ragdoll
 
 GM.CreatedWarden = ( ply ) =>
-    PrintMessage( HUD_PRINTTALK, string.format( "#jb.alert.new_warden", ply\Nick! ) )
+    Jailbreak.BroadcastNotify( "#jb.alert.new_warden", NOTIFY_HINT, 30, ply\Nick! )
 
 GM.ElectroCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil

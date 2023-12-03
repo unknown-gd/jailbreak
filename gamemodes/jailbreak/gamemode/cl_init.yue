@@ -504,7 +504,9 @@ do
 
 do
 
-    :ReadString, :ReadUInt = net
+    :ReadString, :ReadUInt, :ReadTable = net
+    :AddLegacy = notification
+    unpack = unpack
 
     Functions = {
         [0]: ->
@@ -514,7 +516,7 @@ do
         [1]: ->
             hook_Run( "HUDItemPickedUp", ReadString! )
         [2]: ->
-            notification.AddLegacy( ReadString!, ReadUInt( 3 ), ReadUInt( 16 ) )
+            AddLegacy( format( ReadString!, unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
     }
 
     net.Receive( "Jailbreak::Networking", ->
