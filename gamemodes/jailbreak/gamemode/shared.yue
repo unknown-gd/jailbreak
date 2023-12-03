@@ -2,12 +2,16 @@ GM.Name = "Jailbreak"
 GM.Author = "Unknown Developer"
 GM.TeamBased = true
 
-
 global Jailbreak = Jailbreak or {}
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
 
-macro lua = (code)-> {
+global ROUND_WAITING_PLAYERS = 0
+global ROUND_PREPARING = 1
+global ROUND_RUNNING = 2
+global ROUND_ENDED = 3
+
+macro lua = ( code ) -> {
     :code
     type: "lua"
 }
@@ -16,7 +20,13 @@ $lua[==[
 local Jailbreak = Jailbreak
 local TEAM_GUARD = TEAM_GUARD
 local TEAM_PRISONER = TEAM_PRISONER
+
+local ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+local ROUND_PREPARING = ROUND_PREPARING
+local ROUND_RUNNING = ROUND_RUNNING
+local ROUND_ENDED = ROUND_ENDED
 ]==]
+
 
 do
 
@@ -131,10 +141,7 @@ do
 
     Jailbreak.HasWarden = ->
         warden = Jailbreak.GetWarden!
-        unless warden and warden\IsValid!
-            return false
-
-        return warden\Alive! and warden\Team! <= 1000
+        return warden and warden\IsValid! and warden\IsInGame!
 
 do
 
@@ -507,7 +514,6 @@ do
         else
             file.Write( fileName, util.TableToJSON( Weapons, true ) )
 
-
     AvaliableWeapons = {}
     GM.AvaliableWeapons = AvaliableWeapons
     WeaponHandler = WeaponHandler
@@ -622,23 +628,22 @@ do
         slam: true
     }
 
-    hook.Add( "CalcMainActivity", "Jailbreak::Additional Animations", ( ply, velocity ) ->
-        unless ply\IsOnGround!
+    hook.Add "CalcMainActivity", "Jailbreak::Additional Animations", ( velocity ) =>
+        unless @IsOnGround!
             return
 
-        if velocity\Length! >= ply\GetRunSpeed! * 0.95
-            weapon = ply\GetActiveWeapon!
+        if velocity\Length! >= @GetRunSpeed! * 0.95
+            weapon = @GetActiveWeapon!
             if IsValid( weapon ) and not singleHandHoldTypes[ weapon\GetHoldType! ]
                 return
 
             return ACT_HL2MP_RUN_FAST, -1
-        elseif ply\Crouching! and velocity\Length2DSqr! < 1
-            weapon = ply\GetActiveWeapon!
+        elseif @Crouching! and velocity\Length2DSqr! < 1
+            weapon = @GetActiveWeapon!
             if IsValid( weapon ) and weapon\GetHoldType! ~= "normal"
                 return
 
-            return ACT_MP_JUMP, ply\LookupSequence( "pose_ducking_01" )
-    )
+            return ACT_MP_JUMP, @LookupSequence( "pose_ducking_01" )
 
 GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
     if Jailbreak.IsRoundPreparing!

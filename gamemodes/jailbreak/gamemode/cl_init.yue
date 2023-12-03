@@ -1,9 +1,20 @@
 include( "shared.lua" )
+
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
 Jailbreak = Jailbreak
+list_Set = list.Set
 hook_Run = hook.Run
+:format = string
 pairs = pairs
+
+ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+ROUND_PREPARING = ROUND_PREPARING
+ROUND_RUNNING = ROUND_RUNNING
+ROUND_ENDED = ROUND_ENDED
+
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
 
 do
 
@@ -38,7 +49,7 @@ do
     default_animations = { "idle_all_01", "menu_walk" }
     :PrecacheModel = util
 
-    list.Set "DesktopWindows", "!1player-editor", {
+    list_Set "DesktopWindows", "!1player-editor", {
         title: "#smwidget.playermodel"
         icon: "icon64/playermodel.png"
         click: =>
@@ -147,7 +158,7 @@ do
 
                 handsTransparency = colorsPanel\Add( "DNumSlider" )
                 handsTransparency\Dock( TOP )
-                handsTransparency\SetText( "#jb.hands.transparency" )
+                handsTransparency\SetText( "#jb.hands-transparency" )
                 handsTransparency\SetDark( true )
                 handsTransparency\SetTall( 50 )
                 handsTransparency\SetDecimals( 2 )
@@ -369,33 +380,33 @@ do
                 entity\SetAngles( @Angles )
     }
 
-    list.Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
+list_Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
 
-    list.Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
-    list.Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
-    list.Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
-    list.Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
 
-    list.Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
-    list.Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
-    list.Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
-    list.Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
-    list.Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
 
-    list.Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
-    list.Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
-    list.Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
-    list.Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
-    list.Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
 
-    list.Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
-    list.Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
@@ -759,7 +770,7 @@ do
         if remainingTime == 0
             return
 
-        draw.DrawText( string.upper( string.format( language.GetPhrase( "jb.round.running" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
+        draw.DrawText( string.upper( format( language.GetPhrase( "jb.round.running" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 
@@ -804,6 +815,9 @@ do
             icon\SetSize( 80, 82 )
             icon.Paint = ->
 
+            title = desktopWindow.title
+            icon\SetTooltip( title )
+
             image = icon\Add( "DImage" )
             icon.Image = image
 
@@ -816,14 +830,14 @@ do
             icon.Label = label
 
             label\Dock( BOTTOM )
-            label\SetText( desktopWindow.title )
+            label\SetText( title )
             label\SetContentAlignment( 5 )
             label\SetTextColor( color_white )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
 
-            create = desktopWindow.create
-            if isfunction( create )
-                create( icon )
+            init = desktopWindow.init
+            if isfunction( init )
+                init( icon )
 
             think = desktopWindow.think
             if isfunction( think )
@@ -860,12 +874,15 @@ do
 
     SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
 
-    list.Set "DesktopWindows", "!2security-radio", {
-        title: "#jb.toggle.radio"
+    list_Set "DesktopWindows", "!2security-radio", {
+        title: "#jb.walkie-talkie"
         icon: "icon16/phone.png"
         think: =>
             if LocalPlayer!\HasSecurityRadio!
-                @Image\SetImage( SecurityRadio\GetBool! and "icon16/phone_sound.png" or "icon16/phone.png" )
+                state = SecurityRadio\GetBool!
+                @Image\SetImage( state and "icon16/phone_sound.png" or "icon16/phone.png" )
+                @Label\SetText( state and "#jb.off" or "#jb.on" )
+
                 if @IsVisible!
                     return
                 @Show!
@@ -878,11 +895,11 @@ do
             SecurityRadio\SetBool( not SecurityRadio\GetBool! )
     }
 
-list.Set "DesktopWindows", "!4warden-request", {
+list_Set "DesktopWindows", "!4warden-request", {
     title: "#jb.become.warden"
     icon: "icon16/user_suit.png"
     think: =>
-        if Jailbreak.GameInProgress! and not Jailbreak.HasWarden!
+        if Jailbreak.IsRoundRunning! and not Jailbreak.HasWarden!
             ply = LocalPlayer!
             if ply\IsGuard! and ply\Alive!
                 unless @IsVisible!
@@ -898,14 +915,17 @@ list.Set "DesktopWindows", "!4warden-request", {
         RunConsoleCommand( "jb_warden_request" )
 }
 
-list.Set "DesktopWindows", "!3electro-collars", {
+list_Set "DesktopWindows", "!3electro-collars", {
     title: "#jb.toggle.electro_collars"
     icon: "icon16/lightning.png"
     think: =>
         if Jailbreak.GameInProgress!
             ply = LocalPlayer!
             if ply\IsWarden! and ply\Alive!
-                @Image\SetImage( Jailbreak.IsElectroCollarsActive! and "icon16/lightning.png" or "icon16/lightning_delete.png" )
+                state = Jailbreak.IsElectroCollarsActive!
+                @Image\SetImage( state and "icon16/lightning.png" or "icon16/lightning_delete.png" )
+                @Label\SetText( state and "#jb.off" or "#jb.on" )
+
                 unless @IsVisible!
                     @Show!
                     @GetParent!\Layout!

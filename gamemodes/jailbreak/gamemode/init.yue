@@ -8,6 +8,14 @@ global NOTIFY_UNDO = 2
 global NOTIFY_HINT = 3
 global NOTIFY_CLEANUP = 4
 
+ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+ROUND_PREPARING = ROUND_PREPARING
+ROUND_RUNNING = ROUND_RUNNING
+ROUND_ENDED = ROUND_ENDED
+
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
 ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
 CreateConVar = CreateConVar
 
@@ -43,12 +51,10 @@ resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
 
-TEAM_PRISONER = TEAM_PRISONER
-TEAM_GUARD = TEAM_GUARD
-
 math, table = math, table
 :Rand, :random, :max, :min = math
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
+timer_Simple = timer.Simple
 ents_Create = ents.Create
 :Empty, :Random = table
 hook_Run = hook.Run
@@ -506,7 +512,7 @@ GM.OnEntityCreated = ( weapon ) =>
     unless weapon\IsWeapon!
         return
 
-    timer.Simple 0.025, ->
+    timer_Simple 0.025, ->
         unless weapon\IsValid!
             return
 
@@ -953,19 +959,19 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
     if ragdoll.HasFlashlight and not ply\CanUseFlashlight!
         velocity += direction * 150
         ply\AllowFlashlight( true )
-        ply\SendPickupNotify( "jb.security-flashlight" )
+        ply\SendPickupNotify( "jb.flashlight" )
         ragdoll.HasFlashlight = nil
 
     if ragdoll.HasSecurityAccess and not ply\HasSecurityAccess!
         velocity += direction * 50
         ply\AllowSecurityAccess( true )
-        ply\SendPickupNotify( "jb.security-card" )
+        ply\SendPickupNotify( "jb.access-card" )
         ragdoll.HasSecurityAccess = nil
 
     if ragdoll.HasSecurityRadio and not ply\HasSecurityRadio!
         velocity += direction * 50
         ply\AllowSecurityRadio( true )
-        ply\SendPickupNotify( "jb.security-radio" )
+        ply\SendPickupNotify( "jb.walkie-talkie" )
         ragdoll.HasSecurityRadio = nil
 
     weapons = ragdoll.Weapons
@@ -1379,40 +1385,59 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
+        unless Jailbreak.IsRoundRunning!
+            return
 
-        if Jailbreak.IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+        if @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0
             Jailbreak.SetRoundState( "ended" )
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
+    unless ply\Alive!
+        return
+
     timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDisconnected"
+        unless Jailbreak.IsRoundRunning!
+            return
 
-        if Jailbreak.IsRoundRunning! and ( @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0 )
+        if @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0
             Jailbreak.SetRoundState( "ended" )
 
     ply\CreateRagdoll!
 
 GM.TeamPlayerSpawn = ( ply ) =>
+    unless Jailbreak.IsWaitingPlayers!
+        return
+
+    if @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
     if Jailbreak.IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
         Jailbreak.SetRoundState( "preparing" )
         Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
 
-concommand.Add( "changeteam", ( ply, _, args ) ->
-    hook_Run( "PlayerRequestTeam", ply, tonumber( args[ 1 ] ) )
-)
+concommand.Add "changeteam", ( _, args ) =>
+    hook_Run( "PlayerRequestTeam", @, tonumber( args[ 1 ] ) )
 
-concommand.Add( "jb_warden_request", ( ply, _, args ) ->
-    if Jailbreak.GameInProgress! and IsValid( ply ) and ply\Alive! and ply\IsGuard! and not Jailbreak.HasWarden!
-        ply\SetWarden( true )
-)
+concommand.Add "jb_warden_request", ( _, args ) =>
+    unless Jailbreak.IsRoundRunning!
+        return
 
-concommand.Add( "jb_toggle_electro_collars", ( ply, _, args ) ->
-    unless Jailbreak.GameInProgress! and IsValid( ply ) and ply\Alive! and ply\IsWarden!
+    unless IsValid( @ ) and @Alive! and @IsGuard!
+        return
+
+    if Jailbreak.HasWarden!
+        return
+
+    @SetWarden( true )
+
+concommand.Add "jb_toggle_electro_collars", ( _, args ) =>
+    unless Jailbreak.IsRoundRunning!
+        return
+
+    unless IsValid( @ ) and @Alive! and @IsWarden!
         return
 
     requested = args[ 1 ]
-    if requested and #requested ~= 0
+    if requested ~= nil and #requested ~= 0
         Jailbreak.SetElectroCollars( requested == "1" )
     else
         Jailbreak.SetElectroCollars( not Jailbreak.IsElectroCollarsActive! )
-)
