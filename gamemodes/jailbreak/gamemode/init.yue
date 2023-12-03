@@ -61,6 +61,7 @@ tonumber = tonumber
 istable = istable
 CurTime = CurTime
 IsValid = IsValid
+string = string
 
 do
 
@@ -338,7 +339,7 @@ do
         return ragdoll
 
 GM.CreatedWarden = ( ply ) =>
-    Jailbreak.BroadcastNotify( "#jb.alert.new_warden", NOTIFY_HINT, 30, ply\Nick! )
+    Jailbreak.BroadcastNotify( "#jb.alert.new_warden", NOTIFY_HINT, 20, ply\Nick! )
 
 GM.ElectroCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
@@ -1178,18 +1179,18 @@ do
 
             SendVolumes( listener, volumes )
 
-    GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
+    GM.PlayerCanSeePlayersChat = ( _, isTeam, listener, speaker ) =>
         if listener\IsBot!
             return
-
-        if OOC or not Jailbreak.IsRoundRunning!
-            return true
 
         unless IsValid( speaker )
             return true
 
         if isTeam and listener\Team! ~= speaker\Team!
             return false
+
+        if OOC or not Jailbreak.IsRoundRunning!
+            return true
 
         canHear = CanHear( listener, speaker )
         if canHear ~= nil
@@ -1463,86 +1464,193 @@ do
 
     :lower, :find = string
 
-    replaceFilter = ( modelName, chance ) ->
-        unless isnumber( chance )
-            chance = nil
+    do
 
-        if isstring( modelName )
-            modelName = lower( modelName )
-        elseif istable( modelName )
-            tbl = {}
-            for str in *modelName
-                tbl[ lower( str ) ] = true
+        replaceFilter = ( modelName, chance ) ->
+            unless isnumber( chance )
+                chance = nil
 
-            modelName = tbl
-        else
+            if isstring( modelName )
+                modelName = lower( modelName )
+            elseif istable( modelName )
+                tbl = {}
+                for str in *modelName
+                    tbl[ lower( str ) ] = true
+
+                modelName = tbl
+            else
+                return =>
+                    return not chance or random( 1, 100 ) <= chance
+
             return =>
+                modelPath = @GetModel!
+                unless modelPath
+                    return false
+
+                modelPath = lower( modelPath )
+                unless IsValidModel( modelPath )
+                    return false
+
+                if istable( modelName ) and not modelName[ modelPath ]
+                    return false
+
+                unless find( modelPath, modelName, 1, false )
+                    return false
+
                 return not chance or random( 1, 100 ) <= chance
 
-        return =>
-            modelPath = @GetModel!
-            unless modelPath
-                return false
+        Addons = {
 
-            modelPath = lower( modelPath )
-            unless IsValidModel( modelPath )
-                return false
+            -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
+            ["293904092"]: ->
+                EntityReplacer "^prop_physics.*", "sent_soccerball", replaceFilter( "models/props_phx/misc/soccerball%.mdl" )
 
-            if istable( modelName ) and not modelName[ modelPath ]
-                return false
+            -- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
+            ["931376012"]: ->
+                EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/trafficcone001a%.mdl", 10 ), =>
+                    @SetSlotName( @GetClass! )
 
-            unless find( modelPath, modelName, 1, false )
-                return false
+            -- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
+            ["931448005"]: ->
+                EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/plasticcrate%w+%.mdl", 20 ), =>
+                    @SetSlotName( @GetClass! )
 
-            return not chance or random( 1, 100 ) <= chance
+                    timer_Simple 0, ->
+                        if @IsValid!
+                            @SetKey( KEY_B )
 
-    Addons = {
+        }
 
-        -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
-        ["293904092"]: ->
-            EntityReplacer "^prop_physics.*", "sent_soccerball", replaceFilter( "models/props_phx/misc/soccerball%.mdl" )
+        do
+            fileName = "jailbreak/entity-replacer.json"
+            if file.Exists( fileName, "DATA" )
+                json = file.Read( fileName, "DATA" )
+                if isstring( json )
+                    data = util.JSONToTable( json )
+                    if istable( data )
+                        for key, value in pairs( data )
+                            Addons[ key ] = ->
+                                return EntityReplacer value[ 1 ], value[ 2 ], replaceFilter( value[ 3 ], value[ 4 ] )
 
-        -- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
-        ["931376012"]: ->
-            EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/trafficcone001a%.mdl", 10 ), =>
-                @SetSlotName( @GetClass! )
+            else
+                file.Write( fileName, "[]" )
 
-        -- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
-        ["931448005"]: ->
-            EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/plasticcrate%w+%.mdl", 20 ), =>
-                @SetSlotName( @GetClass! )
+        global PropReplaceFilter = replaceFilter
+        Jailbreak.Addons = Addons
 
-                timer_Simple 0, ->
-                    if @IsValid!
-                        @SetKey( KEY_B )
+        timer_Simple 0, ->
+            for addon in *engine.GetAddons!
+                unless addon.downloaded and addon.mounted
+                    continue
 
-    }
+                wsid = addon.wsid
+                func = Addons[ wsid ]
+                unless func
+                    continue
+
+                Jailbreak[ wsid ] = func( addon )
 
     do
-        fileName = "jailbreak/entity-replacer.json"
-        if file.Exists( fileName, "DATA" )
-            json = file.Read( fileName, "DATA" )
-            if isstring( json )
-                data = util.JSONToTable( json )
-                if istable( data )
-                    for key, value in pairs( data )
-                        Addons[ key ] = ->
-                            return EntityReplacer value[ 1 ], value[ 2 ], replaceFilter( value[ 3 ], value[ 4 ] )
 
-        else
-            file.Write( fileName, "[]" )
+        ChatCommands = Jailbreak.ChatCommands
+        unless istable( ChatCommands )
+            ChatCommands = {}
+            Jailbreak.ChatCommands = ChatCommands
 
-    global PropReplaceFilter = replaceFilter
-    Jailbreak.Addons = Addons
+        Jailbreak.SetChatCommand = ( str, func ) ->
+            ChatCommands[ lower( str ) ] = func
 
-    timer_Simple 0, ->
-        for addon in *engine.GetAddons!
-            unless addon.downloaded and addon.mounted
-                continue
+        GM.PlayerSay = ( ply, text, isTeam ) =>
+            if Classic
+                return text
 
-            wsid = addon.wsid
-            func = Addons[ wsid ]
-            unless func
-                continue
+            if string.StartsWith( text, "/" )
+                startPos, endPos, command = find( text, "^/([^%s]+)" )
+                if command
+                    func = ChatCommands[ lower( command ) ]
+                    if func
+                        return func( ply, string.sub( text, min( endPos + 2, #text ) ) ) or ""
+                return ""
 
-            Jailbreak[ wsid ] = func( addon )
+            if isTeam
+                ply\Say( text, false )
+                return ""
+            elseif ply\UsingSecurityRadio!
+                players = {}
+                for pl in *player.GetHumans!
+                    if pl\HasSecurityRadio!
+                        players[] = pl
+
+                Jailbreak.SendChatText( players, "[#jb.walkie-talkie] ", ply\GetPlayerColor!\ToColor!, ply\Nick!, color_white, " #jb.chat.says: \"" .. text .. "\"" )
+                Jailbreak.Whisper( ply, text )
+                return ""
+
+            unless Jailbreak.GameInProgress!
+                Jailbreak.OOC( ply, text )
+                return ""
+
+            return text
+
+Jailbreak.SetChatCommand "warden", =>
+    @ConCommand( "jb_warden_request" )
+
+do
+
+    color_white = color_white
+
+    do
+
+        Distance = CreateConVar( "chat_whisper_distance", "48", ConVarFlags, "", 16, 65536 )
+
+        Whisper = ( text ) =>
+            Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " #jb.chat.whispers, \"" .. text .. "\"" )
+        Jailbreak.Whisper = Whisper
+
+        Jailbreak.SetChatCommand "whisper", Whisper
+        Jailbreak.SetChatCommand "w", Whisper
+
+    do
+
+        Distance = CreateConVar( "chat_looc_distance", "128", ConVarFlags, "", 48, 65536 )
+        blue = Color( 0, 190, 255 )
+        :GetColor = team
+
+        Jailbreak.SetChatCommand "looc", ( text ) =>
+            Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, color_white, ": " .. text )
+
+        Me = ( text ) =>
+            Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " " .. text )
+
+        Jailbreak.SetChatCommand "me", Me
+
+        do
+
+            CoinFlip = ( _, text ) =>
+                Me( @, "#jb.chat.coin-flip #jb.chat.coin-flip." .. math.random( 0, 1 ) )
+
+            Jailbreak.SetChatCommand "coin", CoinFlip
+            Jailbreak.SetChatCommand "flip", CoinFlip
+
+        Jailbreak.SetChatCommand "roll", ( text ) =>
+            int1, int2 = string.match( text, "(-?%d+)%s+(-?%d+)" )
+            unless int1 and int2
+                @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
+                return
+
+            Me( @, "#jb.chat.rolled " .. math.random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
+
+    do
+
+        Enabled = CreateConVar( "chat_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
+        turquoise = Color( 75, 200, 200 )
+
+        OOC = ( text ) =>
+            Jailbreak.SendChatText( false, turquoise, "[#jb.chat.ooc] ", @GetPlayerColor!\ToColor!, @Nick!, color_white, ": " .. text )
+        Jailbreak.OOC = OOC
+
+        Jailbreak.SetChatCommand "ooc", ( text ) =>
+            if not Enabled\GetBool! and not @IsAdmin! and Jailbreak.GameInProgress!
+                @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
+                return
+
+            OOC( @, text )

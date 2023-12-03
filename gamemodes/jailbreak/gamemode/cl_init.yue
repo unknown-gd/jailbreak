@@ -6,6 +6,7 @@ LocalPlayer = LocalPlayer
 Jailbreak = Jailbreak
 list_Set = list.Set
 hook_Run = hook.Run
+:AddText = chat
 :format = string
 pairs = pairs
 
@@ -16,6 +17,9 @@ ROUND_ENDED = ROUND_ENDED
 
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
+
+Jailbreak.Translate = ( str ) ->
+    return string.gsub( str, "#([%w%.-_]+)", GetPhrase )
 
 do
 
@@ -518,6 +522,13 @@ do
             hook_Run( "HUDItemPickedUp", ReadString! )
         [2]: ->
             AddLegacy( format( GetPhrase( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
+        [3]: ->
+            data = ReadTable( true )
+            for index, value in ipairs( data )
+                if isstring( value )
+                    data[ index ] = Jailbreak.Translate( value )
+
+            AddText( unpack( data ) )
     }
 
     net.Receive( "Jailbreak::Networking", ->
@@ -1001,3 +1012,54 @@ GM.StartChat = ( isTeam ) =>
             hook.Add "Think", panel, =>
                 @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
                 -- @SetFontInternal( "ChatFont" )
+
+do
+
+    color_white = color_white
+    blue = Color( 30, 130, 255 )
+    dead = Color( 185, 185, 185 )
+
+    GM.OnPlayerChat = ( ply, text, isTeam, isDead ) =>
+        result = {}
+
+        if isDead
+            result[] = dead
+            result[] = "[#jb.chat.dead] "
+
+        -- if isTeam
+        --     teamID = ply\Team!
+        --     result[] = team.GetColor( teamID )
+        --     result[] = "[" .. team.GetName( teamID ) .. "] "
+
+        if IsValid( ply )
+            result[] = ply\GetPlayerColor!\ToColor!
+            result[] = ply\Nick!
+
+            filter = TEXT_FILTER_GAME_CONTENT
+            if bit.band( cvars.Number( "cl_chatfilters", 0 ), 64 ) ~= 0
+                filter = TEXT_FILTER_CHAT
+
+            text = util.FilterText( text, filter, ply )
+        else
+            result[] = blue
+            result[] = "#jb.chat.console"
+
+        result[] = color_white
+
+        classic = Jailbreak.Classic\GetBool!
+        if classic
+            result[] = ": "
+        else
+            result[] = " #jb.chat.says: "
+
+        for index, value in ipairs( result )
+            if isstring( value )
+                result[ index ] = Jailbreak.Translate( value )
+
+        if classic
+            result[] = text
+        else
+            result[] = "\"" .. text .. "\""
+
+        AddText( unpack( result ) )
+        return true
