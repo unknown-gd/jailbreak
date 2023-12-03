@@ -485,13 +485,17 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     ply\SetMaxArmor( max( 100, ply\Armor! ) )
 
-    if teamID == TEAM_PRISONER
+    isPrisoner = teamID == TEAM_PRISONER
+    ply\SetElectroCollar( isPrisoner )
+
+    if @MapGame == "tf"
+        ply\SetNoCollideWithTeammates( true )
+        ply\SetAvoidPlayers( true )
+    elseif isPrisoner
         ply\SetNoCollideWithTeammates( false )
-        ply\SetElectroCollar( true )
         ply\SetAvoidPlayers( true )
     else
         ply\SetNoCollideWithTeammates( true )
-        ply\SetElectroCollar( false )
         ply\SetAvoidPlayers( false )
 
     if teamID == TEAM_GUARD
