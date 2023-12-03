@@ -1,5 +1,6 @@
 include( "shared.lua" )
 
+:GetPhrase = language
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
 Jailbreak = Jailbreak
@@ -20,7 +21,7 @@ do
 
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
 
-    jb_hands_transparency = CreateConVar( "jb_hands_transparency", "0", ConVarFlags, "" )
+    jb_hands_transparency = CreateConVar( "jb_hands_transparency", "0", ConVarFlags, "The importance of hand transparency.", 0, 1 )
 
     do
 
@@ -516,7 +517,7 @@ do
         [1]: ->
             hook_Run( "HUDItemPickedUp", ReadString! )
         [2]: ->
-            AddLegacy( format( ReadString!, unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
+            AddLegacy( format( GetPhrase( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
     }
 
     net.Receive( "Jailbreak::Networking", ->
@@ -548,7 +549,7 @@ GM.HUDPaint = =>
     if state == ROUND_RUNNING
         return
 
-    str = language.GetPhrase( "jb.round." .. state )
+    str = GetPhrase( "jb.round." .. state )
     if state ~= ROUND_WAITING_PLAYERS
         remainingTime = Jailbreak.GetRemainingTime!
         if remainingTime == 0
@@ -559,7 +560,7 @@ GM.HUDPaint = =>
     draw.DrawText( string.upper( str ), "DermaLarge", ScrW! / 2, 32, color_white, TEXT_ALIGN_CENTER )
 
     if state == ROUND_ENDED
-        draw.DrawText( string.upper( language.GetPhrase( "jb.victory." .. Jailbreak.GetWinningTeam! ) ), "DermaLarge", ScrW! / 2, 64, color_white, TEXT_ALIGN_CENTER )
+        draw.DrawText( string.upper( GetPhrase( "jb.victory." .. Jailbreak.GetWinningTeam! ) ), "DermaLarge", ScrW! / 2, 64, color_white, TEXT_ALIGN_CENTER )
 
 -- ---
 -- --- Colors
@@ -772,7 +773,7 @@ do
         if remainingTime == 0
             return
 
-        draw.DrawText( string.upper( format( language.GetPhrase( "jb.round.running" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
+        draw.DrawText( string.upper( format( GetPhrase( "jb.round.running" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 
@@ -874,7 +875,7 @@ do
 
 do
 
-    SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "" )
+    SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
 
     list_Set "DesktopWindows", "!2security-radio", {
         title: "#jb.walkie-talkie"

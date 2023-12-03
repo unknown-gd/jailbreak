@@ -34,12 +34,11 @@ Jailbreak.Teams = {
 
 do
 
-    -- TODO: Write desc
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
     CreateConVar = CreateConVar
 
-    Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "", 0, 1 )
-    GM.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "", 0, 1 )
+    Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "If enabled, the player can put any playermodel he wants.", 0, 1 )
+    GM.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "Classic jailbreak, without any innovations. Specially for Erik_Maksimets <3", 0, 1 )
 
     do
 
@@ -508,6 +507,7 @@ do
 
     if SERVER
         file.CreateDir( "jailbreak" )
+
         fileName = "jailbreak/weapon-handler.json"
         if file.Exists( fileName, "DATA" )
             json = file.Read( fileName, "DATA" )

@@ -19,30 +19,29 @@ TEAM_GUARD = TEAM_GUARD
 ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
 CreateConVar = CreateConVar
 
--- TODO: Write desc
-GM.PrepareTime = CreateConVar( "jb_prepare_time", "10", ConVarFlags, "", 5, 2 * 60 * 60 )
-GM.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "", 0, 12 * 60 * 60 )
+GM.PrepareTime = CreateConVar( "jb_prepare_time", "10", ConVarFlags, "The time before the start of the round that is given for preparation.", 5, 2 * 60 * 60 )
+GM.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "Round time in seconds.", 0, 12 * 60 * 60 )
 
-GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "", 0, 300 )
-GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "", 50, 10000 )
-GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "", 0, 1000 )
-GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "", 0, 1 )
-GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "", 0, 1 )
+GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "Time to respawn players after death during preparation.", 0, 300 )
+GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "The value is responsible for the health of the door.", 50, 10000 )
+GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "The value of the guards' armor when spawning.", 0, 1000 )
+GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "Allow to pick up weapons as a prop, provided that the player has a full ammo.", 0, 1 )
+GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "You can only pick up weapons with the use key.", 0, 1 )
 
-GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "", 0, 100 )
-GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "", 0, 100 )
+GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "The percentage value at which a women's prison will appear where all inmates have female models.", 0, 100 )
+GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "Percentage value at which a prisoner can have a knife on spawn.", 0, 100 )
 
 RunConsoleCommand( "mp_show_voice_icons", GM.Classic\GetString! )
 cvars.AddChangeCallback( "jb_classic", ( _, __, value ) ->
     RunConsoleCommand( "mp_show_voice_icons", value )
 "Jailbreak" )
 
-Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", ConVarFlags, "", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
+Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", ConVarFlags, "Number of prisoners per guard.", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
 cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
     Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
 "Jailbreak" )
 
-Jailbreak.VoiceChatPVS = CreateConVar( "jb_voice_chat_pvs", "0", ConVarFlags, "", 0, 1 )
+Jailbreak.VoiceChatPVS = CreateConVar( "jb_voice_chat_pvs", "0", ConVarFlags, "Uses PVS instead of PAS.", 0, 1 )
 
 util.AddNetworkString( "Jailbreak::Networking" )
 
@@ -59,6 +58,7 @@ ents_Create = ents.Create
 :Empty, :Random = table
 hook_Run = hook.Run
 tonumber = tonumber
+istable = istable
 CurTime = CurTime
 IsValid = IsValid
 
@@ -240,18 +240,20 @@ do
         ragdoll\Spawn!
 
         Jailbreak.PlayerRagdolls[] = ragdoll
-
         ragdoll.Team = @Team!
-        ragdoll.Alive = @Alive!
 
-        ragdoll\SetMaxHealth( @GetMaxHealth! )
-        ragdoll\SetHealth( @Health! )
+        if @Alive!
+            ragdoll.Alive = true
+            ragdoll.PlayerAngles = @EyeAngles!
 
-        -- TODO: Custom take damage
-        ragdoll.MaxArmor = @GetMaxArmor!
-        ragdoll.Armor = @Armor!
+            -- TODO: Custom take damage
+            ragdoll\SetMaxHealth( @GetMaxHealth! )
+            ragdoll\SetHealth( @Health! )
 
-        ragdoll.PlayerAngles = @EyeAngles!
+            ragdoll.MaxArmor = @GetMaxArmor!
+            ragdoll.Armor = @Armor!
+        else
+            ragdoll.Alive = false
 
         for bodygroup in *@GetBodyGroups!
             ragdoll\SetBodygroup( bodygroup.id, @GetBodygroup( bodygroup.id ) )
@@ -441,9 +443,9 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
         hook_Run( "PlayerRagdollUse", ragdoll, ply )
         ragdoll\Remove!
 
-GM.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "100", ConVarFlags, "", 0, 3000 )
-GM.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "185", ConVarFlags, "", 0, 3000 )
-GM.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "365", ConVarFlags, "", 0, 3000 )
+GM.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "100", ConVarFlags, "The speed of the player during a slow stride.", 0, 3000 )
+GM.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "185", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
+GM.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "365", ConVarFlags, "The speed of the player while running.", 0, 3000 )
 
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\DisableWorldClicking( true )
@@ -787,8 +789,8 @@ DMG_NEVERGIB = DMG_NEVERGIB
 do
 
     GM.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
-    GM.ElectroCollarVictimDamage = CreateConVar( "jb_electro_collar_victim_damage", "0.5", ConVarFlags, "", 0, 1000 )
-    GM.ElectroCollarAttackerDamage = CreateConVar( "jb_electro_collar_attacker_damage", "1", ConVarFlags, "", 0, 1000 )
+    GM.ElectroCollarVictimDamage = CreateConVar( "jb_electro_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
+    GM.ElectroCollarAttackerDamage = CreateConVar( "jb_electro_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
 
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         damageType = damageInfo\GetDamageType!
@@ -1104,8 +1106,8 @@ do
             net.WriteFloat( data[ 2 ] )
         net.Send( listener )
 
-    MinDistance = CreateConVar( "jb_voice_chat_distance_min", "64", ConVarFlags, "", 32, 16384 )\GetInt! ^ 2
-    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "512", ConVarFlags, "", 128, 16384 )\GetInt! ^ 2
+    MinDistance = CreateConVar( "jb_voice_chat_distance_min", "64", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
+    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "512", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
 
     cvars.AddChangeCallback( "jb_voice_chat_distance_min", ( _, __, value ) ->
         MinDistance = ( tonumber( value ) or 100 ) ^ 2
