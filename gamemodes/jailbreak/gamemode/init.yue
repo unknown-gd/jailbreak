@@ -31,9 +31,11 @@ GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlag
 GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "The percentage value at which a women's prison will appear where all inmates have female models.", 0, 100 )
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "Percentage value at which a prisoner can have a knife on spawn.", 0, 100 )
 
-RunConsoleCommand( "mp_show_voice_icons", GM.Classic\GetString! )
+Classic = Jailbreak.Classic\GetBool!
+RunConsoleCommand( "mp_show_voice_icons", Classic and "1" or "0" )
 cvars.AddChangeCallback( "jb_classic", ( _, __, value ) ->
     RunConsoleCommand( "mp_show_voice_icons", value )
+    Classic = value == "1"
 "Jailbreak" )
 
 Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", ConVarFlags, "Number of prisoners per guard.", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
@@ -115,6 +117,15 @@ do
         net.WriteUInt( typeID, 3 )
         net.WriteUInt( length, 16 )
         net.Broadcast!
+
+    Jailbreak.SendChatText = ( target, ... ) ->
+        net.Start( "Jailbreak::Networking" )
+        net.WriteUInt( 3, 2 )
+        net.WriteTable( { ... }, true )
+        if target
+            net.Send( target )
+        else
+            net.Broadcast!
 
 do
 
@@ -606,7 +617,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
                 count -= 1
     elseif teamID == TEAM_PRISONER
         unless ply\HasWeapon( "weapon_knife" )
-            if @Classic\GetBool!
+            if Classic
                 ply\Give( "weapon_knife" )
                 return
             elseif random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
@@ -615,25 +626,29 @@ GM.PlayerLoadout = ( ply, teamID ) =>
     ply\Give( "jb_hands" )
     ply\SelectWeapon( "jb_hands" )
 
-GM.PlayerSetModel = ( ply, teamID ) =>
-    requested = Jailbreak.FixModelPath( player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
-    if Jailbreak.CustomPlayerModels\GetBool! and IsValidModel( requested )
-        util.PrecacheModel( requested )
-        ply\SetModel( requested )
-        return
+do
 
-    models = Jailbreak.PlayerModels[ teamID ]
-    if teamID == TEAM_PRISONER
-        models = models[ Jailbreak.IsFemalePrison! ]
+    :PrecacheModel = util
 
-    if IsValidModel( requested )
-        requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
-        for modelPath in *models
-            if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
-                ply\SetModel( modelPath )
-                return
+    GM.PlayerSetModel = ( ply, teamID ) =>
+        requested = Jailbreak.FixModelPath( player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
+        if Jailbreak.CustomPlayerModels\GetBool! and IsValidModel( requested )
+            PrecacheModel( requested )
+            ply\SetModel( requested )
+            return
 
-    ply\SetModel( Random( models ) )
+        models = Jailbreak.PlayerModels[ teamID ]
+        if teamID == TEAM_PRISONER
+            models = models[ Jailbreak.IsFemalePrison! ]
+
+        if IsValidModel( requested )
+            requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
+            for modelPath in *models
+                if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
+                    ply\SetModel( modelPath )
+                    return
+
+        ply\SetModel( Random( models ) )
 
 GM.PlayerSetHandsModel = ( ply, hands ) =>
     info = player_manager.TranslatePlayerHands( player_manager.TranslateToPlayerModelName( ply\GetModel! ) )
@@ -696,21 +711,27 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     ply\AddDeaths( 1 )
 
     ragdoll = ply\CreateRagdoll!
-    unless ragdoll\IsValid!
-        return
+    if ragdoll\IsValid!
 
-    damageOrigin = damageInfo\GetDamagePosition!
-    if ragdoll\IsRagdoll!
-        velocity = damageInfo\GetDamageForce!
-        for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
-            phys = ragdoll\GetPhysicsObjectNum( physNum )
+        damageOrigin = damageInfo\GetDamagePosition!
+        if ragdoll\IsRagdoll!
+            velocity = damageInfo\GetDamageForce!
+            for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+                phys = ragdoll\GetPhysicsObjectNum( physNum )
+                if IsValid( phys )
+                    phys\ApplyForceOffset( velocity / phys\GetMass!, damageOrigin )
+
+        else
+            phys = ragdoll\GetPhysicsObject!
             if IsValid( phys )
-                phys\ApplyForceOffset( velocity / phys\GetMass!, damageOrigin )
+                phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
-    else
-        phys = ragdoll\GetPhysicsObject!
-        if IsValid( phys )
-            phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
+        timer_Simple 0, ->
+            unless ply\IsValid! and ragdoll\IsValid!
+                return
+
+            ply\Spectate( OBS_MODE_CHASE )
+            ply\SpectateEntity( ragdoll )
 
     hook_Run( "TeamPlayerDeath", ply, teamID )
 
@@ -780,10 +801,8 @@ do
 
 GM.PlayerDisconnected = ( ply ) =>
     teamID = ply\Team!
-    unless Jailbreak.Teams[ teamID ]
-        return
-
-    hook_Run( "TeamPlayerDisconnected", ply, teamID )
+    if Jailbreak.Teams[ teamID ]
+        hook_Run( "TeamPlayerDisconnected", ply, teamID )
 
 DMG_NEVERGIB = DMG_NEVERGIB
 
@@ -802,27 +821,25 @@ do
             return
 
         attacker = damageInfo\GetAttacker!
-        unless attacker\IsValid! and attacker\IsPlayer! and attacker\HasElectroCollar!
-            return
+        if attacker\IsValid! and attacker\IsPlayer! and attacker\HasElectroCollar! and attacker ~= ply
+            for int in *@CloseRangeDamageTypes
+                if bit.band( damageType, int ) == int
+                    damage = damageInfo\GetDamage!
 
-        for int in *@CloseRangeDamageTypes
-            if bit.band( damageType, int ) == int
-                damage = damageInfo\GetDamage!
+                    newDamage = damage * @ElectroCollarAttackerDamage\GetFloat!
+                    if newDamage >= 1
+                        @ElectroCollarEffect( attacker )
+                        damageInfo\SetDamage( newDamage )
+                        damageInfo\SetDamageType( DMG_SONIC )
+                        attacker\TakeDamageInfo( damageInfo )
 
-                newDamage = damage * @ElectroCollarAttackerDamage\GetFloat!
-                if newDamage >= 1
-                    @ElectroCollarEffect( attacker )
+                    newDamage = damage * @ElectroCollarVictimDamage\GetFloat!
+                    if newDamage < 1
+                        return true
+
+                    damageInfo\SetDamageType( damageType )
                     damageInfo\SetDamage( newDamage )
-                    damageInfo\SetDamageType( DMG_SONIC )
-                    attacker\TakeDamageInfo( damageInfo )
-
-                newDamage = damage * @ElectroCollarVictimDamage\GetFloat!
-                if newDamage < 1
-                    return true
-
-                damageInfo\SetDamageType( damageType )
-                damageInfo\SetDamage( newDamage )
-                break
+                    break
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if entity\IsPlayerRagdoll!
@@ -954,10 +971,10 @@ GM.CanPlayerSuicide = ( ply ) =>
     return ply\IsInGame!
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
-    return ( @Classic\GetBool! or ply\CanUseFlashlight! ) and ply\Alive!
+    return ( Classic or ply\CanUseFlashlight! ) and ply\Alive!
 
 GM.PlayerDeathSound = ( ply ) =>
-    if ply\IsGuard!
+    if Classic or ply\IsGuard!
         ply\EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_VOICE, 0, 1 )
     return true
 
@@ -967,23 +984,24 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
     direction = ply\EyePos! - ragdoll\WorldSpaceCenter!
     direction\Normalize!
 
-    if ragdoll.HasFlashlight and not ply\CanUseFlashlight!
-        velocity += direction * 150
-        ply\AllowFlashlight( true )
-        ply\SendPickupNotify( "jb.flashlight" )
-        ragdoll.HasFlashlight = nil
+    unless Classic
+        if ragdoll.HasFlashlight and not ply\CanUseFlashlight!
+            velocity += direction * 150
+            ply\AllowFlashlight( true )
+            ply\SendPickupNotify( "jb.flashlight" )
+            ragdoll.HasFlashlight = nil
 
-    if ragdoll.HasSecurityAccess and not ply\HasSecurityAccess!
-        velocity += direction * 50
-        ply\AllowSecurityAccess( true )
-        ply\SendPickupNotify( "jb.access-card" )
-        ragdoll.HasSecurityAccess = nil
+        if ragdoll.HasSecurityAccess and not ply\HasSecurityAccess!
+            velocity += direction * 50
+            ply\AllowSecurityAccess( true )
+            ply\SendPickupNotify( "jb.access-card" )
+            ragdoll.HasSecurityAccess = nil
 
-    if ragdoll.HasSecurityRadio and not ply\HasSecurityRadio!
-        velocity += direction * 50
-        ply\AllowSecurityRadio( true )
-        ply\SendPickupNotify( "jb.walkie-talkie" )
-        ragdoll.HasSecurityRadio = nil
+        if ragdoll.HasSecurityRadio and not ply\HasSecurityRadio!
+            velocity += direction * 50
+            ply\AllowSecurityRadio( true )
+            ply\SendPickupNotify( "jb.walkie-talkie" )
+            ragdoll.HasSecurityRadio = nil
 
     weapons = ragdoll.Weapons
     if istable( weapons )
@@ -1028,13 +1046,13 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
             phys\ApplyForceCenter( velocity )
 
 GM.PlayerSpray = ( ply ) =>
-    return not ply\Alive! or not ply\IsPrisoner!
+    return not ( ply\IsInGame! and ( Classic or ply\IsPrisoner! ) )
 
 GM.PlayerUse = ( ply, entity ) =>
     unless ply\IsInGame!
         return
 
-    unless @Classic\GetBool!
+    unless Classic
         weapon = ply\GetActiveWeapon!
         if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
             velocity = ply\GetVelocity!\GetNormalized! * 16
@@ -1436,22 +1454,25 @@ concommand.Add "changeteam", ( _, args ) =>
     hook_Run( "PlayerRequestTeam", @, tonumber( args[ 1 ] ) )
 
 concommand.Add "jb_warden_request", ( _, args ) =>
-    unless Jailbreak.IsRoundRunning!
+    unless IsValid( @ ) and not @IsWarden!
         return
 
-    unless IsValid( @ ) and @Alive! and @IsGuard!
+    unless Jailbreak.IsRoundRunning! and @Alive! and @IsGuard!
+        @SendNotify( "#jb.error.warden-failure", NOTIFY_ERROR, 10 )
         return
 
     if Jailbreak.HasWarden!
+        @SendNotify( "#jb.error.warden-exists", NOTIFY_ERROR, 10 )
         return
 
     @SetWarden( true )
 
 concommand.Add "jb_toggle_electro_collars", ( _, args ) =>
-    unless Jailbreak.IsRoundRunning!
+    unless IsValid( @ )
         return
 
-    unless IsValid( @ ) and @Alive! and @IsWarden!
+    unless Jailbreak.IsRoundRunning! and @Alive! and @IsWarden!
+        @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
         return
 
     requested = args[ 1 ]

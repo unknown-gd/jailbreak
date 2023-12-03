@@ -550,7 +550,7 @@ do
                 PLAYER_SetVoiceVolumeScale( ply, volume )
 
 GM.HUDPaint = =>
-    if @Classic\GetBool!
+    if Jailbreak.Classic\GetBool!
         hook_Run( "HUDDrawTargetID" )
 
     hook_Run( "HUDDrawPickupHistory" )
