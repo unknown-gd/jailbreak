@@ -637,6 +637,9 @@ do
     Jailbreak.IsFemalePrison = ->
         return GetGlobal2Bool( "female-prison" )
 
+    Jailbreak.IsMasqueradeEvent = ->
+        return GetGlobal2Bool( "masquerade-event" )
+
 do
 
     singleHandHoldTypes = {

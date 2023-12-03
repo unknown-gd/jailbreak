@@ -18,6 +18,10 @@ ROUND_ENDED = ROUND_ENDED
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
+cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
+    hook_Run( "LanguageChanged", cvars.String( "gmod_language", "" ), value )
+"Jailbreak")
+
 Jailbreak.Translate = ( str ) ->
     return string.gsub( str, "#([%w%.-_]+)", GetPhrase )
 
@@ -549,12 +553,17 @@ do
             if ply\IsValid!
                 PLAYER_SetVoiceVolumeScale( ply, volume )
 
+GM.TargetIDDraw = CreateClientConVar( "cl_draw_target_id", "0", true, false, "Draw target id.", 0, 1 )
+GM.DeathNoticeDraw = CreateClientConVar( "cl_draw_death_notice", "0", true, false, "Draw death notice.", 0, 1 )
+
 GM.HUDPaint = =>
-    if Jailbreak.Classic\GetBool!
+    if @TargetIDDraw\GetBool!
         hook_Run( "HUDDrawTargetID" )
 
     hook_Run( "HUDDrawPickupHistory" )
-    hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+
+    if @DeathNoticeDraw\GetBool!
+        hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 
     state = Jailbreak.GetRoundState!
     if state == ROUND_RUNNING
@@ -802,6 +811,10 @@ do
 
         global g_ContextMenu = contextMenu
         contextMenu\SetVisible( false )
+
+        hook.Add "LanguageChanged", contextMenu, =>
+            hook.Remove "LanguageChanged", @
+            @Remove!
 
         contextMenu.OnMousePressed = ( _, code ) ->
             hook_Run( "GUIMousePressed", code, gui.ScreenToVector( input.GetCursorPos! ) )

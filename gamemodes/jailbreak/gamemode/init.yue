@@ -29,6 +29,7 @@ GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "Allow
 GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "You can only pick up weapons with the use key.", 0, 1 )
 
 GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "The percentage value at which a women's prison will appear where all inmates have female models.", 0, 100 )
+GM.MasqueradeEventChance = CreateConVar( "jb_masquerade_event_chance", "1", ConVarFlags, "The percentage of probability that the next round will be a masquerade..", 0, 100 )
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "Percentage value at which a prisoner can have a knife on spawn.", 0, 100 )
 
 Classic = Jailbreak.Classic\GetBool!
@@ -84,13 +85,13 @@ do
     Jailbreak.SetRoundTime = ( int ) ->
         SetGlobal2Int( "next-round-state", CurTime! + int )
 
-    Jailbreak.SetFemalePrison = ( bool, silent ) ->
-        if bool == Jailbreak.IsFemalePrison!
-            return
+    Jailbreak.SetFemalePrison = ( bool ) ->
+        if bool ~= Jailbreak.IsFemalePrison!
+            SetGlobal2Bool( "female-prison", bool )
 
-        SetGlobal2Bool( "female-prison", bool )
-        unless silent
-            hook_Run( "FemalePrison", bool )
+    Jailbreak.SetMasqueradeEvent = ( bool ) ->
+        if bool ~= Jailbreak.IsMasqueradeEvent!
+            SetGlobal2Bool( "masquerade-event", bool )
 
     Jailbreak.SetElectroCollars = ( bool, silent ) ->
         if bool == Jailbreak.IsElectroCollarsActive!
@@ -354,7 +355,7 @@ GM.CreatedWarden = ( ply ) =>
 
 GM.ElectroCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
-    if headBone >= 0
+    if headBone and headBone >= 0
         matrix = ply\GetBoneMatrix( headBone )
         if matrix
             origin = matrix\GetTranslation!
@@ -510,9 +511,14 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         hook_Run( "PlayerLoadout", ply, teamID )
     hook_Run( "PlayerSetModel", ply, teamID )
 
-    if ply\IsBot!
+    if ply\IsBot! or Jailbreak.IsMasqueradeEvent!
         ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
         ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+        ply\SetSkin( random( 0, ply\SkinCount! ) )
+
+        for bodygroup in *ply\GetBodyGroups!
+            ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
+
     else
         ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
         ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
@@ -608,7 +614,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
             gived = {}
 
             while count > 0
-                className = Random( avaliableWeapons )
+                className = Random( avaliableWeapons, true )
                 if ply\HasWeapon( className ) or gived[ className ]
                     continue
 
@@ -631,6 +637,13 @@ do
     :PrecacheModel = util
 
     GM.PlayerSetModel = ( ply, teamID ) =>
+        if Jailbreak.IsMasqueradeEvent!
+            modelPath = table.Random( player_manager.AllValidModels! )
+            if modelPath ~= nil
+                PrecacheModel( modelPath )
+                ply\SetModel( modelPath )
+                return
+
         requested = Jailbreak.FixModelPath( player_manager.TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
         if Jailbreak.CustomPlayerModels\GetBool! and IsValidModel( requested )
             PrecacheModel( requested )
@@ -962,7 +975,7 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
     if desiredState
-        return ply\IsInGame! and ply\IsSuperAdmin!
+        return ply\IsInGame! and ply\IsSuperAdmin! and not ply\IsPlayingTaunt!
     return true
 
 GM.CanPlayerSuicide = ( ply ) =>
@@ -1350,6 +1363,9 @@ GM.RoundStateChanged = ( old, new ) =>
 
             if random( 1, 100 ) <= @FemalePrisonChance\GetInt!
                 Jailbreak.SetFemalePrison( true )
+            elseif random( 1, 100 ) <= @MasqueradeEventChance\GetInt!
+                Jailbreak.SetMasqueradeEvent( true )
+
             for ply in *player.GetAll!
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
@@ -1367,7 +1383,7 @@ GM.RoundStateChanged = ( old, new ) =>
 
             while ( guardCount / prisonerCount ) > Jailbreak.GuardsDiff and totalCount > ( ( 1 / Jailbreak.GuardsDiff ) + guardCount )
                 for i = 1, guardCount
-                    guard = Random( team.GetPlayers( TEAM_GUARD ) )
+                    guard = Random( team.GetPlayers( TEAM_GUARD ), true )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!
@@ -1408,6 +1424,7 @@ GM.RoundStateChanged = ( old, new ) =>
             else
                 Jailbreak.SetWinningTeam( 0 )
             Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
+            Jailbreak.SetMasqueradeEvent( false )
             Jailbreak.SetFemalePrison( false )
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
@@ -1621,7 +1638,7 @@ do
 
     do
 
-        Distance = CreateConVar( "chat_whisper_distance", "48", ConVarFlags, "", 16, 65536 )
+        Distance = CreateConVar( "chat_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
 
         Whisper = ( text ) =>
             Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " #jb.chat.whispers, \"" .. text .. "\"" )
