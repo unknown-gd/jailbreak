@@ -74,6 +74,8 @@ do
             hook_Run( "RoundStateChanged", oldState, state )
 
     Jailbreak.SetWinningTeam = ( teamID ) ->
+        if Jailbreak.Teams[ teamID ]
+            team.AddScore( teamID, 1 )
         SetGlobal2Int( "winning-team", teamID )
 
     Jailbreak.SetRoundTime = ( int ) ->
@@ -486,7 +488,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\AllowSecurityRadio( false )
         ply\AllowFlashlight( false )
 
-    if teamID > 1000
+    unless Jailbreak.Teams[ teamID ]
         ply\KillSilent!
         return
 
@@ -685,7 +687,7 @@ do
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     teamID = ply\Team!
-    if teamID > 1000
+    unless Jailbreak.Teams[ teamID ]
         return
 
     ply\AddDeaths( 1 )
@@ -725,7 +727,7 @@ do
             elseif ply\KeyPressed( IN_ATTACK )
                 targets = {}
                 for pl in *player.GetAll!
-                    if pl\Alive! and pl\Team! <= 1000
+                    if pl\IsInGame!
                         targets[] = pl
 
                 for entity in *ents.FindByClass( "info_observer_point" )
@@ -738,7 +740,7 @@ do
             elseif ply\KeyPressed( IN_ATTACK2 )
                 targets = {}
                 for pl in *player.GetAll!
-                    if pl\Alive! and pl\Team! <= 1000
+                    if pl\IsInGame!
                         targets[] = pl
 
                 for entity in *ents.FindByClass( "info_observer_point" )
@@ -750,7 +752,7 @@ do
                 ply\MoveSpectateID( -1, targets )
 
 GM.PlayerDeathThink = ( ply ) =>
-    if ply\Team! > 1000 or Jailbreak.GameInProgress!
+    if not Jailbreak.Teams[ ply\Team! ] or Jailbreak.GameInProgress!
         @SpectatorThink( ply )
         return
 
@@ -775,7 +777,7 @@ do
 
 GM.PlayerDisconnected = ( ply ) =>
     teamID = ply\Team!
-    if teamID > 1000
+    unless Jailbreak.Teams[ teamID ]
         return
 
     hook_Run( "TeamPlayerDisconnected", ply, teamID )
@@ -925,20 +927,13 @@ do
         return max( 0, ceil( 0.2418 * speed - 141.75 ) )
 
 GM.PlayerShouldTaunt = ( ply ) =>
-    return ply\Team! <= 1000 and ply\Alive!
+    return ply\IsInGame!
 
 GM.AllowPlayerPickup = ( ply, entity ) =>
-    if ply\Team! > 1000 or not ply\Alive!
-        return false
-
-    if @Classic\GetBool!
-        return true
-
-    weapon = ply\GetActiveWeapon!
-    return IsValid( weapon ) and weapon\GetClass! == "jb_hands"
+    return ply\IsInGame!
 
 GM.PlayerCanPickupItem = ( ply, entity ) =>
-    return ply\Team! <= 1000 and ply\Alive!
+    return ply\IsInGame!
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
     if @ManualWeaponPickup\GetBool! or ply\HasWeapon( weapon\GetClass! )
@@ -946,10 +941,14 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
     return ply\Alive!
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
-    return not desiredState or ply\Team! <= 1000 and ply\IsSuperAdmin! and ply\Alive!
+    if desiredState
+        return ply\IsInGame! and ply\IsSuperAdmin!
+    return true
 
 GM.CanPlayerSuicide = ( ply ) =>
-    return ply\Team! <= 1000 and not Jailbreak.IsRoundPreparing! and ply\Alive!
+    if Jailbreak.IsRoundPreparing!
+        return false
+    return ply\IsInGame!
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
     return ( @Classic\GetBool! or ply\CanUseFlashlight! ) and ply\Alive!
@@ -1029,7 +1028,7 @@ GM.PlayerSpray = ( ply ) =>
     return not ply\Alive! or not ply\IsPrisoner!
 
 GM.PlayerUse = ( ply, entity ) =>
-    unless ply\Alive! and ply\Team! <= 1000
+    unless ply\IsInGame!
         return
 
     unless @Classic\GetBool!
@@ -1234,7 +1233,7 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
             return
 
     if ply\Alive!
-        if oldTeamID <= 1000
+        if Jailbreak.Teams[ oldTeamID ]
             ply\Kill!
         else
             ply\KillSilent!
@@ -1320,7 +1319,7 @@ GM.RoundStateChanged = ( old, new ) =>
             for ply in *player.GetAll!
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
-                elseif ply\Team! <= 1000
+                elseif Jailbreak.Teams[ ply\Team! ]
                     ply\KillSilent!
 
     		timer_Simple( 0, game.CleanUpMap )
@@ -1334,7 +1333,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
 
-                if ply\Team! <= 1000
+                if Jailbreak.Teams[ ply\Team! ]
                     ply\Spawn!
 
     		timer_Simple( 0, game.CleanUpMap )
@@ -1368,7 +1367,7 @@ GM.RoundStateChanged = ( old, new ) =>
                     else
                         ply\SetTeam( TEAM_PRISONER )
                     ply\Spawn!
-                elseif ply\Team! <= 1000 and not ply\Alive!
+                elseif Jailbreak.Teams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
 
             guards = team.GetPlayers( TEAM_GUARD )

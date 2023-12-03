@@ -27,6 +27,10 @@ local ROUND_RUNNING = ROUND_RUNNING
 local ROUND_ENDED = ROUND_ENDED
 ]==]
 
+Jailbreak.Teams = {
+    [TEAM_GUARD]: true
+    [TEAM_PRISONER]: true
+}
 
 do
 
@@ -149,6 +153,9 @@ do
 
     PLAYER.GetRagdollEntity = =>
         return @GetNW2Entity( "player-ragdoll" )
+
+    PLAYER.IsInGame = =>
+        return Jailbreak.Teams[ @Team! ] and @Alive!
 
     PLAYER.IsGuard = =>
         return @Team! == TEAM_GUARD
