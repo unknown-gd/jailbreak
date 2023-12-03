@@ -838,9 +838,9 @@ do
             label\SetTextColor( color_white )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
 
-            init = desktopWindow.init
-            if isfunction( init )
-                init( icon )
+            created = desktopWindow.created
+            if isfunction( created )
+                created( icon )
 
             think = desktopWindow.think
             if isfunction( think )
@@ -849,6 +849,23 @@ do
             click = desktopWindow.click
             if isfunction( click )
                 icon.DoClick = click
+
+            init = desktopWindow.init
+            if isfunction( init )
+                icon.DoClick = ->
+                    window = icon.Window
+                    if desktopwindow.onewindow and IsValid( window )
+                        window\Center!
+                        return
+
+                    window = g_ContextMenu\Add( "DFrame" )
+                    icon.Window = window
+
+                    window\SetSize( desktopwindow.width, desktopwindow.height )
+                    window\SetTitle( desktopwindow.title )
+                    window\Center!
+
+                    init( icon, window )
 
         return contextMenu
 
