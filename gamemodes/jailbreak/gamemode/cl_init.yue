@@ -773,7 +773,7 @@ do
         if remainingTime == 0
             return
 
-        draw.DrawText( string.upper( format( GetPhrase( "jb.round.running" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
+        draw.DrawText( string.upper( format( GetPhrase( "jb.round.3" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 

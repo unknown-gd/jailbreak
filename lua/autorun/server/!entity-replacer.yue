@@ -43,6 +43,11 @@ global class EntityReplacer
 
         newEntity\SetPos( entity\WorldSpaceCenter! )
         newEntity\SetAngles( entity\GetAngles! )
+
+        init = @Init
+        if init ~= nil
+            init( newEntity, entity, @ )
+
         newEntity\Spawn!
 
         for bodygroup in *entity\GetBodyGroups!
@@ -104,10 +109,6 @@ global class EntityReplacer
         if entity\IsOnFire!
             newEntity\Ignite( 16, 64 )
             entity\Extinguish!
-
-        init = @Init
-        if init ~= nil
-            init( newEntity, entity, @ )
 
         entity\Remove!
 

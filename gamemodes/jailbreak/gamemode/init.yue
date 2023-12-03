@@ -1504,12 +1504,17 @@ do
 
         -- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
         ["931376012"]: ->
-            EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/trafficcone001a%.mdl", 100 ), =>
-                @SetKey( KEY_B )
+            EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/trafficcone001a%.mdl", 10 ), =>
+                @SetSlotName( @GetClass! )
 
         -- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
         ["931448005"]: ->
-            EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/plasticcrate%w+%.mdl", 100 )
+            EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/plasticcrate%w+%.mdl", 20 ), =>
+                @SetSlotName( @GetClass! )
+
+                timer_Simple 0, ->
+                    if @IsValid!
+                        @SetKey( KEY_B )
 
     }
 
