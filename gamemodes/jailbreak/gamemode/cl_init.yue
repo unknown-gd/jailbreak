@@ -532,10 +532,10 @@ do
     net_ReadTable = net.ReadTable
 
     net.Receive "JB::Voice Chat", ->
-        for ply, volume in pairs( net_ReadTable! )
+        for i = 1, net.ReadUInt( 10 )
+            ply, volume = net.ReadEntity!, net.ReadFloat!
             if ply\IsValid!
                 PLAYER_SetVoiceVolumeScale( ply, volume )
-
 
 GM.HUDPaint = =>
     if @Classic\GetBool!

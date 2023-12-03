@@ -1098,6 +1098,14 @@ do
 
     util.AddNetworkString( "JB::Voice Chat" )
 
+    SendVolumes = ( listener, volumes ) ->
+        net.Start( "JB::Voice Chat", true )
+        net.WriteUInt( #volumes, 10 )
+        for data in *volumes
+            net.WriteEntity( data[ 1 ] )
+            net.WriteFloat( data[ 2 ] )
+        net.Send( listener )
+
     MinDistance = CreateConVar( "jb_voice_chat_distance_min", "64", ConVarFlags, "", 32, 16384 )\GetInt! ^ 2
     MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "512", ConVarFlags, "", 128, 16384 )\GetInt! ^ 2
 
@@ -1126,14 +1134,14 @@ do
         for listener in *players
             speakers = listener.AvailableSpeakers
             Empty( speakers )
+            volumes = {}
 
             if OOC or not Jailbreak.IsRoundRunning!
                 for speaker in *players
+                    volumes[] = { speaker, 1 }
                     speakers[ speaker ] = 1
 
-                net.Start( "JB::Voice Chat", true )
-                net.WriteTable( speakers )
-                net.Send( listener )
+                SendVolumes( listener, volumes )
                 continue
 
             origin = EyePos( listener )
@@ -1159,16 +1167,16 @@ do
 
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
                 if volume > 0
+                    volumes[] = { speaker, volume }
                     speakers[ speaker ] = volume
 
             if hasRadio
                 for speaker in *players
                     if speaker\UsingSecurityRadio!
+                        volumes[] = { speaker, 1 }
                         speakers[ speaker ] = 1
 
-            net.Start( "JB::Voice Chat", true )
-            net.WriteTable( speakers )
-            net.Send( listener )
+            SendVolumes( listener, volumes )
 
     GM.PlayerCanSeePlayersChat = ( str, isTeam, listener, speaker ) =>
         if listener\IsBot!
