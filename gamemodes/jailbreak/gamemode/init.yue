@@ -64,13 +64,12 @@ IsValid = IsValid
 
 do
 
-    SetGlobal2String = SetGlobal2String
     SetGlobal2Bool = SetGlobal2Bool
     SetGlobal2Int = SetGlobal2Int
 
     Jailbreak.SetRoundState = ( state, silent ) ->
         oldState = Jailbreak.GetRoundState!
-        SetGlobal2String( "round-state", state )
+        SetGlobal2Int( "round-state", state )
         unless silent
             hook_Run( "RoundStateChanged", oldState, state )
 
@@ -1269,7 +1268,7 @@ concommand.Add( "drop", ( ply ) ->
 
 GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
-    Jailbreak.SetRoundState( "waiting" )
+    Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
     if #ents.FindByClass( "info_player_teamspawn" ) > 0
         resource.AddWorkshop( "105181283" )
@@ -1299,23 +1298,23 @@ GM.SetupMove = ( ply, _, cmd ) =>
 GM.Think = =>
     if Jailbreak.GetRoundTime! <= CurTime!
         switch Jailbreak.GetRoundState!
-            when "preparing"
-                Jailbreak.SetRoundState( "running" )
-            when "running"
+            when ROUND_PREPARING
+                Jailbreak.SetRoundState( ROUND_RUNNING )
+            when ROUND_RUNNING
                 if @RoundTime\GetInt! == 0
                     return
 
                 team.AddScore( TEAM_GUARD, 1 )
                 Jailbreak.SetWinningTeam( TEAM_GUARD )
 
-                Jailbreak.SetRoundState( "ended", true )
+                Jailbreak.SetRoundState( ROUND_ENDED, true )
                 Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
-            when "ended"
-                Jailbreak.SetRoundState( "waiting" )
+            when ROUND_ENDED
+                Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
 GM.RoundStateChanged = ( old, new ) =>
     switch ( new )
-        when "waiting"
+        when ROUND_WAITING_PLAYERS
             Jailbreak.SetElectroCollars( false )
 
             for ply in *player.GetAll!
@@ -1323,9 +1322,10 @@ GM.RoundStateChanged = ( old, new ) =>
                     ply\SetTeam( TEAM_PRISONER )
                 elseif ply\Team! <= 1000
                     ply\KillSilent!
-    		timer.Simple( 0, game.CleanUpMap )
 
-        when "preparing"
+    		timer_Simple( 0, game.CleanUpMap )
+
+        when ROUND_PREPARING
             Jailbreak.SetElectroCollars( true )
 
             if random( 1, 100 ) <= @FemalePrisonChance\GetInt!
@@ -1336,9 +1336,10 @@ GM.RoundStateChanged = ( old, new ) =>
 
                 if ply\Team! <= 1000
                     ply\Spawn!
-    		timer.Simple( 0, game.CleanUpMap )
 
-        when "running"
+    		timer_Simple( 0, game.CleanUpMap )
+
+        when ROUND_RUNNING
             Jailbreak.SetElectroCollars( true )
 
             guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
@@ -1356,7 +1357,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 totalCount = guardCount + prisonerCount
 
             if guardCount == 0 or prisonerCount == 0
-                Jailbreak.SetRoundState( "waiting" )
+                Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
                 return
 
             for ply in *player.GetAll!
@@ -1378,13 +1379,11 @@ GM.RoundStateChanged = ( old, new ) =>
             if roundTime > 0
                 Jailbreak.SetRoundTime( roundTime )
 
-        when "ended"
+        when ROUND_ENDED
             guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
             if guardCount > prisonerCount
-                team.AddScore( TEAM_GUARD, 1 )
                 Jailbreak.SetWinningTeam( TEAM_GUARD )
             elseif guardCount < prisonerCount
-                team.AddScore( TEAM_PRISONER, 1 )
                 Jailbreak.SetWinningTeam( TEAM_PRISONER )
             else
                 Jailbreak.SetWinningTeam( 0 )
@@ -1407,7 +1406,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
             return
 
         if @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0
-            Jailbreak.SetRoundState( "ended" )
+            Jailbreak.SetRoundState( ROUND_ENDED )
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     unless ply\Alive!
@@ -1419,7 +1418,7 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
             return
 
         if @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0
-            Jailbreak.SetRoundState( "ended" )
+            Jailbreak.SetRoundState( ROUND_ENDED )
 
     ply\CreateRagdoll!
 
@@ -1428,8 +1427,7 @@ GM.TeamPlayerSpawn = ( ply ) =>
         return
 
     if @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
-    if Jailbreak.IsWaitingPlayers! and @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
-        Jailbreak.SetRoundState( "preparing" )
+        Jailbreak.SetRoundState( ROUND_PREPARING )
         Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
 
 concommand.Add "changeteam", ( _, args ) =>

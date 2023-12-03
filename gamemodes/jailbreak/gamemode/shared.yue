@@ -563,24 +563,24 @@ GM.ShouldCollide = ( entity, ply ) =>
 do
 
     GetRoundState = ->
-        return GetGlobal2String( "round-state", "waiting" )
+        return GetGlobal2Int( "round-state" )
     Jailbreak.GetRoundState = GetRoundState
 
     Jailbreak.IsWaitingPlayers = =>
-        return GetRoundState! == "waiting"
+        return GetRoundState! == ROUND_WAITING_PLAYERS
 
     Jailbreak.IsRoundPreparing = =>
-        return GetRoundState! == "preparing"
+        return GetRoundState! == ROUND_PREPARING
 
     Jailbreak.IsRoundRunning = =>
-        return GetRoundState! == "running"
+        return GetRoundState! == ROUND_RUNNING
 
     Jailbreak.IsRoundEnded = =>
-        return GetRoundState! == "ended"
+        return GetRoundState! == ROUND_ENDED
 
     Jailbreak.GameInProgress = =>
         state = GetRoundState!
-        return state ~= "waiting" and state ~= "preparing"
+        return state ~= ROUND_WAITING_PLAYERS and state ~= ROUND_PREPARING
 
     GetRoundTime = ->
         return GetGlobal2Int( "next-round-state" )
