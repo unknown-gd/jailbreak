@@ -1,0 +1,121 @@
+isfunction = isfunction
+:Create, :GetAll = ents
+:Add, :Remove = hook
+isstring = isstring
+IsValid = IsValid
+:Simple = timer
+assert = assert
+:find = string
+
+global class EntityReplacer
+    new: ( pattern, className, filter, init ) =>
+        assert isstring( pattern ), "Second argument must be a 'string'!"
+        @Pattern = pattern
+
+        assert isstring( className ), "Third argument must be a 'string'!"
+        @ClassName = className
+
+        if isfunction( filter )
+            @Filter = filter
+
+        if isfunction( init )
+            @Init = init
+
+        Add "PostCleanupMap", "EntityReplacer::" .. className, ->
+            @PerformAll!
+
+        Add "OnEntityCreated", "EntityReplacer::" .. className, ( entity ) ->
+            Simple 0.25, ->
+                if entity\IsValid!
+                    @Perform( entity )
+
+    Perform: ( entity ) =>
+        unless entity\IsValid! and find( entity\GetClass!, @Pattern, 1, false ) ~= nil
+            return
+
+        filter = @Filter
+        if filter ~= nil and not filter( entity, @ )
+            return
+
+        newEntity = Create( @ClassName )
+        unless IsValid( newEntity )
+            return
+
+        newEntity\SetPos( entity\WorldSpaceCenter! )
+        newEntity\SetAngles( entity\GetAngles! )
+        newEntity\Spawn!
+
+        for bodygroup in *entity\GetBodyGroups!
+            newEntity\SetBodygroup( bodygroup.id, entity\GetBodygroup( bodygroup.id ) )
+
+        newEntity\SetFlexScale( entity\GetFlexScale! )
+        for flexID = 0, entity\GetFlexNum!
+            newEntity\SetFlexWeight( flexID, entity\GetFlexWeight( flexID ) )
+
+        newEntity\SetPlayerColor( entity\GetPlayerColor! )
+        newEntity\SetMaterial( entity\GetMaterial! )
+        newEntity\SetColor( entity\GetColor! )
+        newEntity\SetSkin( entity\GetSkin! )
+
+        for index = 1, #entity\GetMaterials!
+            materialPath = entity\GetSubMaterial( index )
+            if materialPath ~= ""
+                newEntity\SetSubMaterial( index, materialPath )
+
+        newEntity\SetCollisionGroup( entity\GetCollisionGroup! )
+
+        for boneID = 0, entity\GetBoneCount!
+            newEntity\ManipulateBonePosition( boneID, entity\GetManipulateBonePosition( boneID ) )
+            newEntity\ManipulateBoneAngles( boneID, entity\GetManipulateBoneAngles( boneID ) )
+            newEntity\ManipulateBoneJiggle( boneID, entity\GetManipulateBoneJiggle( boneID ) )
+            newEntity\ManipulateBoneScale( boneID, entity\GetManipulateBoneScale( boneID ) )
+
+        if newEntity\IsRagdoll!
+            for physNum = 0, newEntity\GetPhysicsObjectCount! - 1 do
+                phys = newEntity\GetPhysicsObjectNum( physNum )
+                unless IsValid( phys )
+                    continue
+
+                boneID = newEntity\TranslatePhysBoneToBone( physNum )
+                if boneID >= 0
+                    origin, angles = entity\GetBonePosition( boneID )
+                    phys\SetAngles( angles )
+                    phys\SetPos( origin )
+
+                phys2 = entity\GetPhysicsObjectNum( physNum )
+                if IsValid( phys2 )
+                    phys\SetVelocity( phys2\GetVelocity! )
+
+                    if phys2\IsAsleep!
+                        phys\Sleep!
+                    else
+                        phys\Wake!
+
+        else
+            phys, phys2 = newEntity\GetPhysicsObject!, entity\GetPhysicsObject!
+            if IsValid( phys ) and IsValid( phys2 )
+                phys\SetVelocity( phys2\GetVelocity! )
+
+                if phys2\IsAsleep!
+                    phys\Sleep!
+                else
+                    phys\Wake!
+
+        if entity\IsOnFire!
+            newEntity\Ignite( 16, 64 )
+            entity\Extinguish!
+
+        init = @Init
+        if init ~= nil
+            init( newEntity, entity, @ )
+
+        entity\Remove!
+
+    PerformAll: =>
+        for entity in *GetAll!
+            @Perform( entity )
+
+    Remove: =>
+        className = @ClassName
+        Remove "OnEntityCreated", "EntityReplacer::" .. className
+        Remove "PostCleanupMap", "EntityReplacer::" .. className

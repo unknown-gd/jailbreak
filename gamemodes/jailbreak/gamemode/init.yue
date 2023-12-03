@@ -1458,3 +1458,86 @@ concommand.Add "jb_toggle_electro_collars", ( _, args ) =>
         Jailbreak.SetElectroCollars( requested == "1" )
     else
         Jailbreak.SetElectroCollars( not Jailbreak.IsElectroCollarsActive! )
+
+do
+
+    :lower, :find = string
+
+    replaceFilter = ( modelName, chance ) ->
+        unless isnumber( chance )
+            chance = nil
+
+        if isstring( modelName )
+            modelName = lower( modelName )
+        elseif istable( modelName )
+            tbl = {}
+            for str in *modelName
+                tbl[ lower( str ) ] = true
+
+            modelName = tbl
+        else
+            return =>
+                return not chance or random( 1, 100 ) <= chance
+
+        return =>
+            modelPath = @GetModel!
+            unless modelPath
+                return false
+
+            modelPath = lower( modelPath )
+            unless IsValidModel( modelPath )
+                return false
+
+            if istable( modelName ) and not modelName[ modelPath ]
+                return false
+
+            unless find( modelPath, modelName, 1, false )
+                return false
+
+            return not chance or random( 1, 100 ) <= chance
+
+    Addons = {
+
+        -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
+        ["293904092"]: ->
+            EntityReplacer "^prop_physics.*", "sent_soccerball", replaceFilter( "models/props_phx/misc/soccerball%.mdl" )
+
+        -- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
+        ["931376012"]: ->
+            EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/trafficcone001a%.mdl", 100 ), =>
+                @SetKey( KEY_B )
+
+        -- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
+        ["931448005"]: ->
+            EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/plasticcrate%w+%.mdl", 100 )
+
+    }
+
+    do
+        fileName = "jailbreak/entity-replacer.json"
+        if file.Exists( fileName, "DATA" )
+            json = file.Read( fileName, "DATA" )
+            if isstring( json )
+                data = util.JSONToTable( json )
+                if istable( data )
+                    for key, value in pairs( data )
+                        Addons[ key ] = ->
+                            return EntityReplacer value[ 1 ], value[ 2 ], replaceFilter( value[ 3 ], value[ 4 ] )
+
+        else
+            file.Write( fileName, "[]" )
+
+    global PropReplaceFilter = replaceFilter
+    Jailbreak.Addons = Addons
+
+    timer_Simple 0, ->
+        for addon in *engine.GetAddons!
+            unless addon.downloaded and addon.mounted
+                continue
+
+            wsid = addon.wsid
+            func = Addons[ wsid ]
+            unless func
+                continue
+
+            Jailbreak[ wsid ] = func( addon )
