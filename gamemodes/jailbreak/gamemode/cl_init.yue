@@ -958,7 +958,7 @@ list_Set "DesktopWindows", "!4warden-request", {
 }
 
 list_Set "DesktopWindows", "!3electro-collars", {
-    title: "#jb.toggle.electro_collars"
+    title: "#jb.electro-collars"
     icon: "icon16/lightning.png"
     think: =>
         if Jailbreak.GameInProgress!

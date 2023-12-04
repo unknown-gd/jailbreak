@@ -199,6 +199,7 @@ do
     do
 
         WeaponHandlers = WeaponHandlers or {}
+        NULL = NULL
 
         PLAYER.Give = ( className, noAmmo ) =>
             handler = WeaponHandlers[ className ]
@@ -206,11 +207,11 @@ do
                 className = handler.Alternative or className
 
             if @HasWeapon( className )
-                return
+                return NULL
 
             weapon = ents_Create( className )
             unless weapon and weapon\IsValid!
-                return
+                return NULL
 
             weapon\SetAngles( @GetAngles! )
             weapon\SetPos( @GetPos! )
@@ -235,6 +236,7 @@ do
 
     PLAYER.CreateClientsideRagdoll = PLAYER.CreateClientsideRagdoll or PLAYER.CreateRagdoll
     COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
+    NULL = NULL
 
     PLAYER.CreateRagdoll = =>
         @RemoveRagdoll!
@@ -1668,7 +1670,7 @@ do
 
     do
 
-        Distance = CreateConVar( "chat_looc_distance", "128", ConVarFlags, "", 48, 65536 )
+        Distance = CreateConVar( "chat_looc_distance", "256", ConVarFlags, "", 48, 65536 )
         blue = Color( 0, 190, 255 )
         :GetColor = team
 
