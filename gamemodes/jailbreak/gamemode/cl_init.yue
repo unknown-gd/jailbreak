@@ -957,14 +957,14 @@ list_Set "DesktopWindows", "!4warden-request", {
         RunConsoleCommand( "jb_warden_request" )
 }
 
-list_Set "DesktopWindows", "!3electro-collars", {
-    title: "#jb.electro-collars"
+list_Set "DesktopWindows", "!3shock-collars", {
+    title: "#jb.shock-collars"
     icon: "icon16/lightning.png"
     think: =>
         if Jailbreak.GameInProgress!
             ply = LocalPlayer!
             if ply\IsWarden! and ply\Alive!
-                state = Jailbreak.IsElectroCollarsActive!
+                state = Jailbreak.IsShockCollarsActive!
                 @Image\SetImage( state and "icon16/lightning.png" or "icon16/lightning_delete.png" )
                 @Label\SetText( state and "#jb.off" or "#jb.on" )
 
@@ -978,7 +978,7 @@ list_Set "DesktopWindows", "!3electro-collars", {
             @GetParent!\Layout!
 
     click: =>
-        RunConsoleCommand( "jb_toggle_electro_collars" )
+        RunConsoleCommand( "jb_toggle_shock_collars" )
 }
 
 GM.ReColorList = {

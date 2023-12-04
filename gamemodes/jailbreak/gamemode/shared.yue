@@ -175,8 +175,8 @@ do
     PLAYER.IsMutedByWarden = =>
         return @GetNW2Bool( "warden-mute" )
 
-    PLAYER.HasElectroCollar = =>
-        return @GetNW2Bool( "electro-collar" )
+    PLAYER.HasShockCollar = =>
+        return @GetNW2Bool( "shock-collar" )
 
     PLAYER.HasSecurityAccess = =>
         return @GetNW2Bool( "security-access" )
@@ -629,8 +629,8 @@ do
     Jailbreak.GetWinningTeam = ->
         return GetGlobal2Int( "winning-team" )
 
-    Jailbreak.IsElectroCollarsActive = ->
-        return GetGlobal2Bool( "electro-collars" )
+    Jailbreak.IsShockCollarsActive = ->
+        return GetGlobal2Bool( "shock-collars" )
 
     Jailbreak.GetWardenCoins = ->
         return GetGlobal2Int( "warden-coins" )

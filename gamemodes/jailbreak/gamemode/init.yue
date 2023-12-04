@@ -94,13 +94,13 @@ do
         if bool ~= Jailbreak.IsMasqueradeEvent!
             SetGlobal2Bool( "masquerade-event", bool )
 
-    Jailbreak.SetElectroCollars = ( bool, silent ) ->
-        if bool == Jailbreak.IsElectroCollarsActive!
+    Jailbreak.SetShockCollars = ( bool, silent ) ->
+        if bool == Jailbreak.IsShockCollarsActive!
             return
 
-        SetGlobal2Bool( "electro-collars", bool )
+        SetGlobal2Bool( "shock-collars", bool )
         unless silent
-            hook_Run( "ElectroCollars", bool )
+            hook_Run( "ShockCollars", bool )
 
     Jailbreak.SetWardenCoins = ( value, silent ) ->
         oldValue = Jailbreak.GetWardenCoins!
@@ -163,8 +163,8 @@ do
         if bool and not silent
             hook_Run( "CreatedWarden", @ )
 
-    PLAYER.SetElectroCollar = ( bool ) =>
-        @SetNW2Bool( "electro-collar", bool )
+    PLAYER.SetShockCollar = ( bool ) =>
+        @SetNW2Bool( "shock-collar", bool )
 
     PLAYER.AllowSecurityAccess = ( bool ) =>
         @SetNW2Bool( "security-access", bool )
@@ -356,7 +356,7 @@ do
 GM.CreatedWarden = ( ply ) =>
     Jailbreak.BroadcastNotify( "#jb.alert.new_warden", NOTIFY_HINT, 20, ply\Nick! )
 
-GM.ElectroCollarEffect = ( ply ) =>
+GM.ShockCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
     if headBone and headBone >= 0
         matrix = ply\GetBoneMatrix( headBone )
@@ -372,11 +372,11 @@ GM.ElectroCollarEffect = ( ply ) =>
 
     ply\EmitSound( "Jailbreak.Shock" )
 
-GM.ElectroCollars = ( bool ) =>
+GM.ShockCollars = ( bool ) =>
     for ply in *player.GetAll!
-        if ply\Alive! and ply\HasElectroCollar!
-            @ElectroCollarEffect( ply )
-            ply\SendNotify( "#jb.notify.electro-collar." .. ( bool and "on" or "off" ), bool and NOTIFY_GENERIC or NOTIFY_UNDO, 30 )
+        if ply\Alive! and ply\HasShockCollar!
+            @ShockCollarEffect( ply )
+            ply\SendNotify( "#jb.notify.shock-collar." .. ( bool and "on" or "off" ), bool and NOTIFY_GENERIC or NOTIFY_UNDO, 30 )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
@@ -489,7 +489,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetMaxArmor( max( 100, ply\Armor! ) )
 
     isPrisoner = teamID == TEAM_PRISONER
-    ply\SetElectroCollar( isPrisoner )
+    ply\SetShockCollar( isPrisoner )
 
     if @MapGame == "tf"
         ply\SetNoCollideWithTeammates( true )
@@ -835,31 +835,31 @@ DMG_NEVERGIB = DMG_NEVERGIB
 do
 
     GM.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
-    GM.ElectroCollarVictimDamage = CreateConVar( "jb_electro_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
-    GM.ElectroCollarAttackerDamage = CreateConVar( "jb_electro_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
+    GM.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
+    GM.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
 
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         damageType = damageInfo\GetDamageType!
-        if ply\HasElectroCollar! and bit.band( damageType, DMG_SHOCK ) == DMG_SHOCK
-            ply\SetElectroCollar( false )
+        if ply\HasShockCollar! and bit.band( damageType, DMG_SHOCK ) == DMG_SHOCK
+            ply\SetShockCollar( false )
 
-        unless Jailbreak.IsElectroCollarsActive!
+        unless Jailbreak.IsShockCollarsActive!
             return
 
         attacker = damageInfo\GetAttacker!
-        if attacker\IsValid! and attacker\IsPlayer! and attacker\HasElectroCollar! and attacker ~= ply
+        if attacker\IsValid! and attacker\IsPlayer! and attacker\HasShockCollar! and attacker ~= ply
             for int in *@CloseRangeDamageTypes
                 if bit.band( damageType, int ) == int
                     damage = damageInfo\GetDamage!
 
-                    newDamage = damage * @ElectroCollarAttackerDamage\GetFloat!
+                    newDamage = damage * @ShockCollarAttackerDamage\GetFloat!
                     if newDamage >= 1
-                        @ElectroCollarEffect( attacker )
+                        @ShockCollarEffect( attacker )
                         damageInfo\SetDamage( newDamage )
                         damageInfo\SetDamageType( DMG_SONIC )
                         attacker\TakeDamageInfo( damageInfo )
 
-                    newDamage = damage * @ElectroCollarVictimDamage\GetFloat!
+                    newDamage = damage * @ShockCollarVictimDamage\GetFloat!
                     if newDamage < 1
                         return true
 
@@ -1369,7 +1369,7 @@ GM.Think = =>
 GM.RoundStateChanged = ( old, new ) =>
     switch ( new )
         when ROUND_WAITING_PLAYERS
-            Jailbreak.SetElectroCollars( false )
+            Jailbreak.SetShockCollars( false )
 
             for ply in *player.GetAll!
                 if ply\IsBot!
@@ -1380,7 +1380,7 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer_Simple( 0, game.CleanUpMap )
 
         when ROUND_PREPARING
-            Jailbreak.SetElectroCollars( true )
+            Jailbreak.SetShockCollars( true )
 
             if random( 1, 100 ) <= @FemalePrisonChance\GetInt!
                 Jailbreak.SetFemalePrison( true )
@@ -1397,7 +1397,7 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer_Simple( 0, game.CleanUpMap )
 
         when ROUND_RUNNING
-            Jailbreak.SetElectroCollars( true )
+            Jailbreak.SetShockCollars( true )
 
             guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
             totalCount = guardCount + prisonerCount
@@ -1453,7 +1453,7 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
     ply\AllowSecurityAccess( false )
     ply\AllowSecurityRadio( false )
-    ply\SetElectroCollar( false )
+    ply\SetShockCollar( false )
     ply\AllowFlashlight( false )
     ply\SetWarden( false )
     ply\UnSpectate!
@@ -1505,7 +1505,7 @@ concommand.Add "jb_warden_request", ( _, args ) =>
 
     @SetWarden( true )
 
-concommand.Add "jb_toggle_electro_collars", ( _, args ) =>
+concommand.Add "jb_toggle_shock_collars", ( _, args ) =>
     unless IsValid( @ )
         return
 
@@ -1515,9 +1515,9 @@ concommand.Add "jb_toggle_electro_collars", ( _, args ) =>
 
     requested = args[ 1 ]
     if requested ~= nil and #requested ~= 0
-        Jailbreak.SetElectroCollars( requested == "1" )
+        Jailbreak.SetShockCollars( requested == "1" )
     else
-        Jailbreak.SetElectroCollars( not Jailbreak.IsElectroCollarsActive! )
+        Jailbreak.SetShockCollars( not Jailbreak.IsShockCollarsActive! )
 
 do
 
