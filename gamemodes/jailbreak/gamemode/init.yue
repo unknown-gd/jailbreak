@@ -624,7 +624,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
         ply\GiveAmmo( 40, "Pistol", true )
         ply\GiveAmmo( 20, "Buckshot", true )
 
-        if @MapGame ~= "cstrike"
+        if @MapGame ~= "cstrike" and not @Medieval
             avaliableWeapons = @AvaliableWeapons
             count = #avaliableWeapons / 4
             gived = {}
@@ -1334,6 +1334,7 @@ GM.InitPostEntity = =>
     Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
     if #ents.FindByClass( "info_player_teamspawn" ) > 0
+        @Medieval = #ents.FindByClass( "tf_logic_medieval" ) > 0
         resource.AddWorkshop( "105181283" )
         SoundHandler( "tf" )
         @MapGame = "tf"
