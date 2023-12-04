@@ -1,5 +1,5 @@
 GM.Name = "Jailbreak"
-GM.Author = "Unknown Developer"
+GM.Author = "Unknown Developer & Gunter"
 GM.TeamBased = true
 
 global Jailbreak = Jailbreak or {}

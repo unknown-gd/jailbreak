@@ -619,7 +619,7 @@ GM.PlayerLoadout = ( ply, teamID ) =>
             gived = {}
 
             while count > 0
-                className = Random( avaliableWeapons, true )
+                className = Random( avaliableWeapons )
                 if ply\HasWeapon( className ) or gived[ className ]
                     continue
 
@@ -1388,7 +1388,7 @@ GM.RoundStateChanged = ( old, new ) =>
 
             while ( guardCount / prisonerCount ) > Jailbreak.GuardsDiff and totalCount > ( ( 1 / Jailbreak.GuardsDiff ) + guardCount )
                 for i = 1, guardCount
-                    guard = Random( team.GetPlayers( TEAM_GUARD ), true )
+                    guard = Random( team.GetPlayers( TEAM_GUARD ) )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!
