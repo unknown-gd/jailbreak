@@ -95,6 +95,10 @@ GM.GuardModels = {
     "models/player/urban.mdl"
 }
 
+GM.GuardFemaleModels = {
+    "models/player/police_fem.mdl"
+}
+
 GM.CreateTeams = =>
     team.SetUp( TEAM_PRISONER, "#jb.prisoners", Color( 255, 89, 50 ), true )
     team.SetSpawnPoint( TEAM_PRISONER, {
@@ -224,8 +228,18 @@ do
         util_PrecacheModel( modelPath )
         maleModels[] = modelPath
 
+    femaleGuards = {}
+    for modelPath in *GM.GuardFemaleModels
+        modelPath = Jailbreak.FixModelPath( modelPath )
+        util_PrecacheModel( modelPath )
+        femaleGuards[] = modelPath
+
     Jailbreak.PlayerModels = {
-        [ TEAM_GUARD ]: guardModels
+        [ TEAM_GUARD ]: {
+            [ false ]: guardModels
+            [ true ]: femaleGuards
+        }
+
         [ TEAM_PRISONER ]: {
             [ true ]: femaleModels
             [ false ]: maleModels

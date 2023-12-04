@@ -399,11 +399,11 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
 
     ragdoll = ply\GetRagdollEntity!
     if ragdoll\IsValid!
-        ply\SetTeam( ragdoll.Team )
-
         unless ragdoll.Alive and ragdoll\Health! > 1
             ply\KillSilent!
             return
+
+        ply\SetTeam( ragdoll.Team )
 
         ply\SetEyeAngles( Angle( 0, ragdoll.PlayerAngles[ 2 ], 0 ) )
         ply\SetPos( ragdoll\WorldSpaceCenter! )
@@ -655,16 +655,17 @@ do
             ply\SetModel( requested )
             return
 
-        models = Jailbreak.PlayerModels[ teamID ]
-        if teamID == TEAM_PRISONER
-            models = models[ Jailbreak.IsFemalePrison! ]
-
+        models = Jailbreak.PlayerModels[ teamID ][ Jailbreak.IsFemalePrison! ]
         if IsValidModel( requested )
             requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
             for modelPath in *models
                 if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
                     ply\SetModel( modelPath )
                     return
+
+        if #models == 1
+            ply\SetModel( models[ 1 ] )
+            return
 
         ply\SetModel( Random( models ) )
 
@@ -752,6 +753,11 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
             ply\SpectateEntity( ragdoll )
 
     hook_Run( "TeamPlayerDeath", ply, teamID )
+
+GM.PlayerSilentDeath = ( ply ) =>
+    teamID = ply\Team!
+    if Jailbreak.Teams[ teamID ]
+        hook_Run( "TeamPlayerDeath", ply, teamID )
 
 do
 
@@ -944,8 +950,17 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                 return true
 
             attacker = damageInfo\GetAttacker!
-            if IsValid( attacker ) and attacker\IsPlayer!
+            if IsValid( attacker ) and attacker\IsPlayer! and random( 0, 1 ) == 1
                 entity\Use( attacker, attacker )
+                entity\EmitSound( "Jailbreak.Shock" )
+
+                fx = EffectData!
+                fx\SetScale( 0.5 )
+                fx\SetOrigin( entity\WorldSpaceCenter! )
+                fx\SetMagnitude( random( 3, 5 ) )
+                fx\SetRadius( random( 1, 5 ) )
+                Effect( "ElectricSpark", fx )
+
             return true
 
     if entity\GetNoDraw! or not entity\IsSolid!
@@ -1279,8 +1294,8 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
 
     ply\SetTeam( teamID )
 
-concommand.Add( "drop", ( ply ) ->
-    dropWeapon = ply\GetActiveWeapon!
+concommand.Add "drop", =>
+    dropWeapon = @GetActiveWeapon!
     unless IsValid( dropWeapon )
         return
 
@@ -1288,10 +1303,10 @@ concommand.Add( "drop", ( ply ) ->
     unless model and IsValidModel( model )
         return
 
-    ply\DropWeapon( dropWeapon )
+    @DropWeapon( dropWeapon )
 
     maxWeight, nextWeapon = nil, nil
-    for weapon in *ply\GetWeapons!
+    for weapon in *@GetWeapons!
         weight = weapon\GetWeight!
 
         if not maxWeight or maxWeight <= weight
@@ -1301,8 +1316,7 @@ concommand.Add( "drop", ( ply ) ->
     unless IsValid( nextWeapon )
         return
 
-    ply\SelectWeapon( nextWeapon\GetClass! )
-)
+    @SelectWeapon( nextWeapon\GetClass! )
 
 GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
@@ -1658,8 +1672,11 @@ do
         blue = Color( 0, 190, 255 )
         :GetColor = team
 
-        Jailbreak.SetChatCommand "looc", ( text ) =>
+        LOOC = ( text ) =>
             Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, color_white, ": " .. text )
+
+        Jailbreak.SetChatCommand "looc", LOOC
+        Jailbreak.SetChatCommand "", LOOC
 
         Me = ( text ) =>
             Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " " .. text )
@@ -1691,9 +1708,26 @@ do
             Jailbreak.SendChatText( false, turquoise, "[#jb.chat.ooc] ", @GetPlayerColor!\ToColor!, @Nick!, color_white, ": " .. text )
         Jailbreak.OOC = OOC
 
-        Jailbreak.SetChatCommand "ooc", ( text ) =>
+        Command = ( text ) =>
             if not Enabled\GetBool! and not @IsAdmin! and Jailbreak.GameInProgress!
                 @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
                 return
 
             OOC( @, text )
+
+        Jailbreak.SetChatCommand "ooc", Command
+        Jailbreak.SetChatCommand "/", Command
+
+concommand.Add "jb_force_round", ( ply, args ) =>
+    if IsValid( ply ) and not ply\IsSuperAdmin!
+        return
+
+    index = args[ 1 ]
+    if index
+        index = tonumber( index ) or 0
+
+    if index
+        Jailbreak.SetRoundState( math.Clamp( index, 0, 3 ) )
+    else
+        Jailbreak.SetRoundState( 0 )
+        Jailbreak.SetRoundTime( 0 )
