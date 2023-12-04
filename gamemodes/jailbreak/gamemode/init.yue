@@ -65,6 +65,7 @@ tonumber = tonumber
 istable = istable
 CurTime = CurTime
 IsValid = IsValid
+Vector = Vector
 string = string
 
 do
@@ -463,6 +464,11 @@ GM.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "100", ConVa
 GM.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "185", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
 GM.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "365", ConVarFlags, "The speed of the player while running.", 0, 3000 )
 
+GM.ClassicTeamColors = {
+    [ TEAM_PRISONER ]: Vector( 0.62, 0.35, 0.07 )
+    [ TEAM_GUARD ]: Vector( 0, 0, 0 )
+}
+
 GM.PlayerSpawn = ( ply, transiton ) =>
     ply\DisableWorldClicking( true )
     ply\SetCanZoom( false )
@@ -538,6 +544,9 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         groups = string.Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
         for i = 0, ply\GetNumBodyGroups! - 1 do
             ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
+
+    if Classic
+        ply\SetPlayerColor( @ClassicTeamColors[ teamID ] )
 
     hook_Run( "TeamPlayerSpawn", ply, teamID )
     ply\SetupHands!
