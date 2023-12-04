@@ -1,0 +1,154 @@
+Jailbreak = Jailbreak
+
+TEAM_SPECTATOR = TEAM_SPECTATOR
+
+bg = Color( 33, 33, 33 )
+
+GM.ShowTeam = =>
+    ply = LocalPlayer!
+    unless IsValid( ply )
+        return
+
+    panel = @TeamSelectFrame
+	if IsValid( panel )
+        panel\Remove!
+        return
+
+	panel = vgui.Create( "EditablePanel" )
+    @TeamSelectFrame = panel
+
+    panel\NoClipping( true )
+    panel\DockPadding( 16, 16, 16, 16 )
+
+    panel.PerformLayout = ( width, height ) =>
+        @SetSize( ScrW! * 0.5, ScrH! * 0.5 )
+	    @Center!
+
+    panel.Paint = ( width, height ) =>
+        surface.SetDrawColor( bg.r, bg.g, bg.b, 240 )
+        surface.DrawRect( 0, 0, width, height )
+
+    do
+
+        title = panel\Add( "DLabel" )
+        title\SetText( "#jb.team-select" )
+        title\SetTextColor( color_white )
+        title\SetContentAlignment( 5 )
+        title\SetFont( "DermaLarge" )
+
+        title\DockMargin( 0, 0, 0, 16 )
+        title\Dock( TOP )
+
+        title.PerformLayout = =>
+            @SetTall( panel\GetTall! * 0.1 )
+
+    subPanel = panel\Add( "EditablePanel" )
+    subPanel\Dock( FILL )
+
+    do
+
+        button = subPanel\Add( "DButton" )
+        button\SetFont( "DermaLarge" )
+        button\SetTextColor( color_white )
+
+        button.Team = TEAM_GUARD
+
+        button.PerformLayout = =>
+            @SetWide( subPanel\GetWide! * 0.5 - 8 )
+
+        button\Dock( LEFT )
+
+        button.Paint = ( width, height ) =>
+            r, g, b = team.GetColor( @Team )\Unpack!
+            a = 180
+            if not @IsEnabled!
+                a = 150
+            elseif @Hovered
+                a = 250
+
+            surface.SetDrawColor( r, g, b, a )
+            surface.DrawRect( 0, 0, width, height )
+
+        button.DoClick = ->
+            RunConsoleCommand( "changeteam", button.Team )
+            @HideTeam!
+
+        button.Think = =>
+            @SetText( team.GetName( @Team ) )
+            @SetEnabled( ply\Team! ~= @Team )
+            @SetCursor( @IsEnabled! and "hand" or "no" )
+
+    do
+
+        button = subPanel\Add( "DButton" )
+        button\SetFont( "DermaLarge" )
+        button\SetTextColor( color_white )
+
+        button.Team = TEAM_PRISONER
+
+        button.PerformLayout = =>
+            @SetWide( subPanel\GetWide! * 0.5 - 8 )
+
+        button\Dock( RIGHT )
+
+        button.Paint = ( width, height ) =>
+            r, g, b = team.GetColor( @Team )\Unpack!
+            a = 180
+            if not @IsEnabled!
+                a = 150
+            elseif @Hovered
+                a = 250
+
+            surface.SetDrawColor( r, g, b, a )
+            surface.DrawRect( 0, 0, width, height )
+
+        button.DoClick = ->
+            RunConsoleCommand( "changeteam", button.Team )
+            @HideTeam!
+
+        button.Think = =>
+            @SetText( team.GetName( @Team ) )
+            @SetEnabled( ply\Team! ~= @Team )
+            @SetCursor( @IsEnabled! and "hand" or "no" )
+
+    do
+
+        button = panel\Add( "DButton" )
+        button\SetFont( "DermaLarge" )
+        button\SetTextColor( bg )
+
+        button.Team = TEAM_SPECTATOR
+
+        button.PerformLayout = =>
+            @SetTall( panel\GetTall! * 0.1 )
+
+        button.Paint = ( width, height ) =>
+            r, g, b = team.GetColor( @Team )\Unpack!
+            a = 180
+            if not @IsEnabled!
+                a = 150
+            elseif @Hovered
+                a = 250
+
+            surface.SetDrawColor( r, g, b, a )
+            surface.DrawRect( 0, 0, width, height )
+
+        button\DockMargin( 0, 16, 0, 0 )
+        button\Dock( BOTTOM )
+
+        button.DoClick = ->
+            RunConsoleCommand( "changeteam", button.Team )
+            @HideTeam!
+
+        button.Think = =>
+            @SetText( team.GetName( @Team ) )
+            @SetEnabled( ply\Team! ~= @Team )
+            @SetCursor( @IsEnabled! and "hand" or "no" )
+
+	panel\MakePopup!
+	panel\SetKeyboardInputEnabled( false )
+
+GM.HideTeam = =>
+    panel = @TeamSelectFrame
+	if IsValid( panel )
+		panel\Remove!

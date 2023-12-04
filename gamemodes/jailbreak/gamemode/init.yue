@@ -1,4 +1,5 @@
 AddCSLuaFile( "shared.lua" )
+AddCSLuaFile( "ui.lua" )
 include( "shared.lua" )
 Jailbreak = Jailbreak
 
