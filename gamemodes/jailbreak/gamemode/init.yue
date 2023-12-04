@@ -374,7 +374,7 @@ GM.ElectroCollars = ( bool ) =>
     for ply in *player.GetAll!
         if ply\Alive! and ply\HasElectroCollar!
             @ElectroCollarEffect( ply )
-            ply\SendNotify( "#jb.notify.electro_collar." .. ( bool and "on" or "off" ), bool and NOTIFY_GENERIC or NOTIFY_UNDO, 30 )
+            ply\SendNotify( "#jb.notify.electro-collar." .. ( bool and "on" or "off" ), bool and NOTIFY_GENERIC or NOTIFY_UNDO, 30 )
 
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
