@@ -40,9 +40,9 @@ cvars.AddChangeCallback( "jb_classic", ( _, __, value ) ->
     Classic = value == "1"
 "Jailbreak" )
 
-Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "3", ConVarFlags, "Number of prisoners per guard.", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
+Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "4", ConVarFlags, "Number of prisoners per guard.", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
 cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
-    Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 3 ) + 1 )
+    Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 4 ) + 1 )
 "Jailbreak" )
 
 Jailbreak.VoiceChatPVS = CreateConVar( "jb_voice_chat_pvs", "0", ConVarFlags, "Uses PVS instead of PAS.", 0, 1 )
