@@ -553,9 +553,6 @@ do
             if ply\IsValid!
                 PLAYER_SetVoiceVolumeScale( ply, volume )
 
-GM.TargetIDDraw = CreateClientConVar( "cl_draw_target_id", "0", true, false, "Draw target id.", 0, 1 )
-GM.DeathNoticeDraw = CreateClientConVar( "cl_draw_death_notice", "0", true, false, "Draw death notice.", 0, 1 )
-
 GM.HUDPaint = =>
     if @TargetIDDraw\GetBool!
         hook_Run( "HUDDrawTargetID" )
