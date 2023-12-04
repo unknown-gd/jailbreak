@@ -594,8 +594,8 @@ GM.ShouldCollide = ( entity, ply ) =>
     unless ply\IsPlayer! and ply\Alive!
         return
 
-    if entity\GetClass! == "func_respawnroomvisualizer"
-        return ply\Team! ~= entity\GetTeam!
+    if entity\GetClass! == "func_respawnroomvisualizer" and not entity\IsDisabled!
+        return ply\Team! ~= entity\GetNW2Int( "team" )
 
 do
 
