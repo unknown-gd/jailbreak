@@ -184,6 +184,7 @@ do
                     handsTransparency\OnValueChanged( value )
                 "player-editor" )
 
+            -- Player Color
             do
 
                 label = colorsPanel\Add( "DLabel" )
@@ -191,12 +192,30 @@ do
                 label\SetTextColor( Color( 0, 0, 0, 255 ) )
                 label\Dock( TOP )
 
-            playerColor = colorsPanel\Add( "DColorMixer" )
-            playerColor\SetAlphaBar( false )
-            playerColor\SetPalette( false )
-            playerColor\Dock( TOP )
-            playerColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
+            do
 
+                playerColor = colorsPanel\Add( "DColorMixer" )
+                playerColor\SetAlphaBar( false )
+                playerColor\SetPalette( false )
+                playerColor\Dock( TOP )
+                playerColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
+
+                playerColor.ValueChanged = =>
+                    vector = @GetVector!
+
+                    entity = modelPreview.Entity
+                    if IsValid( entity )
+                        entity\SetPlayerColor( vector )
+                    else
+                        timer.Simple 0, ->
+                            if playerColor\IsValid!
+                                playerColor\ValueChanged!
+
+                    cl_playercolor\SetString( tostring( vector ) )
+
+                playerColor\SetVector( Vector( cl_playercolor\GetString! ) )
+
+            -- Weapon Color
             do
 
                 label = colorsPanel\Add( "DLabel" )
@@ -205,20 +224,18 @@ do
                 label\DockMargin( 0, 32, 0, 0 )
                 label\Dock( TOP )
 
-            -- Weapon Color
-            weaponColor = colorsPanel\Add( "DColorMixer" )
-            weaponColor\SetAlphaBar( false )
-            weaponColor\SetPalette( false )
-            weaponColor\Dock( TOP )
-            weaponColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
-            weaponColor\SetVector( Vector( cl_weaponcolor\GetString! ) )
+            do
 
-            weaponColor.ValueChanged = =>
-                RunConsoleCommand( "cl_weaponcolor", tostring( @GetVector! ) )
+                weaponColor = colorsPanel\Add( "DColorMixer" )
+                weaponColor\SetAlphaBar( false )
+                weaponColor\SetPalette( false )
+                weaponColor\Dock( TOP )
+                weaponColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
 
-            cvars.AddChangeCallback( "cl_weaponcolor", ( _, __, value ) ->
-                weaponColor\SetVector( Vector( value ) )
-            "player-editor" )
+                weaponColor.ValueChanged = =>
+                    cl_weaponcolor\SetString( tostring( @GetVector! ) )
+
+                weaponColor\SetVector( Vector( cl_weaponcolor\GetString! ) )
 
             sheet\AddSheet( "#smwidget.colors", colorsPanel, "icon16/color_wheel.png" )
 
@@ -352,25 +369,6 @@ do
             "player-editor" )
 
             SetupModel( cl_playermodel\GetString! )
-
-            -- Player Color
-            SetupPlayerColor = ( str ) ->
-                vector = Vector( str )
-                playerColor\SetVector( vector )
-
-                previewEntity = modelPreview.Entity
-                if previewEntity
-                    previewEntity.GetPlayerColor = ->
-                        return vector
-
-            SetupPlayerColor( cl_playercolor\GetString! )
-
-            playerColor.ValueChanged = =>
-                cl_playercolor\SetString( tostring( @GetVector! ) )
-
-            cvars.AddChangeCallback( "cl_playercolor", ( _, __, str ) ->
-                SetupPlayerColor( str )
-            "player-editor" )
 
             modelPreview.DragMousePress = =>
                 @PressX, @PressY = input.GetCursorPos!
