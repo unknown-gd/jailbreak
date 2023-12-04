@@ -698,8 +698,8 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
         if entity.Team % 2 + 1 ~= ply\Team!
             return false
 
-    start = entity\GetPos!
     mins, maxs = ply\GetHull!
+    start = entity\GetPos!
 
     traceResult = TraceHull( {
         start: start
@@ -710,13 +710,20 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
         maxs: maxs
     } )
 
-    if traceResult.Hit
-        if makeSuitable
-            traceEntity = traceResult.Entity
-            if traceEntity\IsValid! and traceEntity\IsPlayer! and traceEntity\Alive!
+    unless traceResult.Hit
+        return true
+
+    traceEntity = traceResult.Entity
+    unless traceEntity\IsValid!
+        return true
+
+    if traceEntity\IsPlayer!
+        if traceEntity\Alive!
+            if makeSuitable
                 traceEntity\Kill!
                 return true
-        return false
+            return false
+
     return true
 
 do
