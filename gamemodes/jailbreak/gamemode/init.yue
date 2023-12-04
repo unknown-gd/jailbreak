@@ -201,14 +201,14 @@ do
         WeaponHandlers = WeaponHandlers or {}
 
         PLAYER.Give = ( className, noAmmo ) =>
-            weapon = nil
-
             handler = WeaponHandlers[ className ]
             if handler
-                weapon = ents_Create( handler.Alternative or className )
-            else
-                weapon = ents_Create( className )
+                className = handler.Alternative or className
 
+            if @HasWeapon( className )
+                return
+
+            weapon = ents_Create( className )
             unless weapon and weapon\IsValid!
                 return
 

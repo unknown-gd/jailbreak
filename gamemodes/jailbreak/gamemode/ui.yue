@@ -1,154 +1,157 @@
-Jailbreak = Jailbreak
-
 TEAM_SPECTATOR = TEAM_SPECTATOR
+Jailbreak = Jailbreak
+IsValid = IsValid
+surface = surface
+
 
 bg = Color( 33, 33, 33 )
 
 GM.ShowTeam = =>
-    ply = LocalPlayer!
-    unless IsValid( ply )
-        return
-
     panel = @TeamSelectFrame
 	if IsValid( panel )
         panel\Remove!
         return
 
-	panel = vgui.Create( "EditablePanel" )
-    @TeamSelectFrame = panel
+    @TeamSelectFrame = vgui.Create( "JB.TeamSelect" )
 
-    panel\NoClipping( true )
-    panel\DockPadding( 16, 16, 16, 16 )
+-- Button
+do
 
-    panel.PerformLayout = ( width, height ) =>
+    PANEL = {}
+
+    PANEL.Init = =>
+        @SetTextColor( color_white )
+        @SetFont( "DermaLarge" )
+        @Player = LocalPlayer!
+
+    PANEL.OnCursorEntered = =>
+        unless @IsEnabled!
+            return
+
+        surface.PlaySound( "garrysmod/ui_hover.wav" )
+
+    PANEL.Paint = ( width, height ) =>
+        color = @Color
+        unless color
+            return
+
+        r, g, b = color\Unpack!
+
+        a = 180
+        if not @IsEnabled!
+            a = 150
+        elseif @Hovered
+            a = 250
+
+        surface.SetDrawColor( r, g, b, a )
+        surface.DrawRect( 0, 0, width, height )
+
+    PANEL.DoClick = =>
+        unless @IsEnabled!
+            return
+
+        surface.PlaySound( "garrysmod/ui_click.wav" )
+        RunConsoleCommand( "changeteam", @Team or 0 )
+
+        panel = @MainPanel
+        if IsValid( panel )
+            panel\Remove!
+
+    PANEL.Think = =>
+        @SetCursor( @IsEnabled! and "hand" or "no" )
+        @SetEnabled( @Player\Team! ~= @Team )
+
+        unless @Color
+            @Color = team.GetColor( @Team )
+            @SetText( team.GetName( @Team ) )
+
+    vgui.Register( "JB.TeamButton", PANEL, "DButton" )
+
+-- Main Panel
+do
+
+    PANEL = {}
+
+    PANEL.OnRemove = =>
+        hook.Remove "OnScreenSizeChanged", @
+        hook.Remove "PlayerButtonDown", @
+
+    PANEL.Init = =>
+        @DockPadding( 16, 16, 16, 16 )
+
+        hook.Add "OnScreenSizeChanged", @, @Remove
+        hook.Add "PlayerButtonDown", @, ( ply, key ) =>
+            if key >= 107 and key <= 109 and not ( @Hovered or @IsChildHovered! )
+                @Remove!
+
+    	@MakePopup!
+	    @SetKeyboardInputEnabled( false )
+
+        -- Title Text
+        do
+
+            title = @Add( "DLabel" )
+            title\SetText( "#jb.team-select" )
+            title\SetTextColor( color_white )
+            title\SetContentAlignment( 5 )
+            title\SetFont( "DermaLarge" )
+
+            title\DockMargin( 0, 0, 0, 16 )
+            title\Dock( TOP )
+
+            title.PerformLayout = =>
+                parent = @GetParent!
+                if IsValid( parent )
+                    @SetTall( parent\GetTall! * 0.1 )
+
+        subPanel = @Add( "EditablePanel" )
+        subPanel\Dock( FILL )
+
+        -- TEAM_GUARD
+        do
+
+            button = subPanel\Add( "JB.TeamButton" )
+            button.Team = TEAM_GUARD
+            button.MainPanel = @
+            button\Dock( LEFT )
+
+            button.PerformLayout = =>
+                @SetWide( subPanel\GetWide! * 0.5 - 8 )
+
+        -- TEAM_PRISONER
+        do
+
+            button = subPanel\Add( "JB.TeamButton" )
+            button.Team = TEAM_PRISONER
+            button.MainPanel = @
+            button\Dock( RIGHT )
+
+            button.PerformLayout = =>
+                @SetWide( subPanel\GetWide! * 0.5 - 8 )
+
+        -- TEAM_SPECTATOR
+        do
+
+            button = @Add( "JB.TeamButton" )
+            button.Team = TEAM_SPECTATOR
+            button\SetTextColor( bg )
+            button.MainPanel = @
+
+            button\DockMargin( 0, 16, 0, 0 )
+            button\Dock( BOTTOM )
+
+            button.PerformLayout = =>
+                parent = @GetParent!
+                if IsValid( parent )
+                    @SetTall( parent\GetTall! * 0.1 )
+
+    PANEL.PerformLayout = ( width, height ) =>
         @SetSize( ScrW! * 0.5, ScrH! * 0.5 )
-	    @Center!
+        @Center!
 
-    panel.Paint = ( width, height ) =>
+    PANEL.Paint = ( width, height ) =>
         surface.SetDrawColor( bg.r, bg.g, bg.b, 240 )
         surface.DrawRect( 0, 0, width, height )
 
-    do
+    vgui.Register( "JB.TeamSelect", PANEL, "EditablePanel" )
 
-        title = panel\Add( "DLabel" )
-        title\SetText( "#jb.team-select" )
-        title\SetTextColor( color_white )
-        title\SetContentAlignment( 5 )
-        title\SetFont( "DermaLarge" )
-
-        title\DockMargin( 0, 0, 0, 16 )
-        title\Dock( TOP )
-
-        title.PerformLayout = =>
-            @SetTall( panel\GetTall! * 0.1 )
-
-    subPanel = panel\Add( "EditablePanel" )
-    subPanel\Dock( FILL )
-
-    do
-
-        button = subPanel\Add( "DButton" )
-        button\SetFont( "DermaLarge" )
-        button\SetTextColor( color_white )
-
-        button.Team = TEAM_GUARD
-
-        button.PerformLayout = =>
-            @SetWide( subPanel\GetWide! * 0.5 - 8 )
-
-        button\Dock( LEFT )
-
-        button.Paint = ( width, height ) =>
-            r, g, b = team.GetColor( @Team )\Unpack!
-            a = 180
-            if not @IsEnabled!
-                a = 150
-            elseif @Hovered
-                a = 250
-
-            surface.SetDrawColor( r, g, b, a )
-            surface.DrawRect( 0, 0, width, height )
-
-        button.DoClick = ->
-            RunConsoleCommand( "changeteam", button.Team )
-            @HideTeam!
-
-        button.Think = =>
-            @SetText( team.GetName( @Team ) )
-            @SetEnabled( ply\Team! ~= @Team )
-            @SetCursor( @IsEnabled! and "hand" or "no" )
-
-    do
-
-        button = subPanel\Add( "DButton" )
-        button\SetFont( "DermaLarge" )
-        button\SetTextColor( color_white )
-
-        button.Team = TEAM_PRISONER
-
-        button.PerformLayout = =>
-            @SetWide( subPanel\GetWide! * 0.5 - 8 )
-
-        button\Dock( RIGHT )
-
-        button.Paint = ( width, height ) =>
-            r, g, b = team.GetColor( @Team )\Unpack!
-            a = 180
-            if not @IsEnabled!
-                a = 150
-            elseif @Hovered
-                a = 250
-
-            surface.SetDrawColor( r, g, b, a )
-            surface.DrawRect( 0, 0, width, height )
-
-        button.DoClick = ->
-            RunConsoleCommand( "changeteam", button.Team )
-            @HideTeam!
-
-        button.Think = =>
-            @SetText( team.GetName( @Team ) )
-            @SetEnabled( ply\Team! ~= @Team )
-            @SetCursor( @IsEnabled! and "hand" or "no" )
-
-    do
-
-        button = panel\Add( "DButton" )
-        button\SetFont( "DermaLarge" )
-        button\SetTextColor( bg )
-
-        button.Team = TEAM_SPECTATOR
-
-        button.PerformLayout = =>
-            @SetTall( panel\GetTall! * 0.1 )
-
-        button.Paint = ( width, height ) =>
-            r, g, b = team.GetColor( @Team )\Unpack!
-            a = 180
-            if not @IsEnabled!
-                a = 150
-            elseif @Hovered
-                a = 250
-
-            surface.SetDrawColor( r, g, b, a )
-            surface.DrawRect( 0, 0, width, height )
-
-        button\DockMargin( 0, 16, 0, 0 )
-        button\Dock( BOTTOM )
-
-        button.DoClick = ->
-            RunConsoleCommand( "changeteam", button.Team )
-            @HideTeam!
-
-        button.Think = =>
-            @SetText( team.GetName( @Team ) )
-            @SetEnabled( ply\Team! ~= @Team )
-            @SetCursor( @IsEnabled! and "hand" or "no" )
-
-	panel\MakePopup!
-	panel\SetKeyboardInputEnabled( false )
-
-GM.HideTeam = =>
-    panel = @TeamSelectFrame
-	if IsValid( panel )
-		panel\Remove!
