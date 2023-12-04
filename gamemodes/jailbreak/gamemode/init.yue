@@ -1560,13 +1560,70 @@ do
                 unless IsValidModel( modelPath )
                     return false
 
-                if istable( modelName ) and not modelName[ modelPath ]
-                    return false
-
-                unless find( modelPath, modelName, 1, false )
-                    return false
+                if istable( modelName )
+                    unless modelName[ modelPath ]
+                        return false
+                else
+                    unless find( modelPath, modelName, 1, false )
+                        return false
 
                 return not chance or random( 1, 100 ) <= chance
+
+        do
+
+            foodModels = {
+                -- GMOD
+                "models/food/burger.mdl"
+                "models/food/hotdog.mdl"
+
+                -- HL2
+                "models/props_c17/doll01.mdl"
+                "models/props_junk/garbage_glassbottle001a.mdl"
+                "models/props_junk/garbage_glassbottle002a.mdl"
+                "models/props_junk/garbage_glassbottle003a.mdl"
+                "models/props_junk/garbage_milkcarton002a.mdl"
+                "models/props_junk/garbage_milkcarton001a.mdl"
+                "models/props_junk/garbage_plasticbottle003a.mdl"
+                "models/props_junk/garbage_takeoutcarton001a.mdl"
+                "models/props_junk/GlassBottle01a.mdl"
+                "models/props_junk/glassjug01.mdl"
+                "models/props_junk/watermelon01.mdl"
+                "models/props_junk/Shoe001a.mdl"
+
+                -- CSS
+                "models/props/CS_militia/bottle01.mdl"
+                "models/props/CS_militia/bottle02.mdl"
+                "models/props/CS_militia/bottle03.mdl"
+                "models/props/cs_office/Snowman_nose.mdl"
+                "models/props/cs_office/trash_can_p8.mdl"
+                "models/props/cs_office/Water_bottle.mdl"
+                "models/props/cs_italy/bananna.mdl"
+                "models/props/cs_italy/bananna_bunch.mdl"
+                "models/props/cs_italy/banannagib1.mdl"
+                "models/props/cs_italy/banannagib2.mdl"
+                "models/props/cs_italy/orange.mdl"
+                "models/props/cs_italy/orangegib1.mdl"
+                "models/props/cs_italy/orangegib2.mdl"
+                "models/props/cs_italy/orangegib3.mdl"
+                "models/props/de_inferno/crate_fruit_break_gib1.mdl"
+                "models/props/de_inferno/crate_fruit_break_gib2.mdl"
+                "models/props/de_inferno/crate_fruit_break_gib3.mdl"
+                "models/props/de_inferno/goldfish.mdl"
+            }
+
+            for index, modelPath in ipairs( foodModels )
+                foodModels[ index ] = lower( modelPath )
+
+            Jailbreak.FoodModels = foodModels
+            Model = Model
+
+            EntityReplacer "^prop_physics.*", "jb_food", replaceFilter( foodModels ), ( entity ) =>
+                @SetModel( Model( entity\GetModel! ) )
+
+                maxHealth = entity\GetMaxHealth!
+                if maxHealth > 1
+                    @SetMaxHealth( maxHealth )
+                    @SetHealth( maxHealth )
 
         Addons = {
 

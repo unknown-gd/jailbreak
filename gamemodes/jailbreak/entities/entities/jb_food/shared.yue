@@ -1,0 +1,57 @@
+AddCSLuaFile!
+
+ENT.Type = "anim"
+
+if SERVER
+
+    COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
+    SOLID_VPHYSICS = SOLID_VPHYSICS
+    CHAN_STATIC = CHAN_STATIC
+    SIMPLE_USE = SIMPLE_USE
+
+    :Clamp, :Rand, :floor, :random, :max = math
+    RecipientFilter = RecipientFilter
+
+    ENT.Initialize = =>
+        @SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        @PhysicsInit( SOLID_VPHYSICS )
+        @SetUseType( SIMPLE_USE )
+        @Sound = Sound( "player/eating.wav" )
+
+        mins, maxs = @GetCollisionBounds!
+        volume = mins\Distance( maxs )
+
+        @Healing = Clamp( volume / 64, 0, 1 )
+
+        maxHealth = @GetMaxHealth!
+        if maxHealth <= 1
+            maxHealth = volume * 2
+            @SetMaxHealth( maxHealth )
+            @SetHealth( maxHealth )
+
+    ENT.Use = ( ply ) =>
+        if ply\Health! >= ply\GetMaxHealth!
+            ply\PickupObject( @ )
+            return
+
+        maxHealth = ply\GetMaxHealth!
+        ply\SetHealth( Clamp( ply\Health! + floor( maxHealth * @Healing ), 0, maxHealth ) )
+
+        rf = RecipientFilter!
+        rf\AddPAS( @WorldSpaceCenter! )
+        ply\EmitSound( @Sound, 50, random( 80, 120 ), Rand( 0.6, 1 ), CHAN_STATIC, 0, 1, rf )
+        @Remove!
+
+    ENT.OnTakeDamage = ( damageInfo ) =>
+        health = max( 0, @Health! - damageInfo\GetDamage! )
+        if health <= 0
+            count = @PrecacheGibs!
+            if count > 0
+                @GibBreakClient( @GetVelocity! + damageInfo\GetDamageForce! )
+            @Remove!
+        else
+            @SetHealth( health )
+else
+
+    ENT.Initialize = =>
+        util.PrecacheSound( "player/eating.wav" )
