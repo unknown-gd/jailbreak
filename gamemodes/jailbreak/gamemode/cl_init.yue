@@ -173,16 +173,12 @@ do
                 handsTransparency\SetTall( 50 )
                 handsTransparency\SetDecimals( 2 )
                 handsTransparency\SetMax( 1 )
+
                 handsTransparency\SetValue( jb_hands_transparency\GetFloat! )
+
                 handsTransparency.OnValueChanged = ( value ) =>
                     if jb_hands_transparency\GetFloat! ~= value
                         jb_hands_transparency\SetFloat( value )
-
-                cvars.AddChangeCallback( "jb_hands_transparency", ( _, __, value ) ->
-                    value = tonumber( value ) or 0
-                    handsTransparency\SetValue( value )
-                    handsTransparency\OnValueChanged( value )
-                "player-editor" )
 
             -- Player Color
             do

@@ -747,6 +747,9 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
 
     ply\AddDeaths( 1 )
 
+    if attacker and attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
+        attacker\AddFrags( 1 )
+
     ragdoll = ply\CreateRagdoll!
     if ragdoll\IsValid!
 
@@ -1176,8 +1179,8 @@ do
             net.WriteFloat( data[ 2 ] )
         net.Send( listener )
 
-    MinDistance = CreateConVar( "jb_voice_chat_distance_min", "64", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
-    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "512", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
+    MinDistance = CreateConVar( "jb_voice_chat_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
+    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
 
     cvars.AddChangeCallback( "jb_voice_chat_distance_min", ( _, __, value ) ->
         MinDistance = ( tonumber( value ) or 100 ) ^ 2
@@ -1235,6 +1238,11 @@ do
                 if hasRadio and speaker\UsingSecurityRadio!
                     continue
 
+                if speaker\IsWarden!
+                    volumes[] = { speaker, 1 }
+                    speakers[ speaker ] = 1
+                    continue
+
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
                 if volume > 0
                     volumes[] = { speaker, volume }
@@ -1258,6 +1266,9 @@ do
         if isTeam and listener\Team! ~= speaker\Team!
             return false
 
+        if speaker\IsWarden!
+            return true
+
         if OOC or not Jailbreak.IsRoundRunning!
             return true
 
@@ -1273,6 +1284,9 @@ do
 
         if OOC or not Jailbreak.IsRoundRunning!
             return true, false
+
+        if speaker\IsWarden!
+            return true, true
 
         canHear, is3D = CanHear( listener, speaker )
         if canHear ~= nil
@@ -1724,86 +1738,85 @@ do
 
             return text
 
-Jailbreak.SetChatCommand "warden", =>
-    @ConCommand( "jb_warden_request" )
-
-do
-
-    color_white = color_white
-
     do
 
-        Distance = CreateConVar( "chat_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
-
-        Whisper = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " #jb.chat.whispers, \"" .. text .. "\"" )
-        Jailbreak.Whisper = Whisper
-
-        Jailbreak.SetChatCommand "whisper", Whisper
-        Jailbreak.SetChatCommand "w", Whisper
-
-    do
-
-        Distance = CreateConVar( "chat_looc_distance", "256", ConVarFlags, "", 48, 65536 )
-        blue = Color( 0, 190, 255 )
-        :GetColor = team
-
-        LOOC = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, color_white, ": " .. text )
-
-        Jailbreak.SetChatCommand "looc", LOOC
-        Jailbreak.SetChatCommand "", LOOC
-
-        Me = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " " .. text )
-
-        Jailbreak.SetChatCommand "me", Me
+        color_white = color_white
 
         do
 
-            CoinFlip = ( _, text ) =>
-                Me( @, "#jb.chat.coin-flip #jb.chat.coin-flip." .. math.random( 0, 1 ) )
+            Distance = CreateConVar( "chat_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
 
-            Jailbreak.SetChatCommand "coin", CoinFlip
-            Jailbreak.SetChatCommand "flip", CoinFlip
+            Whisper = ( text ) =>
+                Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " #jb.chat.whispers, \"" .. text .. "\"" )
+            Jailbreak.Whisper = Whisper
 
-        Jailbreak.SetChatCommand "roll", ( text ) =>
-            int1, int2 = string.match( text, "(-?%d+)%s+(-?%d+)" )
-            unless int1 and int2
-                @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
-                return
+            Jailbreak.SetChatCommand "whisper", Whisper
+            Jailbreak.SetChatCommand "w", Whisper
 
-            Me( @, "#jb.chat.rolled " .. math.random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
+        do
 
-    do
+            Distance = CreateConVar( "chat_looc_distance", "256", ConVarFlags, "", 48, 65536 )
+            blue = Color( 0, 190, 255 )
+            :GetColor = team
 
-        Enabled = CreateConVar( "chat_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
-        turquoise = Color( 75, 200, 200 )
+            LOOC = ( text ) =>
+                Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, color_white, ": " .. text )
 
-        OOC = ( text ) =>
-            Jailbreak.SendChatText( false, turquoise, "[#jb.chat.ooc] ", @GetPlayerColor!\ToColor!, @Nick!, color_white, ": " .. text )
-        Jailbreak.OOC = OOC
+            Jailbreak.SetChatCommand "looc", LOOC
+            Jailbreak.SetChatCommand "", LOOC
 
-        Command = ( text ) =>
-            if not Enabled\GetBool! and not @IsAdmin! and Jailbreak.GameInProgress!
-                @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
-                return
+            Me = ( text ) =>
+                Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " " .. lower( text ) )
 
-            OOC( @, text )
+            Jailbreak.SetChatCommand "me", Me
 
-        Jailbreak.SetChatCommand "ooc", Command
-        Jailbreak.SetChatCommand "/", Command
+            do
 
-concommand.Add "jb_force_round", ( ply, args ) =>
-    if IsValid( ply ) and not ply\IsSuperAdmin!
-        return
+                CoinFlip = ( _, text ) =>
+                    Me( @, "#jb.chat.coin-flip #jb.chat.coin-flip." .. math.random( 0, 1 ) )
 
-    index = args[ 1 ]
-    if index
-        index = tonumber( index ) or 0
+                Jailbreak.SetChatCommand "coin", CoinFlip
+                Jailbreak.SetChatCommand "flip", CoinFlip
 
-    if index
-        Jailbreak.SetRoundState( math.Clamp( index, 0, 3 ) )
-    else
-        Jailbreak.SetRoundState( 0 )
-        Jailbreak.SetRoundTime( 0 )
+            Jailbreak.SetChatCommand "roll", ( text ) =>
+                int1, int2 = string.match( text, "(-?%d+)%s+(-?%d+)" )
+                unless int1 and int2
+                    int1, int2 = 0, 100
+
+                Me( @, "#jb.chat.rolled " .. math.random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
+
+        do
+
+            Enabled = CreateConVar( "chat_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
+            turquoise = Color( 75, 200, 200 )
+
+            OOC = ( text ) =>
+                Jailbreak.SendChatText( false, turquoise, "[#jb.chat.ooc] ", @GetPlayerColor!\ToColor!, @Nick!, color_white, ": " .. text )
+            Jailbreak.OOC = OOC
+
+            Command = ( text ) =>
+                if not Enabled\GetBool! and not @IsAdmin! and Jailbreak.GameInProgress!
+                    @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
+                    return
+
+                OOC( @, text )
+
+            Jailbreak.SetChatCommand "ooc", Command
+            Jailbreak.SetChatCommand "/", Command
+
+    concommand.Add "jb_force_round", ( ply, args ) =>
+        if IsValid( ply ) and not ply\IsSuperAdmin!
+            return
+
+        index = args[ 1 ]
+        if index
+            index = tonumber( index ) or 0
+
+        if index
+            Jailbreak.SetRoundState( math.Clamp( index, 0, 3 ) )
+        else
+            Jailbreak.SetRoundState( 0 )
+            Jailbreak.SetRoundTime( 0 )
+
+Jailbreak.SetChatCommand "warden", =>
+    @ConCommand( "jb_warden_request" )
