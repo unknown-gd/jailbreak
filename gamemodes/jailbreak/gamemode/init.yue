@@ -717,12 +717,11 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     unless traceEntity\IsValid!
         return true
 
-    if traceEntity\IsPlayer!
-        if traceEntity\Alive!
-            if makeSuitable
-                traceEntity\Kill!
-                return true
-            return false
+    if traceEntity\IsPlayer! and traceEntity\Alive!
+        if makeSuitable
+            traceEntity\Kill!
+            return true
+        return false
 
     return true
 
@@ -1820,3 +1819,25 @@ do
 
 Jailbreak.SetChatCommand "warden", =>
     @ConCommand( "jb_warden_request" )
+
+GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
+    if new > 1
+        if entity\IsOnFire!
+            entity\Extinguish!
+
+        if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
+            entity.DrownDamageTime = CurTime! + random( 15, 45 )
+
+
+do
+
+    damageInfo = DamageInfo!
+    damageInfo\SetDamageType( DMG_DROWN )
+
+    GM.PlayerPostThink = ( ply ) =>
+        if ply\IsUnderwater! and ( ply.DrownDamageTime or 0 ) < CurTime!
+            ply.DrownDamageTime = CurTime! + 0.5
+            damageInfo\SetAttacker( ply )
+            damageInfo\SetDamage( max( 5, ply\Health! * 0.1 ) )
+            ply\EmitSound( "Player.DrownContinue" )
+            ply\TakeDamageInfo( damageInfo )

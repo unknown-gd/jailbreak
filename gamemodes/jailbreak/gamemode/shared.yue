@@ -136,6 +136,9 @@ do
     ENTITY.GetRagdollOwner = =>
         return @GetNW2Entity( "ragdoll-owner" )
 
+    ENTITY.IsUnderwater = =>
+        return @WaterLevel! == 3
+
     do
 
         defaultColor = Vector( 0.25, 0.35, 0.4 )
