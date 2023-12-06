@@ -364,7 +364,7 @@ do
 
 do
 
-    Megaphone = CreateConVar( "jb_megaphone", "0", FCVAR_USERINFO, "", 0, 1 )
+    Megaphone = CreateConVar( "jb_megaphone", "0", FCVAR_USERINFO, "Activates the warden's ability to speak for the entire map.", 0, 1 )
 
     list_Set "DesktopWindows", "!2megaphone", {
         title: "#jb.megaphone"
