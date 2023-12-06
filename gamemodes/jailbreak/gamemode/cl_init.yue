@@ -7,17 +7,12 @@ LocalPlayer = LocalPlayer
 Jailbreak = Jailbreak
 list_Set = list.Set
 hook_Run = hook.Run
-:AddText = chat
 :format = string
-pairs = pairs
+:AddText = chat
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
-ROUND_PREPARING = ROUND_PREPARING
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_ENDED = ROUND_ENDED
-
-TEAM_PRISONER = TEAM_PRISONER
-TEAM_GUARD = TEAM_GUARD
 
 cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
     hook_Run( "LanguageChanged", cvars.String( "gmod_language", "" ), value )
@@ -26,402 +21,15 @@ cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
 Jailbreak.Translate = ( str ) ->
     return string.gsub( str, "#([%w%.-_]+)", GetPhrase )
 
-do
-
-    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
-
-    jb_hands_transparency = CreateConVar( "jb_hands_transparency", "0", ConVarFlags, "The importance of hand transparency.", 0, 1 )
-
-    do
-
-        handsAlpha = 1 - jb_hands_transparency\GetFloat!
-        cvars.AddChangeCallback( "jb_hands_transparency", ( _, __, value ) ->
-            handsAlpha = 1 - ( tonumber( value ) or 0 )
-        "Jailbreak" )
-
-        GM.PreDrawPlayerHands = =>
-            render.SetBlend( handsAlpha )
-
-        GM.PostDrawPlayerHands = =>
-            render.SetBlend( 1 )
-
-    cl_playermodel = GetConVar( "cl_playermodel" )
-    cl_playercolor = CreateConVar( "cl_playercolor", "0.3 0.3 0.3", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
-    cl_weaponcolor = CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
-    cl_playerbodygroups = CreateConVar( "cl_playerbodygroups", "0", ConVarFlags, "The bodygroups to use, if the model has any" )
-    cl_playerskin = CreateConVar( "cl_playerskin", "0", ConVarFlags, "The skin to use, if the model has any" )
-
-    cvars.AddChangeCallback( "cl_playermodel", ->
-        RunConsoleCommand( "cl_playerbodygroups", "0" )
-        RunConsoleCommand( "cl_playerskin", "0" )
-    "Jailbreak" )
-
-    default_animations = { "idle_all_01", "menu_walk" }
-    :PrecacheModel = util
-
-    list_Set "DesktopWindows", "!1player-editor", {
-        title: "#smwidget.playermodel"
-        icon: "icon64/playermodel.png"
-        click: =>
-            window = @Window
-            if IsValid( window )
-                return
-
-            window = g_ContextMenu\Add( "DFrame" )
-            @Window = window
-
-            window\SetTitle( "#smwidget.playermodel_title" )
-            window\SetSize( 960, 700 )
-            window\Center!
-
-            window\SetSize( math.min( ScrW! - 16, window\GetWide! ), math.min( ScrH! - 16, window\GetTall! ) )
-            window\SetMinWidth( window\GetWide! )
-            window\SetMinHeight( window\GetTall! )
-            window\SetSizable( true )
-            window\Center!
-
-            modelPreview = window\Add( "DModelPanel" )
-            modelPreview\Dock( FILL )
-            modelPreview\SetFOV( 36 )
-            modelPreview\SetCamPos( vector_origin )
-            modelPreview\SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
-            modelPreview\SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
-            modelPreview\SetAmbientLight( Vector( -64, -64, -64 ) )
-            modelPreview\SetAnimated( true )
-            modelPreview.Angles = angle_zero
-            modelPreview\SetLookAt( Vector( -100, 0, -22 ) )
-
-            sheet = window\Add( "DPropertySheet" )
-            sheet\Dock( RIGHT )
-            sheet\SetSize( 430, 0 )
-
-            -- Models Tab
-            modelsTab = window\Add( "DPanel" )
-            modelsTab\DockPadding( 8, 8, 8, 8 )
-
-            modelsSearch = modelsTab\Add( "DTextEntry" )
-            modelsSearch\Dock( TOP )
-            modelsSearch\DockMargin( 0, 0, 0, 8 )
-            modelsSearch\SetUpdateOnType( true )
-            modelsSearch\SetPlaceholderText( "#spawnmenu.quick_filter" )
-
-            selectPanel = modelsTab\Add( "DPanelSelect" )
-            selectPanel\Dock( FILL )
-
-            for name, modelPath in SortedPairs( player_manager.AllValidModels! )
-                modelPath = Jailbreak.FixModelPath( modelPath )
-
-                icon = vgui.Create( "SpawnIcon" )
-                icon\SetModel( modelPath )
-                icon\SetSize( 64, 64 )
-                icon\SetTooltip( name )
-                icon.ModelName = name
-                icon.ModelPath = modelPath
-                icon.OpenMenu = ->
-                    menu = DermaMenu!
-                    menu\AddOption( "#spawnmenu.menu.copy", ->
-                        SetClipboardText( modelPath )
-                    )\SetIcon( "icon16/page_copy.png" )
-                    menu\Open!
-
-                selectPanel\AddPanel( icon, {
-                    cl_playermodel: name
-                } )
-
-            do
-
-                allowedPlayerModels = {}
-                for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ]
-                    allowedPlayerModels[ modelPath ] = true
-
-                for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ true ]
-                    allowedPlayerModels[ modelPath ] = true
-
-                for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ false ]
-                    allowedPlayerModels[ modelPath ] = true
-
-                UpdateAvalibleModels = ->
-                    unless selectPanel\IsValid! and selectPanel\IsVisible!
-                        return
-
-                    filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
-                    for _, icon in pairs( selectPanel\GetItems! )
-                        allowed = Jailbreak.CustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath or "" ]
-                        unless allowed
-                            icon\SetVisible( false )
-                            continue
-
-                        icon\SetVisible( icon.ModelName\find( filter, 1, true ) and icon.ModelPath\find( filter, 1, true ) )
-                    selectPanel\InvalidateLayout!
-
-                timer.Create( "player-editor-models", 0.5, 0, UpdateAvalibleModels )
-                modelsSearch.OnValueChange = UpdateAvalibleModels
-                UpdateAvalibleModels!
-
-            sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
-
-            -- Player Colors Tab
-            colorsPanel = window\Add( "DPanel" )
-            colorsPanel\DockPadding( 8, 8, 8, 8 )
-
-            do
-
-                handsTransparency = colorsPanel\Add( "DNumSlider" )
-                handsTransparency\Dock( TOP )
-                handsTransparency\SetText( "#jb.hands-transparency" )
-                handsTransparency\SetDark( true )
-                handsTransparency\SetTall( 50 )
-                handsTransparency\SetDecimals( 2 )
-                handsTransparency\SetMax( 1 )
-
-                handsTransparency\SetValue( jb_hands_transparency\GetFloat! )
-
-                handsTransparency.OnValueChanged = ( value ) =>
-                    if jb_hands_transparency\GetFloat! ~= value
-                        jb_hands_transparency\SetFloat( value )
-
-            -- Player Color
-            do
-
-                label = colorsPanel\Add( "DLabel" )
-                label\SetText( "#smwidget.color_plr" )
-                label\SetTextColor( Color( 0, 0, 0, 255 ) )
-                label\Dock( TOP )
-
-            do
-
-                playerColor = colorsPanel\Add( "DColorMixer" )
-                playerColor\SetAlphaBar( false )
-                playerColor\SetPalette( false )
-                playerColor\Dock( TOP )
-                playerColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
-
-                playerColor.ValueChanged = =>
-                    vector = @GetVector!
-
-                    entity = modelPreview.Entity
-                    if IsValid( entity )
-                        entity\SetPlayerColor( vector )
-                    else
-                        timer.Simple 0, ->
-                            if playerColor\IsValid!
-                                playerColor\ValueChanged!
-
-                    cl_playercolor\SetString( tostring( vector ) )
-
-                playerColor\SetVector( Vector( cl_playercolor\GetString! ) )
-
-            -- Weapon Color
-            do
-
-                label = colorsPanel\Add( "DLabel" )
-                label\SetText( "#smwidget.color_wep" )
-                label\SetTextColor( Color( 0, 0, 0, 255 ) )
-                label\DockMargin( 0, 32, 0, 0 )
-                label\Dock( TOP )
-
-            do
-
-                weaponColor = colorsPanel\Add( "DColorMixer" )
-                weaponColor\SetAlphaBar( false )
-                weaponColor\SetPalette( false )
-                weaponColor\Dock( TOP )
-                weaponColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
-
-                weaponColor.ValueChanged = =>
-                    cl_weaponcolor\SetString( tostring( @GetVector! ) )
-
-                weaponColor\SetVector( Vector( cl_weaponcolor\GetString! ) )
-
-            sheet\AddSheet( "#smwidget.colors", colorsPanel, "icon16/color_wheel.png" )
-
-            -- Bodygroups Tab
-            bodygroupsPanel = window\Add( "DPanel" )
-            bodygroupsPanel\DockPadding( 8, 8, 8, 8 )
-
-            bodygroupsList = bodygroupsPanel\Add( "DPanelList" )
-            bodygroupsList\EnableVerticalScrollbar( true )
-            bodygroupsList\Dock( FILL )
-
-            bodygroupsSheet = sheet\AddSheet( "#smwidget.bodygroups", bodygroupsPanel, "icon16/cog.png" )
-
-            MakeNiceName = ( str ) ->
-                data = string.Explode( "_", str )
-                length = #data
-                result = ""
-
-                for index = 1, length
-                    word = data[ index ]
-                    result ..= string.upper( string.sub( word, 1, 1 ) ) .. string.sub( word, 2 )
-                    if index ~= #length
-                        result ..= " "
-
-                return result
-
-            UpdateBodyGroups = ( pnl, value ) ->
-                previewEntity = modelPreview.Entity
-                if previewEntity
-                    previewEntity\SetBodygroup( pnl.typenum, math.Round( value ) )
-
-                str = string.Explode( " ", cl_playerbodygroups\GetString! )
-                if #str < pnl.typenum + 1
-                    for index = 1, pnl.typenum + 1
-                        str[ index ] = str[ index ] or 0
-
-                str[ pnl.typenum + 1 ] = math.Round( value )
-                cl_playerbodygroups\SetString( table.concat( str, " " ) )
-
-            SetSkin = ( value ) =>
-                value = math.floor( value )
-
-                previewEntity = modelPreview.Entity
-                if previewEntity
-                    previewEntity\SetSkin( value )
-
-                if value ~= cl_playerskin\GetInt!
-                    cl_playerskin\SetString( value )
-
-            -- Player Model
-            SetupModel = ( modelName ) ->
-                unless modelPreview
-                    return
-
-                requested = Jailbreak.FixModelPath( player_manager.TranslatePlayerModel( modelName ) )
-                PrecacheModel( requested )
-                modelPreview\SetModel( requested )
-
-                bodygroupsList\Clear!
-
-                previewEntity = modelPreview.Entity
-                unless previewEntity
-                    return
-
-                previewEntity\SetPos( Vector( -100, 0, -61 ) )
-
-                bodygroupsTab = bodygroupsSheet.Tab
-                if IsValid( bodygroupsTab )
-                    if bodygroupsTab\IsVisible!
-                        bodygroupsTab\SetVisible( false )
-
-                    -- Skin
-                    skinCount = previewEntity\SkinCount! - 1
-                    if skinCount > 0
-                        skins = vgui.Create( "DNumSlider" )
-                        skins\Dock( TOP )
-                        skins\SetText( "Skin" )
-                        skins\SetDark( true )
-                        skins\SetTall( 50 )
-                        skins\SetDecimals( 0 )
-                        skins\SetMax( skinCount )
-                        skins\SetValue( cl_playerskin\GetInt! )
-                        skins.OnValueChanged = SetSkin
-                        bodygroupsList\AddItem( skins )
-
-                        cvars.AddChangeCallback( "cl_playerskin", ( _, __, value ) ->
-                            value = tonumber( value ) or 0
-                            skins\SetValue( value )
-                            SetSkin( nil, value )
-                        "player-editor" )
-
-                        unless bodygroupsTab\IsVisible!
-                            bodygroupsTab\SetVisible( true )
-
-                    -- Bodygroups
-                    groups = string.Explode( " ", cl_playerbodygroups\GetString! )
-                    for index = 0, previewEntity\GetNumBodyGroups! - 1
-                        if previewEntity\GetBodygroupCount( index ) <= 1
-                            continue
-
-                        bodygroup = vgui.Create( "DNumSlider" )
-                        bodygroup\Dock( TOP )
-                        bodygroup\SetText( MakeNiceName( previewEntity\GetBodygroupName( index ) ) )
-                        bodygroup\SetDark( true )
-                        bodygroup\SetTall( 50 )
-                        bodygroup\SetDecimals( 0 )
-                        bodygroup.typenum = index
-                        bodygroup\SetMax( previewEntity\GetBodygroupCount( index ) - 1 )
-                        bodygroup\SetValue( groups[ index + 1 ] or 0 )
-                        bodygroup.OnValueChanged = UpdateBodyGroups
-                        bodygroupsList\AddItem( bodygroup )
-
-                        previewEntity\SetBodygroup( index, groups[ index + 1 ] or 0 )
-
-                        unless bodygroupsTab\IsVisible!
-                            bodygroupsTab\SetVisible( true )
-
-                sheet.tabScroller\InvalidateLayout!
-
-                -- Animations
-                anims = list.Get( "PlayerOptionsAnimations" )[ modelName ]
-                if not anims or #anims == 0
-                    anims = default_animations
-
-                sequence = previewEntity\LookupSequence( anims[ math.random( 1, #anims ) ] )
-                if sequence > 0
-                    previewEntity\ResetSequence( sequence )
-
-            cvars.AddChangeCallback( "cl_playermodel", ( _, __, modelName ) ->
-                SetupModel( modelName )
-            "player-editor" )
-
-            SetupModel( cl_playermodel\GetString! )
-
-            modelPreview.DragMousePress = =>
-                @PressX, @PressY = input.GetCursorPos!
-                @Pressed = true
-
-            modelPreview.DragMouseRelease = =>
-                @Pressed = false
-
-            modelPreview.LayoutEntity = ( entity ) =>
-                if @bAnimated
-                    @RunAnimation!
-
-                if @Pressed
-                    mx, my = input.GetCursorPos!
-                    @Angles[ 2 ] = @Angles[ 2 ] - ( ( @PressX or mx ) - mx ) / 2
-                    @PressX, @PressY = mx, my
-                entity\SetAngles( @Angles )
-    }
-
-list_Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
-
-list_Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
-list_Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
-list_Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
-list_Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
-
-list_Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
-
-list_Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
-
-list_Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
-
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
 GM.InitPostEntity = =>
+    Jailbreak.ShowTeam!
     chat.Open( 1 )
-    @ShowTeam!
 
-concommand.Add( "jb_showteam", ->
-    GAMEMODE\ShowTeam!
-)
+concommand.Add "jb_showteam", ->
+    Jailbreak.ShowTeam!
 
 GM.PreDrawViewModel = ( vm, ply, weapon ) =>
 	unless IsValid( weapon )
@@ -729,186 +337,7 @@ GM.ContextMenuOpen = ->
 
 do
 
-    PANEL = {}
-
-    AccessorFunc( PANEL, "m_bHangOpen", "HangOpen" )
-
-    PANEL.Init = =>
-        @m_bHangOpen = false
-        @Dock( FILL )
-
-    PANEL.Open = =>
-        @SetHangOpen( false )
-
-        if IsValid( g_SpawnMenu ) and g_SpawnMenu\IsVisible!
-            g_SpawnMenu\Close( true )
-
-        if @IsVisible!
-            return
-
-        CloseDermaMenus!
-
-        @MakePopup!
-        @SetVisible( true )
-        @SetKeyboardInputEnabled( false )
-        @SetMouseInputEnabled( true )
-
-        RestoreCursorPosition!
-        @InvalidateLayout( true )
-
-    PANEL.Close = ( bSkipAnim ) =>
-        if @GetHangOpen!
-            @SetHangOpen( false )
-            return
-
-        RememberCursorPosition!
-        CloseDermaMenus!
-
-        @SetKeyboardInputEnabled( false )
-        @SetMouseInputEnabled( false )
-
-        @SetAlpha( 255 )
-        @SetVisible( false )
-
-    PANEL.StartKeyFocus = ( pPanel ) =>
-        @SetKeyboardInputEnabled( true )
-        @SetHangOpen( true )
-
-    PANEL.EndKeyFocus = ( pPanel ) =>
-        @SetKeyboardInputEnabled( false )
-
-    PANEL.Paint = ( width, height ) =>
-        if Jailbreak.GetRoundState! ~= ROUND_RUNNING
-            return
-
-        remainingTime = Jailbreak.GetRemainingTime!
-        if remainingTime == 0
-            return
-
-        draw.DrawText( string.upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
-
-    vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
-
-    CreateContextMenu = ->
-        unless hook_Run( "ContextMenuEnabled" )
-            return
-
-        contextMenu = g_ContextMenu
-        if IsValid( contextMenu )
-            contextMenu\Remove!
-
-        contextMenu = vgui.Create( "ContextMenu" )
-        unless IsValid( contextMenu )
-            return
-
-        global g_ContextMenu = contextMenu
-        contextMenu\SetVisible( false )
-
-        hook.Add "LanguageChanged", contextMenu, =>
-            hook.Remove "LanguageChanged", @
-            @Remove!
-
-        contextMenu.OnMousePressed = ( _, code ) ->
-            hook_Run( "GUIMousePressed", code, gui.ScreenToVector( input.GetCursorPos! ) )
-
-        contextMenu.OnMouseReleased = ( _, code ) ->
-            hook_Run( "GUIMouseReleased", code, gui.ScreenToVector( input.GetCursorPos! ) )
-
-        hook_Run( "ContextMenuCreated", contextMenu )
-
-        iconLayout = contextMenu\Add( "DIconLayout" )
-        iconLayout\SetBorder( 8 )
-        iconLayout\SetSpaceX( 8 )
-        iconLayout\SetSpaceY( 8 )
-        iconLayout\SetLayoutDir( LEFT )
-        iconLayout\SetStretchWidth( true )
-        iconLayout\SetStretchHeight( false ) -- No infinite re-layouts
-        iconLayout\Dock( LEFT )
-
-        iconLayout.OnMousePressed = ( ... ) =>
-            @GetParent!\OnMousePressed( ... )
-
-        for windowName, desktopWindow in SortedPairs( list.Get( "DesktopWindows" ) )
-            icon = iconLayout\Add( "DButton" )
-            icon\SetText( "" )
-            icon\SetSize( 80, 82 )
-            icon.Paint = ->
-
-            title = desktopWindow.title
-            icon\SetTooltip( title )
-
-            image = icon\Add( "DImage" )
-            icon.Image = image
-
-            image\SetImage( desktopWindow.icon )
-            image\SetSize( 64, 64 )
-            image\Dock( TOP )
-            image\DockMargin( 8, 0, 8, 0 )
-
-            label = icon\Add( "DLabel" )
-            icon.Label = label
-
-            label\Dock( BOTTOM )
-            label\SetText( title )
-            label\SetContentAlignment( 5 )
-            label\SetTextColor( color_white )
-            label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
-
-            created = desktopWindow.created
-            if isfunction( created )
-                created( icon )
-
-            think = desktopWindow.think
-            if isfunction( think )
-                hook.Add "Think", icon, think
-
-            click = desktopWindow.click
-            if isfunction( click )
-                icon.DoClick = click
-
-            init = desktopWindow.init
-            if isfunction( init )
-                icon.DoClick = ->
-                    window = icon.Window
-                    if desktopwindow.onewindow and IsValid( window )
-                        window\Center!
-                        return
-
-                    window = g_ContextMenu\Add( "DFrame" )
-                    icon.Window = window
-
-                    window\SetSize( desktopwindow.width, desktopwindow.height )
-                    window\SetTitle( desktopwindow.title )
-                    window\Center!
-
-                    init( icon, window )
-
-        return contextMenu
-
-    GM.OnContextMenuOpen = =>
-        unless hook_Run( "ContextMenuOpen" )
-            return
-
-        contextMenu = g_ContextMenu
-        unless IsValid( contextMenu )
-            contextMenu = CreateContextMenu!
-
-        unless contextMenu\IsVisible!
-            contextMenu\Open!
-        hook_Run( "ContextMenuOpened" )
-
-    GM.OnContextMenuClose = =>
-        contextMenu = g_ContextMenu
-        if IsValid( contextMenu )
-            if cvars.Number( "developer", 0 ) > 2
-                contextMenu\Remove!
-            else
-                contextMenu\Close!
-        hook_Run( "ContextMenuClosed" )
-
-do
-
-    SecurityRadio = CreateConVar( "cl_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
+    SecurityRadio = CreateConVar( "jb_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
 
     list_Set "DesktopWindows", "!2security-radio", {
         title: "#jb.walkie-talkie"
@@ -921,10 +350,6 @@ do
                 if @Image\GetImage! ~= image
                     @Image\SetImage( image )
 
-                text = state and "#jb.off" or "#jb.on"
-                if @Label\GetText! ~= text
-                    @Label\SetText( text )
-
                 if @IsVisible!
                     return
                 @Show!
@@ -935,6 +360,35 @@ do
 
         click: =>
             SecurityRadio\SetBool( not SecurityRadio\GetBool! )
+    }
+
+do
+
+    Megaphone = CreateConVar( "jb_megaphone", "0", FCVAR_USERINFO, "", 0, 1 )
+
+    list_Set "DesktopWindows", "!2megaphone", {
+        title: "#jb.megaphone"
+        icon: "icon16/sound_mute.png"
+        think: =>
+            if LocalPlayer!\IsWarden!
+                state = Megaphone\GetBool!
+
+                image = state and "icon16/sound.png" or "icon16/sound_mute.png"
+                if @Image\GetImage! ~= image
+                    @Image\SetImage( image )
+
+                if @IsVisible!
+                    return
+
+                @Show!
+
+            if @IsVisible!
+                @Hide!
+
+            @GetParent!\Layout!
+
+        click: =>
+            Megaphone\SetBool( not Megaphone\GetBool! )
     }
 
 list_Set "DesktopWindows", "!4warden-request", {
@@ -982,13 +436,9 @@ list_Set "DesktopWindows", "!3shock-collars", {
             if ply\IsWarden! and ply\Alive!
                 state = Jailbreak.IsShockCollarsActive!
 
-                image = state and "icon16/lightning.png" or "icon16/lightning_delete.png"
-                if @Image\GetImage! ~= image
-                    @Image\SetImage( image )
-
-                text = state and "#jb.off" or "#jb.on"
-                if @Label\GetText! ~= text
-                    @Label\SetText( text )
+                image = state and "icon16/accept.png" or "icon16/cancel.png"
+                if @GetImage! ~= image
+                    @SetImage( image )
 
                 unless @IsVisible!
                     @Show!
@@ -1002,49 +452,6 @@ list_Set "DesktopWindows", "!3shock-collars", {
     click: =>
         RunConsoleCommand( "jb_shock_collars" )
 }
-
-GM.ReColorList = {
-    CHudSecondaryAmmo: true
-    CHudSuitPower: true
-    CHudBattery: true
-    CHudHealth: true
-    CHudAmmo: true
-}
-
-GM.StartChat = ( isTeam ) =>
-    if @Reskined
-        return
-
-    hook.Add "Think", "JB::CHudReskin", ->
-        viewport = vgui.GetKeyboardFocus!
-        unless IsValid( viewport )
-            return
-
-        hook.Remove "Think", "JB::CHudReskin"
-        @Reskined = true
-        chat.Close!
-
-        for index = 1, 5
-            panel = viewport\GetParent!
-            unless IsValid( panel )
-                break
-
-            viewport = panel
-
-        unless IsValid( viewport )
-            return
-
-        for panel in *viewport\GetChildren!
-            unless @ReColorList[ panel\GetClassName! ]
-                continue
-
-            ply = LocalPlayer!
-            unless IsValid( ply )
-                return
-
-            hook.Add "Think", panel, =>
-                @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
-                -- @SetFontInternal( "ChatFont" )
 
 do
 

@@ -44,8 +44,6 @@ cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
     Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 4 ) + 1 )
 "Jailbreak" )
 
-Jailbreak.VoiceChatPVS = CreateConVar( "jb_voice_chat_pvs", "0", ConVarFlags, "Uses PVS instead of PAS.", 0, 1 )
-
 util.AddNetworkString( "Jailbreak::Networking" )
 
 resource.AddWorkshop( "3093227948" )
@@ -194,7 +192,10 @@ do
         @LastSpectatedEntity = index
 
     PLAYER.UsingSecurityRadio = =>
-        return @HasSecurityRadio! and @GetInfo( "cl_security_radio" ) == "1"
+        return @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
+
+    PLAYER.UsingMegaphone = =>
+        return @IsWarden! and @GetInfo( "jb_megaphone" ) == "1"
 
     do
 
@@ -1230,10 +1231,7 @@ do
             origin = EyePos( listener )
 
             rf = RecipientFilter!
-            if Jailbreak.VoiceChatPVS\GetBool!
-                rf\AddPVS( origin )
-            else
-                rf\AddPAS( origin )
+            rf\AddPAS( origin )
 
             hasRadio = listener\HasSecurityRadio!
             listenerIndex = listener\EntIndex!
@@ -1248,7 +1246,7 @@ do
                 if hasRadio and speaker\UsingSecurityRadio!
                     continue
 
-                if speaker\IsWarden!
+                if speaker\UsingMegaphone!
                     volumes[] = { speaker, 1 }
                     speakers[ speaker ] = 1
                     continue
@@ -1276,7 +1274,7 @@ do
         if isTeam and listener\Team! ~= speaker\Team!
             return false
 
-        if speaker\IsWarden!
+        if speaker\UsingMegaphone!
             return true
 
         if OOC or not Jailbreak.IsRoundRunning!
@@ -1295,7 +1293,7 @@ do
         if OOC or not Jailbreak.IsRoundRunning!
             return true, false
 
-        if speaker\IsWarden!
+        if speaker\UsingMegaphone!
             return true, true
 
         canHear, is3D = CanHear( listener, speaker )
@@ -1564,11 +1562,17 @@ concommand.Add "jb_shock_collars", ( _, args ) =>
         @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
         return
 
+    if ( @ShockCollarsDelay or 0 ) > CurTime!
+        @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
+        return
+
     requested = args[ 1 ]
     if requested ~= nil and #requested ~= 0
         Jailbreak.SetShockCollars( requested == "1" )
     else
         Jailbreak.SetShockCollars( not Jailbreak.IsShockCollarsActive! )
+
+    @ShockCollarsDelay = CurTime! + 5
 
 do
 
