@@ -27,7 +27,6 @@ GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "Time 
 GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "The value is responsible for the health of the door.", 50, 10000 )
 GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "Guards armor amount on spawn.", 0, 1000 )
 GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "Allow to pick up weapons as a prop, provided that the player has a full ammo.", 0, 1 )
-GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "You can only pick up weapons with the use key.", 0, 1 )
 
 GM.FemalePrisonChance = CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "The percentage value at which a women's prison will appear where all inmates have female models.", 0, 100 )
 GM.MasqueradeEventChance = CreateConVar( "jb_masquerade_event_chance", "1", ConVarFlags, "The percentage of probability that the next round will be a masquerade..", 0, 100 )
@@ -1013,9 +1012,7 @@ GM.PlayerCanPickupItem = ( ply, entity ) =>
     return ply\IsInGame!
 
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    if @ManualWeaponPickup\GetBool! or ply\HasWeapon( weapon\GetClass! )
-        return false
-    return ply\Alive!
+    return ply\Alive! and not ply\HasWeapon( weapon\GetClass! )
 
 GM.PlayerNoClip = ( ply, desiredState ) =>
     if desiredState
@@ -1141,7 +1138,7 @@ do
                 unless entity\IsValid! and entity\IsWeapon!
                     return false
 
-            unless ply\HasWeapon( entity\GetClass! )
+            if hook_Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
                 ply\PickupWeapon( entity, false )
                 return false
 
@@ -1841,7 +1838,6 @@ GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
 
         if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
             entity.DrownDamageTime = CurTime! + random( 15, 45 )
-
 
 do
 

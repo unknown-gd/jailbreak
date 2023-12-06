@@ -75,10 +75,7 @@ do
             if isnumber( damageScale )
                 damageInfo\ScaleDamage( damageScale )
 
-            if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) == false
-                timer_Simple 0, ->
-                    if ply\IsValid!
-                        ply\RemoveAllDecals!
+            if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
                 return true
 
 do

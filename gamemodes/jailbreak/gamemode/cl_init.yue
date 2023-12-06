@@ -916,8 +916,14 @@ do
         think: =>
             if LocalPlayer!\HasSecurityRadio!
                 state = SecurityRadio\GetBool!
-                @Image\SetImage( state and "icon16/phone_sound.png" or "icon16/phone.png" )
-                @Label\SetText( state and "#jb.off" or "#jb.on" )
+
+                image = state and "icon16/phone_sound.png" or "icon16/phone.png"
+                if @Image\GetImage! ~= image
+                    @Image\SetImage( image )
+
+                text = state and "#jb.off" or "#jb.on"
+                if @Label\GetText! ~= text
+                    @Label\SetText( text )
 
                 if @IsVisible!
                     return
@@ -959,8 +965,14 @@ list_Set "DesktopWindows", "!3shock-collars", {
             ply = LocalPlayer!
             if ply\IsWarden! and ply\Alive!
                 state = Jailbreak.IsShockCollarsActive!
-                @Image\SetImage( state and "icon16/lightning.png" or "icon16/lightning_delete.png" )
-                @Label\SetText( state and "#jb.off" or "#jb.on" )
+
+                image = state and "icon16/lightning.png" or "icon16/lightning_delete.png"
+                if @Image\GetImage! ~= image
+                    @Image\SetImage( image )
+
+                text = state and "#jb.off" or "#jb.on"
+                if @Label\GetText! ~= text
+                    @Label\SetText( text )
 
                 unless @IsVisible!
                     @Show!
@@ -972,7 +984,7 @@ list_Set "DesktopWindows", "!3shock-collars", {
             @GetParent!\Layout!
 
     click: =>
-        RunConsoleCommand( "jb_toggle_shock_collars" )
+        RunConsoleCommand( "jb_shock_collars" )
 }
 
 GM.ReColorList = {
