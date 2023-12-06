@@ -392,7 +392,7 @@ do
     }
 
 list_Set "DesktopWindows", "!4warden-request", {
-    title: "#jb.warden.shift"
+    title: "#jb.warden.join"
     icon: "icon16/user_suit.png"
     think: =>
         if Jailbreak.IsRoundRunning!
@@ -404,6 +404,10 @@ list_Set "DesktopWindows", "!4warden-request", {
                         if @Image\GetImage! ~= image
                             @Image\SetImage( image )
 
+                        text = "#jb.warden.leave"
+                        if @Label\GetText! ~= text
+                            @Label\SetText( text )
+
                         unless @IsVisible!
                             @Show!
                             @GetParent!\Layout!
@@ -413,6 +417,10 @@ list_Set "DesktopWindows", "!4warden-request", {
                     image = "icon16/user_suit.png"
                     if @Image\GetImage! ~= image
                         @Image\SetImage( image )
+
+                    text = "#jb.warden.join"
+                    if @Label\GetText! ~= text
+                        @Label\SetText( text )
 
                     unless @IsVisible!
                         @Show!
