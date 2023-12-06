@@ -407,6 +407,7 @@ list_Set "DesktopWindows", "!4warden-request", {
                         text = "#jb.warden.leave"
                         if @Label\GetText! ~= text
                             @Label\SetText( text )
+                            @SetTooltip( text )
 
                         unless @IsVisible!
                             @Show!
@@ -421,6 +422,7 @@ list_Set "DesktopWindows", "!4warden-request", {
                     text = "#jb.warden.join"
                     if @Label\GetText! ~= text
                         @Label\SetText( text )
+                        @SetTooltip( text )
 
                     unless @IsVisible!
                         @Show!
