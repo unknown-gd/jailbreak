@@ -25,7 +25,7 @@ GM.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "Round time in s
 
 GM.PlayerRespawnTime = CreateConVar( "jb_respawn_time", "2", ConVarFlags, "Time to respawn players after death during preparation.", 0, 300 )
 GM.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "The value is responsible for the health of the door.", 50, 10000 )
-GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "The value of the guards' armor when spawning.", 0, 1000 )
+GM.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "Guards armor amount on spawn.", 0, 1000 )
 GM.WeaponThrowing = CreateConVar( "jb_weapon_throwing", "0", ConVarFlags, "Allow to pick up weapons as a prop, provided that the player has a full ammo.", 0, 1 )
 GM.ManualWeaponPickup = CreateConVar( "jb_manula_weapon_pickup", "0", ConVarFlags, "You can only pick up weapons with the use key.", 0, 1 )
 
@@ -616,37 +616,41 @@ GM.PlayerDroppedWeapon = ( ply, weapon ) =>
         @PlayerDroppedWeapon( ply, weapon )
     )
 
-GM.PlayerLoadout = ( ply, teamID ) =>
-    if teamID == TEAM_GUARD
-        ply\GiveAmmo( 7, "357", true )
-        ply\GiveAmmo( 60, "ar2", true )
-        ply\GiveAmmo( 90, "smg1", true )
-        ply\GiveAmmo( 40, "Pistol", true )
-        ply\GiveAmmo( 20, "Buckshot", true )
+do
 
-        if @MapGame ~= "cstrike" and not @Medieval
-            avaliableWeapons = @AvaliableWeapons
-            count = #avaliableWeapons / 4
-            gived = {}
+    GM.GuardsAmmoMult = CreateConVar( "jb_guards_ammo", "1", ConVarFlags, "Guards ammo multiplier ( max * multiplier ) on spawn.", 0, 1000 )
+    :GetAmmoTypes, :GetAmmoMax = game
 
-            while count > 0
-                className = Random( avaliableWeapons )
-                if ply\HasWeapon( className ) or gived[ className ]
-                    continue
+    GM.PlayerLoadout = ( ply, teamID ) =>
+        if teamID == TEAM_GUARD
+            do
+                mult = @GuardsAmmoMult\GetFloat!
+                for index = 1, #GetAmmoTypes!
+                    ply\GiveAmmo( min( 250, GetAmmoMax( index ) * mult ), index, true )
 
-                gived[ className ] = true
-                ply\Give( className )
-                count -= 1
-    elseif teamID == TEAM_PRISONER
-        unless ply\HasWeapon( "weapon_knife" )
-            if Classic
-                ply\Give( "weapon_knife" )
-                return
-            elseif random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
-                ply\Give( "weapon_knife" )
+            if @MapGame ~= "cstrike" and not @Medieval
+                avaliableWeapons = @AvaliableWeapons
+                count = #avaliableWeapons / 4
+                gived = {}
 
-    ply\Give( "jb_hands" )
-    ply\SelectWeapon( "jb_hands" )
+                while count > 0
+                    className = Random( avaliableWeapons )
+                    if ply\HasWeapon( className ) or gived[ className ]
+                        continue
+
+                    gived[ className ] = true
+                    ply\Give( className )
+                    count -= 1
+        elseif teamID == TEAM_PRISONER
+            unless ply\HasWeapon( "weapon_knife" )
+                if Classic
+                    ply\Give( "weapon_knife" )
+                    return
+                elseif random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
+                    ply\Give( "weapon_knife" )
+
+        ply\Give( "jb_hands" )
+        ply\SelectWeapon( "jb_hands" )
 
 do
 
@@ -1101,63 +1105,73 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
 GM.PlayerSpray = ( ply ) =>
     return not ( ply\IsInGame! and ( Classic or ply\IsPrisoner! ) )
 
-GM.PlayerUse = ( ply, entity ) =>
-    unless ply\IsInGame!
-        return
+do
 
-    unless Classic
-        weapon = ply\GetActiveWeapon!
-        if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
-            velocity = ply\GetVelocity!\GetNormalized! * 16
-            entity\SetVelocity( velocity )
-            ply\SetVelocity( -velocity )
+    hook_Add = hook.Add
+    :GetAmmoMax = game
+
+    GM.PlayerUse = ( ply, entity ) =>
+        unless ply\IsInGame!
+            return
+
+        unless Classic
+            weapon = ply\GetActiveWeapon!
+            if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
+                velocity = ply\GetVelocity!\GetNormalized! * 16
+                entity\SetVelocity( velocity )
+                ply\SetVelocity( -velocity )
+                return false
+
+        curTime, lastUse = CurTime!, ply.LastUse or 0
+        ply.LastUse = curTime
+
+        if ( curTime - lastUse ) <= 0.025
+            return
+
+        if entity\IsPlayerRagdoll!
+            hook_Run( "PlayerRagdollUse", entity, ply )
             return false
 
-    curTime, lastUse = CurTime!, ply.LastUse or 0
-    ply.LastUse = curTime
+        if entity\IsWeapon!
+            if entity.PickupForbidden
+                return false
 
-    if ( curTime - lastUse ) <= 0.025
-        return
+            if entity.IsTemporaryWeapon
+                entity = entity\GetParent!
+                unless entity\IsValid! and entity\IsWeapon!
+                    return false
 
-    if entity\IsPlayerRagdoll!
-        hook_Run( "PlayerRagdollUse", entity, ply )
-        return false
+            unless ply\HasWeapon( entity\GetClass! )
+                ply\PickupWeapon( entity, false )
+                return false
 
-    if entity\IsWeapon!
-        if entity.PickupForbidden or entity.IsTemporaryWeapon or entity\IsPlayerHolding!
-            return false
+            clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
+            if clip1 > 0 and clip1Type >= 0
+                ply\GiveAmmo( clip1, clip1Type, false )
+                entity\SetClip1( 0 )
+                return false
 
-        unless ply\HasWeapon( entity\GetClass! )
-            ply\PickupWeapon( entity, false )
-            return false
+            clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
+            if clip2 > 0 and clip2Type >= 0
+                ply\GiveAmmo( clip2, clip2Type, false )
+                entity\SetClip2( 0 )
+                return false
 
-        clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
-        if clip1 > 0 and clip1Type >= 0 and ply\GetAmmoCount( clip1Type ) < ( game.GetAmmoMax( clip1Type ) / 2 )
-            ply\GiveAmmo( clip1, clip1Type, false )
-            entity\SetClip1( 0 )
-            return false
+            if @WeaponThrowing\GetBool!
+                phys = entity\GetPhysicsObject!
+                if IsValid( phys )
+                    phys\EnableMotion( true )
+                    phys\Wake!
+                ply\PickupObject( entity )
 
-        clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
-        if clip2 > 0 and clip2Type >= 0 and ply\GetAmmoCount( clip2Type ) < ( game.GetAmmoMax( clip2Type ) / 2 )
-            ply\GiveAmmo( clip2, clip2Type, false )
-            entity\SetClip2( 0 )
-            return false
+                hook_Add "Think", entity, ->
+                    if entity\GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
+                        entity\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+                    unless entity\IsPlayerHolding!
+                        hook.Remove "Think", entity
+                return false
 
-        if @WeaponThrowing\GetBool!
-            phys = entity\GetPhysicsObject!
-            if IsValid( phys )
-                phys\EnableMotion( true )
-                phys\Wake!
-            ply\PickupObject( entity )
-
-            hook.Add "Think", entity, ->
-                if entity\GetCollisionGroup! ~= COLLISION_GROUP_DEBRIS
-                    entity\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
-                unless entity\IsPlayerHolding!
-                    hook.Remove "Think", entity
-            return false
-
-    return true
+        return true
 
 do
 
