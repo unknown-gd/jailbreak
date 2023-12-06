@@ -938,23 +938,39 @@ do
     }
 
 list_Set "DesktopWindows", "!4warden-request", {
-    title: "#jb.become.warden"
+    title: "#jb.warden.shift"
     icon: "icon16/user_suit.png"
     think: =>
-        if Jailbreak.IsRoundRunning! and not Jailbreak.HasWarden!
+        if Jailbreak.IsRoundRunning!
             ply = LocalPlayer!
-            if ply\IsGuard! and ply\Alive!
-                unless @IsVisible!
-                    @Show!
-                    @GetParent!\Layout!
-                return
+            if ply\Alive!
+                if Jailbreak.HasWarden!
+                    if ply\IsWarden!
+                        image = "icon16/user.png"
+                        if @Image\GetImage! ~= image
+                            @Image\SetImage( image )
+
+                        unless @IsVisible!
+                            @Show!
+                            @GetParent!\Layout!
+
+                        return
+                elseif ply\IsGuard!
+                    image = "icon16/user_suit.png"
+                    if @Image\GetImage! ~= image
+                        @Image\SetImage( image )
+
+                    unless @IsVisible!
+                        @Show!
+                        @GetParent!\Layout!
+                    return
 
         if @IsVisible!
             @Hide!
             @GetParent!\Layout!
 
     click: =>
-        RunConsoleCommand( "jb_warden_request" )
+        RunConsoleCommand( "jb_warden" )
 }
 
 list_Set "DesktopWindows", "!3shock-collars", {

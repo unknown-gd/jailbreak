@@ -160,8 +160,8 @@ do
             return
 
         @SetNW2Bool( "is-warden", bool )
-        if bool and not silent
-            hook_Run( "CreatedWarden", @ )
+        unless silent
+            hook_Run( "WardenChanged", @, bool )
 
     PLAYER.SetShockCollar = ( bool ) =>
         @SetNW2Bool( "shock-collar", bool )
@@ -353,8 +353,8 @@ do
 
         return ragdoll
 
-GM.CreatedWarden = ( ply ) =>
-    Jailbreak.BroadcastNotify( "#jb.alert.new_warden", NOTIFY_HINT, 20, ply\Nick! )
+GM.WardenChanged = ( ply, state ) =>
+    Jailbreak.BroadcastNotify( state and "#jb.alert.warden_join" or "#jb.alert.warden_leave", state and NOTIFY_HINT or NOTIFY_CLEANUP, 15, ply\Nick! )
 
 GM.ShockCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
@@ -1532,21 +1532,31 @@ GM.TeamPlayerSpawn = ( ply ) =>
 concommand.Add "changeteam", ( _, args ) =>
     hook_Run( "PlayerRequestTeam", @, tonumber( args[ 1 ] ) )
 
-concommand.Add "jb_warden_request", ( _, args ) =>
-    unless IsValid( @ ) and not @IsWarden!
+concommand.Add "jb_warden", ( _, args ) =>
+    unless IsValid( @ )
         return
 
     unless Jailbreak.IsRoundRunning! and @Alive! and @IsGuard!
         @SendNotify( "#jb.error.warden-failure", NOTIFY_ERROR, 10 )
         return
 
+    if ( @WardenDelay or 0 ) > CurTime!
+        @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
+        return
+
+    if @IsWarden!
+        @WardenDelay = CurTime! + 10
+        @SetWarden( false )
+        return
+
     if Jailbreak.HasWarden!
         @SendNotify( "#jb.error.warden-exists", NOTIFY_ERROR, 10 )
         return
 
+    @WardenDelay = CurTime! + 5
     @SetWarden( true )
 
-concommand.Add "jb_toggle_shock_collars", ( _, args ) =>
+concommand.Add "jb_shock_collars", ( _, args ) =>
     unless IsValid( @ )
         return
 
@@ -1829,7 +1839,7 @@ do
             Jailbreak.SetRoundTime( 0 )
 
 Jailbreak.SetChatCommand "warden", =>
-    @ConCommand( "jb_warden_request" )
+    @ConCommand( "jb_warden" )
 
 GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
     if new > 1
