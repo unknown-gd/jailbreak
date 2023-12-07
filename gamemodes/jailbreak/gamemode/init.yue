@@ -920,9 +920,19 @@ do
                     damageInfo\SetDamage( newDamage )
                     break
 
+GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
+    if entity\IsOnFire!
+        if entity\WaterLevel! >= 2 or ( entity\IsPlayer! and not entity\IsInGame! )
+            entity\Extinguish!
+            return true
+
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if entity\IsPlayerRagdoll!
         return true
+
+    if bit.band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN
+        if hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
+            return true
 
     if entity\IsPlayer!
         if entity\Alive!
