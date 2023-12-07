@@ -1,4 +1,5 @@
 RunConsoleCommand = RunConsoleCommand
+:abs, :min, :max, :sin = math
 LocalPlayer = LocalPlayer
 :GetPhrase = language
 Jailbreak = Jailbreak
@@ -17,6 +18,7 @@ TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
 BackgroundColor = Color( 33, 33, 33 )
+color_white = color_white
 
 do
 
@@ -823,3 +825,59 @@ do
                 hook_Add "Think", panel, =>
                     @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
                     -- @SetFontInternal( "ChatFont" )
+
+do
+
+    TypingIcon = Material( "icon16/comment_edit.png", "mips" )
+    SpeakingIcon = Material( "icon16/sound.png", "mips" )
+    :SetMaterial, :DrawSprite = render
+    player_GetAll = player.GetAll
+
+    GM.PostDrawTranslucentRenderables = ( drawingDepth, drawingSkybox, isDraw3DSkybox ) =>
+        if drawingSkybox or isDraw3DSkybox
+            return
+
+        eyePos = EyePos!
+
+        for ply in *player_GetAll!
+            unless ply\IsInGame!
+                continue
+
+            isSpeaking, isTyping = ply\IsSpeaking!, ply\IsTyping!
+            unless isSpeaking or isTyping
+                continue
+
+            origin = nil
+
+            headBoneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
+            if headBoneID and headBoneID >= 0
+                origin = ply\GetBonePosition( headBoneID )
+
+                hitboxset = ply\GetHitboxSet!
+                for hitbox = 0, ply\GetHitBoxCount( hitboxset )
+                    if headBoneID == ply\GetHitBoxBone( hitbox, hitboxset )
+                        mins, maxs = ply\GetHitBoxBounds( hitbox, hitboxset )
+                        origin[ 3 ] = origin[ 3 ] + ( abs( mins[ 3 ] ) + abs( maxs[ 3 ] ) ) * 2
+                        break
+
+            else
+                origin = ply\EyePos!
+                origin[ 3 ] += 14
+
+            data = origin\ToScreen!
+            unless data.visible
+                continue
+
+            distance = origin\DistToSqr( eyePos )
+            if distance > Jailbreak.VoiceChatMaxDistance
+                continue
+
+            if isSpeaking
+                SetMaterial( SpeakingIcon )
+            elseif isTyping
+                SetMaterial( TypingIcon )
+            else
+                continue
+
+            origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
+            DrawSprite( origin, 12, 12, color_white )
