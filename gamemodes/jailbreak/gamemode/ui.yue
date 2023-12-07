@@ -511,17 +511,18 @@ do
 
             do
 
-                allowedPlayerModels = {}
-                for i = 0, 1
-                    for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ i == 1 ]
-                        allowedPlayerModels[ modelPath ] = true
-
-                    for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ][ i == 1 ]
-                        allowedPlayerModels[ modelPath ] = true
-
                 UpdateAvalibleModels = ->
                     unless selectPanel\IsValid! and selectPanel\IsVisible!
                         return
+
+                    allowedPlayerModels = {}
+                    isFemalePrison = Jailbreak.IsFemalePrison!
+
+                    for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+                        allowedPlayerModels[ modelPath ] = true
+
+                    for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+                        allowedPlayerModels[ modelPath ] = true
 
                     filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
                     for _, icon in pairs( selectPanel\GetItems! )
@@ -624,19 +625,6 @@ do
 
             bodygroupsSheet = sheet\AddSheet( "#smwidget.bodygroups", bodygroupsPanel, "icon16/cog.png" )
 
-            MakeNiceName = ( str ) ->
-                data = string.Explode( "_", str )
-                length = #data
-                result = ""
-
-                for index = 1, length
-                    word = data[ index ]
-                    result ..= string.upper( string.sub( word, 1, 1 ) ) .. string.sub( word, 2 )
-                    if index ~= #length
-                        result ..= " "
-
-                return result
-
             UpdateBodyGroups = ( pnl, value ) ->
                 previewEntity = modelPreview.Entity
                 if previewEntity
@@ -713,7 +701,7 @@ do
 
                         bodygroup = vgui.Create( "DNumSlider" )
                         bodygroup\Dock( TOP )
-                        bodygroup\SetText( MakeNiceName( previewEntity\GetBodygroupName( index ) ) )
+                        bodygroup\SetText( previewEntity\GetBodygroupName( index ) )
                         bodygroup\SetDark( true )
                         bodygroup\SetTall( 50 )
                         bodygroup\SetDecimals( 0 )
