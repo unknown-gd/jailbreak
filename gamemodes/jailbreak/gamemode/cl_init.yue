@@ -513,3 +513,97 @@ do
 
         AddText( unpack( result ) )
         return true
+
+GM.GrabEarAnimation = ( ply ) =>
+	if ply\IsPlayingTaunt!
+        return
+
+	weight = ply.ChatGestureWeight or 0
+
+	if ply\IsTyping!
+        weight = math.Approach( weight, 1, FrameTime! * 5 )
+	else
+		weight = math.Approach( weight, 0, FrameTime! * 5 )
+
+	if weight > 0
+		ply\AnimRestartGesture( GESTURE_SLOT_VCD, ACT_GMOD_IN_CHAT, true )
+		ply\AnimSetGestureWeight( GESTURE_SLOT_VCD, weight )
+
+    ply.ChatGestureWeight = weight
+
+do
+
+    cache = {}
+
+    patterns = {
+        "right_corner_puller"
+    	"left_corner_puller"
+
+        "right_cheek_raiser"
+        "left_cheek_raiser"
+
+        "right_part"
+        "left_part"
+
+        "jaw_drop"
+
+        "right_mouth_drop"
+        "left_mouth_drop"
+
+        "smile"
+        "lower_lip"
+
+        -- "corner_depressor"
+    }
+
+    mults = {
+        right_cheek_raiser: 0.25
+        left_cheek_raiser: 0.25
+        -- right_mouth_drop: 0.5
+        -- left_mouth_drop: 0.5
+        lower_lip: 0.25
+        jaw_drop: 0.5
+        smile: 0.25
+    }
+
+    GM.MouthMoveAnimation = ( ply ) =>
+        flexes = cache[ ply\GetModel! ]
+        if flexes == nil
+            flexes = {}
+            for flex = 0, ply\GetFlexNum!
+                sourceIndex = -1
+                for index, pattern in ipairs( patterns )
+                    flexName = ply\GetFlexName( flex )
+                    if flexName == pattern or string.find( flexName, pattern, 1, false ) ~= nil
+                        mults[ index ] = mults[ flexName ]
+                        sourceIndex = index
+                        break
+
+                if sourceIndex ~= -1
+                    flexes[] = { flex, sourceIndex, ply\GetFlexBounds( flex ) }
+
+            if #flexes == 0
+                flexes = false
+
+            cache[ ply\GetModel! ] = flexes
+
+        frac = 0
+        if ply\IsSpeaking!
+            voiceVolume = ply\VoiceVolume!
+            maxVoiceVolume = math.max( ply.MaxVoiceVolume or 0, voiceVolume )
+            ply.MaxVoiceVolume = maxVoiceVolume
+            frac = voiceVolume / maxVoiceVolume
+
+        lastVoiceVolume = ply.LastVoiceVolume or 0
+        if lastVoiceVolume > 0
+            frac = lastVoiceVolume + ( frac - lastVoiceVolume ) / 128
+            ply.LastVoiceVolume = frac
+
+        if flexes
+            ply\SetFlexScale( 2 )
+
+            for data in *flexes
+                flex = data[ 1 ]
+                nextVolume = math.abs( math.sin( flex * ( 1 / #flexes ) + CurTime! ) ) * frac + frac
+                ply\SetFlexWeight( flex, math.Clamp( nextVolume, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) )
+
