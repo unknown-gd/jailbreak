@@ -171,24 +171,50 @@ do
         @SetNW2Bool( "security-radio", bool )
 
     PLAYER.MoveSpectateID = ( move, players ) =>
-        index, length = ( @LastSpectatedEntity or 0 ) + move, #players
+        targets = {}
+        for pl in *player.GetAll!
+            if pl\IsInGame!
+                targets[] = pl
+
+        if Jailbreak.GameName == "tf"
+            for entity in *ents.FindByClass( "info_observer_point" )
+                targets[] = entity
+
+        for entity in *ents.FindByClass( "prop_ragdoll" )
+            if entity\IsPlayerRagdoll!
+                targets[] = entity
+
+        for entity in *ents.FindByClass( "prop_physics" )
+            if entity\IsPlayerRagdoll!
+                targets[] = entity
+
+        if #targets == 0
+            return
+
+        index, length = ( @LastSpectatedEntity or 0 ) + move, #targets
         if index > length
             index = 1
         elseif index < 1
             index = length
 
-        entity = players[ index ]
+        entity = targets[ index ]
         if entity\IsPlayer!
             @SpectateEntity( entity )
+
             if @GetObserverMode! ~= OBS_MODE_CHASE
                 @Spectate( OBS_MODE_CHASE )
+
         else
+
             if @GetObserverMode! ~= OBS_MODE_ROAMING
                 @Spectate( OBS_MODE_ROAMING )
+
             @SetPos( entity\GetPos! )
+
             angles = entity\GetAngles!
             angles[ 3 ] = 0
             @SetEyeAngles( angles )
+
         @LastSpectatedEntity = index
 
     PLAYER.UsingSecurityRadio = =>
@@ -628,7 +654,7 @@ do
                 for index = 1, #GetAmmoTypes!
                     ply\GiveAmmo( min( 250, GetAmmoMax( index ) * mult ), index, true )
 
-            if @MapGame ~= "cstrike" and not @Medieval
+            if Jailbreak.GameName ~= "cstrike" and not @Medieval
                 avaliableWeapons = @AvaliableWeapons
                 count = #avaliableWeapons / 4
                 gived = {}
@@ -797,31 +823,9 @@ do
                     ply\Spectate( OBS_MODE_ROAMING )
                     ply\SpectateEntity!
             elseif ply\KeyPressed( IN_ATTACK )
-                targets = {}
-                for pl in *player.GetAll!
-                    if pl\IsInGame!
-                        targets[] = pl
-
-                for entity in *ents.FindByClass( "info_observer_point" )
-                    targets[] = entity
-
-                if #targets == 0
-                    return
-
-                ply\MoveSpectateID( 1, targets )
+                ply\MoveSpectateID( 1 )
             elseif ply\KeyPressed( IN_ATTACK2 )
-                targets = {}
-                for pl in *player.GetAll!
-                    if pl\IsInGame!
-                        targets[] = pl
-
-                for entity in *ents.FindByClass( "info_observer_point" )
-                    targets[] = entity
-
-                if #targets == 0
-                    return
-
-                ply\MoveSpectateID( -1, targets )
+                ply\MoveSpectateID( -1 )
 
 GM.PlayerDeathThink = ( ply ) =>
     if not Jailbreak.Teams[ ply\Team! ] or Jailbreak.GameInProgress!
@@ -1190,14 +1194,14 @@ do
             net.WriteFloat( data[ 2 ] )
         net.Send( listener )
 
-    MinDistance = CreateConVar( "jb_voice_chat_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
-    MaxDistance = CreateConVar( "jb_voice_chat_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
+    MinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
+    MaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
 
-    cvars.AddChangeCallback( "jb_voice_chat_distance_min", ( _, __, value ) ->
+    cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
         MinDistance = ( tonumber( value ) or 100 ) ^ 2
     "Jailbreak" )
 
-    cvars.AddChangeCallback( "jb_voice_chat_distance_max", ( _, __, value ) ->
+    cvars.AddChangeCallback( "jb_voice_distance_max", ( _, __, value ) ->
         MaxDistance = ( tonumber( value ) or 100 ) ^ 2
     "Jailbreak" )
 
@@ -1365,14 +1369,14 @@ GM.InitPostEntity = =>
     if #ents.FindByClass( "info_player_teamspawn" ) > 0
         @Medieval = #ents.FindByClass( "tf_logic_medieval" ) > 0
         resource.AddWorkshop( "105181283" )
+        Jailbreak.GameName = "tf"
         SoundHandler( "tf" )
-        @MapGame = "tf"
     elseif ( #ents.FindByClass( "info_player_counterterrorist" ) + #ents.FindByClass( "info_player_counterterrorist" ) ) > 0
+        Jailbreak.GameName = "cstrike"
         SoundHandler( "cstrike" )
-        @MapGame = "cstrike"
 
 GM.PlayerInitialized = ( ply ) =>
-    gameName = @MapGame
+    gameName = Jailbreak.GameName
     unless gameName
         return
 
@@ -1768,10 +1772,10 @@ do
 
         do
 
-            Distance = CreateConVar( "chat_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
+            WhisperDistance = CreateConVar( "jb_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
 
             Whisper = ( text ) =>
-                Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " #jb.chat.whispers, \"" .. text .. "\"" )
+                Jailbreak.SendChatText( @GetNearPlayer( WhisperDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " #jb.chat.whispers, \"" .. text .. "\"" )
             Jailbreak.Whisper = Whisper
 
             Jailbreak.SetChatCommand "whisper", Whisper
@@ -1779,18 +1783,18 @@ do
 
         do
 
-            Distance = CreateConVar( "chat_looc_distance", "256", ConVarFlags, "", 48, 65536 )
+            LOOCDistance = CreateConVar( "jb_looc_distance", "256", ConVarFlags, "", 48, 65536 )
             blue = Color( 0, 190, 255 )
             :GetColor = team
 
             LOOC = ( text ) =>
-                Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, color_white, ": " .. text )
+                Jailbreak.SendChatText( @GetNearPlayer( LOOCDistance\GetInt!, false ), blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, color_white, ": " .. text )
 
             Jailbreak.SetChatCommand "looc", LOOC
             Jailbreak.SetChatCommand "", LOOC
 
             Me = ( text ) =>
-                Jailbreak.SendChatText( @GetNearPlayer( Distance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " " .. lower( text ) )
+                Jailbreak.SendChatText( @GetNearPlayer( LOOCDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, color_white, " " .. lower( text ) )
 
             Jailbreak.SetChatCommand "me", Me
 
@@ -1811,7 +1815,7 @@ do
 
         do
 
-            Enabled = CreateConVar( "chat_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
+            Enabled = CreateConVar( "jb_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
             turquoise = Color( 75, 200, 200 )
 
             OOC = ( text ) =>
@@ -1846,7 +1850,7 @@ Jailbreak.SetChatCommand "warden", =>
     @ConCommand( "jb_warden" )
 
 GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
-    if new > 1
+    if new >= 2
         if entity\IsOnFire!
             entity\Extinguish!
 

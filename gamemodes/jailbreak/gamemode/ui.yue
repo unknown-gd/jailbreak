@@ -512,14 +512,12 @@ do
             do
 
                 allowedPlayerModels = {}
-                for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ]
-                    allowedPlayerModels[ modelPath ] = true
+                for i = 0, 1
+                    for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ i == 1 ]
+                        allowedPlayerModels[ modelPath ] = true
 
-                for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ true ]
-                    allowedPlayerModels[ modelPath ] = true
-
-                for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ false ]
-                    allowedPlayerModels[ modelPath ] = true
+                    for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ][ i == 1 ]
+                        allowedPlayerModels[ modelPath ] = true
 
                 UpdateAvalibleModels = ->
                     unless selectPanel\IsValid! and selectPanel\IsVisible!

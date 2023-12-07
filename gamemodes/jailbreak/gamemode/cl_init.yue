@@ -122,9 +122,9 @@ do
 
     Functions = {
         [0]: ->
-            mapGame = ReadString!
-            SoundHandler( mapGame )
-            ( GM or GAMEMODE ).MapGame = mapGame
+            gameName = ReadString!
+            SoundHandler( gameName )
+            Jailbreak.GameName = gameName
         [1]: ->
             hook_Run( "HUDItemPickedUp", ReadString! )
         [2]: ->
