@@ -1231,17 +1231,6 @@ do
             net.WriteFloat( data[ 2 ] )
         net.Send( listener )
 
-    MinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
-    MaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
-
-    cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
-        MinDistance = ( tonumber( value ) or 100 ) ^ 2
-    "Jailbreak" )
-
-    cvars.AddChangeCallback( "jb_voice_distance_max", ( _, __, value ) ->
-        MaxDistance = ( tonumber( value ) or 100 ) ^ 2
-    "Jailbreak" )
-
     OOC = GetConVar( "sv_alltalk" )\GetInt! > 2
     cvars.AddChangeCallback( "sv_alltalk", ( _, __, value ) ->
         OOC = ( tonumber( value ) or 2 ) > 2
@@ -1292,7 +1281,7 @@ do
                     speakers[ speaker ] = 1
                     continue
 
-                volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - MinDistance ) / MaxDistance, 0, 1 ), 2 )
+                volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - Jailbreak.VoiceChatMinDistance ) / Jailbreak.VoiceChatMaxDistance, 0, 1 ), 2 )
                 if volume > 0
                     volumes[] = { speaker, volume }
                     speakers[ speaker ] = volume

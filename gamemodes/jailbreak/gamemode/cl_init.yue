@@ -1,9 +1,10 @@
 include( "shared.lua" )
 include( "ui.lua" )
 
-:GetPhrase = language
+:Approach, :Clamp, :Rand, :max, :abs, :sin = math
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
+:GetPhrase = language
 Jailbreak = Jailbreak
 list_Set = list.Set
 hook_Run = hook.Run
@@ -515,8 +516,6 @@ do
 
         AddText( unpack( result ) )
         return true
-
-:Approach, :Clamp, :Rand, :max, :abs, :sin = math
 
 GM.GrabEarAnimation = ( ply ) =>
 	if ply\IsPlayingTaunt!

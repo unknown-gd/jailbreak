@@ -47,6 +47,16 @@ do
     Jailbreak.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "Classic jailbreak, without any innovations. Specially for Erik_Maksimets <3", 0, 1 )
     Jailbreak.FunnyMouthAnimations = CreateConVar( "jb_funny_mouth_animations", "1", ConVarFlags, "Funny mouth animations. ( 0/1/2 )", 0, 2 )
 
+    Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
+    cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
+        Jailbreak.VoiceChatMinDistance = ( tonumber( value ) or 100 ) ^ 2
+    "Jailbreak" )
+
+    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
+    cvars.AddChangeCallback( "jb_voice_distance_max", ( _, __, value ) ->
+        Jailbreak.VoiceChatMaxDistance = ( tonumber( value ) or 100 ) ^ 2
+    "Jailbreak" )
+
     GM.DeathNoticeDraw = CreateConVar( "jb_draw_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
     GM.TargetIDDraw = CreateConVar( "jb_draw_target_id", "0", ConVarFlags, "Draw target id.", 0, 1 )
 
@@ -58,7 +68,7 @@ do
 
         HitGroups = {
             [HITGROUP_GENERIC]: 1
-            [HITGROUP_HEAD]: 2
+            [HITGROUP_HEAD]: 10
             [HITGROUP_CHEST]: 1
             [HITGROUP_STOMACH]: 1
             [HITGROUP_LEFTARM]: 0.25
