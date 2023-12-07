@@ -25,7 +25,9 @@ GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
 GM.InitPostEntity = =>
-    Jailbreak.ShowTeam!
+    unless LocalPlayer!\IsInGame!
+        Jailbreak.ShowTeam!
+
     chat.Open( 1 )
 
 concommand.Add "jb_showteam", ->
@@ -514,6 +516,8 @@ do
         AddText( unpack( result ) )
         return true
 
+:Approach, :Clamp, :Rand, :max, :abs, :sin = math
+
 GM.GrabEarAnimation = ( ply ) =>
 	if ply\IsPlayingTaunt!
         return
@@ -521,9 +525,9 @@ GM.GrabEarAnimation = ( ply ) =>
 	weight = ply.ChatGestureWeight or 0
 
 	if ply\IsTyping!
-        weight = math.Approach( weight, 1, FrameTime! * 5 )
+        weight = Approach( weight, 1, FrameTime! * 5 )
 	else
-		weight = math.Approach( weight, 0, FrameTime! * 5 )
+		weight = Approach( weight, 0, FrameTime! * 5 )
 
 	if weight > 0
 		ply\AnimRestartGesture( GESTURE_SLOT_VCD, ACT_GMOD_IN_CHAT, true )
@@ -590,7 +594,7 @@ do
         frac = 0
         if ply\IsSpeaking!
             voiceVolume = ply\VoiceVolume!
-            maxVoiceVolume = math.max( ply.MaxVoiceVolume or 0, voiceVolume )
+            maxVoiceVolume = max( ply.MaxVoiceVolume or 0, voiceVolume )
             ply.MaxVoiceVolume = maxVoiceVolume
             frac = voiceVolume / maxVoiceVolume
 
@@ -604,6 +608,23 @@ do
 
             for data in *flexes
                 flex = data[ 1 ]
-                nextVolume = math.abs( math.sin( flex * ( 1 / #flexes ) + CurTime! ) ) * frac + frac
-                ply\SetFlexWeight( flex, math.Clamp( nextVolume, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) )
+                nextVolume = abs( sin( flex * ( 1 / #flexes ) + CurTime! ) ) * frac + frac
+                ply\SetFlexWeight( flex, Clamp( nextVolume, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) )
 
+            return
+
+        value = Jailbreak.FunnyMouthAnimations\GetInt!
+        if value > 0
+            lastFunnyAngles = ply.FunnyAngles or Angle!
+            newAngle = Angle( Rand( -90, 90 ), Rand( -180, 180 ), 0 ) / 2
+            angles = LerpAngle( 0.25, lastFunnyAngles, newAngle * frac )
+            ply.FunnyAngles = angles
+
+            if value > 1
+                ply\ManipulateBoneAngles( 0, angles, false )
+            else
+                boneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
+                if boneID and boneID >= 0
+                    ply\ManipulateBoneAngles( boneID, angles, false )
+                else
+                    ply\ManipulateBoneAngles( 0, angles, false )
