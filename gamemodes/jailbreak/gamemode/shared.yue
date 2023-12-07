@@ -172,6 +172,29 @@ do
 
     PLAYER = FindMetaTable( "Player" )
 
+    PLAYER.GetWeaponsInSlot = ( slot ) =>
+        weapons = {}
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                weapons[] = weapon
+
+        return weapons
+
+    PLAYER.HasWeaponsInSlot = ( slot ) =>
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                return true
+
+        return false
+
+    PLAYER.GetCountWeaponsInSlot = ( slot ) =>
+        count = 0
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                count += 1
+
+        return count
+
     PLAYER.GetRagdollEntity = =>
         value = @GetNW2Entity( "player-ragdoll" )
         if value and value\IsValid!
