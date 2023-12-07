@@ -920,18 +920,16 @@ do
                     break
 
 GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
-    if entity\IsOnFire!
-        if entity\WaterLevel! >= 2 or ( entity\IsPlayer! and not entity\IsInGame! )
-            entity\Extinguish!
-            return true
+    if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and not entity\IsInGame! ) )
+        entity\Extinguish!
+        return true
 
 GM.EntityTakeDamage = ( entity, damageInfo ) =>
     if entity\IsPlayerRagdoll!
         return true
 
-    if bit.band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN
-        if hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
-            return true
+    if bit.band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
+        return true
 
     if entity\IsPlayer!
         if entity\Alive!
@@ -1163,80 +1161,75 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
 GM.PlayerSpray = ( ply ) =>
     return not ( ply\IsInGame! and ( Classic or ply\IsPrisoner! ) )
 
-do
+GM.PlayerUse = ( ply, entity ) =>
+    unless ply\IsInGame!
+        return
 
-    hook_Add = hook.Add
-    :GetAmmoMax = game
-
-    GM.PlayerUse = ( ply, entity ) =>
-        unless ply\IsInGame!
-            return
-
-        unless Classic
-            weapon = ply\GetActiveWeapon!
-            if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
-                velocity = ply\GetVelocity!\GetNormalized! * 16
-                entity\SetVelocity( velocity )
-                ply\SetVelocity( -velocity )
-                return false
-
-        curTime, lastUse = CurTime!, ply.LastUse or 0
-        ply.LastUse = curTime
-
-        if ( curTime - lastUse ) <= 0.025
-            return
-
-        if entity\IsPlayerRagdoll!
-            hook_Run( "PlayerRagdollUse", entity, ply )
+    unless Classic
+        weapon = ply\GetActiveWeapon!
+        if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
+            velocity = ply\GetVelocity!\GetNormalized! * 16
+            entity\SetVelocity( velocity )
+            ply\SetVelocity( -velocity )
             return false
 
-        if entity\IsWeapon!
-            if entity.PickupForbidden
+    curTime, lastUse = CurTime!, ply.LastUse or 0
+    ply.LastUse = curTime
+
+    if ( curTime - lastUse ) <= 0.025
+        return
+
+    if entity\IsPlayerRagdoll!
+        hook_Run( "PlayerRagdollUse", entity, ply )
+        return false
+
+    if entity\IsWeapon!
+        if entity.PickupForbidden
+            return false
+
+        if entity.IsTemporaryWeapon
+            entity = entity\GetParent!
+            unless entity\IsValid! and entity\IsWeapon!
                 return false
 
-            if entity.IsTemporaryWeapon
-                entity = entity\GetParent!
-                unless entity\IsValid! and entity\IsWeapon!
-                    return false
+        if ply\HasWeapon( entity\GetClass! )
+            clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
+            if clip1 > 0 and clip1Type >= 0
+                ply\GiveAmmo( clip1, clip1Type, false )
+                entity\SetClip1( 0 )
 
-            if ply\HasWeapon( entity\GetClass! )
-                clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
-                if clip1 > 0 and clip1Type >= 0
-                    ply\GiveAmmo( clip1, clip1Type, false )
-                    entity\SetClip1( 0 )
+            clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
+            if clip2 > 0 and clip2Type >= 0
+                ply\GiveAmmo( clip2, clip2Type, false )
+                entity\SetClip2( 0 )
 
-                clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
-                if clip2 > 0 and clip2Type >= 0
-                    ply\GiveAmmo( clip2, clip2Type, false )
-                    entity\SetClip2( 0 )
+            return false
 
-                return false
+        slot = entity\GetSlot!
+        if slot > 0 and slot < 5
+            if slot == 1 or slot == 4
+                weapons = ply\GetWeaponsInSlot( slot )
 
-            slot = entity\GetSlot!
-            if slot > 0 and slot < 5
-                if slot == 1 or slot == 4
-                    weapons = ply\GetWeaponsInSlot( slot )
+                length = #weapons
+                if length ~= 0
+                    weapon = weapons[ length ]
+                    if IsValid( weapon )
+                        ply\DropWeapon( weapon )
+            else
+                for i = 1, 2
+                    weapons = ply\GetWeaponsInSlot( i + 1 )
 
                     length = #weapons
                     if length ~= 0
                         weapon = weapons[ length ]
                         if IsValid( weapon )
                             ply\DropWeapon( weapon )
-                else
-                    for i = 1, 2
-                        weapons = ply\GetWeaponsInSlot( i + 1 )
 
-                        length = #weapons
-                        if length ~= 0
-                            weapon = weapons[ length ]
-                            if IsValid( weapon )
-                                ply\DropWeapon( weapon )
+        if hook_Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
+            ply\PickupWeapon( entity, false )
+            return false
 
-            if hook_Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
-                ply\PickupWeapon( entity, false )
-                return false
-
-        return true
+    return true
 
 do
 
@@ -1792,7 +1785,7 @@ do
                 return text
 
             if string.StartsWith( text, "/" )
-                startPos, endPos, command = find( text, "^/([^%s]+)" )
+                _, endPos, command = find( text, "^/([^%s]+)" )
                 if command
                     func = ChatCommands[ lower( command ) ]
                     if func

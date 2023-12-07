@@ -151,7 +151,6 @@ do
 
     PLAYER = FindMetaTable( "Player" )
     PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
-    net_ReadTable = net.ReadTable
 
     net.Receive "JB::Voice Chat", ->
         for i = 1, net.ReadUInt( 10 )

@@ -62,7 +62,6 @@ do
 
     do
 
-        timer_Simple = timer.Simple
         tonumber = tonumber
         isnumber = isnumber
 
