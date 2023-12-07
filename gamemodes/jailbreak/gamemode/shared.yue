@@ -32,7 +32,6 @@ Jailbreak.Teams = {
     [TEAM_PRISONER]: true
 }
 
-
 hook_Run = hook.Run
 :min, :max = math
 SERVER = SERVER
@@ -136,8 +135,7 @@ do
         return @GetNW2Bool( "is-player-ragdoll" )
 
     ENTITY.GetRagdollOwner = =>
-        if @IsPlayerRagdoll!
-            return @GetNW2Entity( "ragdoll-owner" )
+        return @GetNW2Entity( "ragdoll-owner" )
 
     ENTITY.IsUnderwater = =>
         return @WaterLevel! == 3
@@ -147,7 +145,7 @@ do
         defaultColor = Vector( 0.25, 0.35, 0.4 )
 
         ENTITY.GetPlayerColor = =>
-            return @GetNW2Var( "player-color", defaultColor )
+            return @GetNW2Vector( "player-color", defaultColor )
 
     ENTITY.SetPlayerColor = ( vector ) =>
         @SetNW2Var( "player-color", vector )
@@ -164,7 +162,24 @@ do
     PLAYER = FindMetaTable( "Player" )
 
     PLAYER.GetRagdollEntity = =>
-        return @GetNW2Entity( "player-ragdoll" )
+        value = @GetNW2Entity( "player-ragdoll" )
+        if value and value\IsValid!
+            return value
+
+        isBot = @IsBot!
+        sid64 = isBot and @Nick! or @SteamID64!
+
+        for entity in *ents.FindByClass( "prop_ragdoll" )
+            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                @SetNW2Entity( "player-ragdoll", entity )
+                return entity
+
+        for entity in *ents.FindByClass( "prop_physics" )
+            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                @SetNW2Entity( "player-ragdoll", entity )
+                return entity
+
+        return NULL
 
     PLAYER.IsInGame = =>
         return Jailbreak.Teams[ @Team! ] and @Alive!

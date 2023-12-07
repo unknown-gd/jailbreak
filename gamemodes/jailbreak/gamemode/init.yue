@@ -320,9 +320,9 @@ do
         ragdoll\SetNW2Entity( "ragdoll-owner", @ )
         @SetNW2Entity( "player-ragdoll", ragdoll )
 
-        if @IsBot!
-            ragdoll\SetNW2String( "steamid", @SteamID64! )
-        ragdoll\SetNW2String( "nickname", @Nick! )
+        unless @IsBot!
+            ragdoll\SetNW2String( "owner-steamid64", @SteamID64! )
+        ragdoll\SetNW2String( "owner-nickname", @Nick! )
         ragdoll\SetCreator( @ )
 
         for boneID = 0, @GetBoneCount!
@@ -363,6 +363,7 @@ do
         ragdoll.HasSecurityAccess = @HasSecurityAccess!
         ragdoll.HasSecurityRadio = @HasSecurityRadio!
         ragdoll.HasFlashlight = @CanUseFlashlight!
+        ragdoll.HasShockCollar = @HasShockCollar!
 
         weapons = {}
         for weapon in *@GetWeapons!
@@ -428,12 +429,23 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
 
     ragdoll = ply\GetRagdollEntity!
     if ragdoll\IsValid!
-        unless ragdoll.Alive and ragdoll\Health! > 1
-            ply\KillSilent!
-            return
-
+        ragdoll\SetNW2Entity( "ragdoll-owner", ply )
         ply\SetTeam( ragdoll.Team )
+        ply.FirstSpawn = true
 
+GM.SetupPlayerCollisions = ( ply ) =>
+    if Jailbreak.GameName == "tf"
+        ply\SetNoCollideWithTeammates( true )
+        ply\SetAvoidPlayers( true )
+    elseif ply\IsPrisoner!
+        ply\SetNoCollideWithTeammates( false )
+        ply\SetAvoidPlayers( true )
+    else
+        ply\SetNoCollideWithTeammates( true )
+        ply\SetAvoidPlayers( false )
+
+GM.MigrationPlayerFromRagdoll = ( ply, ragdoll ) =>
+    if ragdoll.Alive and ragdoll\Health! > 1
         ply\SetEyeAngles( Angle( 0, ragdoll.PlayerAngles[ 2 ], 0 ) )
         ply\SetPos( ragdoll\WorldSpaceCenter! )
         ply\SetModel( ragdoll\GetModel! )
@@ -441,6 +453,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
         ply\SetHealth( ply\GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
         ply\SetArmor( ply\GetMaxArmor! * ( ragdoll.Armor / ragdoll.MaxArmor ) )
 
+        ply\SetPlayerColor( ragdoll\GetPlayerColor! )
         ply\SetMaterial( ragdoll\GetMaterial! )
         ply\SetColor( ragdoll\GetColor! )
         ply\SetSkin( ragdoll\GetSkin! )
@@ -448,17 +461,13 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
         for bodygroup in *ply\GetBodyGroups!
             ply\SetBodygroup( bodygroup.id, ragdoll\GetBodygroup( bodygroup.id ) )
 
-        ply\SetFlexScale( ragdoll\GetFlexScale! )
-        for flexID = 0, ply\GetFlexNum!
-            ply\SetFlexWeight( flexID, ragdoll\GetFlexWeight( flexID ) )
-
         for index = 1, #ply\GetMaterials!
             materialPath = ragdoll\GetSubMaterial( index )
             if materialPath ~= ""
                 ply\SetSubMaterial( index, materialPath )
 
         if ragdoll\IsOnFire!
-            ply\Ignite( 16, 64 )
+            ply\Ignite( 16, 16 )
             ragdoll\Extinguish!
 
         for boneID = 0, ply\GetBoneCount!
@@ -483,8 +492,26 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
             if IsValid( phys )
                 ply\SetVelocity( phys\GetVelocity! )
 
+        ply\SetShockCollar( ragdoll.HasShockCollar == true )
+        @SetupPlayerCollisions( ply )
+
         hook_Run( "PlayerRagdollUse", ragdoll, ply )
+
+        ply\Give( "jb_hands" )
+        ply\SelectWeapon( "jb_hands" )
+
+        ply\SetupHands!
         ragdoll\Remove!
+        return
+
+    ply\KillSilent!
+
+    timer_Simple 0, ->
+        unless ply\IsValid! and ragdoll\IsValid!
+            return
+
+        ply\Spectate( OBS_MODE_CHASE )
+        ply\SpectateEntity( ragdoll )
 
 GM.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "100", ConVarFlags, "The speed of the player during a slow stride.", 0, 3000 )
 GM.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "185", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
@@ -499,7 +526,6 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\DisableWorldClicking( true )
     ply\SetCanZoom( false )
     ply\SetWarden( false )
-    ply\RemoveRagdoll!
     ply\RemoveAllAmmo!
     ply\StripWeapons!
     ply\UnSpectate!
@@ -510,30 +536,20 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     ply\SetMaxHealth( 100 )
     ply\SetMaxArmor( 100 )
-    ply\SetHealth( 100 )
+
+    if ply.FirstSpawn
+        ply.FirstSpawn = nil
+
+        ragdoll = ply\GetRagdollEntity!
+        if ragdoll\IsValid!
+            @MigrationPlayerFromRagdoll( ply, ragdoll )
+            return
+
+    @SetupPlayerCollisions( ply )
 
     teamID = ply\Team!
     if teamID == TEAM_GUARD
         ply\SetArmor( @GuardsArmor\GetInt! )
-    else
-        ply\SetArmor( 0 )
-
-    ply\SetMaxArmor( max( 100, ply\Armor! ) )
-
-    isPrisoner = teamID == TEAM_PRISONER
-    ply\SetShockCollar( isPrisoner )
-
-    if @MapGame == "tf"
-        ply\SetNoCollideWithTeammates( true )
-        ply\SetAvoidPlayers( true )
-    elseif isPrisoner
-        ply\SetNoCollideWithTeammates( false )
-        ply\SetAvoidPlayers( true )
-    else
-        ply\SetNoCollideWithTeammates( true )
-        ply\SetAvoidPlayers( false )
-
-    if teamID == TEAM_GUARD
         ply\AllowSecurityAccess( true )
         ply\AllowSecurityRadio( true )
         ply\AllowFlashlight( true )
@@ -541,10 +557,21 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\AllowSecurityAccess( false )
         ply\AllowSecurityRadio( false )
         ply\AllowFlashlight( false )
+        ply\SetArmor( 0 )
+
+    if teamID == TEAM_PRISONER
+        ply\SetShockCollar( true )
+    else
+        ply\SetShockCollar( false )
+
+    ply\SetMaxArmor( max( 100, ply\Armor! ) )
+    ply\SetHealth( 100 )
 
     unless Jailbreak.Teams[ teamID ]
         ply\KillSilent!
         return
+
+    ply\RemoveRagdoll!
 
     unless transiton
         hook_Run( "PlayerLoadout", ply, teamID )
