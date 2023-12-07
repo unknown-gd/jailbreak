@@ -1204,13 +1204,13 @@ do
                 if clip1 > 0 and clip1Type >= 0
                     ply\GiveAmmo( clip1, clip1Type, false )
                     entity\SetClip1( 0 )
-                    return false
 
                 clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
                 if clip2 > 0 and clip2Type >= 0
                     ply\GiveAmmo( clip2, clip2Type, false )
                     entity\SetClip2( 0 )
-                    return false
+
+                return false
 
             slot = entity\GetSlot!
             if slot > 0 and slot < 5
