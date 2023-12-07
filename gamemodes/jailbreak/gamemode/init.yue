@@ -1890,6 +1890,15 @@ do
     damageInfo\SetDamageType( DMG_DROWN )
 
     GM.PlayerPostThink = ( ply ) =>
+        if ply\Alive! and ( ply.NextEyeTargetTime or 0 ) < CurTime!
+            ply.NextEyeTargetTime = CurTime! + 0.1
+
+            traceResult = ply\GetEyeTrace!
+            if traceResult.Hit
+                nextEyePos = LerpVector( 0.5, ply.LastEyePos or Vector!, traceResult.HitPos )
+                ply\SetEyeTarget( nextEyePos )
+                ply.LastEyePos = nextEyePos
+
         if ply\IsUnderwater! and ( ply.DrownDamageTime or 0 ) < CurTime!
             ply.DrownDamageTime = CurTime! + 0.5
             damageInfo\SetAttacker( ply )
