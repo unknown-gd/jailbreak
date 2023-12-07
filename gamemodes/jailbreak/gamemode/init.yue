@@ -1371,7 +1371,7 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
 
     if teamID == TEAM_GUARD
         guardCount = @GetTeamAliveCount( TEAM_GUARD )
-        if guardCount ~= 0 and ( guardCount / max( 1, @GetTeamAliveCount( TEAM_PRISONER ) ) ) >= Jailbreak.GuardsDiff
+        if guardCount ~= 0 and ( ( guardCount + 1 ) / max( 1, @GetTeamAliveCount( TEAM_PRISONER ) ) ) >= Jailbreak.GuardsDiff
             ply\SendNotify( "#jb.error.too_many_guards", NOTIFY_ERROR, 10 )
             return
 
@@ -1508,7 +1508,7 @@ GM.RoundStateChanged = ( old, new ) =>
             for ply in *player.GetAll!
                 if ply\IsBot!
                     guardCount = team.NumPlayers( TEAM_GUARD )
-                    if guardCount == 0 or ( ( guardCount + 1 ) / team.NumPlayers( TEAM_PRISONER ) ) < Jailbreak.GuardsDiff
+                    if guardCount == 0 or ( ( guardCount + 1 ) / max( 1, team.NumPlayers( TEAM_PRISONER ) ) ) < Jailbreak.GuardsDiff
                         ply\SetTeam( TEAM_GUARD )
                     else
                         ply\SetTeam( TEAM_PRISONER )
@@ -1790,11 +1790,13 @@ do
                     func = ChatCommands[ lower( command ) ]
                     if func
                         return func( ply, string.sub( text, min( endPos + 2, #text ) ) ) or ""
+
                 return ""
 
             if isTeam
                 ply\Say( text, false )
                 return ""
+
             elseif ply\UsingSecurityRadio!
                 players = {}
                 for pl in *player.GetHumans!

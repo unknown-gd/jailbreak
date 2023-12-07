@@ -26,6 +26,9 @@ GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
 GM.InitPostEntity = =>
+    timer.Simple 0.5, ->
+        RunConsoleCommand( "r_flushlod" )
+
     unless LocalPlayer!\IsInGame!
         Jailbreak.ShowTeam!
 
