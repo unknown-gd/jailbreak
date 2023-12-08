@@ -66,6 +66,7 @@ GM.PostDrawViewModel = ( vm, ply, weapon ) =>
     func = weapon.PostDrawViewModel
 	if func
 	    return func( weapon, vm, weapon, ply )
+
     return false
 
 GM.OnSpawnMenuOpen = =>
@@ -191,7 +192,6 @@ GM.HUDPaint = =>
 -- --- Colors
 -- ---
 
--- color_white = Color( 255, 255, 255 )
 -- color_red = Color( 255, 0, 0)
 -- color_bacground = Color( 0, 0, 0, 200 )
 
@@ -247,7 +247,7 @@ GM.HUDPaint = =>
 --             return
 
 --         marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
---         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, color_white, TEXT_ALIGN_LEFT )
+--         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, WhiteColor, TEXT_ALIGN_LEFT )
 
 
 --     vgui.Register("JB.Scoreboard.Player", PANEL)
@@ -311,7 +311,7 @@ GM.HUDPaint = =>
 --         surface.SetDrawColor( color_red )
 --         surface.DrawRect( 0, 0, w, h )
 
---         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, color_white, TEXT_ALIGN_CENTER )
+--         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, WhiteColor, TEXT_ALIGN_CENTER )
 
 --     vgui.Register( "JB.Scoreboard", PANEL )
 

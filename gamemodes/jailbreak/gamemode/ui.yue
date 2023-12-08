@@ -1,4 +1,5 @@
 RunConsoleCommand = RunConsoleCommand
+:format, :upper, :Explode = string
 :abs, :min, :max, :sin = math
 LocalPlayer = LocalPlayer
 :GetPhrase = language
@@ -8,7 +9,6 @@ hook_Add = hook.Add
 hook_Run = hook.Run
 IsValid = IsValid
 surface = surface
-:format = string
 pairs = pairs
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -17,8 +17,11 @@ ROUND_RUNNING = ROUND_RUNNING
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
+AsparagusColor = Color( 128, 154, 86 )
 BackgroundColor = Color( 33, 33, 33 )
-color_white = color_white
+WhiteColor = color_white
+
+PANEL_META = FindMetaTable( "Panel" )
 
 do
 
@@ -78,7 +81,7 @@ do
         if remainingTime == 0
             return
 
-        draw.DrawText( string.upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, color_white, TEXT_ALIGN_CENTER )
+        draw.DrawText( upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, WhiteColor, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 
@@ -204,7 +207,7 @@ do
             label\Dock( BOTTOM )
             label\SetText( title )
             label\SetContentAlignment( 5 )
-            label\SetTextColor( color_white )
+            label\SetTextColor( WhiteColor )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
 
             created = desktopWindow.created
@@ -273,7 +276,7 @@ do
     PANEL = {}
 
     PANEL.Init = =>
-        @SetTextColor( color_white )
+        @SetTextColor( WhiteColor )
         @SetFont( "DermaLarge" )
         @Player = LocalPlayer!
 
@@ -345,7 +348,7 @@ do
 
             title = @Add( "DLabel" )
             title\SetText( "#jb.team-select" )
-            title\SetTextColor( color_white )
+            title\SetTextColor( WhiteColor )
             title\SetContentAlignment( 5 )
             title\SetFont( "DermaLarge" )
 
@@ -407,7 +410,6 @@ do
         surface.DrawRect( 0, 0, width, height )
 
     vgui.Register( "JB.TeamSelect", PANEL, "EditablePanel" )
-
 
 do
 
@@ -632,7 +634,7 @@ do
                 if previewEntity
                     previewEntity\SetBodygroup( pnl.typenum, math.Round( value ) )
 
-                str = string.Explode( " ", cl_playerbodygroups\GetString! )
+                str = Explode( " ", cl_playerbodygroups\GetString! )
                 if #str < pnl.typenum + 1
                     for index = 1, pnl.typenum + 1
                         str[ index ] = str[ index ] or 0
@@ -696,7 +698,7 @@ do
                             bodygroupsTab\SetVisible( true )
 
                     -- Bodygroups
-                    groups = string.Explode( " ", cl_playerbodygroups\GetString! )
+                    groups = Explode( " ", cl_playerbodygroups\GetString! )
                     for index = 0, previewEntity\GetNumBodyGroups! - 1
                         if previewEntity\GetBodygroupCount( index ) <= 1
                             continue
@@ -880,4 +882,4 @@ do
                 continue
 
             origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
-            DrawSprite( origin, 12, 12, color_white )
+            DrawSprite( origin, 12, 12, WhiteColor )

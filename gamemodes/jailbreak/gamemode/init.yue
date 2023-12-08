@@ -38,11 +38,6 @@ cvars.AddChangeCallback( "jb_classic", ( _, __, value ) ->
     Classic = value == "1"
 "Jailbreak" )
 
-Jailbreak.GuardsDiff = 1 / ( CreateConVar( "jb_prisoner_per_guard", "4", ConVarFlags, "Number of prisoners per guard.", 1, game.MaxPlayers! - 1 )\GetInt! + 1 )
-cvars.AddChangeCallback( "jb_prisoner_per_guard", ( _, __, value ) ->
-    Jailbreak.GuardsDiff = 1 / ( ( tonumber( value ) or 4 ) + 1 )
-"Jailbreak" )
-
 util.AddNetworkString( "Jailbreak::Networking" )
 
 resource.AddWorkshop( "3093227948" )
@@ -50,9 +45,10 @@ resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
 
-math, table = math, table
-:Rand, :random, :max, :min = math
+math, table, team = math, table, team
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
+team_NumPlayers, team_GetPlayers = team.NumPlayers , team.GetPlayers
+:Rand, :random, :max, :min = math
 timer_Simple = timer.Simple
 ents_Create = ents.Create
 :Empty, :Random = table
@@ -236,7 +232,7 @@ do
                 return NULL
 
             weapon = ents_Create( className )
-            unless weapon and weapon\IsValid!
+            unless IsValid( weapon )
                 return NULL
 
             weapon\SetAngles( @GetAngles! )
@@ -558,11 +554,7 @@ GM.PlayerSpawn = ( ply, transiton ) =>
         ply\AllowFlashlight( false )
         ply\SetArmor( 0 )
 
-    if teamID == TEAM_PRISONER
-        ply\SetShockCollar( true )
-    else
-        ply\SetShockCollar( false )
-
+    ply\SetShockCollar( teamID == TEAM_PRISONER )
     ply\SetMaxArmor( max( 100, ply\Armor! ) )
     ply\SetHealth( 100 )
 
@@ -802,7 +794,7 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
 
     ply\AddDeaths( 1 )
 
-    if attacker and attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
+    if attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
         attacker\AddFrags( 1 )
 
     ragdoll = ply\CreateRagdoll!
@@ -1012,7 +1004,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
                 return true
 
             attacker = damageInfo\GetAttacker!
-            if IsValid( attacker ) and attacker\IsPlayer! and random( 0, 1 ) == 1
+            if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
                 entity\Use( attacker, attacker )
                 entity\EmitSound( "Jailbreak.Shock" )
 
@@ -1081,6 +1073,7 @@ GM.PlayerNoClip = ( ply, desiredState ) =>
 GM.CanPlayerSuicide = ( ply ) =>
     if Jailbreak.IsRoundPreparing!
         return false
+
     return ply\IsInGame!
 
 GM.PlayerSwitchFlashlight = ( ply ) =>
@@ -1354,13 +1347,6 @@ do
 
         return false, false
 
-GM.GetTeamAliveCount = ( teamID ) =>
-    alive = 0
-    for ply in *team.GetPlayers( teamID )
-        if ply\Alive!
-            alive += 1
-    return alive
-
 GM.PlayerRequestTeam = ( ply, teamID ) =>
     unless team.Joinable( teamID )
         return
@@ -1487,18 +1473,18 @@ GM.RoundStateChanged = ( old, new ) =>
         when ROUND_RUNNING
             Jailbreak.SetShockCollars( true )
 
-            guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+            guardCount, prisonerCount = team_NumPlayers( TEAM_GUARD ), team_NumPlayers( TEAM_PRISONER )
             totalCount = guardCount + prisonerCount
 
             while ( guardCount / prisonerCount ) > Jailbreak.GuardsDiff and totalCount > ( ( 1 / Jailbreak.GuardsDiff ) + guardCount )
                 for i = 1, guardCount
-                    guard = Random( team.GetPlayers( TEAM_GUARD ) )
+                    guard = Random( team_GetPlayers( TEAM_GUARD ) )
                     if guard\IsValid!
                         guard\SetTeam( TEAM_PRISONER )
                         guard\Spawn!
                         break
 
-                guardCount, prisonerCount = team.NumPlayers( TEAM_GUARD ), team.NumPlayers( TEAM_PRISONER )
+                guardCount, prisonerCount = team_NumPlayers( TEAM_GUARD ), team_NumPlayers( TEAM_PRISONER )
                 totalCount = guardCount + prisonerCount
 
             if guardCount == 0 or prisonerCount == 0
@@ -1516,22 +1502,32 @@ GM.RoundStateChanged = ( old, new ) =>
                 elseif Jailbreak.Teams[ ply\Team! ] and not ply\Alive!
                     ply\Spawn!
 
-            guards = team.GetPlayers( TEAM_GUARD )
-            if #guards == 1
-                guards[ 1 ]\SetWarden( true )
+            -- Select a chosen one
+            do
+
+                guards = team_GetPlayers( TEAM_GUARD )
+                guardCount = #guards
+
+                if guardCount == 1
+                    guards[ guardCount ]\SetWarden( true )
 
             roundTime = @RoundTime\GetInt!
             if roundTime > 0
                 Jailbreak.SetRoundTime( roundTime )
 
         when ROUND_ENDED
-            guardCount, prisonerCount = @GetTeamAliveCount( TEAM_GUARD ), @GetTeamAliveCount( TEAM_PRISONER )
+            guardCount, prisonerCount = Jailbreak.GetTeamAliveCount( TEAM_GUARD ), Jailbreak.GetTeamAliveCount( TEAM_PRISONER )
             if guardCount > prisonerCount
                 Jailbreak.SetWinningTeam( TEAM_GUARD )
             elseif guardCount < prisonerCount
                 Jailbreak.SetWinningTeam( TEAM_PRISONER )
             else
                 Jailbreak.SetWinningTeam( 0 )
+
+            warden = Jailbreak.GetWarden!
+            if IsValid( warden )
+                warden\SetWarden( false )
+
             Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
             Jailbreak.SetMasqueradeEvent( false )
             Jailbreak.SetFemalePrison( false )
@@ -1548,11 +1544,8 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
-        unless Jailbreak.IsRoundRunning!
-            return
-
-        if @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0
-            Jailbreak.SetRoundState( ROUND_ENDED )
+                if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) == 0 or Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) == 0
+                    Jailbreak.SetRoundState( ROUND_ENDED )
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     unless ply\Alive!
@@ -1563,7 +1556,7 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
         unless Jailbreak.IsRoundRunning!
             return
 
-        if @GetTeamAliveCount( TEAM_GUARD ) == 0 or @GetTeamAliveCount( TEAM_PRISONER ) == 0
+        if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) == 0 or Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) == 0
             Jailbreak.SetRoundState( ROUND_ENDED )
 
     ply\CreateRagdoll!
@@ -1572,7 +1565,7 @@ GM.TeamPlayerSpawn = ( ply ) =>
     unless Jailbreak.IsWaitingPlayers!
         return
 
-    if @GetTeamAliveCount( TEAM_GUARD ) > 0 and @GetTeamAliveCount( TEAM_PRISONER ) > 0
+    if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) > 0 and Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) > 0
         Jailbreak.SetRoundState( ROUND_PREPARING )
         Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
 

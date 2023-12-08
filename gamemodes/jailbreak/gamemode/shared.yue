@@ -28,14 +28,16 @@ local ROUND_ENDED = ROUND_ENDED
 ]==]
 
 Jailbreak.Teams = {
-    [TEAM_GUARD]: true
-    [TEAM_PRISONER]: true
+    [ TEAM_PRISONER ]: true
+    [ TEAM_GUARD ]: true
 }
 
 hook_Run = hook.Run
 :min, :max = math
+IsValid = IsValid
 SERVER = SERVER
 CLIENT = CLIENT
+team = team
 NULL = NULL
 
 do
@@ -91,6 +93,71 @@ do
 
             if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
                 return true
+
+
+do
+
+    :GetPlayers = team
+
+    Jailbreak.GetWarden = ->
+        warden = Jailbreak.Warden
+        if IsValid( warden ) and warden\IsWarden! and warden\IsInGame!
+            return warden
+
+        for ply in *GetPlayers( TEAM_GUARD )
+            if ply\IsWarden!
+                Jailbreak.Warden = ply
+                return ply
+
+        return NULL
+
+do
+
+    GetRoundState = ->
+        return GetGlobal2Int( "round-state" )
+
+    Jailbreak.GetRoundState = GetRoundState
+
+    Jailbreak.IsWaitingPlayers = =>
+        return GetRoundState! == ROUND_WAITING_PLAYERS
+
+    Jailbreak.IsRoundPreparing = =>
+        return GetRoundState! == ROUND_PREPARING
+
+    Jailbreak.IsRoundRunning = =>
+        return GetRoundState! == ROUND_RUNNING
+
+    Jailbreak.IsRoundEnded = =>
+        return GetRoundState! == ROUND_ENDED
+
+    Jailbreak.GameInProgress = =>
+        state = GetRoundState!
+        return state ~= ROUND_WAITING_PLAYERS and state ~= ROUND_PREPARING
+
+do
+
+    GetRoundTime = ->
+        return GetGlobal2Int( "next-round-state" )
+
+    Jailbreak.GetRoundTime = GetRoundTime
+
+    Jailbreak.GetRemainingTime = =>
+        return max( 0, GetRoundTime! - CurTime! )
+
+Jailbreak.GetWinningTeam = ->
+    return GetGlobal2Int( "winning-team" )
+
+Jailbreak.IsShockCollarsActive = ->
+    return GetGlobal2Bool( "shock-collars" )
+
+Jailbreak.GetWardenCoins = ->
+    return GetGlobal2Int( "warden-coins" )
+
+Jailbreak.IsFemalePrison = ->
+    return GetGlobal2Bool( "female-prison" )
+
+Jailbreak.IsMasqueradeEvent = ->
+    return GetGlobal2Bool( "masquerade-event" )
 
 do
 
@@ -165,7 +232,7 @@ do
 
     Jailbreak.HasWarden = ->
         warden = Jailbreak.GetWarden!
-        return warden and warden\IsValid! and warden\IsInGame!
+        return warden\IsValid! and warden\IsInGame!
 
 do
 
@@ -196,7 +263,7 @@ do
 
     PLAYER.GetRagdollEntity = =>
         value = @GetNW2Entity( "player-ragdoll" )
-        if value and value\IsValid!
+        if value\IsValid!
             return value
 
         isBot = @IsBot!
@@ -648,65 +715,6 @@ GM.ShouldCollide = ( entity, ply ) =>
 
     if entity\GetClass! == "func_respawnroomvisualizer" and not entity\IsDisabled!
         return ply\Team! ~= entity\GetNW2Int( "team" )
-
-do
-
-    GetRoundState = ->
-        return GetGlobal2Int( "round-state" )
-    Jailbreak.GetRoundState = GetRoundState
-
-    Jailbreak.IsWaitingPlayers = =>
-        return GetRoundState! == ROUND_WAITING_PLAYERS
-
-    Jailbreak.IsRoundPreparing = =>
-        return GetRoundState! == ROUND_PREPARING
-
-    Jailbreak.IsRoundRunning = =>
-        return GetRoundState! == ROUND_RUNNING
-
-    Jailbreak.IsRoundEnded = =>
-        return GetRoundState! == ROUND_ENDED
-
-    Jailbreak.GameInProgress = =>
-        state = GetRoundState!
-        return state ~= ROUND_WAITING_PLAYERS and state ~= ROUND_PREPARING
-
-    GetRoundTime = ->
-        return GetGlobal2Int( "next-round-state" )
-    Jailbreak.GetRoundTime = GetRoundTime
-
-    Jailbreak.GetRemainingTime = =>
-        return max( 0, GetRoundTime! - CurTime! )
-
-    Jailbreak.GetWinningTeam = ->
-        return GetGlobal2Int( "winning-team" )
-
-    Jailbreak.IsShockCollarsActive = ->
-        return GetGlobal2Bool( "shock-collars" )
-
-    Jailbreak.GetWardenCoins = ->
-        return GetGlobal2Int( "warden-coins" )
-
-    do
-
-        team_GetPlayers = team.GetPlayers
-
-        Jailbreak.GetWarden = ->
-            warden = Jailbreak.Warden
-            if IsValid( warden ) and warden\IsWarden! and warden\Alive! and warden\IsGuard!
-                return warden
-
-            for ply in *team_GetPlayers( TEAM_GUARD )
-                if ply\IsWarden!
-                    Jailbreak.Warden = ply
-                    return ply
-            return NULL
-
-    Jailbreak.IsFemalePrison = ->
-        return GetGlobal2Bool( "female-prison" )
-
-    Jailbreak.IsMasqueradeEvent = ->
-        return GetGlobal2Bool( "masquerade-event" )
 
 do
 
