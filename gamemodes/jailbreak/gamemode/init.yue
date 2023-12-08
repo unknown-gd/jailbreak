@@ -277,7 +277,6 @@ do
         ragdoll\SetPos( spawnOrigin )
         ragdoll\Spawn!
 
-        Jailbreak.PlayerRagdolls[] = ragdoll
         ragdoll.Team = @Team!
 
         if @Alive!
@@ -404,19 +403,10 @@ GM.ShockCollars = ( bool ) =>
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
 
-Jailbreak.PlayerRagdolls = Jailbreak.PlayerRagdolls or {}
-
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
     ply.NextRespawnTime = 0
-    isBot = ply\IsBot!
 
-    sid64 = isBot and ply\Nick! or ply\SteamID64!
-    for ragdoll in *Jailbreak.PlayerRagdolls
-        if sid64 == ( isBot and ragdoll\GetNW2String( "nickname" ) or ragdoll\GetNW2String( "steamid" ) )
-            ply\SetNW2Entity( "player-ragdoll", ragdoll )
-            break
-
-    if isBot
+    if ply\IsBot!
         ply\SetTeam( TEAM_PRISONER )
     else
         ply\SetTeam( TEAM_SPECTATOR )
@@ -542,6 +532,10 @@ GM.PlayerSpawn = ( ply, transiton ) =>
 
     @SetupPlayerCollisions( ply )
 
+    if Jailbreak.GameInProgress! or Jailbreak.Teams[ teamID ]
+        ply\KillSilent!
+        return
+
     teamID = ply\Team!
     if teamID == TEAM_GUARD
         ply\SetArmor( @GuardsArmor\GetInt! )
@@ -557,11 +551,6 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetShockCollar( teamID == TEAM_PRISONER )
     ply\SetMaxArmor( max( 100, ply\Armor! ) )
     ply\SetHealth( 100 )
-
-    unless Jailbreak.Teams[ teamID ]
-        ply\KillSilent!
-        return
-
     ply\RemoveRagdoll!
 
     unless transiton
@@ -854,20 +843,6 @@ GM.PlayerDeathThink = ( ply ) =>
         return
 
     ply\Spawn!
-
-GM.PreCleanupMap = =>
-    Empty( Jailbreak.PlayerRagdolls )
-
-do
-
-    :RemoveByValue = table
-
-    GM.EntityRemoved = ( entity, fullUpdate ) =>
-        if fullUpdate
-            return
-
-        if entity\IsPlayerRagdoll!
-            RemoveByValue( Jailbreak.PlayerRagdolls, entity )
 
 GM.PlayerDisconnected = ( ply ) =>
     teamID = ply\Team!
@@ -1355,11 +1330,9 @@ GM.PlayerRequestTeam = ( ply, teamID ) =>
     if oldTeamID == teamID
         return
 
-    if teamID == TEAM_GUARD
-        guardCount = @GetTeamAliveCount( TEAM_GUARD )
-        if guardCount ~= 0 and ( ( guardCount + 1 ) / max( 1, @GetTeamAliveCount( TEAM_PRISONER ) ) ) >= Jailbreak.GuardsDiff
-            ply\SendNotify( "#jb.error.too_many_guards", NOTIFY_ERROR, 10 )
-            return
+    unless Jailbreak.TeamIsJoinable( teamID )
+        ply\SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+        return
 
     if ply\Alive!
         if Jailbreak.Teams[ oldTeamID ]
@@ -1417,7 +1390,7 @@ GM.PlayerInitialized = ( ply ) =>
     net.Send( ply )
 
 GM.SetupMove = ( ply, _, cmd ) =>
-    if ply\IsFullyConnected! or not cmd\IsForced!
+    if ply\IsBot! or ply\IsFullyConnected! or not cmd\IsForced!
         return
 
     ply\SetNW2Bool( "fully-connected", true )
@@ -1493,14 +1466,21 @@ GM.RoundStateChanged = ( old, new ) =>
 
             for ply in *player.GetAll!
                 if ply\IsBot!
-                    guardCount = team.NumPlayers( TEAM_GUARD )
-                    if guardCount == 0 or ( ( guardCount + 1 ) / max( 1, team.NumPlayers( TEAM_PRISONER ) ) ) < Jailbreak.GuardsDiff
-                        ply\SetTeam( TEAM_GUARD )
-                    else
-                        ply\SetTeam( TEAM_PRISONER )
+                    for teamID = 1, 2
+                        if Jailbreak.TeamIsJoinable( teamID )
+                            ply\SetTeam( teamID )
+                            break
+
                     ply\Spawn!
-                elseif Jailbreak.Teams[ ply\Team! ] and not ply\Alive!
-                    ply\Spawn!
+
+                else
+
+                    teamID = ply\Team!
+                    if teamID == TEAM_PRISONER
+                        ply\SetShockCollar( true )
+
+                    if Jailbreak.Teams[ teamID ] and not ply\Alive!
+                        ply\Spawn!
 
             -- Select a chosen one
             do
@@ -1544,6 +1524,12 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
+        switch Jailbreak.GetRoundState!
+            when ROUND_PREPARING
+                if team_NumPlayers( TEAM_GUARD ) == 0 or team_NumPlayers( TEAM_PRISONER ) == 0
+                    Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
+
+            when ROUND_RUNNING
                 if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) == 0 or Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) == 0
                     Jailbreak.SetRoundState( ROUND_ENDED )
 

@@ -2,13 +2,13 @@ include( "shared.lua" )
 include( "ui.lua" )
 
 :Approach, :Clamp, :Rand, :max, :abs, :sin = math
+:format, :find, :gsub, :upper = string
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
 :GetPhrase = language
 Jailbreak = Jailbreak
 list_Set = list.Set
 hook_Run = hook.Run
-:format = string
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -24,7 +24,7 @@ cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
 "Jailbreak")
 
 Jailbreak.Translate = ( str ) ->
-    return string.gsub( str, "#([%w%.-_]+)", GetPhrase )
+    return gsub( str, "#([%w%.-_]+)", GetPhrase )
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
@@ -179,31 +179,40 @@ do
             if ply\IsValid!
                 PLAYER_SetVoiceVolumeScale( ply, volume )
 
-GM.HUDPaint = =>
-    if @TargetIDDraw\GetBool!
-        hook_Run( "HUDDrawTargetID" )
+do
 
-    hook_Run( "HUDDrawPickupHistory" )
+    TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
+    :GetName, :GetColor = team
 
-    if @DeathNoticeDraw\GetBool!
-        hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+    GM.HUDPaint = =>
+        if @TargetIDDraw\GetBool!
+            hook_Run( "HUDDrawTargetID" )
 
-    state = Jailbreak.GetRoundState!
-    if state == ROUND_RUNNING
-        return
+        hook_Run( "HUDDrawPickupHistory" )
 
-    str = GetPhrase( "jb.round." .. state )
-    if state ~= ROUND_WAITING_PLAYERS
-        remainingTime = Jailbreak.GetRemainingTime!
-        if remainingTime == 0
+        if @DeathNoticeDraw\GetBool!
+            hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+
+        state = Jailbreak.GetRoundState!
+        if state == ROUND_RUNNING
             return
 
-        str = format( str, remainingTime )
+        str = GetPhrase( "jb.round." .. state )
+        if state ~= ROUND_WAITING_PLAYERS
+            remainingTime = Jailbreak.GetRemainingTime!
+            if remainingTime == 0
+                return
 
-    draw.DrawText( string.upper( str ), "DermaLarge", ScrW! / 2, 32, color_white, TEXT_ALIGN_CENTER )
+            str = format( str, remainingTime )
 
-    if state == ROUND_ENDED
-        draw.DrawText( string.upper( GetPhrase( "jb.victory." .. Jailbreak.GetWinningTeam! ) ), "DermaLarge", ScrW! / 2, 64, color_white, TEXT_ALIGN_CENTER )
+        draw.DrawText( upper( str ), "DermaLarge", ScrW! / 2, 32, WhiteColor, TEXT_ALIGN_CENTER )
+
+        if state == ROUND_ENDED
+            teamID = Jailbreak.GetWinningTeam!
+            if Jailbreak.Teams[ teamID ]
+                draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", ScrW! / 2, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
+            else
+                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", ScrW! / 2, 64, WhiteColor, TEXT_ALIGN_CENTER )
 
 -- ---
 -- --- Colors
@@ -585,7 +594,7 @@ do
                 sourceIndex = -1
                 for index, pattern in ipairs( patterns )
                     flexName = ply\GetFlexName( flex )
-                    if flexName == pattern or string.find( flexName, pattern, 1, false ) ~= nil
+                    if flexName == pattern or find( flexName, pattern, 1, false ) ~= nil
                         mults[ index ] = mults[ flexName ]
                         sourceIndex = index
                         break

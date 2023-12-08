@@ -59,6 +59,46 @@ do
         Jailbreak.VoiceChatMaxDistance = ( tonumber( value ) or 100 ) ^ 2
     "Jailbreak" )
 
+    do
+
+        ConVar = CreateConVar( "jb_guards_diff", "4", ConVarFlags, "Number of prisoners per guard.", 0, 1000 )
+
+        do
+
+            :Joinable, :NumPlayers = team
+
+            Jailbreak.TeamIsJoinable = ( teamID ) ->
+                    unless Joinable( teamID )
+                        return false
+
+                    guardCount, prisonerCount = NumPlayers( TEAM_GUARD ), NumPlayers( TEAM_PRISONER )
+
+                    switch teamID
+                        when TEAM_PRISONER
+                            if prisonerCount == 0
+                                return true
+
+                            return guardCount ~= 0
+
+                        when TEAM_GUARD
+                            if guardCount == 0
+                                return true
+
+                            if prisonerCount == 0
+                                return false
+
+                            return ( guardCount / prisonerCount ) < ( 1 / ConVar\GetInt! )
+
+                    return true
+
+        if SERVER
+
+            Jailbreak.GuardsDiff = 1 / ConVar\GetInt!
+
+            cvars.AddChangeCallback( ConVar\GetName!, ( _, __, value ) ->
+                Jailbreak.GuardsDiff = 1 / ( tonumber( value ) or ConVar\GetDefault! )
+            "Jailbreak" )
+
     GM.DeathNoticeDraw = CreateConVar( "jb_draw_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
     GM.TargetIDDraw = CreateConVar( "jb_draw_target_id", "0", ConVarFlags, "Draw target id.", 0, 1 )
 
@@ -94,10 +134,17 @@ do
             if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
                 return true
 
-
 do
 
     :GetPlayers = team
+
+    Jailbreak.GetTeamAliveCount = ( teamID ) ->
+        alive = 0
+        for ply in *GetPlayers( teamID )
+            if ply\Alive!
+                alive += 1
+
+        return alive
 
     Jailbreak.GetWarden = ->
         warden = Jailbreak.Warden
@@ -178,7 +225,7 @@ GM.GuardFemaleModels = {
 }
 
 GM.CreateTeams = =>
-    team.SetUp( TEAM_PRISONER, "#jb.prisoners", Color( 255, 89, 50 ), true )
+    team.SetUp( TEAM_PRISONER, "#jb.team.prisoners", Color( 255, 89, 50 ), true )
     team.SetSpawnPoint( TEAM_PRISONER, {
         "info_player_terrorist"
         "info_player_teamspawn"
@@ -189,7 +236,7 @@ GM.CreateTeams = =>
         "info_player_red"
     } )
 
-    team.SetUp( TEAM_GUARD, "#jb.guards", Color( 50, 185, 255 ), true )
+    team.SetUp( TEAM_GUARD, "#jb.team.guards", Color( 50, 185, 255 ), true )
     team.SetSpawnPoint( TEAM_GUARD, {
         "info_player_counterterrorist"
         "diprip_start_team_blue"
@@ -202,7 +249,7 @@ GM.CreateTeams = =>
         "info_player_blue"
     } )
 
-    team.SetUp( TEAM_SPECTATOR, "#jb.spectators", Color( 220, 220, 220 ), true )
+    team.SetUp( TEAM_SPECTATOR, "#jb.team.spectators", Color( 220, 220, 220 ), true )
 
 do
 

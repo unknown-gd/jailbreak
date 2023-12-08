@@ -268,6 +268,9 @@ Jailbreak.ShowTeam = ->
         panel\Remove!
         return
 
+    if input.IsKeyDown( 70 )
+        return
+
     global g_TeamSelect = vgui.Create( "JB.TeamSelect" )
 
 -- Button
@@ -307,19 +310,41 @@ do
             return
 
         surface.PlaySound( "garrysmod/ui_click.wav" )
-        RunConsoleCommand( "changeteam", @Team or 0 )
+
+        teamID = @Team
+        if teamID
+            RunConsoleCommand( "changeteam", teamID )
+        else
+
+            for i = 1, 2
+                if i ~= @Player\Team! and Jailbreak.TeamIsJoinable( i )
+                    RunConsoleCommand( "changeteam", i )
+                    break
 
         panel = @MainPanel
         if IsValid( panel )
             panel\Remove!
 
+    PANEL.SetText = ( str ) =>
+        PANEL_META.SetText( @, Jailbreak.Translate( str ) )
+
     PANEL.Think = =>
-        @SetCursor( @IsEnabled! and "hand" or "no" )
-        @SetEnabled( @Player\Team! ~= @Team )
+        teamID = @Team
+        unless teamID
+            return
+
+        enabled = teamID ~= @Player\Team! and Jailbreak.TeamIsJoinable( teamID )
+        if enabled ~= @IsEnabled!
+            @SetEnabled( enabled )
+            @SetCursor( enabled and "hand" or "no" )
 
         unless @Color
-            @Color = team.GetColor( @Team )
-            @SetText( team.GetName( @Team ) )
+            @Color = team.GetColor( teamID )
+
+        count = team.NumPlayers( teamID )
+        if count ~= @Count
+            @SetText( team.GetName( teamID ) .. " x" .. count )
+            @Count = count
 
     vgui.Register( "JB.TeamButton", PANEL, "DButton" )
 
@@ -332,12 +357,18 @@ do
         hook.Remove "OnScreenSizeChanged", @
         hook.Remove "PlayerButtonDown", @
 
+    PANEL.CloseKeys = {
+        [ 107 ]: true
+        [ 108 ]: true
+        [ 109 ]: true
+    }
+
     PANEL.Init = =>
         @DockPadding( 16, 16, 16, 16 )
 
         hook_Add "OnScreenSizeChanged", @, @Remove
         hook_Add "PlayerButtonDown", @, ( ply, key ) =>
-            if key >= 107 and key <= 109 and not ( @Hovered or @IsChildHovered! )
+            if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
                 @Remove!
 
     	@MakePopup!
@@ -389,8 +420,25 @@ do
         do
 
             button = @Add( "JB.TeamButton" )
+            button\SetText( "#jb.team.spectate" )
             button.Team = TEAM_SPECTATOR
+            button.MainPanel = @
+
             button\SetTextColor( BackgroundColor )
+            button\DockMargin( 0, 16, 0, 0 )
+            button\Dock( BOTTOM )
+
+            button.PerformLayout = =>
+                parent = @GetParent!
+                if IsValid( parent )
+                    @SetTall( parent\GetTall! * 0.1 )
+
+        -- Random Team
+        do
+
+            button = @Add( "JB.TeamButton" )
+            button\SetText( "#jb.team.random" )
+            button.Color = AsparagusColor
             button.MainPanel = @
 
             button\DockMargin( 0, 16, 0, 0 )
@@ -400,6 +448,22 @@ do
                 parent = @GetParent!
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
+
+    do
+
+        :IsKeyDown = input
+
+        PANEL.Think = =>
+            if IsKeyDown( 70 )
+                @Remove!
+
+    do
+
+        :IsGameUIVisible, :HideGameUI = gui
+
+        PANEL.OnRemove = =>
+            if IsGameUIVisible!
+                HideGameUI!
 
     PANEL.PerformLayout = ( width, height ) =>
         @SetSize( ScrW! * 0.5, ScrH! * 0.5 )
