@@ -9,11 +9,15 @@ Jailbreak = Jailbreak
 list_Set = list.Set
 hook_Run = hook.Run
 :format = string
-:AddText = chat
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_ENDED = ROUND_ENDED
+
+WhiteColor = color_white
+BlueColor = Color( 30, 130, 255 )
+LightGreyColor = Color( 200, 200, 200 )
+GreyColor = Color( 180, 180, 180 )
 
 cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
     hook_Run( "LanguageChanged", cvars.String( "gmod_language", "" ), value )
@@ -123,6 +127,19 @@ do
 
 do
 
+    :AddText = chat
+    :date = os
+
+    ChatTime = CreateClientConVar( "jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1 )
+
+    Jailbreak.ChatText = ( ... ) ->
+        if ChatTime\GetBool!
+            AddText( GreyColor, date( "[%H:%M:%S] " ), WhiteColor, ... )
+        else
+            AddText( WhiteColor, ... )
+
+do
+
     :ReadString, :ReadUInt, :ReadTable = net
     :AddLegacy = notification
     unpack = unpack
@@ -142,7 +159,7 @@ do
                 if isstring( value )
                     data[ index ] = Jailbreak.Translate( value )
 
-            AddText( unpack( data ) )
+            Jailbreak.ChatText( unpack( data ) )
     }
 
     net.Receive( "Jailbreak::Networking", ->
@@ -468,56 +485,45 @@ list_Set "DesktopWindows", "!3shock-collars", {
         RunConsoleCommand( "jb_shock_collars" )
 }
 
-do
+GM.OnPlayerChat = ( ply, text, _, isDead ) =>
+    result = {}
 
-    color_white = color_white
-    blue = Color( 30, 130, 255 )
-    dead = Color( 185, 185, 185 )
+    if isDead
+        result[] = LightGreyColor
+        result[] = "[#jb.chat.dead] "
 
-    GM.OnPlayerChat = ( ply, text, isTeam, isDead ) =>
-        result = {}
+    if IsValid( ply )
+        result[] = ply\GetPlayerColor!\ToColor!
+        result[] = ply\Nick!
 
-        if isDead
-            result[] = dead
-            result[] = "[#jb.chat.dead] "
+        filter = TEXT_FILTER_GAME_CONTENT
+        if bit.band( cvars.Number( "cl_chatfilters", 0 ), 64 ) ~= 0
+            filter = TEXT_FILTER_CHAT
 
-        -- if isTeam
-        --     teamID = ply\Team!
-        --     result[] = team.GetColor( teamID )
-        --     result[] = "[" .. team.GetName( teamID ) .. "] "
+        text = util.FilterText( text, filter, ply )
+    else
+        result[] = BlueColor
+        result[] = "#jb.chat.console"
 
-        if IsValid( ply )
-            result[] = ply\GetPlayerColor!\ToColor!
-            result[] = ply\Nick!
+    result[] = WhiteColor
 
-            filter = TEXT_FILTER_GAME_CONTENT
-            if bit.band( cvars.Number( "cl_chatfilters", 0 ), 64 ) ~= 0
-                filter = TEXT_FILTER_CHAT
+    classic = Jailbreak.Classic\GetBool!
+    if classic
+        result[] = ": "
+    else
+        result[] = " #jb.chat.says: "
 
-            text = util.FilterText( text, filter, ply )
-        else
-            result[] = blue
-            result[] = "#jb.chat.console"
+    for index, value in ipairs( result )
+        if isstring( value )
+            result[ index ] = Jailbreak.Translate( value )
 
-        result[] = color_white
+    if classic
+        result[] = text
+    else
+        result[] = "\"" .. text .. "\""
 
-        classic = Jailbreak.Classic\GetBool!
-        if classic
-            result[] = ": "
-        else
-            result[] = " #jb.chat.says: "
-
-        for index, value in ipairs( result )
-            if isstring( value )
-                result[ index ] = Jailbreak.Translate( value )
-
-        if classic
-            result[] = text
-        else
-            result[] = "\"" .. text .. "\""
-
-        AddText( unpack( result ) )
-        return true
+    Jailbreak.ChatText( unpack( result ) )
+    return true
 
 GM.GrabEarAnimation = ( ply ) =>
 	if ply\IsPlayingTaunt!
