@@ -1,6 +1,6 @@
+:abs, :ceil, :min, :max, :sin, :sqrt, :floor, :random, :Rand, :Round = math
 RunConsoleCommand = RunConsoleCommand
-:format, :upper, :Explode = string
-:abs, :min, :max, :sin = math
+:format, :upper, :find, :Explode = string
 LocalPlayer = LocalPlayer
 :GetPhrase = language
 Jailbreak = Jailbreak
@@ -9,6 +9,7 @@ hook_Add = hook.Add
 hook_Run = hook.Run
 IsValid = IsValid
 surface = surface
+Vector = Vector
 pairs = pairs
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -123,10 +124,10 @@ do
 
                 imageWidth, imageHeight = image\GetSize!
 
-                targetSize = math.min( width - 4, height - 4 )
-                zoom = math.min( targetSize / imageWidth, targetSize / imageHeight, 1 )
-                newSizeX = math.ceil( imageWidth * zoom )
-                newSizeY = math.ceil( imageHeight * zoom )
+                targetSize = min( width - 4, height - 4 )
+                zoom = min( targetSize / imageWidth, targetSize / imageHeight, 1 )
+                newSizeX = ceil( imageWidth * zoom )
+                newSizeY = ceil( imageHeight * zoom )
 
                 image\SetWide( newSizeX )
                 image\SetTall( newSizeY )
@@ -533,7 +534,7 @@ do
             window\SetSize( 960, 700 )
             window\Center!
 
-            window\SetSize( math.min( ScrW! - 16, window\GetWide! ), math.min( ScrH! - 16, window\GetTall! ) )
+            window\SetSize( min( ScrW! - 16, window\GetWide! ), min( ScrH! - 16, window\GetTall! ) )
             window\SetMinWidth( window\GetWide! )
             window\SetMinHeight( window\GetTall! )
             window\SetSizable( true )
@@ -609,7 +610,7 @@ do
                             icon\SetVisible( false )
                             continue
 
-                        icon\SetVisible( icon.ModelName\find( filter, 1, true ) and icon.ModelPath\find( filter, 1, true ) )
+                        icon\SetVisible( find( icon.ModelName, filter, 1, true ) and find( icon.ModelPath, filter, 1, true ) )
                     selectPanel\InvalidateLayout!
 
                 timer.Create( "player-editor-models", 0.5, 0, UpdateAvalibleModels )
@@ -652,7 +653,7 @@ do
                 playerColor\SetAlphaBar( false )
                 playerColor\SetPalette( false )
                 playerColor\Dock( TOP )
-                playerColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
+                playerColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
 
                 playerColor.ValueChanged = =>
                     vector = @GetVector!
@@ -684,7 +685,7 @@ do
                 weaponColor\SetAlphaBar( false )
                 weaponColor\SetPalette( false )
                 weaponColor\Dock( TOP )
-                weaponColor\SetSize( 200, math.min( window\GetTall! / 3, 260 ) )
+                weaponColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
 
                 weaponColor.ValueChanged = =>
                     cl_weaponcolor\SetString( tostring( @GetVector! ) )
@@ -706,18 +707,18 @@ do
             UpdateBodyGroups = ( pnl, value ) ->
                 previewEntity = modelPreview.Entity
                 if previewEntity
-                    previewEntity\SetBodygroup( pnl.typenum, math.Round( value ) )
+                    previewEntity\SetBodygroup( pnl.typenum, Round( value ) )
 
                 str = Explode( " ", cl_playerbodygroups\GetString! )
                 if #str < pnl.typenum + 1
                     for index = 1, pnl.typenum + 1
                         str[ index ] = str[ index ] or 0
 
-                str[ pnl.typenum + 1 ] = math.Round( value )
+                str[ pnl.typenum + 1 ] = Round( value )
                 cl_playerbodygroups\SetString( table.concat( str, " " ) )
 
             SetSkin = ( value ) =>
-                value = math.floor( value )
+                value = floor( value )
 
                 previewEntity = modelPreview.Entity
                 if previewEntity
@@ -801,7 +802,7 @@ do
                 if not anims or #anims == 0
                     anims = default_animations
 
-                sequence = previewEntity\LookupSequence( anims[ math.random( 1, #anims ) ] )
+                sequence = previewEntity\LookupSequence( anims[ random( 1, #anims ) ] )
                 if sequence > 0
                     previewEntity\ResetSequence( sequence )
 
@@ -910,13 +911,95 @@ do
 
 do
 
-    TypingIcon = Material( "icon16/comment_edit.png", "mips" )
-    SpeakingIcon = Material( "icon16/sound.png", "mips" )
     :SetMaterial, :DrawSprite = render
     player_GetAll = player.GetAll
+    Material = Material
+    CurTime = CurTime
+    :remove = table
+    :IgnoreZ = cam
+    net = net
+
+    TypingIcon = Material( "icon16/comment_edit.png", "mips" )
+    SpeakingIcon = Material( "icon16/sound.png", "mips" )
+    UserOrangeIcon = Material( "icon16/user_orange.png", "mips" )
+    UserSuitIcon = Material( "icon16/user_suit.png", "mips" )
+    UserIcon = Material( "icon16/user.png", "mips" )
+    BricksIcon = Material( "icon16/bricks.png", "mips" )
+    WorldIcon = Material( "icon16/world.png", "mips" )
+    DoorIcon = Material( "icon16/door.png", "mips" )
+    KeyboardIcon = Material( "icon16/keyboard.png", "mips" )
+    ImageIcon = Material( "icon16/image.png", "mips" )
+    FootballIcon = Material( "icon16/sport_basketball.png", "mips" )
+    PhotoIcon = Material( "icon16/photo.png", "mips" )
+    UserDeleteIcon = Material( "icon16/user_delete.png", "mips" )
+    GunIcon = Material( "icon16/gun.png", "mips" )
+    DrinkIcon = Material( "icon16/drink.png", "mips" )
+
+    markers = {}
+
+    net.Receive "Jailbreak::Markers", ->
+        owner = net.ReadEntity!
+        unless owner\IsValid! and owner\Alive!
+            return
+
+        material = WorldIcon
+
+        entity = nil
+        if net.ReadBool!
+            entity = net.ReadEntity!
+            if IsValid( entity )
+                if entity\IsWeapon!
+                    if entity\GetOwner!\IsValid!
+                        return
+
+                    material = GunIcon
+                elseif entity\IsPlayer!
+                    unless entity\IsInGame!
+                        return
+
+                    switch entity\Team!
+                        when TEAM_GUARD
+                            material = UserSuitIcon
+                        when TEAM_PRISONER
+                            material = UserOrangeIcon
+                        else
+                            material = UserIcon
+
+                else
+
+                    className = entity\GetClass!
+                    if find( className, "^func_breakable", 1, false )
+                        material = ImageIcon
+                    elseif className == "class C_BaseEntity"
+                        material = KeyboardIcon
+                    elseif find( className, "^%w+_door", 1, false )
+                        material = DoorIcon
+                    elseif className == "prop_ragdoll"
+                        material = UserDeleteIcon
+                    elseif find( className, "^prop_physics.*", 1, false )
+                        material = PhotoIcon
+                    elseif className == "sent_soccerball"
+                        material = FootballIcon
+                    elseif className == "jb_food"
+                        material = DrinkIcon
+                    else
+                        material = BricksIcon
+
+        origin = net.ReadVector!
+
+        index = #markers + 1
+        markers[ index ] = {
+            deathtime: CurTime! + Jailbreak.MarkersLifetime\GetInt!
+            amplitude: Rand( 0.5, 1.5 )
+            :material
+            :entity
+            :origin
+            :owner
+            :index
+        }
 
     GM.PostDrawTranslucentRenderables = ( drawingDepth, drawingSkybox, isDraw3DSkybox ) =>
-        if drawingSkybox or isDraw3DSkybox or not Jailbreak.VoiceIcons\GetBool!
+        if drawingDepth or drawingSkybox or isDraw3DSkybox or not Jailbreak.VoiceIcons\GetBool!
             return
 
         eyePos = EyePos!
@@ -960,9 +1043,49 @@ do
             origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
             DrawSprite( origin, 12, 12, white )
 
--- ---
--- --- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
--- ---
+        unless Jailbreak.Markers\GetBool!
+            return
+
+        for index = 1, #markers
+            data = markers[ index ]
+            unless data
+                continue
+
+            owner = data.owner
+            unless owner\IsValid!
+                remove( markers, index )
+                continue
+
+            fraction = max( 0, ( data.deathtime - CurTime! ) / Jailbreak.MarkersLifetime\GetInt! )
+            if fraction == 0
+                remove( markers, index )
+                continue
+
+            origin = data.origin
+
+            entity = data.entity
+            if entity
+                if entity\IsValid!
+                    if ( entity\IsPlayer! and not entity\IsInGame! ) or ( entity\IsWeapon! and entity\GetOwner!\IsValid! )
+                        remove( markers, index )
+                        continue
+
+                    origin = entity\LocalToWorld( origin )
+                else
+                    remove( markers, index )
+                    continue
+
+            distance = origin\DistToSqr( eyePos )
+            if distance > Jailbreak.VoiceChatMaxDistance
+                continue
+
+            scale = max( 4, sqrt( distance ) / ScrW! * 64 ) * fraction
+            amplitude = data.amplitude
+
+            IgnoreZ( true )
+            SetMaterial( data.material )
+            DrawSprite( origin + Vector( 0, 0, 1 + sin( CurTime! * ( 4 + amplitude ) ) * ( 1.5 + amplitude ) * fraction ), scale, scale, white )
+            IgnoreZ( false )
 
 -- PANEL_META = FindMetaTable( "Panel" )
 

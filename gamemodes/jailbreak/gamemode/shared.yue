@@ -64,7 +64,12 @@ do
     Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "If enabled, the player can put any playermodel he wants.", 0, 1 )
     Jailbreak.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "Classic jailbreak, without any innovations. Specially for Erik_Maksimets <3", 0, 1 )
     Jailbreak.FunnyMouthAnimations = CreateConVar( "jb_funny_mouth_animations", "1", ConVarFlags, "Funny mouth animations. ( 0/1/2 )", 0, 2 )
+
     Jailbreak.VoiceIcons = CreateConVar( "jb_voice_icons", "1", ConVarFlags, "Show voice/chat icons on players.", 0, 1 )
+
+    Jailbreak.Markers = CreateConVar( "jb_markers", "1", ConVarFlags, "Show markers on players.", 0, 1 )
+    Jailbreak.MarkersCount = CreateConVar( "jb_markers_count", "5", ConVarFlags, "Marker count.", 0, 100 )
+    Jailbreak.MarkersLifetime = CreateConVar( "jb_markers_lifetime", "10", ConVarFlags, "Marker lifetime in seconds.", 0, 300 )
 
     Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
     Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )\GetInt! ^ 2
@@ -769,6 +774,15 @@ do
             if worldModel and #worldModel ~= 0 and util_IsValidModel( worldModel )
                 util_PrecacheModel( worldModel )
 
+do
+
+    IN_ATTACK = IN_ATTACK
+    IN_WALK = IN_WALK
+
+    GM.StartCommand = ( ply, cmd ) =>
+        if ply\IsInGame! and cmd\KeyDown( IN_WALK ) and cmd\KeyDown( IN_ATTACK )
+            cmd\RemoveKey( IN_ATTACK )
+
 GM.FinishMove = ( ply, mv ) =>
     unless ply\Alive!
         return
@@ -865,12 +879,3 @@ GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
 	if CLIENT
         hook_Run( "GrabEarAnimation", ply )
         hook_Run( "MouthMoveAnimation", ply )
-
-GM.EntityEmitSound = ( data ) =>
-    entity = data.Entity
-    unless entity\IsValid!
-        return
-
-    if entity\IsPlayer!
-        unless entity\IsInGame!
-            return false

@@ -76,15 +76,27 @@ GM.OnSpawnMenuOpen = =>
 GM.PostProcessPermitted = ( name ) =>
     return false
 
-GM.PlayerButtonUp = ( ply, keyCode ) =>
-    if keyCode ~= KEY_G
-        return
+do
 
-    bind = input.LookupKeyBinding( keyCode )
-    if bind and bind ~= ""
-        return
+    :LookupKeyBinding, :IsKeyDown = input
+    MOUSE_MIDDLE = MOUSE_MIDDLE
+    MOUSE_LEFT = MOUSE_LEFT
+    KEY_G = KEY_G
 
-    RunConsoleCommand( "drop" )
+    GM.PlayerButtonUp = ( ply, keyCode ) =>
+        bind = LookupKeyBinding( keyCode )
+        if bind and #bind ~= 0
+            return
+
+        switch keyCode
+            when KEY_G
+                RunConsoleCommand( "drop" )
+            when MOUSE_MIDDLE
+                RunConsoleCommand( "marker" )
+
+    GM.PlayerButtonDown = ( ply, keyCode ) =>
+        if keyCode == MOUSE_LEFT and IsKeyDown( KEY_LALT )
+            RunConsoleCommand( "marker" )
 
 do
 

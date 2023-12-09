@@ -1425,6 +1425,63 @@ concommand.Add "drop", =>
 
     @SelectWeapon( nextWeapon\GetClass! )
 
+do
+
+    util.AddNetworkString( "Jailbreak::Markers" )
+    :TraceLine = util
+    :sub = string
+
+    concommand.Add "marker", =>
+        unless IsValid( @ ) and @Alive!
+            return
+
+        if @NextMarker and CurTime! < @NextMarker
+            return
+
+        isWarden = @IsWarden! or @IsAdmin!
+        isPrisoner = @IsPrisoner!
+
+        unless isWarden or isPrisoner
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return
+
+        distance = Jailbreak.VoiceChatMinDistance
+
+        @LagCompensation( true )
+
+        traceResult = TraceLine( {
+            start: @EyePos!
+            endpos: @EyePos! + @GetAimVector! * distance
+            filter: @
+        } )
+
+        @LagCompensation( false )
+
+        unless traceResult.Hit
+            return
+
+        @NextMarker = CurTime! + ( Jailbreak.MarkersLifetime\GetInt! / Jailbreak.MarkersCount\GetInt! )
+
+        entity = traceResult.Entity
+        isValid = IsValid( entity )
+
+        net.Start( "Jailbreak::Markers" )
+        net.WriteEntity( @ )
+        net.WriteBool( isValid )
+
+        if isValid
+            net.WriteEntity( entity )
+            net.WriteVector( entity\WorldToLocal( traceResult.HitPos ) )
+        else
+            net.WriteVector( traceResult.HitPos )
+
+        if isWarden
+            net.Broadcast!
+        elseif isPrisoner
+            net.Send( @GetNearPlayers( distance, true ) )
+
+        Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#" .. ( entity\IsValid! and entity\GetClass! or "world" ) .. "\"." )
+
 GM.InitPostEntity = =>
     RunConsoleCommand( "mp_show_voice_icons", "0" )
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
