@@ -1432,6 +1432,9 @@ do
     :sub = string
 
     concommand.Add "marker", =>
+        unless Jailbreak.Markers\GetBool!
+            return
+
         unless IsValid( @ ) and @Alive!
             return
 
