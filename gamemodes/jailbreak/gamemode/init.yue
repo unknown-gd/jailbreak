@@ -47,7 +47,7 @@ math, table, team = math, table, team
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
 team_NumPlayers, team_GetPlayers = team.NumPlayers , team.GetPlayers
 :Create, :FindByClass, :FindInSphere = ents
-:Rand, :random, :max, :min = math
+:Rand, :random, :max, :min, :sqrt = math
 :Empty, :Random, :Shuffle = table
 timer_Simple = timer.Simple
 hook_Run = hook.Run
@@ -56,6 +56,7 @@ istable = istable
 CurTime = CurTime
 IsValid = IsValid
 Vector = Vector
+ipairs = ipairs
 string = string
 
 colors = Jailbreak.Colors
@@ -126,18 +127,24 @@ do
 Jailbreak.SpectateTargets = Jailbreak.SpectateTargets or {}
 
 GM.PostCleanupMap = =>
-    table.Empty( Jailbreak.SpectateTargets )
+    targets = Jailbreak.SpectateTargets
+    for key in pairs( targets )
+        targets[ key ] = nil
 
 Jailbreak.AddSpectateTarget = =>
     if IsValid( @ )
         Jailbreak.RemoveSpectateTarget( @ )
         Jailbreak.SpectateTargets[] = @
 
-Jailbreak.RemoveSpectateTarget = =>
-    for index, value in ipairs( Jailbreak.SpectateTargets )
-        if value == @
-            table.remove( Jailbreak.SpectateTargets, index )
-            break
+do
+
+    :remove = table
+
+    Jailbreak.RemoveSpectateTarget = =>
+        for index, value in ipairs( Jailbreak.SpectateTargets )
+            if value == @
+                remove( Jailbreak.SpectateTargets, index )
+                break
 
 do
 
@@ -1878,7 +1885,7 @@ do
 
                     timer_Simple 0, ->
                         if @IsValid!
-                            @SetKey( KEY_B )
+                            @SetKey( 12 )
 
         }
 
@@ -1973,16 +1980,22 @@ do
         :GetColor = team
 
         LOOC = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance, false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
+            Jailbreak.SendChatText( @GetNearPlayers( sqrt( Jailbreak.VoiceChatMinDistance ), false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
 
         Jailbreak.SetChatCommand "looc", LOOC
         Jailbreak.SetChatCommand "", LOOC
 
-        Emotion = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " " .. lower( text ) )
+        CustomEmotion = ( ... ) =>
+            Jailbreak.SendChatText( @GetNearPlayers( sqrt( Jailbreak.VoiceChatMinDistance ), false ), @GetPlayerColor!\ToColor!, @Nick!, white, " ", ... )
 
-        Jailbreak.Emotion = Emotion
+        Jailbreak.Emotion = CustomEmotion
+
+        Emotion = ( text, ... ) =>
+            CustomEmotion( @, lower( text ) )
+
+        Jailbreak.SetChatCommand "e", Emotion
         Jailbreak.SetChatCommand "me", Emotion
+        Jailbreak.SetChatCommand "emotion", Emotion
 
         do
 

@@ -384,12 +384,16 @@ do
         return @GetNW2Bool( "fully-connected" )
 
     PLAYER.GetNearPlayers = ( distance, isTeam ) =>
-        players, teamID = {}, isTeam and @Team! or nil
+        teamID = false
+        if isTeam
+            teamID = @Team!
+
+        players = {}
         for ply in *ents.FindInSphere( @EyePos!, distance )
             unless ply\IsPlayer!
                 continue
 
-            if isTeam and ply\Alive! and ply\Team! ~= teamID
+            if isTeam and ply\Team! ~= teamID
                 continue
 
             players[] = ply
