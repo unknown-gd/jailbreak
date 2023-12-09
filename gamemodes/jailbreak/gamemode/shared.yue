@@ -206,6 +206,9 @@ Jailbreak.IsFemalePrison = ->
 Jailbreak.IsMasqueradeEvent = ->
     return GetGlobal2Bool( "masquerade-event" )
 
+Jailbreak.TF2Team = ( teamID ) ->
+    return teamID % 2 + 1
+
 do
 
     :gsub, :lower = string
@@ -273,9 +276,6 @@ do
 
     ENTITY.SetPlayerColor = ( vector ) =>
         @SetNW2Var( "player-color", vector )
-
-    ENTITY.GetCreator = =>
-        return @GetNW2Entity( "entity-owner" )
 
     Jailbreak.HasWarden = ->
         warden = Jailbreak.GetWarden!
@@ -842,3 +842,12 @@ GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
 	if CLIENT
         hook_Run( "GrabEarAnimation", ply )
         hook_Run( "MouthMoveAnimation", ply )
+
+GM.EntityEmitSound = ( data ) =>
+    entity = data.Entity
+    unless entity\IsValid!
+        return
+
+    if entity\IsPlayer!
+        unless entity\IsInGame!
+            return false

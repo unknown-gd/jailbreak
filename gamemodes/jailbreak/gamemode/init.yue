@@ -48,10 +48,10 @@ resource.AddWorkshop( "643148462" )
 math, table, team = math, table, team
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
 team_NumPlayers, team_GetPlayers = team.NumPlayers , team.GetPlayers
+:Create, :FindByClass, :FindInSphere = ents
 :Rand, :random, :max, :min = math
+:Empty, :Random, :Shuffle = table
 timer_Simple = timer.Simple
-ents_Create = ents.Create
-:Empty, :Random = table
 hook_Run = hook.Run
 tonumber = tonumber
 istable = istable
@@ -122,12 +122,37 @@ do
         else
             net.Broadcast!
 
+Jailbreak.SpectateTargets = Jailbreak.SpectateTargets or {}
+
+GM.PostCleanupMap = =>
+    table.Empty( Jailbreak.SpectateTargets )
+
+Jailbreak.AddSpectateTarget = =>
+    if IsValid( @ )
+        Jailbreak.RemoveSpectateTarget( @ )
+        Jailbreak.SpectateTargets[] = @
+
+Jailbreak.RemoveSpectateTarget = =>
+    for index, value in ipairs( Jailbreak.SpectateTargets )
+        if value == @
+            table.remove( Jailbreak.SpectateTargets, index )
+            break
+
 do
 
     ENTITY = FindMetaTable( "Entity" )
 
-    ENTITY.SetCreator = ( entity ) =>
-        @SetNW2Entity( "entity-owner", entity )
+    ENTITY.IsSpectateTarget = =>
+        if @IsPlayer! and @IsInGame!
+            return true
+
+        if @IsPlayerRagdoll!
+            return true
+
+        if Jailbreak.GameName == "tf" and @GetClass! == "info_observer_point"
+            return true
+
+        return false
 
 do
 
@@ -166,23 +191,7 @@ do
         @SetNW2Bool( "security-radio", bool )
 
     PLAYER.MoveSpectateID = ( move, players ) =>
-        targets = {}
-        for pl in *player.GetAll!
-            if pl\IsInGame!
-                targets[] = pl
-
-        if Jailbreak.GameName == "tf"
-            for entity in *ents.FindByClass( "info_observer_point" )
-                targets[] = entity
-
-        for entity in *ents.FindByClass( "prop_ragdoll" )
-            if entity\IsPlayerRagdoll!
-                targets[] = entity
-
-        for entity in *ents.FindByClass( "prop_physics" )
-            if entity\IsPlayerRagdoll!
-                targets[] = entity
-
+        targets = Jailbreak.SpectateTargets
         if #targets == 0
             return
 
@@ -193,7 +202,7 @@ do
             index = length
 
         entity = targets[ index ]
-        if entity\IsPlayer!
+        if entity\IsPlayer! or entity\IsRagdoll!
             @SpectateEntity( entity )
 
             if @GetObserverMode! ~= OBS_MODE_CHASE
@@ -231,7 +240,7 @@ do
             if @HasWeapon( className )
                 return NULL
 
-            weapon = ents_Create( className )
+            weapon = Create( className )
             unless IsValid( weapon )
                 return NULL
 
@@ -271,7 +280,7 @@ do
         unless IsInWorld( spawnOrigin )
             return NULL
 
-        ragdoll = ents_Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
+        ragdoll = Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
         ragdoll\SetAngles( @GetAngles! )
         ragdoll\SetModel( modelPath )
         ragdoll\SetPos( spawnOrigin )
@@ -317,7 +326,6 @@ do
         unless @IsBot!
             ragdoll\SetNW2String( "owner-steamid64", @SteamID64! )
         ragdoll\SetNW2String( "owner-nickname", @Nick! )
-        ragdoll\SetCreator( @ )
 
         for boneID = 0, @GetBoneCount!
             ragdoll\ManipulateBonePosition( boneID, @GetManipulateBonePosition( boneID ) )
@@ -373,6 +381,7 @@ do
         ragdoll.Weapons = weapons
         ragdoll.Ammo = @GetAmmo!
 
+        Jailbreak.AddSpectateTarget( ragdoll )
         return ragdoll
 
 GM.WardenChanged = ( ply, state ) =>
@@ -416,7 +425,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
     if ragdoll\IsValid!
         ragdoll\SetNW2Entity( "ragdoll-owner", ply )
         ply\SetTeam( ragdoll.Team )
-        ply.FirstSpawn = true
+        ply.InitialSpawn = true
 
 GM.SetupPlayerCollisions = ( ply ) =>
     if Jailbreak.GameName == "tf"
@@ -522,21 +531,25 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     ply\SetMaxHealth( 100 )
     ply\SetMaxArmor( 100 )
 
-    if ply.FirstSpawn
-        ply.FirstSpawn = nil
+    if ply.InitialSpawn ~= nil
+        ply.InitialSpawn = nil
 
         ragdoll = ply\GetRagdollEntity!
         if ragdoll\IsValid!
             @MigrationPlayerFromRagdoll( ply, ragdoll )
             return
 
+        if Jailbreak.GameInProgress!
+            ply\KillSilent!
+            return
+
     @SetupPlayerCollisions( ply )
 
-    if Jailbreak.GameInProgress! or Jailbreak.Teams[ teamID ]
+    teamID = ply\Team!
+    unless Jailbreak.Teams[ teamID ]
         ply\KillSilent!
         return
 
-    teamID = ply\Team!
     if teamID == TEAM_GUARD
         ply\SetArmor( @GuardsArmor\GetInt! )
         ply\AllowSecurityAccess( true )
@@ -584,70 +597,88 @@ GM.PlayerSpawn = ( ply, transiton ) =>
     hook_Run( "TeamPlayerSpawn", ply, teamID )
     ply\SetupHands!
 
-GM.OnEntityCreated = ( weapon ) =>
-    if weapon\GetClass! == "game_player_equip"
-        weapon\Remove!
+GM.EntityRemoved = ( entity, fullUpdate ) =>
+    if fullUpdate
         return
 
-    unless weapon\IsWeapon!
+    if entity\IsSpectateTarget!
+        Jailbreak.RemoveSpectateTarget( entity )
+        return
+
+GM.OnEntityCreated = ( entity ) =>
+    if entity\IsPlayer!
+        return
+
+    -- Fuck givers
+    if entity\GetClass! == "game_player_equip"
+        entity\Remove!
+        return
+
+    if entity\IsSpectateTarget!
+        Jailbreak.AddSpectateTarget( entity )
+        return
+
+    unless entity\IsWeapon!
         return
 
     timer_Simple 0.025, ->
-        unless weapon\IsValid!
+        unless entity\IsValid!
             return
 
-        if IsValid( weapon\GetOwner! )
+        if IsValid( entity\GetOwner! )
             return
 
-        if weapon\GetPos!\Length! <= 3
-            weapon\Remove!
+        if entity\GetPos!\Length! <= 3
+            entity\Remove!
             return
 
-        weapon\SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        entity\SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
-        phys = weapon\GetPhysicsObject!
+        phys = entity\GetPhysicsObject!
         unless IsValid( phys ) and phys\IsMotionEnabled!
             return
 
         counter = 0
-        for entity in *ents.FindInSphere( weapon\GetPos!, 32 )
-            if entity\IsWeapon! and not IsValid( entity\GetOwner! )
+        for other in *FindInSphere( entity\GetPos!, 32 )
+            if other\IsWeapon! and not IsValid( other\GetOwner! )
                 counter = counter + 1
                 if counter >= 5
                     phys\EnableMotion( false )
                     return
 
-COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
+do
 
-GM.PlayerDroppedWeapon = ( ply, weapon ) =>
-    timerName = "JB_WeaponDrop #" .. weapon\EntIndex!
-    timer.Create( timerName, 3, 1, ->
-        timer.Remove( timerName )
-        unless weapon\IsValid!
-            return
+    COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
 
-        phys = weapon\GetPhysicsObject!
-        unless IsValid( phys )
-            return
+    GM.PlayerDroppedWeapon = ( ply, weapon ) =>
+        timerName = "JB_WeaponDrop #" .. weapon\EntIndex!
+        timer.Create timerName, 3, 1, ->
+            timer.Remove( timerName )
 
-        start = weapon\WorldSpaceCenter!
-        mins, maxs = weapon\GetCollisionBounds!
+            unless weapon\IsValid!
+                return
 
-        tr = TraceHull( {
-            start: start
-            endpos: start + Vector( 0, 0, mins[ 3 ] - 2 )
-            mask: MASK_SOLID_BRUSHONLY
-            mins: mins
-            maxs: maxs
-        } )
+            phys = weapon\GetPhysicsObject!
+            unless IsValid( phys )
+                return
 
-        if tr.Hit
-            weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
-            phys\EnableMotion( false )
-            return
+            start = weapon\WorldSpaceCenter!
+            mins, maxs = weapon\GetCollisionBounds!
 
-        @PlayerDroppedWeapon( ply, weapon )
-    )
+            tr = TraceHull( {
+                start: start
+                endpos: start + Vector( 0, 0, mins[ 3 ] - 2 )
+                mask: MASK_SOLID_BRUSHONLY
+                mins: mins
+                maxs: maxs
+            } )
+
+            if tr.Hit
+                weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+                phys\EnableMotion( false )
+                return
+
+            @PlayerDroppedWeapon( ply, weapon )
 
 do
 
@@ -727,12 +758,43 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
     hands\SetPlayerColor( ply\GetPlayerColor! )
     hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
 
+do
+
+    vector_origin = vector_origin
+    :GetSpawnPoint = team
+
+    GM.PlayerSelectSpawn = ( ply, transition ) =>
+        if transiton
+            return
+
+        teamID = ply\Team!
+        unless Jailbreak.Teams[ teamID ]
+            teamID = random( 1, 2 )
+
+        for className in *GetSpawnPoint( teamID )
+            spawnPoints = FindByClass( className )
+            unless spawnPoints
+                continue
+
+            length = #spawnPoints
+            if length == 0
+                continue
+
+            if length ~= 1
+                Shuffle( spawnPoints )
+
+            killLength = length - length * 0.25
+
+            for index = 1, length
+                entity = spawnPoints[ index ]
+                if entity\IsValid! and hook_Run( "IsSpawnpointSuitable", ply, entity, index >= killLength )
+                    return entity
+
+        ply\SetPos( vector_origin )
+
 GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     if entity\GetClass! == "info_player_teamspawn"
-        if entity.Disabled
-            return false
-
-        if entity.Team % 2 + 1 ~= ply\Team!
+        if entity.Disabled or Jailbreak.TF2Team( entity.Team ) ~= ply\Team!
             return false
 
     mins, maxs = ply\GetHull!
@@ -761,20 +823,6 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
         return false
 
     return true
-
-do
-
-    :IsEmpty = table
-
-    GM.PlayerSelectTeamSpawn = ( teamID, ply ) =>
-        spawnPoints = team.GetSpawnPoints( teamID )
-        unless spawnPoints and not IsEmpty( spawnPoints )
-            return
-
-        for i = 1, 128
-            spawnPoint = Random( spawnPoints )
-            if hook_Run( "IsSpawnpointSuitable", ply, spawnPoint, i > 16 )
-                return spawnPoint
 
 GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     teamID = ply\Team!
@@ -827,8 +875,13 @@ do
         else
             if ply\KeyPressed( MovementKeys )
                 if observerMode ~= OBS_MODE_ROAMING
+                    eyeAngles = ply\EyeAngles!
+
                     ply\Spectate( OBS_MODE_ROAMING )
                     ply\SpectateEntity!
+
+                    ply\SetEyeAngles( eyeAngles )
+
             elseif ply\KeyPressed( IN_ATTACK )
                 ply\MoveSpectateID( 1 )
             elseif ply\KeyPressed( IN_ATTACK2 )
@@ -941,7 +994,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             unless IsInWorld( origin )
                 return true
 
-            prop = ents_Create( "prop_physics" )
+            prop = Create( "prop_physics" )
             prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
             prop\SetAngles( entity\GetAngles! )
             prop\SetSkin( entity\GetSkin! )
@@ -951,7 +1004,7 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
 
             name = entity\GetName!
             if name ~= ""
-                for portal in *ents.FindByClass( "func_areaportal" )
+                for portal in *FindByClass( "func_areaportal" )
                     if portal\GetInternalVariable( "target" ) ~= name
                         continue
 
@@ -1116,7 +1169,7 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
             if IsValid( phys )
                 physParts[] = phys
 
-        table.Shuffle( physParts )
+        Shuffle( physParts )
 
         for index = 1, min( #physParts, 4 )
             physParts[ index ]\ApplyForceCenter( velocity )
@@ -1370,12 +1423,12 @@ GM.InitPostEntity = =>
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
-    if #ents.FindByClass( "info_player_teamspawn" ) > 0
-        @Medieval = #ents.FindByClass( "tf_logic_medieval" ) > 0
+    if #FindByClass( "info_player_teamspawn" ) ~= 0
+        @Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
         resource.AddWorkshop( "105181283" )
         Jailbreak.GameName = "tf"
         SoundHandler( "tf" )
-    elseif ( #ents.FindByClass( "info_player_counterterrorist" ) + #ents.FindByClass( "info_player_counterterrorist" ) ) > 0
+    elseif ( #FindByClass( "info_player_counterterrorist" ) + #FindByClass( "info_player_counterterrorist" ) ) ~= 0
         Jailbreak.GameName = "cstrike"
         SoundHandler( "cstrike" )
 
@@ -1514,24 +1567,23 @@ GM.RoundStateChanged = ( old, new ) =>
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
+    Jailbreak.RemoveSpectateTarget( ply )
+    ply\UnSpectate!
 
     ply\AllowSecurityAccess( false )
     ply\AllowSecurityRadio( false )
     ply\SetShockCollar( false )
     ply\AllowFlashlight( false )
     ply\SetWarden( false )
-    ply\UnSpectate!
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
-        switch Jailbreak.GetRoundState!
-            when ROUND_PREPARING
-                if team_NumPlayers( TEAM_GUARD ) == 0 or team_NumPlayers( TEAM_PRISONER ) == 0
-                    Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
-            when ROUND_RUNNING
-                if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) == 0 or Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) == 0
-                    Jailbreak.SetRoundState( ROUND_ENDED )
+        state = Jailbreak.GetRoundState!
+        if state == ROUND_PREPARING and team_NumPlayers( teamID ) == 0
+            Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
+        elseif state == ROUND_RUNNING and Jailbreak.GetTeamAliveCount( teamID ) == 0
+            Jailbreak.SetRoundState( ROUND_ENDED )
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     unless ply\Alive!
@@ -1545,15 +1597,15 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
         if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) == 0 or Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) == 0
             Jailbreak.SetRoundState( ROUND_ENDED )
 
+    Jailbreak.RemoveSpectateTarget( ply)
     ply\CreateRagdoll!
 
 GM.TeamPlayerSpawn = ( ply ) =>
-    unless Jailbreak.IsWaitingPlayers!
-        return
-
-    if Jailbreak.GetTeamAliveCount( TEAM_GUARD ) > 0 and Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) > 0
+    if Jailbreak.IsWaitingPlayers! and Jailbreak.GetTeamAliveCount( TEAM_GUARD ) > 0 and Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) > 0
         Jailbreak.SetRoundState( ROUND_PREPARING )
         Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
+
+    Jailbreak.AddSpectateTarget( ply )
 
 concommand.Add "changeteam", ( _, args ) =>
     hook_Run( "PlayerRequestTeam", @, tonumber( args[ 1 ] ) )
