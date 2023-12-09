@@ -466,6 +466,25 @@ do
         PANEL.Think = =>
             if IsKeyDown( 70 )
                 @Remove!
+            elseif IsKeyDown( 2 ) and Jailbreak.TeamIsJoinable( TEAM_GUARD )
+                RunConsoleCommand( "changeteam", TEAM_GUARD )
+                @Remove!
+            elseif IsKeyDown( 3 ) and Jailbreak.TeamIsJoinable( TEAM_PRISONER )
+                RunConsoleCommand( "changeteam", TEAM_PRISONER )
+                @Remove!
+            elseif IsKeyDown( 4 )
+                ply = @Player
+                unless IsValid( ply )
+                    return
+
+                for teamID = 1, 2
+                    if teamID ~= ply\Team! and Jailbreak.TeamIsJoinable( teamID )
+                        RunConsoleCommand( "changeteam", teamID )
+                        @Remove!
+                        break
+            elseif IsKeyDown( 5 )
+                RunConsoleCommand( "changeteam", TEAM_SPECTATOR )
+                @Remove!
 
     do
 

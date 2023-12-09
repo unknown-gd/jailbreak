@@ -27,17 +27,15 @@ Jailbreak.Translate = ( str ) ->
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 
-GM.InitPostEntity = =>
-    timer.Simple 0.5, ->
-        RunConsoleCommand( "r_flushlod" )
-
-    unless LocalPlayer!\IsInGame!
-        Jailbreak.ShowTeam!
-
-    chat.Open( 1 )
-
 concommand.Add "jb_showteam", ->
     Jailbreak.ShowTeam!
+
+GM.InitPostEntity = =>
+    chat.Open( 1 )
+
+    timer.Simple 0.5, ->
+        RunConsoleCommand( "r_flushlod" )
+        RunConsoleCommand( "jb_showteam" )
 
 GM.PreDrawViewModel = ( vm, ply, weapon ) =>
 	unless IsValid( weapon )
@@ -79,23 +77,21 @@ GM.PostProcessPermitted = ( name ) =>
 do
 
     :LookupKeyBinding, :IsKeyDown = input
-    MOUSE_MIDDLE = MOUSE_MIDDLE
-    MOUSE_LEFT = MOUSE_LEFT
-    KEY_G = KEY_G
 
     GM.PlayerButtonUp = ( ply, keyCode ) =>
         bind = LookupKeyBinding( keyCode )
         if bind and #bind ~= 0
             return
 
-        switch keyCode
-            when KEY_G
-                RunConsoleCommand( "drop" )
-            when MOUSE_MIDDLE
-                RunConsoleCommand( "marker" )
+        if keyCode == 17
+            RunConsoleCommand( "drop" )
+        elseif keyCode == 109
+            RunConsoleCommand( "marker" )
+        elseif keyCode == 58 or keyCode == 23
+            RunConsoleCommand( "jb_showteam" )
 
     GM.PlayerButtonDown = ( ply, keyCode ) =>
-        if keyCode == MOUSE_LEFT and IsKeyDown( KEY_LALT )
+        if keyCode == 107 and IsKeyDown( 81 )
             RunConsoleCommand( "marker" )
 
 do
