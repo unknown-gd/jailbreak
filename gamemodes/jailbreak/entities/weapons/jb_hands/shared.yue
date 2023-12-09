@@ -148,7 +148,7 @@ SWEP.DealDamage = =>
             @EmitSound( HitSound, 70, math.random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
 
         if SERVER
-            @HitMaterial( traceResult.MatType, owner )
+            @HitMaterial( traceResult.MatType, owner, traceResult.HitPos )
 
     if SERVER
         @HitEntity( traceResult.Entity, owner, traceResult.HitPos )

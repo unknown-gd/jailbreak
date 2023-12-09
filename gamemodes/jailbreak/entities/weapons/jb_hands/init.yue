@@ -98,12 +98,13 @@ SWEP.Materials = {
     [ MAT_CONCRETE ]: 10
 }
 
-SWEP.HitMaterial = ( matType, owner ) =>
+SWEP.HitMaterial = ( matType, owner, origin ) =>
     damage = @Materials[ matType ]
     if damage ~= nil
         damageInfo = DamageInfo!
         damageInfo\SetInflictor( @ )
         damageInfo\SetAttacker( owner )
+        damageInfo\SetDamagePosition( origin )
         damageInfo\SetDamage( math.ceil( owner\Health! * ( damage / 100 ) ) )
 
         if matType == MAT_COMPUTER
