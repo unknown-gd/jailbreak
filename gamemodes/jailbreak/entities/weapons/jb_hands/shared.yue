@@ -1,8 +1,10 @@
 AddCSLuaFile!
 
+CLIENT, SERVER = CLIENT, SERVER
+timer_Simple = timer.Simple
+CurTime = CurTime
+
 SWEP.PrintName = "#jb.hands"
--- SWEP.Author = "Kilburn, robotboy655, MaxOfS2D, Tenrys and Unknown Developer"
--- SWEP.Purpose = "Well we sure as hell didn't use guns! We would just wrestle Hunters to the ground with our bare hands! I used to kill ten, twenty a day, just using my fists."
 
 if CLIENT
     SWEP.WepSelectIcon = surface.GetTextureID( "weapons/jb_hands" )
@@ -15,8 +17,6 @@ SWEP.Spawnable = true
 
 SWEP.ViewModel = Model( "models/weapons/c_arms.mdl" )
 SWEP.WorldModel = ""
-SWEP.ViewModelFOV = 54
-SWEP.UseHands = true
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -29,12 +29,9 @@ SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 
 SWEP.DrawWeaponInfoBox = false
+SWEP.ViewModelFOV = 54
 SWEP.DrawAmmo = false
-
-swingSound = Sound( "WeaponFrag.Throw" )
-hitSound = Sound( "Flesh.ImpactHard" )
-CurTime = CurTime
-SERVER = SERVER
+SWEP.UseHands = true
 
 SWEP.Initialize = =>
     @SetHoldType( "normal" )
@@ -50,8 +47,11 @@ SWEP.GetViewModel = =>
 SWEP.PlaySequence = ( sequenceName, onFinish ) =>
     @SequenceFinished = false
 
-    ply = @GetOwner!
-    vm = ply\GetViewModel!
+    owner = @GetOwner!
+    unless owner\IsValid! and owner\IsInGame!
+        return
+
+    vm = owner\GetViewModel!
 
     seqid = vm\LookupSequence( sequenceName )
     unless seqid and seqid > 0
@@ -62,20 +62,17 @@ SWEP.PlaySequence = ( sequenceName, onFinish ) =>
     duration = vm\SequenceDuration( seqid ) / vm\GetPlaybackRate!
     nextSequence = CurTime! + duration
 
-    timer.Simple( duration, ->
+    timer_Simple duration, ->
         unless @IsValid!
             return
 
-        if @GetOwner! ~= ply
+        if @GetOwner! ~= owner
             return
 
         @SequenceFinished = true
 
-        unless onFinish
-            return
-
-        onFinish( ply, vm )
-    )
+        if onFinish
+            onFinish( owner, vm )
 
     return nextSequence, duration
 
@@ -83,51 +80,13 @@ SWEP.SetNextFire = ( curTime ) =>
     @SetNextPrimaryFire( curTime )
     @SetNextSecondaryFire( curTime )
 
-SWEP.UseDoor = ( open ) =>
-    if CLIENT
-        return
-
-    curTime, lastDoorLock = CurTime!, @LastDoorLock or 0
-    @LastDoorLock = curTime
-
-    if curTime - lastDoorLock <= 0.025
-        return
-
-    owner = @GetOwner!
-    start = owner\GetShootPos!
-    traceResult = util.TraceLine( {
-        start: start
-        endpos: start + owner\GetAimVector! * 64
-        filter: owner
-    } )
-
-    unless traceResult.Hit
-        return
-
-    entity = traceResult.Entity
-    unless IsValid( entity )
-        return
-
-    className = entity\GetClass!
-    if className == "prop_door_rotating"
-        if owner\Team! ~= TEAM_GUARD
-            entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
-            return
-
-        owner\EmitSound( "npc/metropolice/gear" .. math.random( 1, 6 ) .. ".wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-        timer.Simple 0.8, ->
-            unless entity\IsValid!
-                return
-            entity\EmitSound( "doors/door_latch3.wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-        entity\Fire( open and "unlock" or "lock", "", 0 )
-        owner\AnimRestartGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_GMOD_GESTURE_ITEM_PLACE, true )
-    elseif className == "func_button"
-        entity\EmitSound( "buttons/blip1.wav", 70, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
-        entity\Use( owner, owner )
+SwingSound = Sound( "WeaponFrag.Throw" )
 
 SWEP.PrimaryAttack = ( right ) =>
     if @GetHoldType! == "normal"
-        @UseDoor( false )
+        if SERVER
+            @UseDoor( false )
+
         return
 
     if @GetNextIdle! == 0
@@ -138,7 +97,7 @@ SWEP.PrimaryAttack = ( right ) =>
 
     owner = @GetOwner!
     owner\SetAnimation( PLAYER_ATTACK1 )
-    owner\EmitSound( swingSound, 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+    owner\EmitSound( SwingSound, 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
     anim = "fists_left"
     if right
@@ -149,96 +108,52 @@ SWEP.PrimaryAttack = ( right ) =>
         anim = "fists_uppercut"
 
     seqFinish, delay = @PlaySequence( anim )
+    @SetNextMeleeAttack( CurTime! + ( delay / 4 ) / math.max( combo, 1 ) )
     @SetNextFire( seqFinish )
     @SetNextIdle( seqFinish )
-
-    @SetNextMeleeAttack( CurTime! + ( delay / 4 ) / math.max( combo, 1 ) )
 
 SWEP.SecondaryAttack = =>
     if @GetHoldType! ~= "normal"
         @PrimaryAttack( true )
-    else
+    elseif SERVER
         @UseDoor( true )
 
-phys_pushscale = GetConVar( "phys_pushscale" )
-SERVER = SERVER
+SWEP.HitDistance = CreateConVar( "jb_hands_distance", "48", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "", 16, 4096 )
 
-ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
-SWEP.HitDistance = CreateConVar( "jb_hands_distance", "48", ConVarFlags, "", 16, 4096 )
-SWEP.MinDamage = CreateConVar( "jb_hands_damage_min", "8", ConVarFlags, "", 0, 16384 )
-SWEP.MaxDamage = CreateConVar( "jb_hands_damage_max", "12", ConVarFlags, "", 0, 16384 )
+HitSound = Sound( "Flesh.ImpactHard" )
+
+SWEP.Mins = Vector( -10, -10, -8 )
+SWEP.Maxs = Vector( 10, 10, 8 )
+MASK_SHOT_HULL = MASK_SHOT_HULL
 
 SWEP.DealDamage = =>
     owner = @GetOwner!
-    anim = @GetSequenceName( owner\GetViewModel!\GetSequence! )
+    unless owner\IsValid! and owner\IsPlayer! and owner\IsInGame!
+        return
+
     owner\LagCompensation( true )
 
     start = owner\GetShootPos!
-    traceResult = util.TraceLine( {
+    traceResult = util.TraceHull( {
         start: start
         endpos: start + owner\GetAimVector! * @HitDistance\GetInt!
         filter: owner
+        mins: @Mins
+        maxs: @Maxs
         mask: MASK_SHOT_HULL
     } )
 
-    unless IsValid( traceResult.Entity )
-        traceResult = util.TraceHull( {
-            start: start
-            endpos: start + owner\GetAimVector! * @HitDistance\GetInt!
-            filter: owner
-            mins: Vector( -10, -10, -8 )
-            maxs: Vector( 10, 10, 8 )
-            mask: MASK_SHOT_HULL
-        } )
+    if traceResult.Hit
+        unless game.SinglePlayer! and CLIENT
+            @EmitSound( HitSound, 70, math.random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
 
-    -- We need the second part for single player because SWEP:Think is ran shared in SP
-    if traceResult.Hit and not ( game.SinglePlayer! and CLIENT )
-        @EmitSound( hitSound, 70, math.random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
+        if SERVER
+            @HitMaterial( traceResult.MatType, owner )
 
-    entity = traceResult.Entity
     if SERVER
-        hit = false
-        if IsValid( entity )
-            scale = phys_pushscale\GetFloat!
-            if entity\IsNPC! or entity\IsPlayer! or entity\Health! > 0
-                damageInfo = DamageInfo!
-
-                attacker = owner
-                unless IsValid( attacker )
-                    attacker = @
-
-                damageInfo\SetInflictor( @ )
-                damageInfo\SetAttacker( attacker )
-                damageInfo\SetDamageType( DMG_SLASH )
-                damageInfo\SetDamage( math.random( @MinDamage\GetInt!, @MaxDamage\GetInt! ) )
-
-                if anim == "fists_left"
-                    damageInfo\SetDamageForce( owner\GetRight! * 4912 * scale + owner\GetForward! * 9998 * scale ) -- Yes we need those specific numbers
-                elseif anim == "fists_right"
-                    damageInfo\SetDamageForce( owner\GetRight! * -4912 * scale + owner\GetForward! * 9989 * scale )
-                elseif anim == "fists_uppercut"
-                    damageInfo\SetDamageForce( owner\GetUp! * 5158 * scale + owner\GetForward! * 10012 * scale )
-                    damageInfo\ScaleDamage( 2 )
-
-                -- Let the breakable gibs spawn in multiplayer on client
-                SuppressHostEvents( NULL )
-                entity\TakeDamageInfo( damageInfo )
-                SuppressHostEvents( owner )
-                hit = true
-
-            phys = entity\GetPhysicsObject!
-            if IsValid( phys )
-                phys\ApplyForceOffset( owner\GetAimVector! * 80 * phys\GetMass! * scale, traceResult.HitPos )
-
-        if hit and anim ~= "fists_uppercut"
-            @SetCombo( @GetCombo! + 1 )
-        else
-            @SetCombo( 0 )
+        @HitEntity( traceResult.Entity, owner, traceResult.HitPos )
 
     owner\LagCompensation( false )
-
-SWEP.OnDrop = =>
-    @Remove!
 
 SWEP.Show = =>
     @GetViewModel!\SetNoDraw( false )
@@ -259,6 +174,8 @@ SWEP.Hide = =>
     )
 
 SWEP.Deploy = =>
+    @SequenceFinished = true
+
     @SetNextFire( CurTime! + 1.5 )
     @SetNextMeleeAttack( 0 )
     @SetNextIdle( 0 )
