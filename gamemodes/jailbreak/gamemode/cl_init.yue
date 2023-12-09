@@ -14,10 +14,8 @@ ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_ENDED = ROUND_ENDED
 
-WhiteColor = color_white
-BlueColor = Color( 30, 130, 255 )
-LightGreyColor = Color( 200, 200, 200 )
-GreyColor = Color( 180, 180, 180 )
+colors = Jailbreak.Colors
+:grey, :white = colors
 
 cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
     hook_Run( "LanguageChanged", cvars.String( "gmod_language", "" ), value )
@@ -57,7 +55,6 @@ GM.PostDrawViewModel = ( vm, ply, weapon ) =>
 	if weapon.UseHands or not weapon\IsScripted!
 		hands = ply\GetHands!
 		if IsValid( hands ) and IsValid( hands\GetParent! )
-            hands\SetColor( Color( 0, 0, 0, 100 ))
 			unless hook_Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
 				if weapon.ViewModelFlip
                     render.CullMode( MATERIAL_CULLMODE_CW )
@@ -134,9 +131,9 @@ do
 
     Jailbreak.ChatText = ( ... ) ->
         if ChatTime\GetBool!
-            AddText( GreyColor, date( "[%H:%M:%S] " ), WhiteColor, ... )
+            AddText( grey, date( "[%H:%M:%S] " ), white, ... )
         else
-            AddText( WhiteColor, ... )
+            AddText( white, ... )
 
 do
 
@@ -205,14 +202,14 @@ do
 
             str = format( str, remainingTime )
 
-        draw.DrawText( upper( str ), "DermaLarge", ScrW! / 2, 32, WhiteColor, TEXT_ALIGN_CENTER )
+        draw.DrawText( upper( str ), "DermaLarge", ScrW! / 2, 32, white, TEXT_ALIGN_CENTER )
 
         if state == ROUND_ENDED
             teamID = Jailbreak.GetWinningTeam!
             if Jailbreak.Teams[ teamID ]
                 draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", ScrW! / 2, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
             else
-                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", ScrW! / 2, 64, WhiteColor, TEXT_ALIGN_CENTER )
+                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", ScrW! / 2, 64, white, TEXT_ALIGN_CENTER )
 
 do
 
@@ -350,7 +347,7 @@ GM.OnPlayerChat = ( ply, text, _, isDead ) =>
     result = {}
 
     if isDead
-        result[] = LightGreyColor
+        result[] = colors.light_grey
         result[] = "[#jb.chat.dead] "
 
     if IsValid( ply )
@@ -363,10 +360,10 @@ GM.OnPlayerChat = ( ply, text, _, isDead ) =>
 
         text = util.FilterText( text, filter, ply )
     else
-        result[] = BlueColor
+        result[] = colors.console
         result[] = "#jb.chat.console"
 
-    result[] = WhiteColor
+    result[] = white
 
     classic = Jailbreak.Classic\GetBool!
     if classic
@@ -405,8 +402,6 @@ GM.GrabEarAnimation = ( ply ) =>
 
 do
 
-    cache = {}
-
     patterns = {
         "right_corner_puller"
     	"left_corner_puller"
@@ -437,6 +432,8 @@ do
         jaw_drop: 0.5
         smile: 0.25
     }
+
+    cache = {}
 
     GM.MouthMoveAnimation = ( ply ) =>
         flexes = cache[ ply\GetModel! ]

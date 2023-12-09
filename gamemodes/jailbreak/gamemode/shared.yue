@@ -27,6 +27,22 @@ local ROUND_RUNNING = ROUND_RUNNING
 local ROUND_ENDED = ROUND_ENDED
 ]==]
 
+Jailbreak.Colors = {
+    spectators: Color( 220, 220, 220 )
+    light_grey: Color( 200, 200, 200 )
+    turquoise: Color( 75, 200, 200 )
+    asparagus: Color( 128, 154, 86 )
+    prisoners: Color( 255, 89, 50 )
+    dark_grey: Color( 33, 33, 33 )
+    console: Color( 30, 130, 255 )
+    guards: Color( 50, 185, 255 )
+    grey: Color( 180, 180, 180 )
+    blue: Color( 0, 190, 255 )
+    red: Color( 255, 89, 50 )
+    black: Color( 0, 0, 0 )
+    white: color_white
+}
+
 Jailbreak.Teams = {
     [ TEAM_PRISONER ]: true
     [ TEAM_GUARD ]: true
@@ -228,7 +244,10 @@ GM.GuardFemaleModels = {
 }
 
 GM.CreateTeams = =>
-    team.SetUp( TEAM_PRISONER, "#jb.team.prisoners", Color( 255, 89, 50 ), true )
+
+    colors = Jailbreak.Colors
+
+    team.SetUp( TEAM_PRISONER, "#jb.team.prisoners", colors.prisoners, true )
     team.SetSpawnPoint( TEAM_PRISONER, {
         "info_player_terrorist"
         "info_player_teamspawn"
@@ -239,7 +258,7 @@ GM.CreateTeams = =>
         "info_player_red"
     } )
 
-    team.SetUp( TEAM_GUARD, "#jb.team.guards", Color( 50, 185, 255 ), true )
+    team.SetUp( TEAM_GUARD, "#jb.team.guards", colors.guards, true )
     team.SetSpawnPoint( TEAM_GUARD, {
         "info_player_counterterrorist"
         "diprip_start_team_blue"
@@ -252,7 +271,7 @@ GM.CreateTeams = =>
         "info_player_blue"
     } )
 
-    team.SetUp( TEAM_SPECTATOR, "#jb.team.spectators", Color( 220, 220, 220 ), true )
+    team.SetUp( TEAM_SPECTATOR, "#jb.team.spectators", colors.spectators, true )
 
 do
 

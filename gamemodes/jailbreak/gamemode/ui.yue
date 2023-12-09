@@ -17,9 +17,8 @@ ROUND_RUNNING = ROUND_RUNNING
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
-AsparagusColor = Color( 128, 154, 86 )
-BackgroundColor = Color( 33, 33, 33 )
-WhiteColor = color_white
+colors = Jailbreak.Colors
+:dark_grey, :black, :white = colors
 
 PANEL_META = FindMetaTable( "Panel" )
 
@@ -81,7 +80,7 @@ do
         if remainingTime == 0
             return
 
-        draw.DrawText( upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, WhiteColor, TEXT_ALIGN_CENTER )
+        draw.DrawText( upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, white, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 
@@ -217,7 +216,7 @@ do
             label\Dock( BOTTOM )
             label\SetText( title )
             label\SetContentAlignment( 5 )
-            label\SetTextColor( WhiteColor )
+            label\SetTextColor( white )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
 
             created = desktopWindow.created
@@ -289,7 +288,7 @@ do
     PANEL = {}
 
     PANEL.Init = =>
-        @SetTextColor( WhiteColor )
+        @SetTextColor( white )
         @SetFont( "DermaLarge" )
         @Player = LocalPlayer!
 
@@ -389,7 +388,7 @@ do
 
             title = @Add( "DLabel" )
             title\SetText( "#jb.team-select" )
-            title\SetTextColor( WhiteColor )
+            title\SetTextColor( white )
             title\SetContentAlignment( 5 )
             title\SetFont( "DermaLarge" )
 
@@ -434,7 +433,7 @@ do
             button.Team = TEAM_SPECTATOR
             button.MainPanel = @
 
-            button\SetTextColor( BackgroundColor )
+            button\SetTextColor( dark_grey )
             button\DockMargin( 0, 16, 0, 0 )
             button\Dock( BOTTOM )
 
@@ -448,7 +447,7 @@ do
 
             button = @Add( "JB.TeamButton" )
             button\SetText( "#jb.team.random" )
-            button.Color = AsparagusColor
+            button.Color = colors.asparagus
             button.MainPanel = @
 
             button\DockMargin( 0, 16, 0, 0 )
@@ -480,7 +479,7 @@ do
         @Center!
 
     PANEL.Paint = ( width, height ) =>
-        surface.SetDrawColor( BackgroundColor.r, BackgroundColor.g, BackgroundColor.b, 240 )
+        surface.SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
         surface.DrawRect( 0, 0, width, height )
 
     vgui.Register( "JB.TeamSelect", PANEL, "EditablePanel" )
@@ -544,8 +543,8 @@ do
             modelPreview\Dock( FILL )
             modelPreview\SetFOV( 36 )
             modelPreview\SetCamPos( vector_origin )
-            modelPreview\SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80, 255 ) )
-            modelPreview\SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255, 255 ) )
+            modelPreview\SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80 ) )
+            modelPreview\SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255 ) )
             modelPreview\SetAmbientLight( Vector( -64, -64, -64 ) )
             modelPreview\SetAnimated( true )
             modelPreview.Angles = angle_zero
@@ -644,7 +643,7 @@ do
 
                 label = colorsPanel\Add( "DLabel" )
                 label\SetText( "#smwidget.color_plr" )
-                label\SetTextColor( Color( 0, 0, 0, 255 ) )
+                label\SetTextColor( black )
                 label\Dock( TOP )
 
             do
@@ -675,7 +674,7 @@ do
 
                 label = colorsPanel\Add( "DLabel" )
                 label\SetText( "#smwidget.color_wep" )
-                label\SetTextColor( Color( 0, 0, 0, 255 ) )
+                label\SetTextColor( black )
                 label\DockMargin( 0, 32, 0, 0 )
                 label\Dock( TOP )
 
@@ -963,14 +962,7 @@ do
                 continue
 
             origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
-            DrawSprite( origin, 12, 12, WhiteColor )
-
--- ---
--- --- Colors
--- ---
-
--- color_red = Color( 255, 0, 0)
--- color_bacground = Color( 0, 0, 0, 200 )
+            DrawSprite( origin, 12, 12, white )
 
 -- ---
 -- --- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
@@ -1024,7 +1016,7 @@ do
 --             return
 
 --         marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
---         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, WhiteColor, TEXT_ALIGN_LEFT )
+--         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, white, TEXT_ALIGN_LEFT )
 
 
 --     vgui.Register("JB.Scoreboard.Player", PANEL)
@@ -1088,7 +1080,7 @@ do
 --         surface.SetDrawColor( color_red )
 --         surface.DrawRect( 0, 0, w, h )
 
---         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, WhiteColor, TEXT_ALIGN_CENTER )
+--         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, white, TEXT_ALIGN_CENTER )
 
 --     vgui.Register( "JB.Scoreboard", PANEL )
 
