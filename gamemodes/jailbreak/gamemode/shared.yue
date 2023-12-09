@@ -822,7 +822,6 @@ do
         volume: 1
     }
 
-
 GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
 	speed = velocity\Length!
 	rate = 1.0
