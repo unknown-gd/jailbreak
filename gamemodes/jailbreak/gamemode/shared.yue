@@ -61,6 +61,8 @@ do
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
     CreateConVar = CreateConVar
 
+    Jailbreak.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "110", ConVarFlags, "The speed of the player while slow walking.", 0, 3000 )
+
     Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "If enabled, the player can put any playermodel he wants.", 0, 1 )
     Jailbreak.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "Classic jailbreak, without any innovations. Specially for Erik_Maksimets <3", 0, 1 )
     Jailbreak.FunnyMouthAnimations = CreateConVar( "jb_funny_mouth_animations", "1", ConVarFlags, "Funny mouth animations. ( 0/1/2 )", 0, 2 )
@@ -882,3 +884,13 @@ GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
 	if CLIENT
         hook_Run( "GrabEarAnimation", ply )
         hook_Run( "MouthMoveAnimation", ply )
+
+GM.PlayerFootstep = ( ply, pos, foot, sound, volume, rf ) =>
+    if ply\Crouching!
+        return true
+
+    velocity = ply\GetVelocity!
+    speed = velocity\Length!
+
+    if speed < Jailbreak.PlayerSlowWalkSpeed\GetInt!
+        return true

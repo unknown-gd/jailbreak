@@ -513,9 +513,8 @@ GM.MigrationPlayerFromRagdoll = ( ply, ragdoll ) =>
         ply\Spectate( OBS_MODE_CHASE )
         ply\SpectateEntity( ragdoll )
 
-GM.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "100", ConVarFlags, "The speed of the player during a slow stride.", 0, 3000 )
-GM.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "185", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
-GM.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "365", ConVarFlags, "The speed of the player while running.", 0, 3000 )
+Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
+Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", ConVarFlags, "The speed of the player while running.", 0, 3000 )
 
 GM.ClassicTeamColors = {
     [ TEAM_PRISONER ]: Vector( 0.62, 0.35, 0.07 )
@@ -535,9 +534,9 @@ do
         ply\StripWeapons!
         ply\UnSpectate!
 
-        ply\SetSlowWalkSpeed( @PlayerSlowWalkSpeed\GetInt! )
-        ply\SetWalkSpeed( @PlayerWalkSpeed\GetInt! )
-        ply\SetRunSpeed( @PlayerRunSpeed\GetInt! )
+        ply\SetSlowWalkSpeed( Jailbreak.PlayerSlowWalkSpeed\GetInt! )
+        ply\SetWalkSpeed( Jailbreak.PlayerWalkSpeed\GetInt! )
+        ply\SetRunSpeed( Jailbreak.PlayerRunSpeed\GetInt! )
 
         ply\SetMaxHealth( 100 )
         ply\SetMaxArmor( 100 )
