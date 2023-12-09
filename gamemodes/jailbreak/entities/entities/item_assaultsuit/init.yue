@@ -1,7 +1,7 @@
 ENT.Type = "point"
 ENT.Think = =>
     for entity in *ents.FindInSphere( @GetPos!, 16 )
-        if entity\IsPlayer! and entity\Alive! and entity\Team! <= 1000
+        if entity\IsPlayer! and entity\Alive! and entity\IsInGame!
             amount = entity\IsWarden! and 100 or 50
             if entity\Armor! < amount
                 entity\SetArmor( math.min( amount, entity\GetMaxArmor! ) )
