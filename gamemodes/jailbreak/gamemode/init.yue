@@ -293,7 +293,6 @@ do
             ragdoll.Alive = true
             ragdoll.PlayerAngles = @EyeAngles!
 
-            -- TODO: Custom take damage
             ragdoll\SetMaxHealth( @GetMaxHealth! )
             ragdoll\SetHealth( @Health! )
 
@@ -1438,6 +1437,7 @@ do
 
     util.AddNetworkString( "Jailbreak::Markers" )
     :TraceLine = util
+    :remove = table
     :sub = string
 
     concommand.Add "marker", =>
@@ -1450,14 +1450,16 @@ do
         if @NextMarker and CurTime! < @NextMarker
             return
 
-        isWarden = @IsWarden! or @IsAdmin!
-        isPrisoner = @IsPrisoner!
-
+        isWarden, isPrisoner = @IsWarden!, @IsPrisoner!
         unless isWarden or isPrisoner
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
             return
 
-        distance = Jailbreak.VoiceChatMinDistance
+        distance = 0
+        if isWarden
+            distance = 32768
+        elseif isPrisoner
+            distance = sqrt( Jailbreak.VoiceChatMinDistance )
 
         @LagCompensation( true )
 
@@ -1466,6 +1468,7 @@ do
             endpos: @EyePos! + @GetAimVector! * distance
             filter: ( entity ) ->
                 return entity ~= @ and not entity.IsTemporaryWeapon
+            mask: MASK_SHOT
         } )
 
         @LagCompensation( false )
@@ -1491,10 +1494,21 @@ do
         if isWarden
             net.Broadcast!
         elseif isPrisoner
-            net.Send( @GetNearPlayers( distance, true ) )
+            players, hasSender = @GetNearPlayers( distance, true ), false
+            for index, ply in ipairs( players )
+                if ply == @
+                    hasSender = true
+                    break
+
+            unless hasSender
+                players[] = @
+
+            net.Send( players )
 
         if entity\IsValid!
-            if entity\IsWeapon!
+            if entity\IsPlayer!
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\Nick!, white, "." )
+            elseif entity\IsWeapon!
                 printName = nil
                 if entity\IsScripted!
                     printName = entity.PrintName

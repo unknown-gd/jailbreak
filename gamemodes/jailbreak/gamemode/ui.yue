@@ -1075,11 +1075,7 @@ do
                     remove( markers, index )
                     continue
 
-            distance = origin\DistToSqr( eyePos )
-            if distance > Jailbreak.VoiceChatMaxDistance
-                continue
-
-            scale = max( 4, sqrt( distance ) / ScrW! * 64 ) * fraction
+            scale = max( 4, ( origin\Distance( eyePos ) ) / ScrW! * 64 ) * fraction
             amplitude = data.amplitude
 
             IgnoreZ( true )
