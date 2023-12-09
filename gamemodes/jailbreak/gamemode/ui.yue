@@ -916,7 +916,7 @@ do
     player_GetAll = player.GetAll
 
     GM.PostDrawTranslucentRenderables = ( drawingDepth, drawingSkybox, isDraw3DSkybox ) =>
-        if drawingSkybox or isDraw3DSkybox
+        if drawingSkybox or isDraw3DSkybox or not Jailbreak.VoiceIcons\GetBool!
             return
 
         eyePos = EyePos!

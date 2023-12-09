@@ -32,9 +32,7 @@ GM.MasqueradeEventChance = CreateConVar( "jb_masquerade_event_chance", "1", ConV
 GM.PrisonerKnifeChance = CreateConVar( "jb_prisoner_knife_chance", "10", ConVarFlags, "Percentage value at which a prisoner can have a knife on spawn.", 0, 100 )
 
 Classic = Jailbreak.Classic\GetBool!
-RunConsoleCommand( "mp_show_voice_icons", Classic and "1" or "0" )
 cvars.AddChangeCallback( "jb_classic", ( _, __, value ) ->
-    RunConsoleCommand( "mp_show_voice_icons", value )
     Classic = value == "1"
 "Jailbreak" )
 
@@ -1423,6 +1421,7 @@ concommand.Add "drop", =>
     @SelectWeapon( nextWeapon\GetClass! )
 
 GM.InitPostEntity = =>
+    RunConsoleCommand( "mp_show_voice_icons", "0" )
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
