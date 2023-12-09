@@ -524,6 +524,7 @@ do
     GM.PlayerSpawn = ( ply, transiton ) =>
         ply\DisableWorldClicking( true )
         ply\SetCanZoom( false )
+        ply\Flashlight( false )
         ply\SetWarden( false )
         ply\RemoveAllAmmo!
         ply\StripWeapons!
@@ -1110,8 +1111,8 @@ GM.CanPlayerSuicide = ( ply ) =>
 
     return ply\IsInGame!
 
-GM.PlayerSwitchFlashlight = ( ply ) =>
-    return ( Classic or ply\CanUseFlashlight! ) and ply\Alive!
+GM.PlayerSwitchFlashlight = ( ply, newState ) =>
+    return not newState or ( ( Classic or ply\CanUseFlashlight! ) and ply\Alive! )
 
 GM.PlayerDeathSound = ( ply ) =>
     if Classic or ply\IsGuard!
@@ -1188,6 +1189,10 @@ GM.PlayerRagdollUse = ( ragdoll, ply ) =>
 GM.PlayerSpray = ( ply ) =>
     return not ( ply\IsInGame! and ( Classic or ply\IsPrisoner! ) )
 
+GM.AmmoPickupBlacklist = {
+    weapon_frag: true
+}
+
 GM.PlayerUse = ( ply, entity ) =>
     unless ply\IsInGame!
         return
@@ -1219,7 +1224,11 @@ GM.PlayerUse = ( ply, entity ) =>
             unless entity\IsValid! and entity\IsWeapon!
                 return false
 
-        if ply\HasWeapon( entity\GetClass! )
+        className = entity\GetClass!
+        if ply\HasWeapon( className )
+            if @AmmoPickupBlacklist[ className ]
+                return false
+
             clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
             if clip1 > 0 and clip1Type >= 0
                 ply\GiveAmmo( clip1, clip1Type, false )
@@ -1455,7 +1464,8 @@ do
         traceResult = TraceLine( {
             start: @EyePos!
             endpos: @EyePos! + @GetAimVector! * distance
-            filter: @
+            filter: ( entity ) ->
+                return entity ~= @ and not entity.IsTemporaryWeapon
         } )
 
         @LagCompensation( false )
@@ -1483,7 +1493,26 @@ do
         elseif isPrisoner
             net.Send( @GetNearPlayers( distance, true ) )
 
-        Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#" .. ( entity\IsValid! and entity\GetClass! or "world" ) .. "\"." )
+        if entity\IsValid!
+            if entity\IsWeapon!
+                printName = nil
+                if entity\IsScripted!
+                    printName = entity.PrintName
+
+                if printName
+                    printName = "#" .. printName
+                else
+                    printName = entity\GetPrintName!
+
+                if printName == "Scripted Weapon"
+                    printName = "#" .. entity\GetClass!
+
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at \"" .. printName .. "\"." )
+            else
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#" .. entity\GetClass! .. "\"." )
+
+        else
+            Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#world\"." )
 
 GM.InitPostEntity = =>
     RunConsoleCommand( "mp_show_voice_icons", "0" )
@@ -1639,8 +1668,9 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
 
     ply\AllowSecurityAccess( false )
     ply\AllowSecurityRadio( false )
-    ply\SetShockCollar( false )
     ply\AllowFlashlight( false )
+    ply\SetShockCollar( false )
+    ply\Flashlight( false )
     ply\SetWarden( false )
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->

@@ -74,7 +74,6 @@ do
     Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
     Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )\GetInt! ^ 2
 
-
     if SERVER
 
         cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
