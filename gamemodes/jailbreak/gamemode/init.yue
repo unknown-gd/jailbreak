@@ -82,8 +82,10 @@ do
         SetGlobal2Int( "next-round-state", CurTime! + int )
 
     Jailbreak.SetFemalePrison = ( bool ) ->
-        if bool ~= Jailbreak.IsFemalePrison!
-            SetGlobal2Bool( "female-prison", bool )
+        if bool == Jailbreak.IsFemalePrison!
+            return
+
+        SetGlobal2Bool( "female-prison", bool )
 
     Jailbreak.SetMasqueradeEvent = ( bool ) ->
         if bool ~= Jailbreak.IsMasqueradeEvent!
@@ -94,6 +96,7 @@ do
             return
 
         SetGlobal2Bool( "shock-collars", bool )
+
         unless silent
             hook_Run( "ShockCollars", bool )
 
@@ -103,17 +106,9 @@ do
             return
 
         SetGlobal2Int( "warden-coins", value )
+
         unless silent
             hook_Run( "WardenCoins", oldValue, value )
-
-    Jailbreak.BroadcastNotify = ( text, typeID, length, ... ) ->
-        net.Start( "Jailbreak::Networking" )
-        net.WriteUInt( 2, 2 )
-        net.WriteString( text )
-        net.WriteTable( { ... }, true )
-        net.WriteUInt( typeID, 3 )
-        net.WriteUInt( length, 16 )
-        net.Broadcast!
 
     Jailbreak.SendChatText = ( target, ... ) ->
         net.Start( "Jailbreak::Networking" )
@@ -277,7 +272,7 @@ do
     COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
     NULL = NULL
 
-    PLAYER.CreateRagdoll = =>
+    PLAYER.CreateServersideRagdoll = =>
         @RemoveRagdoll!
 
         modelPath = @GetModel!
@@ -391,8 +386,10 @@ do
         Jailbreak.AddSpectateTarget( ragdoll )
         return ragdoll
 
+    PLAYER.CreateRagdoll = PLAYER.CreateServersideRagdoll
+
 GM.WardenChanged = ( ply, state ) =>
-    Jailbreak.BroadcastNotify( state and "#jb.alert.warden_join" or "#jb.alert.warden_leave", state and NOTIFY_HINT or NOTIFY_CLEANUP, 15, ply\Nick! )
+    Jailbreak.SendChatText( false, ply\GetPlayerColor!\ToColor!, ply\Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
 
 GM.ShockCollarEffect = ( ply ) =>
     headBone, origin = ply\LookupBone( "ValveBiped.Bip01_Head1" ), nil
@@ -413,8 +410,8 @@ GM.ShockCollarEffect = ( ply ) =>
 GM.ShockCollars = ( bool ) =>
     for ply in *player.GetAll!
         if ply\Alive! and ply\HasShockCollar!
+            Jailbreak.SendChatText( ply, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
             @ShockCollarEffect( ply )
-            ply\SendNotify( "#jb.notify.shock-collar." .. ( bool and "on" or "off" ), bool and NOTIFY_GENERIC or NOTIFY_UNDO, 30 )
 
 GM.ShowTeam = ( ply ) =>
 
@@ -845,7 +842,7 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
     if attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
         attacker\AddFrags( 1 )
 
-    ragdoll = ply\CreateRagdoll!
+    ragdoll = ply\CreateServersideRagdoll!
     if ragdoll\IsValid!
 
         damageOrigin = damageInfo\GetDamagePosition!
@@ -1528,7 +1525,7 @@ do
 
                 Jailbreak.Emotion( @, "#jb.chat.pointed-at \"" .. printName .. "\"." )
             else
-                Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#" .. entity\GetClass! .. "\"." )
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
 
         else
             Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#world\"." )
@@ -1714,7 +1711,7 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
             Jailbreak.SetRoundState( ROUND_ENDED )
 
     Jailbreak.RemoveSpectateTarget( ply)
-    ply\CreateRagdoll!
+    ply\CreateServersideRagdoll!
 
 GM.TeamPlayerSpawn = ( ply ) =>
     if Jailbreak.IsWaitingPlayers! and Jailbreak.GetTeamAliveCount( TEAM_GUARD ) > 0 and Jailbreak.GetTeamAliveCount( TEAM_PRISONER ) > 0

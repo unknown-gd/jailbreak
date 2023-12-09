@@ -1,14 +1,16 @@
 include( "shared.lua" )
 include( "ui.lua" )
 
+string = string
 :Approach, :Clamp, :Rand, :abs, :sin = math
-:format, :find, :gsub, :upper = string
+:format, :find, :upper = string
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
 :GetPhrase = language
 Jailbreak = Jailbreak
 list_Set = list.Set
 hook_Run = hook.Run
+IsValid = IsValid
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -21,8 +23,19 @@ cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
     hook_Run( "LanguageChanged", cvars.String( "gmod_language", "" ), value )
 "Jailbreak")
 
-Jailbreak.Translate = ( str ) ->
-    return gsub( str, "#([%w%.-_]+)", GetPhrase )
+do
+
+    :sub, :gsub = string
+
+    filter = ( str ) ->
+        translated = GetPhrase( str )
+        if translated == str and sub( str, 1, 3 ) == "jb."
+            return sub( str, 4 )
+
+        return translated
+
+    Jailbreak.Translate = ( str ) ->
+        return gsub( str, "#([%w%.-_]+)", filter )
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
