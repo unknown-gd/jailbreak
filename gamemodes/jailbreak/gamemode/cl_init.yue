@@ -1,7 +1,7 @@
 include( "shared.lua" )
 include( "ui.lua" )
 
-:Approach, :Clamp, :Rand, :max, :abs, :sin = math
+:Approach, :Clamp, :Rand, :abs, :sin = math
 :format, :find, :gsub, :upper = string
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
@@ -428,9 +428,9 @@ do
         left_cheek_raiser: 0.25
         -- right_mouth_drop: 0.5
         -- left_mouth_drop: 0.5
-        lower_lip: 0.25
+        lower_lip: 0.05
         jaw_drop: 0.5
-        smile: 0.25
+        smile: 0.05
     }
 
     cache = {}
@@ -456,17 +456,25 @@ do
 
             cache[ ply\GetModel! ] = flexes
 
-        frac = 0
-        if ply\IsSpeaking!
-            voiceVolume = ply\VoiceVolume!
-            maxVoiceVolume = max( ply.MaxVoiceVolume or 0, voiceVolume )
-            ply.MaxVoiceVolume = maxVoiceVolume
-            frac = voiceVolume / maxVoiceVolume
+        voiceVolume = ply\IsSpeaking! and ply\VoiceVolume! or 0
 
-        lastVoiceVolume = ply.LastVoiceVolume or 0
+        lastVoiceVolume = ply.LastVoiceVolume
+        if lastVoiceVolume == nil
+            lastVoiceVolume = voiceVolume
+
         if lastVoiceVolume > 0
-            frac = lastVoiceVolume + ( frac - lastVoiceVolume ) / 128
-            ply.LastVoiceVolume = frac
+            voiceVolume = lastVoiceVolume + ( voiceVolume - lastVoiceVolume ) / 4
+            if voiceVolume < 0.01
+                voiceVolume = 0
+
+        ply.LastVoiceVolume = voiceVolume
+
+        maxVoiceVolume = ply.MaxVoiceVolume
+        if maxVoiceVolume == nil or maxVoiceVolume < voiceVolume
+            maxVoiceVolume = voiceVolume
+            ply.MaxVoiceVolume = maxVoiceVolume
+
+        frac = voiceVolume / maxVoiceVolume
 
         if flexes
             ply\SetFlexScale( 2 )
