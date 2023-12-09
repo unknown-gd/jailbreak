@@ -517,86 +517,90 @@ GM.ClassicTeamColors = {
     [ TEAM_GUARD ]: Vector( 0, 0, 0 )
 }
 
-GM.PlayerSpawn = ( ply, transiton ) =>
-    ply\DisableWorldClicking( true )
-    ply\SetCanZoom( false )
-    ply\SetWarden( false )
-    ply\RemoveAllAmmo!
-    ply\StripWeapons!
-    ply\UnSpectate!
+do
 
-    ply\SetSlowWalkSpeed( @PlayerSlowWalkSpeed\GetInt! )
-    ply\SetWalkSpeed( @PlayerWalkSpeed\GetInt! )
-    ply\SetRunSpeed( @PlayerRunSpeed\GetInt! )
+    :Explode = string
 
-    ply\SetMaxHealth( 100 )
-    ply\SetMaxArmor( 100 )
+    GM.PlayerSpawn = ( ply, transiton ) =>
+        ply\DisableWorldClicking( true )
+        ply\SetCanZoom( false )
+        ply\SetWarden( false )
+        ply\RemoveAllAmmo!
+        ply\StripWeapons!
+        ply\UnSpectate!
 
-    if ply.InitialSpawn ~= nil
-        ply.InitialSpawn = nil
+        ply\SetSlowWalkSpeed( @PlayerSlowWalkSpeed\GetInt! )
+        ply\SetWalkSpeed( @PlayerWalkSpeed\GetInt! )
+        ply\SetRunSpeed( @PlayerRunSpeed\GetInt! )
 
-        ragdoll = ply\GetRagdollEntity!
-        if ragdoll\IsValid!
-            @MigrationPlayerFromRagdoll( ply, ragdoll )
-            return
+        ply\SetMaxHealth( 100 )
+        ply\SetMaxArmor( 100 )
 
-        if Jailbreak.GameInProgress!
+        if ply.InitialSpawn ~= nil
+            ply.InitialSpawn = nil
+
+            ragdoll = ply\GetRagdollEntity!
+            if ragdoll\IsValid!
+                @MigrationPlayerFromRagdoll( ply, ragdoll )
+                return
+
+            if Jailbreak.GameInProgress!
+                ply\KillSilent!
+                return
+
+        @SetupPlayerCollisions( ply )
+
+        teamID = ply\Team!
+        unless Jailbreak.Teams[ teamID ]
             ply\KillSilent!
             return
 
-    @SetupPlayerCollisions( ply )
+        if teamID == TEAM_GUARD
+            ply\SetArmor( @GuardsArmor\GetInt! )
+            ply\AllowSecurityAccess( true )
+            ply\AllowSecurityRadio( true )
+            ply\AllowFlashlight( true )
+        else
+            ply\AllowSecurityAccess( false )
+            ply\AllowSecurityRadio( false )
+            ply\AllowFlashlight( false )
+            ply\SetArmor( 0 )
 
-    teamID = ply\Team!
-    unless Jailbreak.Teams[ teamID ]
-        ply\KillSilent!
-        return
+        ply\SetShockCollar( teamID == TEAM_PRISONER )
+        ply\SetMaxArmor( max( 100, ply\Armor! ) )
+        ply\SetHealth( 100 )
+        ply\RemoveRagdoll!
 
-    if teamID == TEAM_GUARD
-        ply\SetArmor( @GuardsArmor\GetInt! )
-        ply\AllowSecurityAccess( true )
-        ply\AllowSecurityRadio( true )
-        ply\AllowFlashlight( true )
-    else
-        ply\AllowSecurityAccess( false )
-        ply\AllowSecurityRadio( false )
-        ply\AllowFlashlight( false )
-        ply\SetArmor( 0 )
+        unless transiton
+            hook_Run( "PlayerLoadout", ply, teamID )
+        hook_Run( "PlayerSetModel", ply, teamID )
 
-    ply\SetShockCollar( teamID == TEAM_PRISONER )
-    ply\SetMaxArmor( max( 100, ply\Armor! ) )
-    ply\SetHealth( 100 )
-    ply\RemoveRagdoll!
+        if ply\IsBot! or Jailbreak.IsMasqueradeEvent!
+            ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+            ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+            ply\SetSkin( random( 0, ply\SkinCount! ) )
 
-    unless transiton
-        hook_Run( "PlayerLoadout", ply, teamID )
-    hook_Run( "PlayerSetModel", ply, teamID )
+            for bodygroup in *ply\GetBodyGroups!
+                ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
 
-    if ply\IsBot! or Jailbreak.IsMasqueradeEvent!
-        ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
-        ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
-        ply\SetSkin( random( 0, ply\SkinCount! ) )
+        else
+            ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
+            ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
 
-        for bodygroup in *ply\GetBodyGroups!
-            ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
+            weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
+            if weaponColor\Length! < 0.001
+                weaponColor = Vector( 0.001, 0.001, 0.001 )
+            ply\SetWeaponColor( weaponColor )
 
-    else
-        ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
-        ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
+            groups = Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
+            for i = 0, ply\GetNumBodyGroups! - 1 do
+                ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
 
-        weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
-        if weaponColor\Length! < 0.001
-            weaponColor = Vector( 0.001, 0.001, 0.001 )
-        ply\SetWeaponColor( weaponColor )
+        if Classic
+            ply\SetPlayerColor( @ClassicTeamColors[ teamID ] )
 
-        groups = string.Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
-        for i = 0, ply\GetNumBodyGroups! - 1 do
-            ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
-
-    if Classic
-        ply\SetPlayerColor( @ClassicTeamColors[ teamID ] )
-
-    hook_Run( "TeamPlayerSpawn", ply, teamID )
-    ply\SetupHands!
+        hook_Run( "TeamPlayerSpawn", ply, teamID )
+        ply\SetupHands!
 
 GM.EntityRemoved = ( entity, fullUpdate ) =>
     if fullUpdate
@@ -720,6 +724,7 @@ do
 do
 
     :PrecacheModel = util
+    :match = string
 
     GM.PlayerSetModel = ( ply, teamID ) =>
         if Jailbreak.IsMasqueradeEvent!
@@ -737,9 +742,9 @@ do
 
         models = Jailbreak.PlayerModels[ teamID ][ Jailbreak.IsFemalePrison! ]
         if IsValidModel( requested )
-            requestedName = string.match( requested, "([%w%_%-]+)%.mdl$" )
+            requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
             for modelPath in *models
-                if modelPath == requested or string.match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
+                if modelPath == requested or match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
                     ply\SetModel( modelPath )
                     return
 
@@ -1813,16 +1818,18 @@ do
         Jailbreak.SetChatCommand = ( str, func ) ->
             ChatCommands[ lower( str ) ] = func
 
+        :sub, :StartsWith = string
+
         GM.PlayerSay = ( ply, text, isTeam ) =>
             if Classic
                 return text
 
-            if string.StartsWith( text, "/" )
+            if StartsWith( text, "/" )
                 _, endPos, command = find( text, "^/([^%s]+)" )
                 if command
                     func = ChatCommands[ lower( command ) ]
                     if func
-                        return func( ply, string.sub( text, min( endPos + 2, #text ) ) ) or ""
+                        return func( ply, sub( text, min( endPos + 2, #text ) ) ) or ""
 
                 return ""
 
@@ -1849,34 +1856,35 @@ do
     do
 
         WhisperDistance = CreateConVar( "jb_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
+        Jailbreak.WhisperDistance = WhisperDistance
 
         Whisper = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayer( WhisperDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
-        Jailbreak.Whisper = Whisper
+            Jailbreak.SendChatText( @GetNearPlayers( WhisperDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
 
-        Jailbreak.SetChatCommand "whisper", Whisper
+        Jailbreak.Whisper = Whisper
         Jailbreak.SetChatCommand "w", Whisper
+        Jailbreak.SetChatCommand "whisper", Whisper
 
     do
 
-        LOOCDistance = CreateConVar( "jb_looc_distance", "256", ConVarFlags, "", 48, 65536 )
         :GetColor = team
 
         LOOC = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayer( LOOCDistance\GetInt!, false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
+            Jailbreak.SendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance, false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
 
         Jailbreak.SetChatCommand "looc", LOOC
         Jailbreak.SetChatCommand "", LOOC
 
-        Me = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayer( LOOCDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " " .. lower( text ) )
+        Emotion = ( text ) =>
+            Jailbreak.SendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " " .. lower( text ) )
 
-        Jailbreak.SetChatCommand "me", Me
+        Jailbreak.Emotion = Emotion
+        Jailbreak.SetChatCommand "me", Emotion
 
         do
 
             CoinFlip = ( _, text ) =>
-                Me( @, "#jb.chat.coin-flip #jb.chat.coin-flip." .. math.random( 0, 1 ) )
+                Emotion( @, "#jb.chat.coin-flip #jb.chat.coin-flip." .. math.random( 0, 1 ) )
 
             Jailbreak.SetChatCommand "coin", CoinFlip
             Jailbreak.SetChatCommand "flip", CoinFlip
@@ -1886,7 +1894,7 @@ do
             unless int1 and int2
                 int1, int2 = 0, 100
 
-            Me( @, "#jb.chat.rolled " .. math.random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
+            Emotion( @, "#jb.chat.rolled " .. math.random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
 
     do
 
@@ -1897,7 +1905,7 @@ do
         Jailbreak.OOC = OOC
 
         Command = ( text ) =>
-            if not ConVar\GetBool! and not @IsAdmin! and Jailbreak.GameInProgress!
+            if Jailbreak.GameInProgress! and not ( ConVar\GetBool! or @IsAdmin! )
                 @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
                 return
 
@@ -1906,7 +1914,7 @@ do
         Jailbreak.SetChatCommand "ooc", Command
         Jailbreak.SetChatCommand "/", Command
 
-    concommand.Add "jb_force_round", ( ply, args ) =>
+    concommand.Add "jb_force_round", ( _, args ) =>
         if IsValid( ply ) and not ply\IsSuperAdmin!
             return
 

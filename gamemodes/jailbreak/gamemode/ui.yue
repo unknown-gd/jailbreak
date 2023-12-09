@@ -946,10 +946,6 @@ do
                 origin = ply\EyePos!
                 origin[ 3 ] += 14
 
-            data = origin\ToScreen!
-            unless data.visible
-                continue
-
             distance = origin\DistToSqr( eyePos )
             if distance > Jailbreak.VoiceChatMaxDistance
                 continue

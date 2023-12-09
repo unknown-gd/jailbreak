@@ -67,14 +67,18 @@ do
     Jailbreak.VoiceIcons = CreateConVar( "jb_voice_icons", "1", ConVarFlags, "Show voice/chat icons on players.", 0, 1 )
 
     Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
-    cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
-        Jailbreak.VoiceChatMinDistance = ( tonumber( value ) or 100 ) ^ 2
-    "Jailbreak" )
+    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )\GetInt! ^ 2
 
-    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 16384 )\GetInt! ^ 2
-    cvars.AddChangeCallback( "jb_voice_distance_max", ( _, __, value ) ->
-        Jailbreak.VoiceChatMaxDistance = ( tonumber( value ) or 100 ) ^ 2
-    "Jailbreak" )
+
+    if SERVER
+
+        cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
+            Jailbreak.VoiceChatMinDistance = ( tonumber( value ) or 256 ) ^ 2
+        "Jailbreak" )
+
+        cvars.AddChangeCallback( "jb_voice_distance_max", ( _, __, value ) ->
+            Jailbreak.VoiceChatMaxDistance = ( tonumber( value ) or 2048 ) ^ 2
+        "Jailbreak" )
 
     do
 
@@ -375,7 +379,7 @@ do
     PLAYER.IsFullyConnected = =>
         return @GetNW2Bool( "fully-connected" )
 
-    PLAYER.GetNearPlayer = ( distance, isTeam ) =>
+    PLAYER.GetNearPlayers = ( distance, isTeam ) =>
         players, teamID = {}, isTeam and @Team! or nil
         for ply in *ents.FindInSphere( @EyePos!, distance )
             unless ply\IsPlayer!
