@@ -525,11 +525,13 @@ do
     GM.PlayerSpawn = ( ply, transiton ) =>
         ply\DisableWorldClicking( true )
         ply\SetCanZoom( false )
-        ply\Flashlight( false )
         ply\SetWarden( false )
         ply\RemoveAllAmmo!
         ply\StripWeapons!
         ply\UnSpectate!
+
+        if ply\FlashlightIsOn!
+            ply\Flashlight( false )
 
         ply\SetSlowWalkSpeed( Jailbreak.PlayerSlowWalkSpeed\GetInt! )
         ply\SetWalkSpeed( Jailbreak.PlayerWalkSpeed\GetInt! )
@@ -1686,8 +1688,10 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\AllowSecurityRadio( false )
     ply\AllowFlashlight( false )
     ply\SetShockCollar( false )
-    ply\Flashlight( false )
     ply\SetWarden( false )
+
+    if ply\FlashlightIsOn!
+        ply\Flashlight( false )
 
     timer.Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDeath"
