@@ -214,165 +214,14 @@ do
             else
                 draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", ScrW! / 2, 64, WhiteColor, TEXT_ALIGN_CENTER )
 
--- ---
--- --- Colors
--- ---
-
--- color_red = Color( 255, 0, 0)
--- color_bacground = Color( 0, 0, 0, 200 )
-
--- ---
--- --- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
--- ---
-
--- PANEL_META = FindMetaTable( "Panel" )
-
--- do
---     PANEL = {}
-
---     PANEL.Init = =>
---         avatar = vgui.Create("AvatarImage", @ )
---         if IsValid(avatar)
---             @Avatar = avatar
-
---     PANEL.SetPlayer = ( ply ) =>
---         unless IsValid( ply ) and ply\IsPlayer!
---             return
-
---         @Player = ply
---         @Nick = ply\Nick!
---         @Ping = ply\Ping!
---         @Frags = ply\Frags!
---         @Deaths = ply\Deaths!
---         @Avatar\SetPlayer( ply, 32 )
-
---     PANEL.PerformLayout = =>
---         tall = ScreenScaleH( 16 )
---         @SetTall( tall )
-
---         marginBottom = ScreenScale( 3 )
---         @DockMargin( 0, 0, 0, marginBottom )
-
---         avatar = @Avatar
---         if IsValid( avatar )
---             wide, tall = @GetSize!
---             avatarSize = tall - ScreenScale( 2 )
---             marginLeft = ScreenScale( 6 )
-
---             avatar\SetPos( marginLeft, tall / 2 - avatarSize / 2 )
---             avatar\SetSize( avatarSize, avatarSize )
-
---     PANEL.Paint = ( w, h ) =>
---         draw.RoundedBox( 20, 0, 0, w, h, color_bacground )
-
---         unless IsValid( @Player )
---             return
-
---         avatar = @Avatar
---         unless IsValid( avatar )
---             return
-
---         marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
---         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, WhiteColor, TEXT_ALIGN_LEFT )
-
-
---     vgui.Register("JB.Scoreboard.Player", PANEL)
-
-
--- ---
--- --- MAIN PANEL
--- ---
-
--- do
-
---     PANEL = {}
-
---     PANEL.Init = =>
-
-
---     PANEL.PerformLayout = ( w, h ) =>
---         wide, tall = ScreenScale( 300 ), ScreenScaleH( 380 )
---         @SetSize( wide, tall )
---         @Center!
-
---         paddingTop, paddingHorizontal = ScreenScaleH( 20 ), ScreenScale( 10 )
---         @DockPadding( paddingHorizontal, paddingTop, paddingHorizontal, 0 )
-
---     PANEL.DeletePlayers = =>
---         unless istable( @Players )
---             @Players = {}
---             return
-
---         for ply in *@Players
---             unless IsValid( ply )
---                 continue
---             ply\Remove!
-
---         @Players = {}
-
---     PANEL.CreatePlayers = =>
---         @DeletePlayers!
-
---         for ply in *player.GetAll!
---             unless IsValid( ply )
---                 continue
-
---             playerPanel = vgui.Create( "JB.Scoreboard.Player", @ )
---             unless IsValid( playerPanel )
---                 continue
-
---             table.insert( @Players, playerPanel )
---             playerPanel\SetPlayer( ply )
---             playerPanel\Dock( TOP )
-
---     PANEL.Show = =>
---         @CreatePlayers!
---         PANEL_META.Show( @ )
-
---     PANEL.Hide = =>
---         @DeletePlayers!
---         PANEL_META.Hide( @ )
-
---     PANEL.Paint = ( w, h ) =>
---         surface.SetDrawColor( color_red )
---         surface.DrawRect( 0, 0, w, h )
-
---         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, WhiteColor, TEXT_ALIGN_CENTER )
-
---     vgui.Register( "JB.Scoreboard", PANEL )
-
--- scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
--- if IsValid( scoreboard )
---     scoreboard\Remove!
-
--- GM.ScoreboardShow = =>
---     scoreboard = @ScoreBoard
---     unless IsValid( scoreboard )
---         scoreboard = vgui.Create( "JB.Scoreboard", GetHUDPanel! )
---         @ScoreBoard = scoreboard
---         -- print("Created")
-
---     scoreboard\Show!
---     return false
-
--- GM.ScoreboardHide = =>
---     scoreboard = @ScoreBoard
---     if IsValid( scoreboard )
---         scoreboard\Hide!
-
-GM.ContextMenuEnabled = ->
-    return true
-
-GM.ContextMenuOpen = ->
-    return true
-
 do
 
     SecurityRadio = CreateConVar( "jb_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
 
-    list_Set "DesktopWindows", "!2security-radio", {
+    list_Set "DesktopWindows", "walkie-talkie", {
         title: "#jb.walkie-talkie"
         icon: "icon16/phone.png"
+        order: 500
         think: =>
             if LocalPlayer!\HasSecurityRadio!
                 state = SecurityRadio\GetBool!
@@ -397,9 +246,10 @@ do
 
     Megaphone = CreateConVar( "jb_megaphone", "0", FCVAR_USERINFO, "Activates the warden's ability to speak for the entire map.", 0, 1 )
 
-    list_Set "DesktopWindows", "!2megaphone", {
+    list_Set "DesktopWindows", "megaphone", {
         title: "#jb.megaphone"
         icon: "icon16/sound_mute.png"
+        order: 500
         think: =>
             if LocalPlayer!\IsWarden!
                 state = Megaphone\GetBool!
@@ -422,9 +272,10 @@ do
             Megaphone\SetBool( not Megaphone\GetBool! )
     }
 
-list_Set "DesktopWindows", "!4warden-request", {
+list_Set "DesktopWindows", "warden-request", {
     title: "#jb.warden.join"
     icon: "icon16/user_suit.png"
+    order: 1000
     think: =>
         if Jailbreak.IsRoundRunning!
             ply = LocalPlayer!
@@ -468,9 +319,10 @@ list_Set "DesktopWindows", "!4warden-request", {
         RunConsoleCommand( "jb_warden" )
 }
 
-list_Set "DesktopWindows", "!3shock-collars", {
+list_Set "DesktopWindows", "shock-collars", {
     title: "#jb.shock-collars"
     icon: "icon16/lightning.png"
+    order: 500
     think: =>
         if Jailbreak.GameInProgress!
             ply = LocalPlayer!

@@ -180,13 +180,23 @@ do
         iconLayout\SetSpaceY( 8 )
         iconLayout\SetLayoutDir( LEFT )
         iconLayout\SetStretchWidth( true )
-        iconLayout\SetStretchHeight( false ) -- No infinite re-layouts
+        iconLayout\SetStretchHeight( false )
         iconLayout\Dock( LEFT )
 
         iconLayout.OnMousePressed = ( ... ) =>
             @GetParent!\OnMousePressed( ... )
 
-        for windowName, desktopWindow in SortedPairs( list.Get( "DesktopWindows" ) )
+        desktopWindows = {}
+        for _, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
+            desktopWindows[] = desktopWindow
+
+        table.sort desktopWindows, ( a, b ) ->
+            if a.order and b.order
+                return a.order < b.order
+
+            return a.title < b.title
+
+        for desktopWindow in *desktopWindows
             icon = iconLayout\Add( "JB.ContextMenu.Button" )
             icon\SetSize( 80, 82 )
 
@@ -508,9 +518,10 @@ do
     default_animations = { "idle_all_01", "menu_walk" }
     :PrecacheModel = util
 
-    list_Set "DesktopWindows", "!1player-editor", {
+    list_Set "DesktopWindows", "player-editor", {
         title: "#smwidget.playermodel"
         icon: "icon64/playermodel.png"
+        order: 200
         click: =>
             window = @Window
             if IsValid( window )
@@ -847,6 +858,12 @@ list_Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fis
 list_Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
 list_Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
 
+GM.ContextMenuEnabled = ->
+    return true
+
+GM.ContextMenuOpen = ->
+    return true
+
 do
 
     HUDs = {
@@ -947,3 +964,149 @@ do
 
             origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
             DrawSprite( origin, 12, 12, WhiteColor )
+
+-- ---
+-- --- Colors
+-- ---
+
+-- color_red = Color( 255, 0, 0)
+-- color_bacground = Color( 0, 0, 0, 200 )
+
+-- ---
+-- --- Gigga Nigga Scoreboard (by PrikolMen:-b (I'm joking he's probably dead, we coudn't know exactly is he alive or not, anyway this code has not been written by PrikolMen:-b and not UknownDeveloper))
+-- ---
+
+-- PANEL_META = FindMetaTable( "Panel" )
+
+-- do
+--     PANEL = {}
+
+--     PANEL.Init = =>
+--         avatar = vgui.Create("AvatarImage", @ )
+--         if IsValid(avatar)
+--             @Avatar = avatar
+
+--     PANEL.SetPlayer = ( ply ) =>
+--         unless IsValid( ply ) and ply\IsPlayer!
+--             return
+
+--         @Player = ply
+--         @Nick = ply\Nick!
+--         @Ping = ply\Ping!
+--         @Frags = ply\Frags!
+--         @Deaths = ply\Deaths!
+--         @Avatar\SetPlayer( ply, 32 )
+
+--     PANEL.PerformLayout = =>
+--         tall = ScreenScaleH( 16 )
+--         @SetTall( tall )
+
+--         marginBottom = ScreenScale( 3 )
+--         @DockMargin( 0, 0, 0, marginBottom )
+
+--         avatar = @Avatar
+--         if IsValid( avatar )
+--             wide, tall = @GetSize!
+--             avatarSize = tall - ScreenScale( 2 )
+--             marginLeft = ScreenScale( 6 )
+
+--             avatar\SetPos( marginLeft, tall / 2 - avatarSize / 2 )
+--             avatar\SetSize( avatarSize, avatarSize )
+
+--     PANEL.Paint = ( w, h ) =>
+--         draw.RoundedBox( 20, 0, 0, w, h, color_bacground )
+
+--         unless IsValid( @Player )
+--             return
+
+--         avatar = @Avatar
+--         unless IsValid( avatar )
+--             return
+
+--         marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
+--         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, WhiteColor, TEXT_ALIGN_LEFT )
+
+
+--     vgui.Register("JB.Scoreboard.Player", PANEL)
+
+
+-- ---
+-- --- MAIN PANEL
+-- ---
+
+-- do
+
+--     PANEL = {}
+
+--     PANEL.Init = =>
+
+
+--     PANEL.PerformLayout = ( w, h ) =>
+--         wide, tall = ScreenScale( 300 ), ScreenScaleH( 380 )
+--         @SetSize( wide, tall )
+--         @Center!
+
+--         paddingTop, paddingHorizontal = ScreenScaleH( 20 ), ScreenScale( 10 )
+--         @DockPadding( paddingHorizontal, paddingTop, paddingHorizontal, 0 )
+
+--     PANEL.DeletePlayers = =>
+--         unless istable( @Players )
+--             @Players = {}
+--             return
+
+--         for ply in *@Players
+--             unless IsValid( ply )
+--                 continue
+--             ply\Remove!
+
+--         @Players = {}
+
+--     PANEL.CreatePlayers = =>
+--         @DeletePlayers!
+
+--         for ply in *player.GetAll!
+--             unless IsValid( ply )
+--                 continue
+
+--             playerPanel = vgui.Create( "JB.Scoreboard.Player", @ )
+--             unless IsValid( playerPanel )
+--                 continue
+
+--             table.insert( @Players, playerPanel )
+--             playerPanel\SetPlayer( ply )
+--             playerPanel\Dock( TOP )
+
+--     PANEL.Show = =>
+--         @CreatePlayers!
+--         PANEL_META.Show( @ )
+
+--     PANEL.Hide = =>
+--         @DeletePlayers!
+--         PANEL_META.Hide( @ )
+
+--     PANEL.Paint = ( w, h ) =>
+--         surface.SetDrawColor( color_red )
+--         surface.DrawRect( 0, 0, w, h )
+
+--         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, WhiteColor, TEXT_ALIGN_CENTER )
+
+--     vgui.Register( "JB.Scoreboard", PANEL )
+
+-- scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
+-- if IsValid( scoreboard )
+--     scoreboard\Remove!
+
+-- GM.ScoreboardShow = =>
+--     scoreboard = @ScoreBoard
+--     unless IsValid( scoreboard )
+--         scoreboard = vgui.Create( "JB.Scoreboard", GetHUDPanel! )
+--         @ScoreBoard = scoreboard
+--         -- print("Created")
+
+--     scoreboard\Show!
+--     return false
+
+-- GM.ScoreboardHide = =>
+--     scoreboard = @ScoreBoard
+--     if IsValid( scoreboard )
+--         scoreboard\Hide!
