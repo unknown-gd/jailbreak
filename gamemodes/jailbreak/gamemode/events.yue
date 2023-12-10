@@ -1,0 +1,146 @@
+ErrorNoHaltWithStack = ErrorNoHaltWithStack
+Jailbreak = Jailbreak
+:random, :Rand = math
+hook_Run = hook.Run
+xpcall = xpcall
+pairs = pairs
+
+colors = Jailbreak.Colors
+:white = colors
+
+events = Jailbreak.Events
+unless istable( events )
+    events = {}
+    Jailbreak.Events = events
+
+class JailbreakEvent
+    new: ( name, init, finish ) =>
+        assert isstring( name ), "name must be a string"
+        assert isfunction( init ), "init must be a function"
+        assert isfunction( finish ), "finish must be a function"
+
+        @state = ROUND_PREPARING
+        @finish = finish
+        @color = white
+        @init = init
+        @name = name
+
+        events[] = @
+
+    GetState: =>
+        return @state
+
+    SetState: ( state ) =>
+        @state = state
+
+    GetChance: =>
+        return @chance
+
+    SetChance: ( chance ) =>
+        if TypeID( chance ) ~= TYPE_CONVAR
+            assert isnumber( chance ), "chance must be a number"
+        @chance = chance
+
+    GetColor: =>
+        return @color
+
+    SetColor: ( color ) =>
+        assert IsColor( color ), "color must be a Color"
+        @color = color
+
+    GetMessage: =>
+        return @color, "#jb.event." .. @name
+
+    SendMessage: =>
+        Jailbreak.SendChatText( false, white, "+ ", @GetMessage! )
+
+    Finish: ( state ) =>
+        finish = @finish
+        if finish
+            xpcall( finish, ErrorNoHaltWithStack, @, state )
+
+    Run: ( state ) =>
+        if state ~= @state
+            return
+
+        chance = @chance
+        unless chance
+            return
+
+        if TypeID( chance ) == TYPE_CONVAR
+            chance = chance\GetInt!
+
+        if isnumber( chance ) and ( ( chance == 0 ) or ( chance ~= 100 and random( 1, 100 ) > chance ) )
+            return
+
+        status, writeMessage, stopEvents = xpcall( @init, ErrorNoHaltWithStack, @, state )
+        if status and writeMessage
+            @SendMessage!
+
+        return stopEvents or false
+
+Jailbreak.RegisterEvent = ( name, init, finish ) ->
+    for event in *events
+        if event.name == name
+            event.init = init
+            event.finish = finish
+            return event
+
+    return JailbreakEvent( name, init, finish )
+
+Jailbreak.RunEvents = ( state ) ->
+    stopped = false
+    for event in *events
+        event\Finish( state )
+
+        if stopped
+            continue
+
+        if event\Run( state )
+            stopped = true
+
+ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
+
+do
+
+    event = Jailbreak.RegisterEvent "female-prison", ->
+            Jailbreak.SetFemalePrison( true )
+            return true, true,
+        ->
+            Jailbreak.SetFemalePrison( false )
+
+    event\SetChance( CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "Female prison event chance.", 0, 100 ) )
+
+do
+
+    :Random = table
+    :PrecacheModel = util
+    Vector = Vector
+
+    Models = player_manager.AllValidModels!
+
+    event = Jailbreak.RegisterEvent "masquerade", ->
+            hook.Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
+                modelPath = Random( Models )
+                if modelPath ~= nil
+                    PrecacheModel( modelPath )
+                    @SetModel( modelPath )
+                    return true
+
+            hook.Add "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent", =>
+                if @IsBot!
+                    return
+
+                @SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+                @SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+                @SetSkin( random( 0, @SkinCount! ) )
+
+                for bodygroup in *@GetBodyGroups!
+                    @SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
+
+            return true, true,
+        ->
+            hook.Remove "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent"
+            hook.Remove "PlayerSetModel", "Jailbreak::MasqueradeEvent"
+
+    event\SetChance( CreateConVar( "jb_masquerade_event_chance", "2", ConVarFlags, "Masquerade event chance.", 0, 100 ) )

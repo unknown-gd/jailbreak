@@ -230,9 +230,6 @@ Jailbreak.GetWardenCoins = ->
 Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
-Jailbreak.IsMasqueradeEvent = ->
-    return GetGlobal2Bool( "masquerade-event" )
-
 Jailbreak.TF2Team = ( teamID ) ->
     return teamID % 2 + 1
 
