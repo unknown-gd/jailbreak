@@ -49,6 +49,7 @@ team_NumPlayers, team_GetPlayers = team.NumPlayers , team.GetPlayers
 :Create, :FindByClass, :FindInSphere = ents
 :Rand, :random, :max, :min, :sqrt = math
 :Empty, :Random, :Shuffle = table
+player_GetAll = player.GetAll
 timer_Simple = timer.Simple
 hook_Run = hook.Run
 tonumber = tonumber
@@ -408,7 +409,7 @@ GM.ShockCollarEffect = ( ply ) =>
     ply\EmitSound( "Jailbreak.Shock" )
 
 GM.ShockCollars = ( bool ) =>
-    for ply in *player.GetAll!
+    for ply in *player_GetAll!
         if ply\Alive! and ply\HasShockCollar!
             Jailbreak.SendChatText( ply, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
             @ShockCollarEffect( ply )
@@ -1012,15 +1013,6 @@ GM.EntityTakeDamage = ( entity, damageInfo ) =>
             prop\SetPos( origin )
             prop\Spawn!
 
-            name = entity\GetName!
-            if name ~= ""
-                for portal in *FindByClass( "func_areaportal" )
-                    if portal\GetInternalVariable( "target" ) ~= name
-                        continue
-
-                    portal\SetSaveValue( "target", "" )
-                    portal\Fire( "open" )
-
             prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
             entity\Remove!
 
@@ -1530,7 +1522,7 @@ do
                 Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
 
         else
-            Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#world\"." )
+            Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )
 
 GM.InitPostEntity = =>
     RunConsoleCommand( "mp_show_voice_icons", "0" )
@@ -1585,23 +1577,19 @@ GM.RoundStateChanged = ( old, new ) =>
         when ROUND_WAITING_PLAYERS
             Jailbreak.SetShockCollars( false )
 
-            for ply in *player.GetAll!
-                if ply\IsBot!
-                    ply\SetTeam( TEAM_PRISONER )
-                elseif Jailbreak.Teams[ ply\Team! ]
+            for ply in *player_GetAll!
+                if ply\IsInGame!
                     ply\KillSilent!
+
+                if ply\IsBot! or ply\IsGuard!
+                    ply\SetTeam( TEAM_PRISONER )
 
     		timer_Simple( 0, game.CleanUpMap )
 
         when ROUND_PREPARING
             Jailbreak.SetShockCollars( true )
 
-            if random( 1, 100 ) <= @FemalePrisonChance\GetInt!
-                Jailbreak.SetFemalePrison( true )
-            elseif random( 1, 100 ) <= @MasqueradeEventChance\GetInt!
-                Jailbreak.SetMasqueradeEvent( true )
-
-            for ply in *player.GetAll!
+            for ply in *player_GetAll!
                 if ply\IsBot!
                     ply\SetTeam( TEAM_PRISONER )
 
@@ -1631,7 +1619,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
                 return
 
-            for ply in *player.GetAll!
+            for ply in *player_GetAll!
                 if ply\IsBot!
                     for teamID = 1, 2
                         if Jailbreak.TeamIsJoinable( teamID )
@@ -1649,7 +1637,6 @@ GM.RoundStateChanged = ( old, new ) =>
                     if Jailbreak.Teams[ teamID ] and not ply\Alive!
                         ply\Spawn!
 
-            -- Select a chosen one
             do
 
                 guards = team_GetPlayers( TEAM_GUARD )
@@ -1673,11 +1660,9 @@ GM.RoundStateChanged = ( old, new ) =>
 
             warden = Jailbreak.GetWarden!
             if IsValid( warden )
-                warden\SetWarden( false )
+                warden\SetWarden( false, true )
 
             Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
-            Jailbreak.SetMasqueradeEvent( false )
-            Jailbreak.SetFemalePrison( false )
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
@@ -1928,6 +1913,7 @@ do
         Jailbreak.SetChatCommand = ( str, func ) ->
             ChatCommands[ lower( str ) ] = func
 
+        :GetHumans = player
         :sub, :StartsWith = string
 
         GM.PlayerSay = ( ply, text, isTeam ) =>
@@ -1949,7 +1935,7 @@ do
 
             elseif ply\UsingSecurityRadio!
                 players = {}
-                for pl in *player.GetHumans!
+                for pl in *GetHumans!
                     if pl\HasSecurityRadio!
                         players[] = pl
 
