@@ -129,8 +129,8 @@ do
             tonumber = tonumber
 
             parseUnicode = ( str ) ->
-                return gsub str, "\\u([0-9a-f][0-9a-f][0-9a-f][0-9a-f])", ( key ) ->
-                    byte = tonumber( key, 16 )
+                return gsub str, "\\u([0-9a-f][0-9a-f][0-9a-f][0-9a-f])", ( value ) ->
+                    byte = tonumber( value, 16 )
                     if byte < 0x80 -- Single-byte sequence
                         return char( byte )
                     elseif byte < 0x800 -- Two-byte sequence
@@ -161,8 +161,8 @@ do
             }
 
             parseEscapedChars = ( str ) ->
-                return gsub str, "\\.", ( char ) ->
-                    escapedChars[ char ] or char[ 2 ]
+                return gsub str, "\\.", ( value ) ->
+                    escapedChars[ value ] or value[ 2 ]
 
         string.ParseEscapedChars = parseEscapedChars
 
