@@ -1613,6 +1613,8 @@ do
         if entity\IsValid!
             if entity\IsPlayer!
                 Jailbreak.Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\Nick!, white, "." )
+            elseif entity\IsPlayerRagdoll!
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\GetNW2String( "owner-nickname", "unknown" ), white, "." )
             elseif entity\IsWeapon!
                 printName = nil
                 if entity\IsScripted!
