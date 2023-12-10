@@ -37,6 +37,7 @@ Jailbreak.Colors = {
     console: Color( 30, 130, 255 )
     guards: Color( 50, 185, 255 )
     grey: Color( 180, 180, 180 )
+    pink: Color( 225, 50, 100 )
     blue: Color( 0, 190, 255 )
     red: Color( 255, 89, 50 )
     black: Color( 0, 0, 0 )

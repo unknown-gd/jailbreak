@@ -1,6 +1,6 @@
 ErrorNoHaltWithStack = ErrorNoHaltWithStack
+:random, :Rand, :max = math
 Jailbreak = Jailbreak
-:random, :Rand = math
 hook_Run = hook.Run
 xpcall = xpcall
 pairs = pairs
@@ -19,7 +19,9 @@ class JailbreakEvent
         assert isfunction( init ), "init must be a function"
         assert isfunction( finish ), "finish must be a function"
 
-        @state = ROUND_PREPARING
+        @startState = ROUND_PREPARING
+        @finishState = ROUND_RUNNING
+        @type = "default"
         @finish = finish
         @color = white
         @init = init
@@ -27,11 +29,17 @@ class JailbreakEvent
 
         events[] = @
 
-    GetState: =>
-        return @state
+    GetStartState: =>
+        return @startState
 
-    SetState: ( state ) =>
-        @state = state
+    SetStartState: ( state ) =>
+        @startState = state
+
+    GetFinishState: =>
+        return @finishState
+
+    SetFinishState: ( state ) =>
+        @finishState = state
 
     GetChance: =>
         return @chance
@@ -40,6 +48,13 @@ class JailbreakEvent
         if TypeID( chance ) ~= TYPE_CONVAR
             assert isnumber( chance ), "chance must be a number"
         @chance = chance
+
+    GetType: =>
+        return @type
+
+    SetType: ( str ) =>
+        assert isstring( str ), "type must be a string"
+        @type = str
 
     GetColor: =>
         return @color
@@ -55,12 +70,15 @@ class JailbreakEvent
         Jailbreak.SendChatText( false, white, "+ ", @GetMessage! )
 
     Finish: ( state ) =>
+        if state ~= @finishState
+            return
+
         finish = @finish
         if finish
             xpcall( finish, ErrorNoHaltWithStack, @, state )
 
     Run: ( state ) =>
-        if state ~= @state
+        if state ~= @startState
             return
 
         chance = @chance
@@ -89,15 +107,15 @@ Jailbreak.RegisterEvent = ( name, init, finish ) ->
     return JailbreakEvent( name, init, finish )
 
 Jailbreak.RunEvents = ( state ) ->
-    stopped = false
+    stoppedTypes = {}
     for event in *events
         event\Finish( state )
 
-        if stopped
+        if stoppedTypes[ event.type ]
             continue
 
         if event\Run( state )
-            stopped = true
+            stoppedTypes[ event.type ] = true
 
 ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
 
@@ -109,13 +127,15 @@ do
         ->
             Jailbreak.SetFemalePrison( false )
 
-    event\SetChance( CreateConVar( "jb_female_prison_chance", "10", ConVarFlags, "Female prison event chance.", 0, 100 ) )
+    event\SetChance( CreateConVar( "jb_female_prison_chance", "15", ConVarFlags, "Female prison event chance.", 0, 100 ) )
+    event\SetType( "playermodel" )
+    event\SetColor( colors.pink )
 
 do
 
-    :Random = table
     :PrecacheModel = util
     Vector = Vector
+    :Random = table
 
     Models = player_manager.AllValidModels!
 
@@ -143,4 +163,84 @@ do
             hook.Remove "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent"
             hook.Remove "PlayerSetModel", "Jailbreak::MasqueradeEvent"
 
-    event\SetChance( CreateConVar( "jb_masquerade_event_chance", "2", ConVarFlags, "Masquerade event chance.", 0, 100 ) )
+    event\SetChance( CreateConVar( "jb_masquerade_event_chance", "5", ConVarFlags, "Masquerade event chance.", 0, 100 ) )
+    event\SetType( "playermodel" )
+
+    HSVToColor = HSVToColor
+
+    event.SendMessage = =>
+        seed = random( 0, 360 )
+
+        for ply in *player.GetHumans!
+            text = Jailbreak.Translate( ply, "#jb.event." .. @name )
+            message, index = {}, 0
+
+            for i = 1, utf8.len( text ) - 1
+                index += 1
+                message[ index ] = HSVToColor( i * seed % 360, 1, 1 )
+
+                index += 1
+                message[ index ] = utf8.sub( text, i, i )
+
+            Jailbreak.SendChatText( ply, white, "+ ", unpack( message ) )
+
+do
+
+    event = Jailbreak.RegisterEvent "grass-is-lava", ->
+            hook.Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
+                @EmitSound( "vo/npc/" .. ( Jailbreak.IsFemalePrison! and "female01" or "male01" ) .. "/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+                return true
+
+            hook.Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
+                unless @IsInGame!
+                    return
+
+                pos[ 3 ] -= 1000
+                eyePos = @EyePos!
+
+                traceResult = util.TraceLine( {
+                    start: eyePos
+                    endpos: pos
+                    filter: @
+                } )
+
+                unless traceResult.Hit and traceResult.HitWorld
+                    return
+
+                if traceResult.MatType == MAT_GRASS
+                    @SetColor( colors.black )
+                    @Ignite( 3, 32 )
+
+                    damageInfo = DamageInfo!
+                    damageInfo\SetDamageType( DMG_BURN )
+                    damageInfo\SetDamage( @Health! + @Armor! )
+                    damageInfo\SetDamageForce( ( eyePos - pos ) * 10 )
+                    damageInfo\SetDamagePosition( pos )
+                    damageInfo\SetAttacker( @ )
+                    @TakeDamageInfo( damageInfo )
+                    return true
+
+            return true, false,
+        ->
+            hook.Remove "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent"
+            hook.Remove "PlayerFootstep", "Jailbreak::GrassIsLavaEvent"
+
+    event\SetChance( CreateConVar( "jb_grass_is_lava_chance", "5", ConVarFlags, "Grass is lava event chance.", 0, 100 ) )
+    event\SetStartState( ROUND_RUNNING )
+    event\SetFinishState( ROUND_ENDED )
+    event\SetType( "death" )
+
+    event.SendMessage = =>
+        for ply in *player.GetHumans!
+            text = Jailbreak.Translate( ply, "#jb.event." .. @name )
+            message, index = {}, 0
+
+            length = utf8.len( text ) - 1
+            for i = 1, length
+                index += 1
+                message[ index ] = HSVToColor( ( length - i ) * 10 % 360, 1, 1 )
+
+                index += 1
+                message[ index ] = utf8.sub( text, i, i )
+
+            Jailbreak.SendChatText( ply, white, "+ ", unpack( message ) )
