@@ -1556,6 +1556,9 @@ do
             return
 
         isWarden, isPrisoner = @IsWarden!, @IsPrisoner!
+        if not isWarden and @IsGuard! and not Jailbreak.HasWarden!
+            isWarden = true
+
         unless isWarden or isPrisoner
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
             return

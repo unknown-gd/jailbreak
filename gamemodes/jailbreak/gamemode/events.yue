@@ -165,6 +165,7 @@ do
 
     event\SetChance( CreateConVar( "jb_masquerade_event_chance", "5", ConVarFlags, "Masquerade event chance.", 0, 100 ) )
     event\SetType( "playermodel" )
+    event\SetFinishState( ROUND_ENDED )
 
     HSVToColor = HSVToColor
 
