@@ -1634,9 +1634,10 @@ do
             Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )
 
 GM.InitPostEntity = =>
+    Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
+    Jailbreak.LoadLocalization "resource/localization"
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     RunConsoleCommand( "mp_show_voice_icons", "0" )
-    RunConsoleCommand( "jb_reload_localization" )
 
     if #FindByClass( "info_player_teamspawn" ) ~= 0
         @Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
