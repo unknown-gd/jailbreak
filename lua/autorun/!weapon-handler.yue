@@ -84,7 +84,7 @@ if SERVER
                     newPhys\Wake!
 
             @SetParent( entity )
-            @SetCollisionGroup( 12 )
+            @SetNotSolid( true )
 
     TemporaryWeapon.Equip = ( owner ) =>
         weapon = @GetParent!
