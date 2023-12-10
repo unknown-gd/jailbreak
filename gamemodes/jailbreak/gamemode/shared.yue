@@ -73,10 +73,13 @@ do
     Jailbreak.MarkersCount = CreateConVar( "jb_markers_count", "5", ConVarFlags, "Marker counts from marker lifetime.", 0, 100 )
     Jailbreak.MarkersLifetime = CreateConVar( "jb_markers_lifetime", "10", ConVarFlags, "Marker lifetime in seconds.", 0, 300 )
 
-    Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )\GetInt! ^ 2
-    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )\GetInt! ^ 2
+    Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )
+    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )
 
     if SERVER
+
+        Jailbreak.VoiceChatMinDistance = Jailbreak.VoiceChatMinDistance\GetInt! ^ 2
+        Jailbreak.VoiceChatMaxDistance = Jailbreak.VoiceChatMaxDistance\GetInt! ^ 2
 
         cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
             Jailbreak.VoiceChatMinDistance = ( tonumber( value ) or 256 ) ^ 2
@@ -126,8 +129,8 @@ do
                 Jailbreak.GuardsDiff = 1 / ( tonumber( value ) or ConVar\GetDefault! )
             "Jailbreak" )
 
-    GM.DeathNoticeDraw = CreateConVar( "jb_draw_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
-    GM.TargetIDDraw = CreateConVar( "jb_draw_target_id", "0", ConVarFlags, "Draw target id.", 0, 1 )
+    GM.DeathNotice = CreateConVar( "jb_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
+    GM.TargetID = CreateConVar( "jb_targetid", "1", ConVarFlags, "Draw target id.", 0, 1 )
 
     do
 

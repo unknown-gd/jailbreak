@@ -44,6 +44,7 @@ concommand.Add "jb_showteam", ->
     Jailbreak.ShowTeam!
 
 GM.InitPostEntity = =>
+    @Player = LocalPlayer!
     chat.Open( 1 )
 
     timer.Simple 0.5, ->
@@ -203,12 +204,12 @@ do
     :GetName, :GetColor = team
 
     GM.HUDPaint = =>
-        if @TargetIDDraw\GetBool!
+        if @TargetID\GetBool!
             hook_Run( "HUDDrawTargetID" )
 
         hook_Run( "HUDDrawPickupHistory" )
 
-        if @DeathNoticeDraw\GetBool!
+        if @DeathNotice\GetBool!
             hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 
         state = Jailbreak.GetRoundState!
@@ -231,6 +232,109 @@ do
                 draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", ScrW! / 2, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
             else
                 draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", ScrW! / 2, 64, white, TEXT_ALIGN_CENTER )
+
+    do
+
+
+        :SetFont, :GetTextSize = surface
+        black = Color( 0, 0, 0, 120 )
+        :GetCursorPos = input
+        :CursorVisible = vgui
+        EyeAngles = EyeAngles
+        MASK_SHOT = MASK_SHOT
+        :SimpleText = draw
+        :TraceLine = util
+        EyePos = EyePos
+
+        GM.HUDDrawTargetID = =>
+            eyePos, eyeAngles = EyePos!, EyeAngles!
+
+            traceResult = TraceLine( {
+                start: eyePos
+                endpos: eyePos + eyeAngles\Forward! * Jailbreak.VoiceChatMinDistance\GetInt!,
+                filter: @Player
+                mask: MASK_SHOT
+            } )
+
+            unless traceResult.Hit
+                return
+
+            if traceResult.HitWorld
+                return
+
+            entity = traceResult.Entity
+            unless entity\IsValid!
+                return
+
+            isPlayer = entity\IsPlayer!
+            text = "Unknown"
+            color = white
+
+            if isPlayer
+                unless entity\Alive!
+                    return
+
+                text = entity\Nick!
+                color = entity\GetPlayerColor!\ToColor!
+            elseif entity\IsWeapon!
+                printName = nil
+                if entity\IsScripted!
+                    printName = entity.PrintName
+
+                if printName
+                    printName = "#" .. printName
+                else
+                    printName = entity\GetPrintName!
+
+                if printName == "Scripted Weapon"
+                    printName = "#" .. entity\GetClass!
+
+                text = Jailbreak.Translate( printName )
+            else
+                className = entity\GetClass!
+                if className == "class C_BaseEntity"
+                    className = "func_button"
+
+                text = Jailbreak.Translate( "#jb." .. className )
+
+            font = "TargetID"
+            SetFont( font )
+            width, height = GetTextSize( text )
+
+            mouseX, mouseY = GetCursorPos!
+            if ( mouseX == 0 and mouseY == 0 ) or not CursorVisible! then
+                mouseX = ScrW! / 2
+                mouseY = ScrH! / 2
+
+            x = mouseX - width / 2
+            y = mouseY + 30
+
+            black.a = 120
+            SimpleText( text, font, x + 1, y + 1, black )
+
+            black.a = 50
+        	SimpleText( text, font, x + 2, y + 2, black )
+	        SimpleText( text, font, x, y, color )
+
+            y += height + 5
+
+            unless isPlayer
+                return
+
+            font = "TargetIDSmall"
+            teamID = entity\Team!
+            text = GetName( teamID )
+
+            SetFont( font )
+            width, height = GetTextSize( text )
+            x = mouseX - width / 2
+
+            black.a = 120
+            SimpleText( text, font, x + 1, y + 1, black )
+
+            black.a = 50
+        	SimpleText( text, font, x + 2, y + 2, black )
+            SimpleText( text, font, x, y, GetColor( teamID ) )
 
 do
 

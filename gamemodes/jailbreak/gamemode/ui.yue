@@ -459,6 +459,8 @@ do
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
 
+        @InvalidateLayout( true )
+
     do
 
         :IsKeyDown = input

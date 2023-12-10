@@ -1513,9 +1513,8 @@ do
             Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )
 
 GM.InitPostEntity = =>
-    RunConsoleCommand( "mp_show_voice_icons", "0" )
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
-    Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
+    RunConsoleCommand( "mp_show_voice_icons", "0" )
 
     if #FindByClass( "info_player_teamspawn" ) ~= 0
         @Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
@@ -1525,6 +1524,8 @@ GM.InitPostEntity = =>
     elseif ( #FindByClass( "info_player_counterterrorist" ) + #FindByClass( "info_player_counterterrorist" ) ) ~= 0
         Jailbreak.GameName = "cstrike"
         SoundHandler( "cstrike" )
+
+    Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
 GM.PlayerInitialized = ( ply ) =>
     gameName = Jailbreak.GameName
