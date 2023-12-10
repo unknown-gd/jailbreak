@@ -908,10 +908,11 @@ do
     GM.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
     GM.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
     GM.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
+    :band = bit
 
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         damageType = damageInfo\GetDamageType!
-        if ply\HasShockCollar! and bit.band( damageType, DMG_SHOCK ) == DMG_SHOCK
+        if ply\HasShockCollar! and band( damageType, DMG_SHOCK ) == DMG_SHOCK
             ply\SetShockCollar( false )
 
         unless Jailbreak.IsShockCollarsActive!
@@ -920,7 +921,7 @@ do
         attacker = damageInfo\GetAttacker!
         if attacker\IsValid! and attacker\IsPlayer! and attacker\HasShockCollar! and attacker ~= ply
             for int in *@CloseRangeDamageTypes
-                if bit.band( damageType, int ) == int
+                if band( damageType, int ) == int
                     damage = damageInfo\GetDamage!
 
                     newDamage = damage * @ShockCollarAttackerDamage\GetFloat!
@@ -943,106 +944,110 @@ GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
         entity\Extinguish!
         return true
 
-GM.EntityTakeDamage = ( entity, damageInfo ) =>
-    if entity\IsPlayerRagdoll!
-        return true
+do
 
-    if bit.band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
-        return true
+    :band = bit
 
-    if entity\IsPlayer!
-        if entity\Alive!
-            teamID = entity\Team!
-            if hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
-                return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
-        return true
+    GM.EntityTakeDamage = ( entity, damageInfo ) =>
+        if entity\IsPlayerRagdoll!
+            return true
 
-    if bit.band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
-        return
+        if band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
+            return true
 
-    switch entity\GetClass!
-        when "prop_door_rotating"
-            maxHealth = entity\GetMaxHealth!
-            if maxHealth <= 1
-                maxHealth = @DoorsHealth\GetInt!
-                if maxHealth <= 0
+        if entity\IsPlayer!
+            if entity\Alive!
+                teamID = entity\Team!
+                if hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
+                    return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
+            return true
+
+        if band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
+            return
+
+        switch entity\GetClass!
+            when "prop_door_rotating"
+                maxHealth = entity\GetMaxHealth!
+                if maxHealth <= 1
+                    maxHealth = @DoorsHealth\GetInt!
+                    if maxHealth <= 0
+                        return true
+
+                    entity\SetHealth( maxHealth )
+                    entity\SetMaxHealth( maxHealth )
+
+                health = entity\Health!
+                if health < 1
                     return true
 
-                entity\SetHealth( maxHealth )
-                entity\SetMaxHealth( maxHealth )
+                health = max( 0, health - damageInfo\GetDamage! )
+                entity\SetHealth( health )
 
-            health = entity\Health!
-            if health < 1
-                return true
+                if health > 1
+                    return true
 
-            health = max( 0, health - damageInfo\GetDamage! )
-            entity\SetHealth( health )
+                model = entity\GetModel!
+                unless model and #model ~= 0 and IsValidModel( model )
+                    return true
 
-            if health > 1
-                return true
+                center = entity\OBBCenter!
+                center[ 1 ] = 0
+                center[ 2 ] = 0
 
-            model = entity\GetModel!
-            unless model and #model ~= 0 and IsValidModel( model )
-                return true
+                origin = entity\LocalToWorld( center )
+                unless IsInWorld( origin )
+                    return true
 
-            center = entity\OBBCenter!
-            center[ 1 ] = 0
-            center[ 2 ] = 0
+                prop = Create( "prop_physics" )
+                prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
+                prop\SetAngles( entity\GetAngles! )
+                prop\SetSkin( entity\GetSkin! )
+                prop\SetModel( model )
+                prop\SetPos( origin )
+                prop\Spawn!
 
-            origin = entity\LocalToWorld( center )
-            unless IsInWorld( origin )
-                return true
+                prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+                entity\Remove!
 
-            prop = Create( "prop_physics" )
-            prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
-            prop\SetAngles( entity\GetAngles! )
-            prop\SetSkin( entity\GetSkin! )
-            prop\SetModel( model )
-            prop\SetPos( origin )
-            prop\Spawn!
+                phys = prop\GetPhysicsObject!
+                if IsValid( phys )
+                    phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
 
-            prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-            entity\Remove!
-
-            phys = prop\GetPhysicsObject!
-            if IsValid( phys )
-                phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
-
-            origin = damageInfo\GetDamagePosition!
-            fx = EffectData!
-            fx\SetOrigin( origin )
-            fx\SetMagnitude( 5 )
-            fx\SetRadius( 5 )
-            fx\SetScale( 2 )
-            Effect( "Sparks", fx )
-            ScreenShake( origin, 5, 10, 0.5, 150 )
-            return true
-        when "func_button"
-            if bit.band( damageInfo\GetDamageType!, DMG_BLAST ) == DMG_BLAST
-                return true
-
-            attacker = damageInfo\GetAttacker!
-            if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
-                entity\Use( attacker, attacker )
-                entity\EmitSound( "Jailbreak.Shock" )
-
+                origin = damageInfo\GetDamagePosition!
                 fx = EffectData!
-                fx\SetScale( 0.5 )
-                fx\SetOrigin( entity\WorldSpaceCenter! )
-                fx\SetMagnitude( random( 3, 5 ) )
-                fx\SetRadius( random( 1, 5 ) )
-                Effect( "ElectricSpark", fx )
+                fx\SetOrigin( origin )
+                fx\SetMagnitude( 5 )
+                fx\SetRadius( 5 )
+                fx\SetScale( 2 )
+                Effect( "Sparks", fx )
+                ScreenShake( origin, 5, 10, 0.5, 150 )
+                return true
+            when "func_button"
+                if band( damageInfo\GetDamageType!, DMG_BLAST ) == DMG_BLAST
+                    return true
 
-            return true
+                attacker = damageInfo\GetAttacker!
+                if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
+                    entity\Use( attacker, attacker )
+                    entity\EmitSound( "Jailbreak.Shock" )
 
-    if entity\GetNoDraw! or not entity\IsSolid!
-        return
+                    fx = EffectData!
+                    fx\SetScale( 0.5 )
+                    fx\SetOrigin( entity\WorldSpaceCenter! )
+                    fx\SetMagnitude( random( 3, 5 ) )
+                    fx\SetRadius( random( 1, 5 ) )
+                    Effect( "ElectricSpark", fx )
 
-    velocity = damageInfo\GetDamageForce!
-    for physNum = 0, entity\GetPhysicsObjectCount! - 1 do
-        phys = entity\GetPhysicsObjectNum( physNum )
-        if IsValid( phys )
-            phys\ApplyForceOffset( velocity, damageInfo\GetDamagePosition! )
+                return true
+
+        if entity\GetNoDraw! or not entity\IsSolid!
+            return
+
+        velocity = damageInfo\GetDamageForce!
+        for physNum = 0, entity\GetPhysicsObjectCount! - 1 do
+            phys = entity\GetPhysicsObjectNum( physNum )
+            if IsValid( phys )
+                phys\ApplyForceOffset( velocity, damageInfo\GetDamagePosition! )
 
 do
 
