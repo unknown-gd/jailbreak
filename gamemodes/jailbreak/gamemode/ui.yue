@@ -1051,7 +1051,7 @@ do
                 origin[ 3 ] += 14
 
             distance = origin\DistToSqr( eyePos )
-            if distance > Jailbreak.VoiceChatMaxDistance
+            if distance > Jailbreak.VoiceChatMaxDistance\GetInt!
                 continue
 
             if isSpeaking

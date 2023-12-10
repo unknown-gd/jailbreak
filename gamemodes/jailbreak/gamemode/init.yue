@@ -120,6 +120,25 @@ do
 
     global language = language or {}
 
+    GetPhrase = ( languageCode, placeholder ) ->
+        phrases = language[ languageCode ]
+        unless phrases
+            return placeholder
+
+        return phrases[ placeholder ] or placeholder
+
+    language.GetPhrase = GetPhrase
+
+    Add = ( languageCode, placeholder, fulltext ) ->
+        phrases = language[ languageCode ]
+        unless phrases
+            phrases = {}
+            language[ languageCode ] = phrases
+
+        phrases[ placeholder ] = fulltext
+
+    language.Add = Add
+
     do
 
         parseUnicode = nil
@@ -176,16 +195,13 @@ do
                         if not data or #data < 3
                             return
 
-                        phrases = {}
                         for line in gmatch( data, "(.-)\n" )
                             if #line >= 3
                                 separatorPos = find( line, "=" )
                                 unless separatorPos
                                     continue
 
-                                phrases[ sub( line, 1, separatorPos - 1 ) ] = parseEscapedChars parseUnicode sub( line, separatorPos + 1 )
-
-                        language[ languageCode ] = phrases
+                                Add( languageCode, sub( line, 1, separatorPos - 1 ), parseEscapedChars( parseUnicode( sub( line, separatorPos + 1 ) ) ) )
 
         concommand.Add "jb_reload_localization", =>
             if IsValid( @ ) and not @IsListenServerHost!
@@ -193,23 +209,6 @@ do
 
             Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
             Jailbreak.LoadLocalization "resource/localization"
-
-    GetPhrase = ( languageCode, placeholder ) ->
-        phrases = language[ languageCode ]
-        unless phrases
-            return placeholder
-
-        return phrases[ placeholder ] or placeholder
-
-    language.GetPhrase = GetPhrase
-
-    language.Add = ( placeholder, fulltext ) ->
-        phrases = language[ languageCode ]
-        unless phrases
-            phrases = {}
-            language[ languageCode ] = phrases
-
-        phrases[ placeholder ] = fulltext
 
     Jailbreak.Translate = ( str ) =>
         unless @IsValid! and @IsPlayer!
@@ -291,8 +290,13 @@ do
         unless silent
             hook_Run( "WardenChanged", @, bool )
 
-    PLAYER.SetShockCollar = ( bool ) =>
+    PLAYER.SetShockCollar = ( bool, silent ) =>
+        if bool == @HasShockCollar!
+            return
+
         @SetNW2Bool( "shock-collar", bool )
+        unless silent
+            hook_Run( "ShockCollarChanged", @, bool )
 
     PLAYER.AllowSecurityAccess = ( bool ) =>
         @SetNW2Bool( "security-access", bool )
@@ -1783,8 +1787,13 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\AllowSecurityAccess( false )
     ply\AllowSecurityRadio( false )
     ply\AllowFlashlight( false )
-    ply\SetShockCollar( false )
-    ply\SetWarden( false )
+
+    if ply\HasShockCollar!
+        ply\SetShockCollar( false, true )
+
+    isWarden = ply\IsWarden!
+    if isWarden
+        ply\SetWarden( false, true )
 
     if ply\FlashlightIsOn!
         ply\Flashlight( false )
@@ -1797,6 +1806,9 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
             Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
         elseif state == ROUND_RUNNING and Jailbreak.GetTeamAliveCount( teamID ) == 0
             Jailbreak.SetRoundState( ROUND_ENDED )
+
+        if isWarden and Jailbreak.IsRoundRunning! and ply\IsValid!
+            hook_Run( "WardenChanged", ply, false )
 
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     unless ply\Alive!
