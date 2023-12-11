@@ -542,7 +542,8 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
     if ragdoll\IsValid!
         ragdoll\SetNW2Entity( "ragdoll-owner", ply )
         ply\SetTeam( ragdoll.Team )
-        ply.InitialSpawn = true
+
+    ply.InitialSpawn = true
 
 GM.SetupPlayerCollisions = ( ply ) =>
     if Jailbreak.GameName == "tf"

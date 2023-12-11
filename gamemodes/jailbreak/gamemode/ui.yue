@@ -341,6 +341,14 @@ do
     PANEL.Think = =>
         teamID = @Team
         unless teamID
+            enabled = false
+            for i = 1, 2
+                if Jailbreak.TeamIsJoinable( i )
+                    enabled = true
+                    break
+
+            @SetCursor( enabled and "hand" or "no" )
+            @SetEnabled( enabled )
             return
 
         enabled = teamID ~= @Player\Team! and Jailbreak.TeamIsJoinable( teamID )
