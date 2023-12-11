@@ -49,9 +49,10 @@ Jailbreak.Teams = {
     [ TEAM_GUARD ]: true
 }
 
+:ceil, :min, :max = math
 hook_Run = hook.Run
-:min, :max = math
 IsValid = IsValid
+:GetAll = player
 SERVER = SERVER
 CLIENT = CLIENT
 team = team
@@ -94,42 +95,37 @@ do
 
         GuardsDiff = CreateConVar( "jb_guards_diff", "4", ConVarFlags, "Number of prisoners per guard.", 0, 1000 )
         Jailbreak.GuardsDiff = GuardsDiff
+        :Joinable = team
 
-        do
+        Jailbreak.TeamIsJoinable = ( requestedTeamID ) ->
+                unless Joinable( requestedTeamID )
+                    return false
 
-            :Joinable = team
-            :GetAll = player
-            :ceil = math
+                guardCount, prisonerCount = 0, 0
+                for ply in *GetAll!
+                    teamID = ply\Team!
+                    if teamID == TEAM_GUARD
+                        guardCount += 1
+                    elseif teamID == TEAM_PRISONER
+                        prisonerCount += 1
 
-            Jailbreak.TeamIsJoinable = ( requestedTeamID ) ->
-                    unless Joinable( requestedTeamID )
-                        return false
+                switch requestedTeamID
+                    when TEAM_PRISONER
+                        if prisonerCount == 0
+                            return true
 
-                    guardCount, prisonerCount = 0, 0
-                    for ply in *GetAll!
-                        teamID = ply\Team!
-                        if teamID == TEAM_GUARD
-                            guardCount += 1
-                        elseif teamID == TEAM_PRISONER
-                            prisonerCount += 1
+                        return guardCount ~= 0
 
-                    switch requestedTeamID
-                        when TEAM_PRISONER
-                            if prisonerCount == 0
-                                return true
+                    when TEAM_GUARD
+                        if guardCount == 0
+                            return true
 
-                            return guardCount ~= 0
+                        if prisonerCount == 0
+                            return false
 
-                        when TEAM_GUARD
-                            if guardCount == 0
-                                return true
+                        return guardCount < ceil( prisonerCount / GuardsDiff\GetInt! )
 
-                            if prisonerCount == 0
-                                return false
-
-                            return guardCount < ceil( prisonerCount / GuardsDiff\GetInt! )
-
-                    return true
+                return true
 
     GM.DeathNotice = CreateConVar( "jb_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
     GM.TargetID = CreateConVar( "jb_targetid", "1", ConVarFlags, "Draw target id.", 0, 1 )
@@ -166,29 +162,30 @@ do
             if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
                 return true
 
-do
+Jailbreak.GetPlayersCount = ( teamID, alive ) ->
+    count = 0
+    for ply in *GetAll!
+        if teamID ~= nil and ply\Team! ~= teamID
+            continue
 
-    :GetPlayers = team
+        if alive ~= nil and ply\Alive! ~= alive
+            continue
 
-    Jailbreak.GetTeamAliveCount = ( teamID ) ->
-        alive = 0
-        for ply in *GetPlayers( teamID )
-            if ply\Alive!
-                alive += 1
+        count += 1
 
-        return alive
+    return count
 
-    Jailbreak.GetWarden = ->
-        warden = Jailbreak.Warden
-        if IsValid( warden ) and warden\IsWarden! and warden\IsInGame!
-            return warden
+Jailbreak.GetWarden = ->
+    warden = Jailbreak.Warden
+    if IsValid( warden ) and warden\IsWarden! and warden\IsInGame!
+        return warden
 
-        for ply in *GetPlayers( TEAM_GUARD )
-            if ply\IsWarden!
-                Jailbreak.Warden = ply
-                return ply
+    for ply in *GetAll!
+        if ply\IsWarden!
+            Jailbreak.Warden = ply
+            return ply
 
-        return NULL
+    return NULL
 
 do
 

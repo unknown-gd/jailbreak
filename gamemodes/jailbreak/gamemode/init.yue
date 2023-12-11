@@ -1389,11 +1389,18 @@ do
     util.AddNetworkString( "JB::Voice Chat" )
 
     SendVolumes = ( listener, volumes ) ->
+        length = #volumes
+        if length == 0
+            return
+
         net.Start( "JB::Voice Chat", true )
-        net.WriteUInt( #volumes, 10 )
-        for data in *volumes
+        net.WriteUInt( length, 10 )
+
+        for i = 1, length
+            data = volumes[ i ]
             net.WriteEntity( data[ 1 ] )
             net.WriteFloat( data[ 2 ] )
+
         net.Send( listener )
 
     AllTalk = GetConVar( "sv_alltalk" )\GetInt! > 2
