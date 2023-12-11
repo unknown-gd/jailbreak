@@ -1398,29 +1398,22 @@ do
             net.WriteFloat( data[ 2 ] )
         net.Send( listener )
 
-    OOC = GetConVar( "sv_alltalk" )\GetInt! > 2
+    AllTalk = GetConVar( "sv_alltalk" )\GetInt! > 2
     cvars.AddChangeCallback( "sv_alltalk", ( _, __, value ) ->
-        OOC = ( tonumber( value ) or 2 ) > 2
+        AllTalk = ( tonumber( value ) or 2 ) > 2
     "Jailbreak" )
 
-    CanHear = ( listener, speaker ) ->
-        if speaker\Alive!
-            if speaker\IsMutedByWarden!
-                return false, false
-        else
-            return not listener\Alive!, false
-
-    timer.Create "JB:Voice Chat Think", 0.5, 0, ->
+    timer.Create "JB:Voice Chat Think", 1 / 4, 0, ->
         players = player_GetHumans!
         for listener in *players
             speakers = listener.AvailableSpeakers
             Empty( speakers )
             volumes = {}
 
-            if OOC or not Jailbreak.IsRoundRunning!
+            if AllTalk or not Jailbreak.IsRoundRunning!
                 for speaker in *players
                     volumes[] = { speaker, 1 }
-                    speakers[ speaker ] = 1
+                    speakers[ speaker ] = false
 
                 SendVolumes( listener, volumes )
                 continue
@@ -1430,40 +1423,50 @@ do
             rf = RecipientFilter!
             rf\AddPAS( origin )
 
-            hasRadio = listener\HasSecurityRadio!
             listenerIndex = listener\EntIndex!
+            isInGame = listener\IsInGame!
+
+            hasRadio = false
+            if isInGame
+                hasRadio = listener\HasSecurityRadio!
 
             for speaker in *rf\GetPlayers!
                 if speaker\IsBot! or speaker\EntIndex! == listenerIndex
                     continue
 
-                if CanHear( listener, speaker ) == false
+                if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
                     continue
 
-                if hasRadio and speaker\UsingSecurityRadio!
-                    continue
+                if speaker\IsInGame!
+                    if speaker\IsMutedByWarden!
+                        continue
 
-                if speaker\UsingMegaphone!
-                    volumes[] = { speaker, 1 }
-                    speakers[ speaker ] = 1
+                else
+
+                    unless isInGame
+                        volumes[] = { speaker, 1 }
+                        speakers[ speaker ] = false
+
                     continue
 
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - Jailbreak.VoiceChatMinDistance ) / Jailbreak.VoiceChatMaxDistance, 0, 1 ), 2 )
                 if volume > 0
                     volumes[] = { speaker, volume }
-                    speakers[ speaker ] = volume
+                    speakers[ speaker ] = true
 
-            if hasRadio
-                for speaker in *players
-                    if speaker\UsingSecurityRadio!
-                        volumes[] = { speaker, 1 }
-                        speakers[ speaker ] = 1
+            for speaker in *players
+                if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                    continue
+
+                if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
+                    volumes[] = { speaker, 1 }
+                    speakers[ speaker ] = false
 
             SendVolumes( listener, volumes )
 
     GM.PlayerCanSeePlayersChat = ( _, isTeam, listener, speaker ) =>
         if listener\IsBot!
-            return
+            return false
 
         unless IsValid( speaker )
             return true
@@ -1471,34 +1474,15 @@ do
         if isTeam and listener\Team! ~= speaker\Team!
             return false
 
-        if speaker\UsingMegaphone!
-            return true
-
-        if OOC or not Jailbreak.IsRoundRunning!
-            return true
-
-        canHear = CanHear( listener, speaker )
-        if canHear ~= nil
-            return canHear
-
         return listener.AvailableSpeakers[ speaker ] ~= nil
 
     GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
-        if listener\EntIndex! == speaker\EntIndex! or listener\IsBot! or speaker\IsBot!
-            return
+        if listener\IsBot! or speaker\IsBot! or listener\EntIndex! == speaker\EntIndex!
+            return false, false
 
-        if OOC or not Jailbreak.IsRoundRunning!
-            return true, false
-
-        if speaker\UsingMegaphone!
-            return true, true
-
-        canHear, is3D = CanHear( listener, speaker )
-        if canHear ~= nil
-            return canHear, is3D
-
-        if listener.AvailableSpeakers[ speaker ] ~= nil
-            return true, not speaker\UsingSecurityRadio!
+        stereoSound = listener.AvailableSpeakers[ speaker ]
+        if stereoSound ~= nil
+            return true, stereoSound
 
         return false, false
 
