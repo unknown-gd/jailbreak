@@ -612,6 +612,7 @@ GM.MigrationPlayerFromRagdoll = ( ply, ragdoll ) =>
         ply\Give( "jb_hands" )
         ply\SelectWeapon( "jb_hands" )
 
+        hook_Run( "TeamPlayerSpawn", ply, ply\Team! )
         ply\SetupHands!
         ragdoll\Remove!
         return
@@ -692,6 +693,7 @@ do
 
         unless transiton
             hook_Run( "PlayerLoadout", ply, teamID )
+
         hook_Run( "PlayerSetModel", ply, teamID )
 
         if ply\IsBot!
@@ -1715,19 +1717,43 @@ GM.RoundStateChanged = ( old, new ) =>
         when ROUND_RUNNING
             Jailbreak.SetShockCollars( true )
 
-            guardCount, prisonerCount = team_NumPlayers( TEAM_GUARD ), team_NumPlayers( TEAM_PRISONER )
-            totalCount = guardCount + prisonerCount
+            prisonersPerGuard = Jailbreak.GuardsDiff\GetInt!
+            players = player_GetAll!
 
-            while ( guardCount / prisonerCount ) > Jailbreak.GuardsDiff and totalCount > ( ( 1 / Jailbreak.GuardsDiff ) + guardCount )
-                for i = 1, guardCount
-                    guard = Random( team_GetPlayers( TEAM_GUARD ) )
-                    if guard\IsValid!
-                        guard\SetTeam( TEAM_PRISONER )
-                        guard\Spawn!
-                        break
+            guardCount, prisonerCount = 0, 0
+            for ply in *players
+                teamID = ply\Team!
+                if teamID == TEAM_GUARD
+                    guardCount += 1
+                elseif teamID == TEAM_PRISONER
+                    prisonerCount += 1
 
-                guardCount, prisonerCount = team_NumPlayers( TEAM_GUARD ), team_NumPlayers( TEAM_PRISONER )
-                totalCount = guardCount + prisonerCount
+            desiredGuardCount = math.ceil( prisonerCount / prisonersPerGuard )
+
+            while ( ( guardCount + prisonerCount ) - desiredGuardCount ) > prisonersPerGuard and guardCount > desiredGuardCount
+                guards = {}
+                for ply in *players
+                    if teamID == TEAM_GUARD
+                        guards[] = ply
+
+                length = #guards
+                if length == 0
+                    guardCount = 0
+                    break
+
+                guard = guards[ random( 1, length ) ]
+                guard\SetTeam( TEAM_PRISONER )
+                guard\Spawn!
+
+                guardCount, prisonerCount = 0, 0
+                for ply in *players
+                    teamID = ply\Team!
+                    if teamID == TEAM_GUARD
+                        guardCount += 1
+                    elseif teamID == TEAM_PRISONER
+                        prisonerCount += 1
+
+                desiredGuardCount = math.ceil( prisonerCount / prisonersPerGuard )
 
             if guardCount == 0 or prisonerCount == 0
                 Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
@@ -1780,9 +1806,9 @@ GM.RoundStateChanged = ( old, new ) =>
 
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
-    Jailbreak.RemoveSpectateTarget( ply )
     ply\UnSpectate!
 
+    Jailbreak.RemoveSpectateTarget( ply )
     ply\AllowSecurityAccess( false )
     ply\AllowSecurityRadio( false )
     ply\AllowFlashlight( false )
