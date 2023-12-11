@@ -78,19 +78,6 @@ do
     Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )
     Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )
 
-    if SERVER
-
-        Jailbreak.VoiceChatMinDistance = Jailbreak.VoiceChatMinDistance\GetInt! ^ 2
-        Jailbreak.VoiceChatMaxDistance = Jailbreak.VoiceChatMaxDistance\GetInt! ^ 2
-
-        cvars.AddChangeCallback( "jb_voice_distance_min", ( _, __, value ) ->
-            Jailbreak.VoiceChatMinDistance = ( tonumber( value ) or 256 ) ^ 2
-        "Jailbreak" )
-
-        cvars.AddChangeCallback( "jb_voice_distance_max", ( _, __, value ) ->
-            Jailbreak.VoiceChatMaxDistance = ( tonumber( value ) or 2048 ) ^ 2
-        "Jailbreak" )
-
     do
 
         GuardsDiff = CreateConVar( "jb_guards_diff", "4", ConVarFlags, "Number of prisoners per guard.", 0, 1000 )

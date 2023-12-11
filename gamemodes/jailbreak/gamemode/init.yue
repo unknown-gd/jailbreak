@@ -1379,7 +1379,7 @@ GM.PlayerUse = ( ply, entity ) =>
 
 do
 
-    DistToSqr = FindMetaTable( "Vector" ).DistToSqr
+    Distance = FindMetaTable( "Vector" ).Distance
     EyePos = FindMetaTable( "Entity" ).EyePos
     player_GetHumans = player.GetHumans
     RecipientFilter = RecipientFilter
@@ -1388,12 +1388,13 @@ do
 
     util.AddNetworkString( "JB::Voice Chat" )
 
+    VoiceChatUDP = CreateConVar( "jb_voice_chat_udp", "1", ConVarFlags, "Use faster udp voice chat packets instead of tcp.", 0, 1 )
     SendVolumes = ( listener, volumes ) ->
         length = #volumes
         if length == 0
             return
 
-        net.Start( "JB::Voice Chat", true )
+        net.Start( "JB::Voice Chat", VoiceChatUDP\GetBool! )
         net.WriteUInt( length, 10 )
 
         for i = 1, length
@@ -1408,15 +1409,26 @@ do
         AllTalk = ( tonumber( value ) or 2 ) > 2
     "Jailbreak" )
 
-    timer.Create "JB:Voice Chat Think", 1 / 4, 0, ->
+    VoiceChatSpeed = CreateConVar( "jb_voice_chat_speed", "4", ConVarFlags, "Speed of voice chat packets sending.", 0, 10 )
+    cvars.AddChangeCallback( VoiceChatSpeed\GetName!, ( _, __, value ) ->
+        timer.Adjust( "JB::Voice Chat", 1 / ( tonumber( value ) or 4 ) )
+    "Jailbreak" )
+
+    timer.Create "JB::Voice Chat", 1 / VoiceChatSpeed\GetInt!, 0, ->
+        minDistance, maxDistance = Jailbreak.VoiceChatMinDistance\GetInt!, Jailbreak.VoiceChatMaxDistance\GetInt!
         players = player_GetHumans!
         for listener in *players
             speakers = listener.AvailableSpeakers
             Empty( speakers )
+
+            listenerIndex = listener\EntIndex!
             volumes = {}
 
             if AllTalk or not Jailbreak.IsRoundRunning!
                 for speaker in *players
+                    if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                        continue
+
                     volumes[] = { speaker, 1 }
                     speakers[ speaker ] = false
 
@@ -1428,7 +1440,6 @@ do
             rf = RecipientFilter!
             rf\AddPAS( origin )
 
-            listenerIndex = listener\EntIndex!
             isInGame = listener\IsInGame!
             hasRadio = isInGame and listener\HasSecurityRadio!
 
@@ -1449,7 +1460,7 @@ do
                 if speaker\IsMutedByWarden!
                     continue
 
-                volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - Jailbreak.VoiceChatMinDistance ) / Jailbreak.VoiceChatMaxDistance, 0, 1 ), 2 )
+                volume = Round( 1 - Clamp( max( 0, Distance( origin, EyePos( speaker ) ) - minDistance ) / maxDistance, 0, 1 ), 2 )
                 if volume > 0
                     volumes[] = { speaker, volume }
                     speakers[ speaker ] = true
@@ -1559,7 +1570,7 @@ do
         if isWarden
             distance = 32768
         elseif isPrisoner
-            distance = sqrt( Jailbreak.VoiceChatMinDistance )
+            distance = Jailbreak.VoiceChatMinDistance\GetInt!
 
         @LagCompensation( true )
 
@@ -2109,13 +2120,13 @@ do
         :GetColor = team
 
         LOOC = ( text ) =>
-            Jailbreak.SendChatText( @GetNearPlayers( sqrt( Jailbreak.VoiceChatMinDistance ), false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
+            Jailbreak.SendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance\GetInt!, false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
 
         Jailbreak.SetChatCommand "looc", LOOC
         Jailbreak.SetChatCommand "", LOOC
 
         CustomEmotion = ( ... ) =>
-            Jailbreak.SendChatText( @GetNearPlayers( sqrt( Jailbreak.VoiceChatMinDistance ), false ), @GetPlayerColor!\ToColor!, @Nick!, white, " ", ... )
+            Jailbreak.SendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " ", ... )
 
         Jailbreak.Emotion = CustomEmotion
 

@@ -940,6 +940,7 @@ do
 
 do
 
+    Distance = FindMetaTable( "Vector" ).Distance
     :SetMaterial, :DrawSprite = render
     player_GetAll = player.GetAll
     Material = Material
@@ -1058,7 +1059,7 @@ do
                 origin = ply\EyePos!
                 origin[ 3 ] += 14
 
-            distance = origin\DistToSqr( eyePos )
+            distance = Distance( origin, eyePos )
             if distance > Jailbreak.VoiceChatMaxDistance\GetInt!
                 continue
 
@@ -1104,7 +1105,7 @@ do
                     remove( markers, index )
                     continue
 
-            scale = max( 4, ( origin\Distance( eyePos ) ) / Jailbreak.ScreenWidth * 64 ) * fraction
+            scale = max( 4, ( Distance( origin, eyePos ) / Jailbreak.ScreenWidth ) * 64 ) * fraction
             amplitude = data.amplitude
 
             IgnoreZ( true )
