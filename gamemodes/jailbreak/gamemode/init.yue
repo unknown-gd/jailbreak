@@ -1428,10 +1428,7 @@ do
 
             listenerIndex = listener\EntIndex!
             isInGame = listener\IsInGame!
-
-            hasRadio = false
-            if isInGame
-                hasRadio = listener\HasSecurityRadio!
+            hasRadio = isInGame and listener\HasSecurityRadio!
 
             for speaker in *rf\GetPlayers!
                 if speaker\IsBot! or speaker\EntIndex! == listenerIndex
@@ -1440,16 +1437,14 @@ do
                 if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
                     continue
 
-                if speaker\IsInGame!
-                    if speaker\IsMutedByWarden!
-                        continue
-
-                else
-
+                unless speaker\IsInGame!
                     unless isInGame
                         volumes[] = { speaker, 1 }
                         speakers[ speaker ] = false
 
+                    continue
+
+                if speaker\IsMutedByWarden!
                     continue
 
                 volume = Round( 1 - Clamp( max( 0, DistToSqr( origin, EyePos( speaker ) ) - Jailbreak.VoiceChatMinDistance ) / Jailbreak.VoiceChatMaxDistance, 0, 1 ), 2 )
@@ -1458,7 +1453,7 @@ do
                     speakers[ speaker ] = true
 
             for speaker in *players
-                if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                if speakers[ speaker ] ~= nil or speaker\IsBot! or speaker\EntIndex! == listenerIndex
                     continue
 
                 if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
