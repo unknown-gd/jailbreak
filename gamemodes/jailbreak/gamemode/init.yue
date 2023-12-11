@@ -43,9 +43,8 @@ resource.AddWorkshop( "643148462" )
 
 math, table, team = math, table, team
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
-team_NumPlayers, team_GetPlayers = team.NumPlayers , team.GetPlayers
+:ceil, :Rand, :random, :max, :min, :sqrt = math
 :Create, :FindByClass, :FindInSphere = ents
-:Rand, :random, :max, :min, :sqrt = math
 :Empty, :Random, :Shuffle = table
 player_GetAll = player.GetAll
 timer_Simple = timer.Simple
@@ -1176,12 +1175,8 @@ do
             if IsValid( phys )
                 phys\ApplyForceOffset( velocity, damageInfo\GetDamagePosition! )
 
-do
-
-    :ceil = math
-
-    GM.GetFallDamage = ( ply, speed ) =>
-        return max( 0, ceil( 0.2418 * speed - 141.75 ) )
+GM.GetFallDamage = ( ply, speed ) =>
+    return max( 0, ceil( 0.2418 * speed - 141.75 ) )
 
 GM.PlayerShouldTaunt = ( ply ) =>
     return ply\IsInGame!
@@ -1723,7 +1718,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 elseif teamID == TEAM_PRISONER
                     prisonerCount += 1
 
-            desiredGuardCount = math.ceil( prisonerCount / prisonersPerGuard )
+            desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
 
             while ( ( guardCount + prisonerCount ) - desiredGuardCount ) > prisonersPerGuard and guardCount > desiredGuardCount
                 guards = {}
@@ -1748,7 +1743,7 @@ GM.RoundStateChanged = ( old, new ) =>
                     elseif teamID == TEAM_PRISONER
                         prisonerCount += 1
 
-                desiredGuardCount = math.ceil( prisonerCount / prisonersPerGuard )
+                desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
 
             if guardCount == 0 or prisonerCount == 0
                 Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
