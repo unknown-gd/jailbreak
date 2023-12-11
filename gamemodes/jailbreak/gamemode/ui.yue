@@ -505,7 +505,7 @@ do
                 HideGameUI!
 
     PANEL.PerformLayout = ( width, height ) =>
-        @SetSize( ScrW! * 0.5, ScrH! * 0.5 )
+        @SetSize( Jailbreak.ScreenWidth * 0.5, Jailbreak.ScreenHeight * 0.5 )
         @Center!
 
     PANEL.Paint = ( width, height ) =>
@@ -563,7 +563,7 @@ do
             window\SetSize( 960, 700 )
             window\Center!
 
-            window\SetSize( min( ScrW! - 16, window\GetWide! ), min( ScrH! - 16, window\GetTall! ) )
+            window\SetSize( min( Jailbreak.ScreenWidth - 16, window\GetWide! ), min( Jailbreak.ScreenHeight - 16, window\GetTall! ) )
             window\SetMinWidth( window\GetWide! )
             window\SetMinHeight( window\GetTall! )
             window\SetSizable( true )
@@ -1104,7 +1104,7 @@ do
                     remove( markers, index )
                     continue
 
-            scale = max( 4, ( origin\Distance( eyePos ) ) / ScrW! * 64 ) * fraction
+            scale = max( 4, ( origin\Distance( eyePos ) ) / Jailbreak.ScreenWidth * 64 ) * fraction
             amplitude = data.amplitude
 
             IgnoreZ( true )

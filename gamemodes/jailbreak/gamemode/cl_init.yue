@@ -189,6 +189,19 @@ do
 
 do
 
+    ScrW, ScrH = ScrW, ScrH
+
+    width, height = ScrW!, ScrH!
+    Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
+    Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
+
+    hook.Add "OnScreenSizeChanged", "Jailbreak::OnScreenSizeChanged", ->
+        width, height = ScrW!, ScrH!
+        Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
+        Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
+
+do
+
     PLAYER = FindMetaTable( "Player" )
     PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
 
@@ -224,14 +237,15 @@ do
 
             str = format( str, remainingTime )
 
-        draw.DrawText( upper( str ), "DermaLarge", ScrW! / 2, 32, white, TEXT_ALIGN_CENTER )
+        screenCenterX = Jailbreak.ScreenCenterX
+        draw.DrawText( upper( str ), "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
 
         if state == ROUND_ENDED
             teamID = Jailbreak.GetWinningTeam!
             if Jailbreak.Teams[ teamID ]
-                draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", ScrW! / 2, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
+                draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
             else
-                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", ScrW! / 2, 64, colors.light_grey, TEXT_ALIGN_CENTER )
+                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, colors.light_grey, TEXT_ALIGN_CENTER )
 
     do
 
@@ -318,9 +332,8 @@ do
             SetFont( font )
             width, height = GetTextSize( text )
 
-            screenCenterX, screenCenterY = ScrW! / 2, ScrH! / 2
-            x = screenCenterX - width / 2
-            y = screenCenterY + 30
+            x = Jailbreak.ScreenCenterX - width / 2
+            y = Jailbreak.ScreenCenterY + 30
 
             black.a = 120
             SimpleText( text, font, x + 1, y + 1, black )
@@ -345,7 +358,7 @@ do
                 text = "#jb.team.dead"
 
             width, height = GetTextSize( text )
-            x = screenCenterX - width / 2
+            x = Jailbreak.ScreenCenterX - width / 2
 
             black.a = 120
             SimpleText( text, font, x + 1, y + 1, black )
