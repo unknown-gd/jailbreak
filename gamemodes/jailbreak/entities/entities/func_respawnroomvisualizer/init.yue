@@ -1,9 +1,4 @@
 ENT.Type = "brush"
-ENT.Teams = {
-    [ 1 ]: TEAM_SPECTATOR
-    [ 2 ]: TEAM_PRISONER
-    [ 3 ]: TEAM_GUARD
-}
 
 ENT.Initialize = =>
     @SetCustomCollisionCheck( true )
@@ -28,7 +23,7 @@ ENT.KeyValue = ( key, value ) =>
                 for entity in *ents.FindByName( value )
                     teamID = entity.Team
                     if teamID
-                        @SetNW2Int( "team", @Teams[ tonumber( teamID ) or 0 ] )
+                        @SetNW2Int( "team", Jailbreak.TF2Team( tonumber( teamID ) or 0 ) )
                         break
         when "StartDisabled"
             @SetDisabled( tobool( value ) )
