@@ -402,7 +402,7 @@ do
 
         ragdoll.Team = @Team!
 
-        if @Alive!
+        if @IsInGame!
             ragdoll.Alive = true
             ragdoll.PlayerAngles = @EyeAngles!
 
@@ -520,8 +520,10 @@ GM.ShockCollarEffect = ( ply ) =>
 
 GM.ShockCollars = ( bool ) =>
     for ply in *player_GetAll!
-        if ply\Alive! and ply\HasShockCollar!
-            Jailbreak.SendChatText( ply, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+        if ply\IsInGame! and ply\HasShockCollar!
+            unless ply\IsBot!
+                Jailbreak.SendChatText( ply, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+
             @ShockCollarEffect( ply )
 
 GM.ShowTeam = ( ply ) =>
@@ -908,8 +910,12 @@ do
         ply\SetPos( vector_origin )
 
 GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
+    teamID = ply\Team!
+    unless Jailbreak.Teams[ teamID ]
+        return true
+
     if entity\GetClass! == "info_player_teamspawn"
-        if entity.Disabled or Jailbreak.TF2Team( entity.Team ) ~= ply\Team!
+        if entity.Disabled or Jailbreak.TF2Team( entity.Team ) ~= teamID
             return false
 
     mins, maxs = ply\GetHull!
@@ -931,10 +937,11 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     unless traceEntity\IsValid!
         return true
 
-    if traceEntity\IsPlayer! and traceEntity\Alive!
+    if traceEntity\IsPlayer! and traceEntity\IsInGame!
         if makeSuitable
             traceEntity\Kill!
             return true
+
         return false
 
     return true
@@ -1074,8 +1081,9 @@ do
         if entity\IsPlayer!
             if entity\Alive!
                 teamID = entity\Team!
-                if hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
+                if Jailbreak.Teams[ teamID ] and hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
                     return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
+
             return true
 
         if band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
@@ -1216,7 +1224,7 @@ GM.CanPlayerSuicide = ( ply ) =>
     return ply\IsInGame!
 
 GM.PlayerSwitchFlashlight = ( ply, newState ) =>
-    return not newState or ( ( Classic or ply\CanUseFlashlight! ) and ply\Alive! )
+    return not newState or ( ( Classic or ply\CanUseFlashlight! ) and ply\IsInGame! )
 
 GM.PlayerDeathSound = ( ply ) =>
     if Classic or ply\IsGuard!
@@ -1549,7 +1557,7 @@ do
         unless Jailbreak.Markers\GetBool!
             return
 
-        unless IsValid( @ ) and @Alive!
+        unless IsValid( @ ) and @IsInGame!
             return
 
         if @NextMarker and CurTime! < @NextMarker
@@ -1845,7 +1853,7 @@ concommand.Add "jb_warden", ( _, args ) =>
     unless IsValid( @ )
         return
 
-    unless Jailbreak.IsRoundRunning! and @Alive! and @IsGuard!
+    unless Jailbreak.IsRoundRunning! and @IsGuard! and @Alive!
         @SendNotify( "#jb.error.warden-failure", NOTIFY_ERROR, 10 )
         return
 
@@ -1869,7 +1877,7 @@ concommand.Add "jb_shock_collars", ( _, args ) =>
     unless IsValid( @ )
         return
 
-    unless Jailbreak.IsRoundRunning! and @Alive! and @IsWarden!
+    unless Jailbreak.IsRoundRunning! and @IsInGame! and @IsWarden!
         @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
         return
 
@@ -2167,7 +2175,7 @@ GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
         if entity\IsOnFire!
             entity\Extinguish!
 
-        if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
+        if old < new and new == 3 and entity\IsPlayer! and entity\IsInGame!
             entity.DrownDamageTime = CurTime! + random( 15, 45 )
 
 do
@@ -2176,14 +2184,8 @@ do
     damageInfo\SetDamageType( DMG_DROWN )
 
     GM.PlayerPostThink = ( ply ) =>
-        if ply\Alive! and ( ply.NextEyeTargetTime or 0 ) < CurTime!
-            ply.NextEyeTargetTime = CurTime! + 0.1
-
-            traceResult = ply\GetEyeTrace!
-            if traceResult.Hit
-                nextEyePos = LerpVector( 0.5, ply.LastEyePos or Vector!, traceResult.HitPos )
-                ply\SetEyeTarget( nextEyePos )
-                ply.LastEyePos = nextEyePos
+        unless ply\IsInGame!
+            return
 
         if ply\IsUnderwater! and ( ply.DrownDamageTime or 0 ) < CurTime!
             ply.DrownDamageTime = CurTime! + 0.5
@@ -2191,3 +2193,15 @@ do
             damageInfo\SetDamage( max( 5, ply\Health! * 0.1 ) )
             ply\EmitSound( "Player.DrownContinue" )
             ply\TakeDamageInfo( damageInfo )
+
+        if ply\IsBot!
+            return
+
+        if ( ply.NextEyeTargetTime or 0 ) < CurTime!
+            ply.NextEyeTargetTime = CurTime! + 0.1
+
+            traceResult = ply\GetEyeTrace!
+            if traceResult.Hit
+                nextEyePos = LerpVector( 0.5, ply.LastEyePos or Vector!, traceResult.HitPos )
+                ply\SetEyeTarget( nextEyePos )
+                ply.LastEyePos = nextEyePos
