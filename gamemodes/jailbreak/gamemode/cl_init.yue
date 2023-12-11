@@ -2,7 +2,7 @@ include( "shared.lua" )
 include( "ui.lua" )
 
 string = string
-:Approach, :Clamp, :Rand, :abs, :sin = math
+:Approach, :Clamp, :Rand, :abs, :sin, :min = math
 :format, :find, :upper = string
 RunConsoleCommand = RunConsoleCommand
 LocalPlayer = LocalPlayer
@@ -652,22 +652,39 @@ do
 
             return
 
-        value = Jailbreak.FunnyMouthAnimations\GetInt!
-        if value > 0
-            angles = nil
-            if frac > 0
-                lastFunnyAngles = ply.FunnyAngles or Angle!
-                newAngle = Angle( Rand( -90, 90 ), Rand( -180, 180 ), 0 ) / 2
-                angles = LerpAngle( 0.25, lastFunnyAngles, newAngle * frac )
-                ply.FunnyAngles = angles
-            else
-                angles = angle_zero
+        value = Jailbreak.MouthLessAnimations\GetInt!
+        if value == 0
+            return
 
-            if value > 1
-                ply\ManipulateBoneAngles( 0, angles, false )
+        angles = Angle!
+        if frac > 0
+            if value <= 2
+                angles[ 1 ] = Rand( -90, 90 )
+                angles[ 2 ] = Rand( -180, 180 )
+                angles[ 3 ] = 0
+
+            elseif value <= 5
+                angle = min( 720, value * 144 )
+                angles[ 1 ] = Rand( -angle, angle )
+                angles[ 2 ] = Rand( -angle, angle )
+                angles[ 3 ] = 0
+
             else
-                boneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
-                if boneID and boneID >= 0
-                    ply\ManipulateBoneAngles( boneID, angles, false )
-                else
-                    ply\ManipulateBoneAngles( 0, angles, false )
+                angle = min( 720, value * 72 )
+                angles[ 1 ] = Rand( -angle, angle )
+                angles[ 2 ] = Rand( -angle, angle )
+                angles[ 3 ] = Rand( -angle, angle )
+
+            angles = ( angles / 2 ) * frac
+
+        angles = LerpAngle( 0.25, ply.MouthLessAngles or angle_zero, angles )
+        ply.MouthLessAngles = angles
+
+        if value > 1
+            ply\ManipulateBoneAngles( 0, angles, false )
+        else
+            boneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
+            if boneID and boneID >= 0
+                ply\ManipulateBoneAngles( boneID, angles, false )
+            else
+                ply\ManipulateBoneAngles( 0, angles, false )
