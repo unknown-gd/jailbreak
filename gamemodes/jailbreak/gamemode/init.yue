@@ -1310,8 +1310,9 @@ GM.PlayerUse = ( ply, entity ) =>
     unless Classic
         weapon = ply\GetActiveWeapon!
         if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
-            velocity = ply\GetVelocity!\GetNormalized! * 16
-            entity\SetVelocity( velocity )
+            velocity = ply\GetVelocity!
+            velocity = velocity\GetNormalized! * ( velocity\Length2D! / 2 )
+            entity\SetVelocity( velocity * 2 )
             ply\SetVelocity( -velocity )
             return false
 
