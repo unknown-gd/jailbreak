@@ -9,6 +9,7 @@ hook_Add = hook.Add
 hook_Run = hook.Run
 IsValid = IsValid
 surface = surface
+:GetAll = player
 Vector = Vector
 pairs = pairs
 
@@ -942,7 +943,8 @@ do
 
     Distance = FindMetaTable( "Vector" ).Distance
     :SetMaterial, :DrawSprite = render
-    player_GetAll = player.GetAll
+    LocalToWorld = LocalToWorld
+    angle_zero = angle_zero
     Material = Material
     CurTime = CurTime
     :remove = table
@@ -1034,7 +1036,7 @@ do
 
         eyePos = EyePos!
 
-        for ply in *player_GetAll!
+        for ply in *GetAll!
             unless ply\IsInGame!
                 continue
 
@@ -1046,13 +1048,13 @@ do
 
             headBoneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
             if headBoneID and headBoneID >= 0
-                origin = ply\GetBonePosition( headBoneID )
+                origin, angles = ply\GetBonePosition( headBoneID )
 
                 hitboxset = ply\GetHitboxSet!
                 for hitbox = 0, ply\GetHitBoxCount( hitboxset )
                     if headBoneID == ply\GetHitBoxBone( hitbox, hitboxset )
                         mins, maxs = ply\GetHitBoxBounds( hitbox, hitboxset )
-                        origin[ 3 ] = origin[ 3 ] + ( abs( mins[ 3 ] ) + abs( maxs[ 3 ] ) ) * 2
+                        origin = LocalToWorld( ( maxs + mins ) / 2, angle_zero, origin, angles ) + angles\Forward! * ( maxs[ 3 ] - mins[ 3 ] ) * 1.5
                         break
 
             else
@@ -1201,7 +1203,7 @@ do
 --     PANEL.CreatePlayers = =>
 --         @DeletePlayers!
 
---         for ply in *player.GetAll!
+--         for ply in *GetAll!
 --             unless IsValid( ply )
 --                 continue
 
