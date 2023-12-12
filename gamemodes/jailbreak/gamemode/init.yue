@@ -1732,10 +1732,17 @@ GM.RoundStateChanged = ( old, new ) =>
     		timer.Simple( 0, game.CleanUpMap )
 
         when ROUND_RUNNING
-            Jailbreak.SetShockCollars( true )
-
-            prisonersPerGuard = Jailbreak.GuardsDiff\GetInt!
             players = player_GetAll!
+
+            for ply in *players
+                if ply\IsBot!
+                    for i = 1, 2
+                        if Jailbreak.TeamIsJoinable( i )
+                            if ply\Team! ~= i
+                                ply\SetTeam( i )
+                                ply\KillSilent!
+
+                            break
 
             guardCount, prisonerCount = 0, 0
             for ply in *players
@@ -1745,12 +1752,13 @@ GM.RoundStateChanged = ( old, new ) =>
                 elseif teamID == TEAM_PRISONER
                     prisonerCount += 1
 
+            prisonersPerGuard = Jailbreak.GuardsDiff\GetInt!
             desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
 
             while ( ( guardCount + prisonerCount ) - desiredGuardCount ) > prisonersPerGuard and guardCount > desiredGuardCount
                 guards = {}
                 for ply in *players
-                    if teamID == TEAM_GUARD
+                    if ply\IsGuard!
                         guards[] = ply
 
                 length = #guards
@@ -1777,14 +1785,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 return
 
             guards = {}
-            for ply in *player_GetAll!
-                if ply\IsBot!
-                    for i = 1, 2
-                        if Jailbreak.TeamIsJoinable( i )
-                            ply\SetTeam( i )
-                            ply\Spawn!
-                            break
-
+            for ply in *players
                 teamID = ply\Team!
                 if Jailbreak.Teams[ teamID ]
                     if teamID == TEAM_GUARD
@@ -1797,26 +1798,17 @@ GM.RoundStateChanged = ( old, new ) =>
 
             if #guards == 1
                 guards[ 1 ]\SetWarden( true )
+            Jailbreak.SetShockCollars( true )
 
             roundTime = @RoundTime\GetInt!
             if roundTime > 0
                 Jailbreak.SetRoundTime( roundTime )
 
         when ROUND_ENDED
-            guardCount, prisonerCount = 0, 0
-            for ply in *players
-                unless ply\Alive!
-                    continue
-
-                teamID = ply\Team!
-                if teamID == TEAM_GUARD
-                    guardCount += 1
-                elseif teamID == TEAM_PRISONER
-                    prisonerCount += 1
-
-            if guardCount > prisonerCount
+            teams = Jailbreak.GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+            if teams[ 1 ] > teams[ 2 ]
                 Jailbreak.SetWinningTeam( TEAM_GUARD )
-            elseif guardCount < prisonerCount
+            elseif teams[ 1 ] < teams[ 2 ]
                 Jailbreak.SetWinningTeam( TEAM_PRISONER )
             else
                 Jailbreak.SetWinningTeam( 0 )
@@ -1851,7 +1843,8 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
         unless Jailbreak.IsRoundRunning!
             return
 
-        if Jailbreak.GetPlayersCount( teamID, true ) == 0
+        teams = Jailbreak.GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+        if teams[ 1 ] == 0 or teams[ 2 ] == 0
             Jailbreak.SetRoundState( ROUND_ENDED )
         elseif isWarden and ply\IsValid!
             hook_Run( "WardenChanged", ply, false )
@@ -1875,13 +1868,16 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
         unless Jailbreak.IsRoundRunning!
             return
 
-        if Jailbreak.GetPlayersCount( TEAM_GUARD, true ) == 0 or Jailbreak.GetPlayersCount( TEAM_PRISONER, true ) == 0
+        teams = Jailbreak.GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+        if teams[ 1 ] == 0 or teams[ 2 ] == 0
             Jailbreak.SetRoundState( ROUND_ENDED )
 
 GM.TeamPlayerSpawn = ( ply ) =>
-    if Jailbreak.IsWaitingPlayers! and Jailbreak.GetPlayersCount( TEAM_GUARD, true ) > 0 and Jailbreak.GetPlayersCount( TEAM_PRISONER, true ) > 0
-        Jailbreak.SetRoundState( ROUND_PREPARING )
-        Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
+    if Jailbreak.IsWaitingPlayers!
+        teams = Jailbreak.GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+        if teams[ 1 ] > 0 and teams[ 2 ] > 0
+            Jailbreak.SetRoundState( ROUND_PREPARING )
+            Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
 
     Jailbreak.AddSpectateTarget( ply )
 

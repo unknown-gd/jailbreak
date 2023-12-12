@@ -162,6 +162,42 @@ Jailbreak.GetPlayersCount = ( teamID, alive ) ->
 
     return count
 
+Jailbreak.GetTeamPlayers = ( alive, ... ) ->
+    teams, players = { ... }, GetAll!
+    for index, teamID in ipairs( teams )
+        tbl, length = {}, 0
+
+        for ply in *players
+            if ply\Team! ~= teamID
+                continue
+
+            if alive ~= nil and ply\Alive! ~= alive
+                continue
+
+            length += 1
+            tbl[ length ] = ply
+
+        teams[ index ] = tbl
+
+    return teams
+
+Jailbreak.GetTeamPlayersCount = ( alive, ... ) ->
+    teams, players = { ... }, GetAll!
+    for index, teamID in ipairs( teams )
+        count = 0
+        for ply in *players
+            if ply\Team! ~= teamID
+                continue
+
+            if alive ~= nil and ply\Alive! ~= alive
+                continue
+
+            count += 1
+
+        teams[ index ] = count
+
+    return teams
+
 Jailbreak.GetWarden = ->
     warden = Jailbreak.Warden
     if IsValid( warden ) and warden\IsWarden! and warden\IsInGame!
