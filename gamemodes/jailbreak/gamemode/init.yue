@@ -227,11 +227,6 @@ do
 
 Jailbreak.SpectateTargets = Jailbreak.SpectateTargets or {}
 
-GM.PostCleanupMap = =>
-    targets = Jailbreak.SpectateTargets
-    for key in pairs( targets )
-        targets[ key ] = nil
-
 Jailbreak.AddSpectateTarget = =>
     if IsValid( @ )
         Jailbreak.RemoveSpectateTarget( @ )
@@ -1050,29 +1045,45 @@ do
         if ply\HasShockCollar! and band( damageType, DMG_SHOCK ) == DMG_SHOCK
             ply\SetShockCollar( false )
 
-        unless Jailbreak.IsShockCollarsActive!
-            return
-
         attacker = damageInfo\GetAttacker!
-        if attacker\IsValid! and attacker\IsPlayer! and attacker\HasShockCollar! and attacker ~= ply
-            for int in *@CloseRangeDamageTypes
-                if band( damageType, int ) == int
-                    damage = damageInfo\GetDamage!
+        attackerIsPlayer = attacker\IsValid! and attacker\IsPlayer!
 
-                    newDamage = damage * @ShockCollarAttackerDamage\GetFloat!
-                    if newDamage >= 1
-                        @ShockCollarEffect( attacker )
-                        damageInfo\SetDamage( newDamage )
-                        damageInfo\SetDamageType( DMG_SONIC )
-                        attacker\TakeDamageInfo( damageInfo )
+        isCloseRangeDamage = false
+        for int in *@CloseRangeDamageTypes
+            if band( damageType, int ) == int
+                isCloseRangeDamage = true
+                break
 
-                    newDamage = damage * @ShockCollarVictimDamage\GetFloat!
-                    if newDamage < 1
-                        return true
+        if Jailbreak.IsShockCollarsActive! and attackerIsPlayer and isCloseRangeDamage and attacker\HasShockCollar! and attacker ~= ply
+            damage = damageInfo\GetDamage!
 
-                    damageInfo\SetDamageType( damageType )
-                    damageInfo\SetDamage( newDamage )
-                    break
+            newDamage = damage * @ShockCollarAttackerDamage\GetFloat!
+            if newDamage >= 1
+                @ShockCollarEffect( attacker )
+                damageInfo\SetDamage( newDamage )
+                damageInfo\SetDamageType( DMG_SONIC )
+                attacker\TakeDamageInfo( damageInfo )
+
+            newDamage = damage * @ShockCollarVictimDamage\GetFloat!
+            if newDamage < 1
+                return true
+
+            damageInfo\SetDamageType( damageType )
+            damageInfo\SetDamage( newDamage )
+
+        inflictor = damageInfo\GetInflictor!
+        if inflictor\IsValid! and inflictor\IsScripted!
+            velocity = damageInfo\GetDamageForce!
+            if velocity\Length! < 1
+                return
+
+            if Jailbreak.PowerfulPlayers and attackerIsPlayer and isCloseRangeDamage
+                velocity *= 3
+
+            velocity[ 1 ] /= 10
+            velocity[ 2 ] /= 10
+            velocity[ 3 ] /= 8
+            ply\SetVelocity( velocity )
 
 GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
     if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and ( not entity\IsInGame! or entity\GetVelocity!\Length! > 800 ) ) )
@@ -1181,14 +1192,15 @@ do
 
                 return true
 
-        if entity\GetNoDraw! or not entity\IsSolid!
+        velocity = damageInfo\GetDamageForce!
+        if velocity\Length! < 1
             return
 
-        velocity = damageInfo\GetDamageForce!
+        origin = damageInfo\GetDamagePosition!
         for physNum = 0, entity\GetPhysicsObjectCount! - 1 do
             phys = entity\GetPhysicsObjectNum( physNum )
             if IsValid( phys )
-                phys\ApplyForceOffset( velocity, damageInfo\GetDamagePosition! )
+                phys\ApplyForceOffset( velocity, origin )
 
 GM.GetFallDamage = ( ply, speed ) =>
     return max( 0, ceil( 0.2418 * speed - 141.75 ) )
@@ -1715,6 +1727,10 @@ GM.RoundStateChanged = ( old, new ) =>
         when ROUND_WAITING_PLAYERS
             Jailbreak.SetShockCollars( false )
 
+            targets = Jailbreak.SpectateTargets
+            for key in pairs( targets )
+                targets[ key ] = nil
+
             for ply in *player_GetAll!
                 if ply\IsInGame!
                     ply\KillSilent!
@@ -1878,13 +1894,13 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
             Jailbreak.SetRoundState( ROUND_ENDED )
 
 GM.TeamPlayerSpawn = ( ply ) =>
+    Jailbreak.AddSpectateTarget( ply )
+
     if Jailbreak.IsWaitingPlayers!
         teams = Jailbreak.GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
         if teams[ 1 ] > 0 and teams[ 2 ] > 0
             Jailbreak.SetRoundState( ROUND_PREPARING )
             Jailbreak.SetRoundTime( @PrepareTime\GetInt! )
-
-    Jailbreak.AddSpectateTarget( ply )
 
 concommand.Add "changeteam", ( _, args ) =>
     hook_Run( "PlayerRequestTeam", @, tonumber( args[ 1 ] ) )
