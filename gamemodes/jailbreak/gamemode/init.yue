@@ -45,9 +45,8 @@ math, table, team = math, table, team
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
 :Create, :FindByClass, :FindInSphere = ents
 :ceil, :Rand, :random, :max, :min = math
-:Empty, :Random, :Shuffle = table
 player_GetAll = player.GetAll
-timer_Simple = timer.Simple
+:Empty, :Shuffle = table
 hook_Run = hook.Run
 tonumber = tonumber
 istable = istable
@@ -56,6 +55,7 @@ IsValid = IsValid
 Vector = Vector
 ipairs = ipairs
 string = string
+timer = timer
 
 colors = Jailbreak.Colors
 :white = colors
@@ -363,11 +363,18 @@ do
             weapon\Spawn!
             weapon\Activate!
 
-            if weapon\IsWeapon!
-                if noAmmo
-                    weapon\SetClip1( 0 )
-                    weapon\SetClip2( 0 )
-                @PickupWeapon( weapon, false )
+            unless weapon\IsWeapon!
+                return weapon
+
+            if hook_Run( "PlayerCanPickupWeapon", @, weapon ) == false
+                weapon\Remove!
+                return NULL
+
+            if noAmmo
+                weapon\SetClip1( 0 )
+                weapon\SetClip2( 0 )
+
+            @PickupWeapon( weapon, false )
             return weapon
 
     PLAYER.SetMutedByWarden = ( bool ) =>
@@ -622,7 +629,7 @@ GM.MigrationPlayerFromRagdoll = ( ply, ragdoll ) =>
 
     ply\KillSilent!
 
-    timer_Simple 0, ->
+    timer.Simple 0, ->
         unless ply\IsValid! and ragdoll\IsValid!
             return
 
@@ -750,7 +757,7 @@ GM.OnEntityCreated = ( entity ) =>
     unless entity\IsWeapon!
         return
 
-    timer_Simple 0.025, ->
+    timer.Simple 0.025, ->
         unless entity\IsValid!
             return
 
@@ -827,7 +834,7 @@ do
                 gived = {}
 
                 while count > 0
-                    className = Random( avaliableWeapons )
+                    className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
                     if ply\HasWeapon( className ) or gived[ className ]
                         continue
 
@@ -869,7 +876,7 @@ do
             ply\SetModel( models[ 1 ] )
             return
 
-        ply\SetModel( Random( models ) )
+        ply\SetModel( models[ random( 1, #models ) ] )
 
 GM.PlayerSetHandsModel = ( ply, hands ) =>
     info = player_manager.TranslatePlayerHands( player_manager.TranslateToPlayerModelName( ply\GetModel! ) )
@@ -977,7 +984,7 @@ GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
             if IsValid( phys )
                 phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
-        timer_Simple 0, ->
+        timer.Simple 0, ->
             unless ply\IsValid! and ragdoll\IsValid!
                 return
 
@@ -1710,7 +1717,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 if ply\IsBot! or ply\IsGuard!
                     ply\SetTeam( TEAM_PRISONER )
 
-    		timer_Simple( 0, game.CleanUpMap )
+    		timer.Simple( 0, game.CleanUpMap )
 
         when ROUND_PREPARING
             Jailbreak.SetShockCollars( true )
@@ -1722,7 +1729,7 @@ GM.RoundStateChanged = ( old, new ) =>
                 if Jailbreak.Teams[ ply\Team! ]
                     ply\Spawn!
 
-    		timer_Simple( 0, game.CleanUpMap )
+    		timer.Simple( 0, game.CleanUpMap )
 
         when ROUND_RUNNING
             Jailbreak.SetShockCollars( true )
@@ -1796,7 +1803,17 @@ GM.RoundStateChanged = ( old, new ) =>
                 Jailbreak.SetRoundTime( roundTime )
 
         when ROUND_ENDED
-            guardCount, prisonerCount = Jailbreak.GetPlayersCount( TEAM_GUARD, true ), Jailbreak.GetPlayersCount( TEAM_PRISONER, true )
+            guardCount, prisonerCount = 0, 0
+            for ply in *players
+                unless ply\Alive!
+                    continue
+
+                teamID = ply\Team!
+                if teamID == TEAM_GUARD
+                    guardCount += 1
+                elseif teamID == TEAM_PRISONER
+                    prisonerCount += 1
+
             if guardCount > prisonerCount
                 Jailbreak.SetWinningTeam( TEAM_GUARD )
             elseif guardCount < prisonerCount
@@ -1847,6 +1864,12 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
     unless ply\Alive!
         return
 
+    Jailbreak.RemoveSpectateTarget( ply )
+    ply\CreateServersideRagdoll!
+
+    if ply\IsWarden!
+        ply\SetWarden( false )
+
     timer.Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
         timer.Remove "Jailbreak::TeamPlayerDisconnected"
         unless Jailbreak.IsRoundRunning!
@@ -1854,9 +1877,6 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
 
         if Jailbreak.GetPlayersCount( TEAM_GUARD, true ) == 0 or Jailbreak.GetPlayersCount( TEAM_PRISONER, true ) == 0
             Jailbreak.SetRoundState( ROUND_ENDED )
-
-    Jailbreak.RemoveSpectateTarget( ply)
-    ply\CreateServersideRagdoll!
 
 GM.TeamPlayerSpawn = ( ply ) =>
     if Jailbreak.IsWaitingPlayers! and Jailbreak.GetPlayersCount( TEAM_GUARD, true ) > 0 and Jailbreak.GetPlayersCount( TEAM_PRISONER, true ) > 0
@@ -2024,7 +2044,7 @@ do
                 EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/%w+%.mdl", 5 ), =>
                     @SetSlotName( @GetClass! )
 
-                    timer_Simple 0, ->
+                    timer.Simple 0, ->
                         if @IsValid!
                             @SetKey( 12 )
 
@@ -2047,7 +2067,7 @@ do
         global PropReplaceFilter = replaceFilter
         Jailbreak.Addons = Addons
 
-        timer_Simple 0, ->
+        timer.Simple 0, ->
             for addon in *engine.GetAddons!
                 unless addon.downloaded and addon.mounted
                     continue
@@ -2173,7 +2193,7 @@ do
         Jailbreak.SetChatCommand "/", Command
 
     concommand.Add "jb_force_round", ( _, args ) =>
-        if IsValid( ply ) and not ply\IsSuperAdmin!
+        if IsValid( @ ) and not @IsSuperAdmin!
             return
 
         index = args[ 1 ]

@@ -739,13 +739,16 @@ do
         else
             file.Write( fileName, util.TableToJSON( Weapons, true ) )
 
-    AvaliableWeapons = {}
-    GM.AvaliableWeapons = AvaliableWeapons
+    avaliableWeapons = GM.AvaliableWeapons
+    unless istable( avaliableWeapons )
+        avaliableWeapons = {}
+        GM.AvaliableWeapons = avaliableWeapons
+
     WeaponHandler = WeaponHandler
 
     GM.PreGamemodeLoaded = =>
         for className, alternatives in pairs( Weapons.Classes )
-            AvaliableWeapons[] = className
+            avaliableWeapons[] = className
 
             alternative = WeaponHandler( className, alternatives, Weapons.Offsets ).Alternative
             unless alternative
