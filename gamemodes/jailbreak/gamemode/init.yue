@@ -1090,6 +1090,11 @@ do
         if band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
             return true
 
+        if Jailbreak.PowerfulPlayers
+            attacker = damageInfo\GetAttacker!
+            if attacker\IsValid! or attacker\IsPlayer!
+                damageInfo\ScaleDamage( 2 )
+
         if entity\IsPlayer!
             if entity\Alive!
                 teamID = entity\Team!

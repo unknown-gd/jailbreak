@@ -106,6 +106,8 @@ SWEP.HitMaterial = ( matType, owner, origin ) =>
         damageInfo\SetAttacker( owner )
         damageInfo\SetDamagePosition( origin )
         damageInfo\SetDamage( math.ceil( owner\Health! * ( damage / 100 ) ) )
+        damageInfo\SetDamageForce( owner\GetAimVector! * -( Jailbreak.PowerfulPlayers and 1000 or 100 ) )
+        util.ScreenShake( owner\EyePos!, 12, 120, 0.5, 32 )
 
         if matType == MAT_COMPUTER
             damageInfo\SetDamageType( DMG_SHOCK )

@@ -244,3 +244,17 @@ do
                 message[ index ] = utf8.sub( text, i, i )
 
             Jailbreak.SendChatText( ply, white, "+ ", unpack( message ) )
+
+do
+
+    event = Jailbreak.RegisterEvent "powerful-players", ->
+            Jailbreak.PowerfulPlayers = true
+            return true, false,
+        ->
+            Jailbreak.PowerfulPlayers = false
+
+    event\SetStartState( ROUND_RUNNING )
+    event\SetFinishState( ROUND_ENDED )
+    event\SetColor( colors.red )
+    event\SetType( "damage" )
+    event\ConVar( 5 )
