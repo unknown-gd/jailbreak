@@ -959,15 +959,25 @@ do
     BricksIcon = Material( "icon16/bricks.png", "mips" )
     WorldIcon = Material( "icon16/world.png", "mips" )
     DoorIcon = Material( "icon16/door.png", "mips" )
-    KeyboardIcon = Material( "icon16/keyboard.png", "mips" )
     ImageIcon = Material( "icon16/image.png", "mips" )
-    FootballIcon = Material( "icon16/sport_basketball.png", "mips" )
     PhotoIcon = Material( "icon16/photo.png", "mips" )
-    UserDeleteIcon = Material( "icon16/user_delete.png", "mips" )
     GunIcon = Material( "icon16/gun.png", "mips" )
-    DrinkIcon = Material( "icon16/drink.png", "mips" )
+    ErrorIcon = Material( "icon16/error.png", "mips" )
 
     markers = {}
+
+    classNames = {
+        ["class C_BaseEntity"]: Material( "icon16/keyboard.png", "mips" )
+        sent_soccerball: Material( "icon16/sport_basketball.png", "mips" )
+        prop_ragdoll: Material( "icon16/user_delete.png", "mips" )
+        jb_food: Material( "icon16/drink.png", "mips" )
+        prop_combine_ball: ErrorIcon
+        npc_grenade_frag: ErrorIcon
+        npc_satchel: ErrorIcon
+        crossbow_bolt: ErrorIcon
+        grenade_ar2: ErrorIcon
+        npc_tripmine: ErrorIcon
+    }
 
     net.Receive "Jailbreak::Markers", ->
         owner = net.ReadEntity!
@@ -1000,20 +1010,16 @@ do
                 else
 
                     className = entity\GetClass!
-                    if find( className, "^func_breakable", 1, false )
+
+                    classIcon = classNames[ className ]
+                    if classIcon
+                        material = classIcon
+                    elseif find( className, "^func_breakable", 1, false )
                         material = ImageIcon
-                    elseif className == "class C_BaseEntity"
-                        material = KeyboardIcon
                     elseif find( className, "^%w+_door", 1, false )
                         material = DoorIcon
-                    elseif className == "prop_ragdoll"
-                        material = UserDeleteIcon
                     elseif find( className, "^prop_physics.*", 1, false )
                         material = PhotoIcon
-                    elseif className == "sent_soccerball"
-                        material = FootballIcon
-                    elseif className == "jb_food"
-                        material = DrinkIcon
                     else
                         material = BricksIcon
 
