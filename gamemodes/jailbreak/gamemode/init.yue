@@ -43,8 +43,8 @@ resource.AddWorkshop( "643148462" )
 
 math, table, team = math, table, team
 :Effect, :IsValidModel, :IsInWorld, :TraceHull, :ScreenShake = util
-:ceil, :Rand, :random, :max, :min, :sqrt = math
 :Create, :FindByClass, :FindInSphere = ents
+:ceil, :Rand, :random, :max, :min = math
 :Empty, :Random, :Shuffle = table
 player_GetAll = player.GetAll
 timer_Simple = timer.Simple
@@ -920,9 +920,8 @@ GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
     unless Jailbreak.Teams[ teamID ]
         return true
 
-    if entity\GetClass! == "info_player_teamspawn"
-        if entity.Disabled or Jailbreak.TF2Team( entity.Team ) ~= teamID
-            return false
+    if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or Jailbreak.TF2Team( entity.Team ) ~= teamID )
+        return false
 
     mins, maxs = ply\GetHull!
     start = entity\GetPos!
@@ -1550,8 +1549,6 @@ do
 
     util.AddNetworkString( "Jailbreak::Markers" )
     :TraceLine = util
-    :remove = table
-    :sub = string
 
     concommand.Add "marker", =>
         unless Jailbreak.Markers\GetBool!

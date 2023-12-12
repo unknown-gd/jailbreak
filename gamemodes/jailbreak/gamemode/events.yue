@@ -1,9 +1,7 @@
 ErrorNoHaltWithStack = ErrorNoHaltWithStack
-:random, :Rand, :max = math
+:random, :Rand = math
 Jailbreak = Jailbreak
-hook_Run = hook.Run
 xpcall = xpcall
-pairs = pairs
 
 colors = Jailbreak.Colors
 :white = colors

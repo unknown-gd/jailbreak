@@ -1,4 +1,4 @@
-:abs, :ceil, :min, :max, :sin, :sqrt, :floor, :random, :Rand, :Round = math
+:ceil, :min, :max, :sin, :floor, :random, :Rand, :Round = math
 RunConsoleCommand = RunConsoleCommand
 :format, :upper, :find, :Explode = string
 LocalPlayer = LocalPlayer

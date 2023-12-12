@@ -871,7 +871,7 @@ GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
         hook_Run( "GrabEarAnimation", ply )
         hook_Run( "MouthMoveAnimation", ply )
 
-GM.PlayerFootstep = ( ply, pos, foot, sound, volume, rf ) =>
+GM.PlayerFootstep = ( ply, pos, foot, soundPath, volume, recipientFilter ) =>
     if ply\Crouching!
         return true
 

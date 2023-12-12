@@ -252,8 +252,6 @@ do
 
         :SetFont, :GetTextSize = surface
         black = Color( 0, 0, 0, 120 )
-        :GetCursorPos = input
-        :CursorVisible = vgui
         EyeAngles = EyeAngles
         MASK_SHOT = MASK_SHOT
         :SimpleText = draw
