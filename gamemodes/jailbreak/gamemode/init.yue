@@ -1043,6 +1043,7 @@ do
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         damageType = damageInfo\GetDamageType!
         if ply\HasShockCollar! and band( damageType, DMG_SHOCK ) == DMG_SHOCK
+            ply\SendNotify( "#jb.notify.shock-collar.broken", NOTIFY_ERROR, 10 )
             ply\SetShockCollar( false )
 
         attacker = damageInfo\GetAttacker!
