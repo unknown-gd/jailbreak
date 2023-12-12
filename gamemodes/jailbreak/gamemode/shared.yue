@@ -229,7 +229,7 @@ do
     Jailbreak.FixModelPath = ( modelPath ) ->
         return gsub( lower( modelPath ), "[\\/]+", "/" )
 
-GM.GuardModels = {
+GM.GuardMaleModels = {
     "models/player/gasmask.mdl"
     "models/player/riot.mdl"
     "models/player/swat.mdl"
@@ -393,28 +393,11 @@ do
     util_PrecacheModel = util.PrecacheModel
     util_IsValidModel = util.IsValidModel
 
-    guardModels = {}
-    for modelPath in *GM.GuardModels
+    maleGuards = {}
+    for modelPath in *GM.GuardMaleModels
         modelPath = Jailbreak.FixModelPath( modelPath )
         util_PrecacheModel( modelPath )
-        guardModels[] = modelPath
-
-    femaleModels = {}
-    for i = 1, 6
-        modelPath = Jailbreak.FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
-        util_PrecacheModel( modelPath )
-        femaleModels[] = modelPath
-
-    maleModels = {}
-    for i = 1, 9
-        modelPath = Jailbreak.FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
-        util_PrecacheModel( modelPath )
-        maleModels[] = modelPath
-
-    for i = 2, 8, 2
-        modelPath = Jailbreak.FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
-        util_PrecacheModel( modelPath )
-        maleModels[] = modelPath
+        maleGuards[] = modelPath
 
     femaleGuards = {}
     for modelPath in *GM.GuardFemaleModels
@@ -422,15 +405,32 @@ do
         util_PrecacheModel( modelPath )
         femaleGuards[] = modelPath
 
+    femalePrisoners = {}
+    for i = 1, 6
+        modelPath = Jailbreak.FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
+        util_PrecacheModel( modelPath )
+        femalePrisoners[] = modelPath
+
+    malePrisoners = {}
+    for i = 1, 9
+        modelPath = Jailbreak.FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
+        util_PrecacheModel( modelPath )
+        malePrisoners[] = modelPath
+
+    for i = 2, 8, 2
+        modelPath = Jailbreak.FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
+        util_PrecacheModel( modelPath )
+        malePrisoners[] = modelPath
+
     Jailbreak.PlayerModels = {
         [ TEAM_GUARD ]: {
-            [ false ]: guardModels
             [ true ]: femaleGuards
+            [ false ]: maleGuards
         }
 
         [ TEAM_PRISONER ]: {
-            [ true ]: femaleModels
-            [ false ]: maleModels
+            [ true ]: femalePrisoners
+            [ false ]: malePrisoners
         }
     }
 
