@@ -206,8 +206,8 @@ do
             if IsValid( @ ) and not @IsListenServerHost!
                 return
 
-            Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
             Jailbreak.LoadLocalization "resource/localization"
+            Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
 
     Jailbreak.Translate = ( str ) =>
         unless @IsValid! and @IsPlayer!
@@ -385,12 +385,16 @@ do
     PLAYER.CreateServersideRagdoll = =>
         @RemoveRagdoll!
 
-        modelPath = @GetModel!
-        unless IsValidModel( modelPath )
-            return NULL
-
         spawnOrigin = @WorldSpaceCenter!
         unless IsInWorld( spawnOrigin )
+            return NULL
+
+        modelPath = @GetModel!
+        unless modelPath
+            return NULL
+
+        modelPath = Jailbreak.FixModelPath( modelPath )
+        unless IsValidModel( modelPath )
             return NULL
 
         ragdoll = Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
@@ -1643,8 +1647,8 @@ do
             Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )
 
 GM.InitPostEntity = =>
-    Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
     Jailbreak.LoadLocalization "resource/localization"
+    Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
     RunConsoleCommand( "sv_defaultdeployspeed", "1" )
     RunConsoleCommand( "mp_show_voice_icons", "0" )
 
@@ -1938,7 +1942,7 @@ do
                 unless modelPath
                     return false
 
-                modelPath = lower( modelPath )
+                modelPath = Jailbreak.FixModelPath( modelPath )
                 unless IsValidModel( modelPath )
                     return false
 

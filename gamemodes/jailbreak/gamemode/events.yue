@@ -143,6 +143,7 @@ do
             hook.Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
                 modelPath = Random( Models )
                 if modelPath ~= nil
+                    modelPath = Jailbreak.FixModelPath( modelPath )
                     PrecacheModel( modelPath )
                     @SetModel( modelPath )
                     return true
