@@ -54,35 +54,31 @@ SWEP.HitEntity = ( entity, owner, origin ) =>
 
     if IsValid( entity )
         scale = phys_pushscale\GetFloat!
-        if entity\Health! > 0
 
-            attacker = owner
-            unless IsValid( attacker )
-                attacker = @
+        attacker = owner
+        unless IsValid( attacker )
+            attacker = @
 
-            damageInfo = DamageInfo!
-            damageInfo\SetInflictor( @ )
-            damageInfo\SetAttacker( attacker )
-            damageInfo\SetDamageType( DMG_SLASH )
-            damageInfo\SetDamage( math.random( @MinDamage\GetInt!, @MaxDamage\GetInt! ) )
+        damageInfo = DamageInfo!
+        damageInfo\SetInflictor( @ )
+        damageInfo\SetAttacker( attacker )
+        damageInfo\SetDamageType( DMG_SLASH )
+        damageInfo\SetDamage( math.random( @MinDamage\GetInt!, @MaxDamage\GetInt! ) )
+        damageInfo\SetDamagePosition( origin )
 
-            if anim == "fists_left"
-                damageInfo\SetDamageForce( owner\GetRight! * 4912 * scale + owner\GetForward! * 9998 * scale ) -- Yes we need those specific numbers
-            elseif anim == "fists_right"
-                damageInfo\SetDamageForce( owner\GetRight! * -4912 * scale + owner\GetForward! * 9989 * scale )
-            elseif anim == "fists_uppercut"
-                damageInfo\SetDamageForce( owner\GetUp! * 5158 * scale + owner\GetForward! * 10012 * scale )
-                damageInfo\ScaleDamage( 2 )
+        if anim == "fists_left"
+            damageInfo\SetDamageForce( ( owner\GetForward! + owner\GetRight! ) * 1000 * scale )
+        elseif anim == "fists_right"
+            damageInfo\SetDamageForce( ( owner\GetForward! - owner\GetRight! ) * 1000 * scale )
+        elseif anim == "fists_uppercut"
+            damageInfo\SetDamageForce( ( owner\GetForward! + owner\GetUp! ) * 1000 * scale )
+            damageInfo\ScaleDamage( 2 )
 
-            -- Let the breakable gibs spawn in multiplayer on client
-            SuppressHostEvents( NULL )
-            entity\TakeDamageInfo( damageInfo )
-            SuppressHostEvents( owner )
-            hit = true
-
-        phys = entity\GetPhysicsObject!
-        if IsValid( phys )
-            phys\ApplyForceOffset( owner\GetAimVector! * 80 * phys\GetMass! * scale, origin )
+        -- Let the breakable gibs spawn in multiplayer on client
+        SuppressHostEvents( NULL )
+        entity\TakeDamageInfo( damageInfo )
+        SuppressHostEvents( owner )
+        hit = true
 
     if hit and anim ~= "fists_uppercut"
         @SetCombo( @GetCombo! + 1 )

@@ -46,6 +46,7 @@ math, table, team = math, table, team
 :Create, :FindByClass, :FindInSphere = ents
 :ceil, :Rand, :random, :max, :min = math
 player_GetAll = player.GetAll
+vector_origin = vector_origin
 :Empty, :Shuffle = table
 hook_Run = hook.Run
 tonumber = tonumber
@@ -890,7 +891,6 @@ GM.PlayerSetHandsModel = ( ply, hands ) =>
 
 do
 
-    vector_origin = vector_origin
     :GetSpawnPoint = team
 
     GM.PlayerSelectSpawn = ( ply, transition ) =>
@@ -1075,7 +1075,7 @@ do
                     break
 
 GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
-    if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and not entity\IsInGame! ) )
+    if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and ( not entity\IsInGame! or entity\GetVelocity!\Length! > 800 ) ) )
         entity\Extinguish!
         return true
 
@@ -1103,7 +1103,7 @@ do
 
             return true
 
-        if band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
+        if not entity\IsSolid! or band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
             return
 
         switch entity\GetClass!
@@ -2222,6 +2222,7 @@ do
 
     damageInfo = DamageInfo!
     damageInfo\SetDamageType( DMG_DROWN )
+    damageInfo\SetDamageForce( vector_origin )
 
     GM.PlayerPostThink = ( ply ) =>
         unless ply\IsInGame!
@@ -2231,6 +2232,7 @@ do
             ply.DrownDamageTime = CurTime! + 0.5
             damageInfo\SetAttacker( ply )
             damageInfo\SetDamage( max( 5, ply\Health! * 0.1 ) )
+            damageInfo\SetDamagePosition( ply\GetPos! )
             ply\EmitSound( "Player.DrownContinue" )
             ply\TakeDamageInfo( damageInfo )
 

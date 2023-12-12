@@ -39,7 +39,7 @@ Jailbreak.Colors = {
     grey: Color( 180, 180, 180 )
     pink: Color( 225, 50, 100 )
     blue: Color( 0, 190, 255 )
-    red: Color( 255, 89, 50 )
+    red: Color( 255, 50, 50 )
     black: Color( 0, 0, 0 )
     white: color_white
 }
