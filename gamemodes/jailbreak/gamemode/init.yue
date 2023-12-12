@@ -1036,8 +1036,8 @@ DMG_NEVERGIB = DMG_NEVERGIB
 do
 
     GM.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
-    GM.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
-    GM.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
+    victimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
+    attackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
     :band = bit
 
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
@@ -1058,19 +1058,15 @@ do
         if Jailbreak.IsShockCollarsActive! and attackerIsPlayer and isCloseRangeDamage and attacker\HasShockCollar! and attacker ~= ply
             damage = damageInfo\GetDamage!
 
-            newDamage = damage * @ShockCollarAttackerDamage\GetFloat!
+            newDamage = damage * attackerDamage\GetFloat!
             if newDamage >= 1
                 @ShockCollarEffect( attacker )
                 damageInfo\SetDamage( newDamage )
                 damageInfo\SetDamageType( DMG_SONIC )
                 attacker\TakeDamageInfo( damageInfo )
 
-            newDamage = damage * @ShockCollarVictimDamage\GetFloat!
-            if newDamage < 1
-                return true
-
             damageInfo\SetDamageType( damageType )
-            damageInfo\SetDamage( newDamage )
+            damageInfo\SetDamage( damage * victimDamage\GetFloat! )
 
         inflictor = damageInfo\GetInflictor!
         if inflictor\IsValid! and inflictor\IsScripted!
