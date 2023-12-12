@@ -27,12 +27,12 @@ do
 
     :sub, :gsub = string
 
-    filter = ( str ) ->
-        translated = GetPhrase( str )
-        if translated == str and sub( str, 1, 3 ) == "jb."
-            return sub( str, 4 )
+    filter = ( placeholder ) ->
+        fulltext = GetPhrase( placeholder )
+        if fulltext == placeholder and sub( placeholder, 1, 3 ) == "jb."
+            return GetPhrase( sub( placeholder, 4 ) )
 
-        return translated
+        return fulltext
 
     Jailbreak.Translate = ( str ) ->
         return gsub( str, "#([%w%.-_]+)", filter )
