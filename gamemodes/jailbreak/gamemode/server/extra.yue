@@ -1,0 +1,384 @@
+Jailbreak = Jailbreak
+:FixModelPath = Jailbreak
+:random, :max, :Rand = math
+CurTime = CurTime
+GM = GM
+
+GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
+    if new >= 2
+        if entity\IsOnFire!
+            entity\Extinguish!
+
+        if old < new and new == 3 and entity\IsPlayer! and entity\IsInGame!
+            entity.DrownDamageTime = CurTime! + random( 15, 45 )
+
+do
+
+    vector_origin = vector_origin
+    DamageInfo = DamageInfo
+    LerpVector = LerpVector
+    DMG_DROWN = DMG_DROWN
+
+    GM.PlayerPostThink = ( ply ) =>
+        unless ply\IsInGame!
+            return
+
+        if ply\IsUnderwater! and ( ply.DrownDamageTime or 0 ) < CurTime!
+            ply.DrownDamageTime = CurTime! + 0.5
+
+            damageInfo = DamageInfo!
+            damageInfo\SetDamageType( DMG_DROWN )
+            damageInfo\SetDamageForce( vector_origin )
+            damageInfo\SetAttacker( ply )
+            damageInfo\SetDamage( max( 5, ply\Health! * 0.1 ) )
+            damageInfo\SetDamagePosition( ply\GetPos! )
+            ply\EmitSound( "Player.DrownContinue" )
+            ply\TakeDamageInfo( damageInfo )
+
+        if ply\IsBot!
+            return
+
+        if ( ply.NextEyeTargetTime or 0 ) < CurTime!
+            ply.NextEyeTargetTime = CurTime! + 0.1
+
+            traceResult = ply\GetEyeTrace!
+            if traceResult.Hit
+                nextEyePos = LerpVector( 0.5, ply.LastEyePos or vector_origin, traceResult.HitPos )
+                ply\SetEyeTarget( nextEyePos )
+                ply.LastEyePos = nextEyePos
+
+do
+
+    :GetAll = player
+
+    GM.ShockCollars = ( bool ) =>
+        receivers = {}
+        for ply in *GetAll!
+            if ply\IsInGame! and ply\HasShockCollar!
+                unless ply\IsBot!
+                    receivers[] = ply
+
+                Jailbreak.ShockCollarEffect( ply )
+
+        Jailbreak.SendChatText( receivers, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+
+do
+
+    EntityReplacer = EntityReplacer
+
+    if EntityReplacer ~= nil
+
+        timer_Simple = timer.Simple
+        :lower, :find = string
+        :IsValidModel = util
+
+        replaceFilter = nil
+        do
+
+            isstring = isstring
+            isnumber = isnumber
+            istable = istable
+
+            replaceFilter = ( modelName, chance ) ->
+                unless isnumber( chance )
+                    chance = nil
+
+                if isstring( modelName )
+                    modelName = lower( modelName )
+                elseif istable( modelName )
+                    tbl = {}
+                    for str in *modelName
+                        tbl[ lower( str ) ] = true
+
+                    modelName = tbl
+                else
+                    return =>
+                        return not chance or random( 1, 100 ) <= chance
+
+                return =>
+                    modelPath = @GetModel!
+                    unless modelPath
+                        return false
+
+                    modelPath = FixModelPath( modelPath )
+                    unless IsValidModel( modelPath )
+                        return false
+
+                    if istable( modelName )
+                        unless modelName[ modelPath ]
+                            return false
+                    else
+                        unless find( modelPath, modelName, 1, false )
+                            return false
+
+                    return not chance or random( 1, 100 ) <= chance
+
+        entityReplaces = {
+
+            -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
+            ["293904092"]: ->
+                EntityReplacer "^prop_physics.*", "sent_soccerball", replaceFilter( "models/props_phx/misc/soccerball%.mdl" )
+
+            -- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
+            ["931376012"]: ->
+                EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/%w+%.mdl", 2 ), =>
+                    @SetSlotName( @GetClass! )
+
+            -- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
+            ["931448005"]: ->
+                EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/%w+%.mdl", 5 ), =>
+                    @SetSlotName( @GetClass! )
+
+                    timer_Simple 0, ->
+                        if @IsValid!
+                            @SetKey( 12 )
+
+        }
+
+        -- Reading a custom replaces
+        do
+
+            file.CreateDir( "jailbreak" )
+
+            fileName = "jailbreak/entity-replacer.json"
+            if file.Exists( fileName, "DATA" )
+                json = file.Read( fileName, "DATA" )
+                if isstring( json )
+                    data = util.JSONToTable( json )
+                    if istable( data )
+                        for key, value in pairs( data )
+                            entityReplaces[ key ] = ->
+                                return EntityReplacer value[ 1 ], value[ 2 ], replaceFilter( value[ 3 ], value[ 4 ] )
+
+            else
+                file.Write( fileName, "[]" )
+
+        global ReplaceFilterByModel = replaceFilter
+        Jailbreak.EntityReplaces = entityReplaces
+
+        timer_Simple 0, ->
+            for addon in *engine.GetAddons!
+                unless addon.downloaded and addon.mounted
+                    continue
+
+                func = entityReplaces[ addon.wsid ]
+                unless func
+                    continue
+
+                func( addon )
+
+Jailbreak.FoodModels = Jailbreak.FoodModels or {
+
+    -- GMOD
+    "models/food/burger.mdl"
+    "models/food/hotdog.mdl"
+
+    -- HL2
+    "models/props_c17/doll01.mdl"
+    "models/props_junk/garbage_glassbottle001a.mdl"
+    "models/props_junk/garbage_glassbottle002a.mdl"
+    "models/props_junk/garbage_glassbottle003a.mdl"
+    "models/props_junk/garbage_milkcarton002a.mdl"
+    "models/props_junk/garbage_milkcarton001a.mdl"
+    "models/props_junk/garbage_plasticbottle003a.mdl"
+    "models/props_junk/garbage_takeoutcarton001a.mdl"
+    "models/props_junk/GlassBottle01a.mdl"
+    "models/props_junk/glassjug01.mdl"
+    "models/props_junk/watermelon01.mdl"
+    "models/props_junk/Shoe001a.mdl"
+
+    -- CSS
+    "models/props/CS_militia/bottle01.mdl"
+    "models/props/CS_militia/bottle02.mdl"
+    "models/props/CS_militia/bottle03.mdl"
+    "models/props/cs_office/Snowman_nose.mdl"
+    "models/props/cs_office/trash_can_p8.mdl"
+    "models/props/cs_office/Water_bottle.mdl"
+    "models/props/cs_italy/bananna.mdl"
+    "models/props/cs_italy/bananna_bunch.mdl"
+    "models/props/cs_italy/banannagib1.mdl"
+    "models/props/cs_italy/banannagib2.mdl"
+    "models/props/cs_italy/orange.mdl"
+    "models/props/cs_italy/orangegib1.mdl"
+    "models/props/cs_italy/orangegib2.mdl"
+    "models/props/cs_italy/orangegib3.mdl"
+    "models/props/de_inferno/crate_fruit_break_gib1.mdl"
+    "models/props/de_inferno/crate_fruit_break_gib2.mdl"
+    "models/props/de_inferno/crate_fruit_break_gib3.mdl"
+    "models/props/de_inferno/goldfish.mdl"
+
+}
+
+hook.Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
+    foodModels = Jailbreak.FoodModels
+    for index = 1, #foodModels
+        foodModels[ index ] = FixModelPath( foodModels[ index ] )
+
+isFoodModel = nil
+do
+
+    :IsValidModel = util
+    cache = {}
+
+    isFoodModel = ( modelName ) =>
+        cached = cache[ modelName ]
+        if cached ~= nil
+            return cached
+
+        fixedModelPath = FixModelPath( modelName )
+        unless IsValidModel( fixedModelPath )
+            cache[ modelName ] = false
+            return false
+
+        for foodModel in *Jailbreak.FoodModels
+            if fixedModelPath == foodModel
+                cache[ modelName ] = true
+                return true
+
+Jailbreak.IsFoodModel = isFoodModel
+
+do
+
+    RecipientFilter = RecipientFilter
+    :Clamp, :floor = math
+    CHAN_STATIC = CHAN_STATIC
+
+    foodEatingTime = Jailbreak.FoodEatingTime
+    foodEatingSound = Sound( "player/eating.wav" )
+    cache = {}
+
+    hook.Add "PlayerHoldUse", "Jailbreak::FoodEating", ( entity, useTime ) =>
+        if useTime < foodEatingTime\GetFloat! or not entity\IsProp!
+            return
+
+        modelPath = entity\GetModel!
+        unless isFoodModel( modelPath )
+            return
+
+        healing = cache[ modelPath ]
+        unless healing
+            mins, maxs = entity\GetCollisionBounds!
+            healing = Clamp( mins\Distance( maxs ) / 64, 0, 1 )
+            cache[ modelPath ] = healing
+
+        maxHealth = ply\GetMaxHealth!
+        ply\SetHealth( Clamp( ply\Health! + floor( maxHealth * healing ), 0, maxHealth ) )
+
+        ply\EmitSound( foodEatingSound, 50, random( 80, 120 ), Rand( 0.6, 1 ), CHAN_STATIC, 0, 1 )
+        entity\Remove!
+        return true
+
+do
+
+    ragdollLootingTime = Jailbreak.RagdollLootingTime
+    lootSound = Sound( "npc/footsteps/softshoe_generic6.wav" )
+
+    hook.Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
+        if useTime < ragdollLootingTime\GetFloat!
+            return
+
+        unless entity\IsPlayerRagdoll! or entity\IsRagdoll!
+            return
+
+        entity\EmitSound( lootSound, 60, random( 80, 120 ), Rand( 0.7, 1 ), CHAN_STATIC, 0, 1 )
+        Jailbreak.LootRagdoll( @, entity )
+        return true
+
+-- TODO: Rewrite
+do
+
+    util.AddNetworkString( "Jailbreak::Markers" )
+    :TraceLine = util
+
+    concommand.Add "marker", =>
+        unless Jailbreak.Markers\GetBool!
+            return
+
+        unless IsValid( @ ) and @IsInGame!
+            return
+
+        if @NextMarker and CurTime! < @NextMarker
+            return
+
+        isWarden, isPrisoner = @IsWarden!, @IsPrisoner!
+        if not isWarden and @IsGuard! and not Jailbreak.HasWarden!
+            isWarden = true
+
+        unless isWarden or isPrisoner
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return
+
+        distance = 0
+        if isWarden
+            distance = 32768
+        elseif isPrisoner
+            distance = Jailbreak.VoiceChatMinDistance\GetInt!
+
+        @LagCompensation( true )
+
+        traceResult = TraceLine( {
+            start: @EyePos!
+            endpos: @EyePos! + @GetAimVector! * distance
+            filter: ( entity ) ->
+                return entity ~= @ and not entity.IsTemporaryWeapon
+            mask: MASK_SHOT
+        } )
+
+        @LagCompensation( false )
+
+        unless traceResult.Hit
+            return
+
+        @NextMarker = CurTime! + ( Jailbreak.MarkersLifetime\GetInt! / Jailbreak.MarkersCount\GetInt! )
+
+        entity = traceResult.Entity
+        isValid = IsValid( entity )
+
+        net.Start( "Jailbreak::Markers" )
+        net.WriteEntity( @ )
+        net.WriteBool( isValid )
+
+        if isValid
+            net.WriteEntity( entity )
+            net.WriteVector( entity\WorldToLocal( traceResult.HitPos ) )
+        else
+            net.WriteVector( traceResult.HitPos )
+
+        if isWarden
+            net.Broadcast!
+        elseif isPrisoner
+            players, hasSender = @GetNearPlayers( distance, true ), false
+            for ply in *players
+                if ply == @
+                    hasSender = true
+                    break
+
+            unless hasSender
+                players[] = @
+
+            net.Send( players )
+
+        if entity\IsValid!
+            if entity\IsPlayer!
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\Nick!, white, "." )
+            elseif entity\IsPlayerRagdoll!
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\GetNW2String( "owner-nickname", "unknown" ), white, "." )
+            elseif entity\IsWeapon!
+                printName = nil
+                if entity\IsScripted!
+                    printName = entity.PrintName
+
+                if printName
+                    printName = "#" .. printName
+                else
+                    printName = entity\GetPrintName!
+
+                if printName == "Scripted Weapon"
+                    printName = "#" .. entity\GetClass!
+
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at \"" .. printName .. "\"." )
+            else
+                Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
+
+        else
+            Jailbreak.Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )

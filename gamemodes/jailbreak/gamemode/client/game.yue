@@ -1,0 +1,84 @@
+GM = GM
+Jailbreak = Jailbreak
+RunConsoleCommand = RunConsoleCommand
+hook_Run = hook.Run
+:format = string
+
+do
+
+    :String = cvars
+
+    cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
+        hook_Run( "LanguageChanged", String( "gmod_language", "en" ), value )
+    "Jailbreak::LanguageChanged" )
+
+GM.InitPostEntity = =>
+    @PlayingTaunt = false
+    chat.Open( 1 )
+
+    timer.Simple 0.5, ->
+        RunConsoleCommand( "r_flushlod" )
+        RunConsoleCommand( "jb_showteam" )
+
+GM.PostCleanupMap = =>
+    RunConsoleCommand( "r_cleardecals" )
+
+GM.OnSpawnMenuOpen = =>
+    RunConsoleCommand( "lastinv" )
+
+GM.PostProcessPermitted = =>
+    return false
+
+do
+
+    :LookupKeyBinding, :IsKeyDown = input
+
+    GM.PlayerButtonUp = ( ply, keyCode ) =>
+        bind = LookupKeyBinding( keyCode )
+        if bind and #bind ~= 0
+            return
+
+        if keyCode == 17
+            RunConsoleCommand( "drop" )
+        elseif keyCode == 109
+            RunConsoleCommand( "marker" )
+        elseif keyCode == 58 or keyCode == 23
+            RunConsoleCommand( "jb_showteam" )
+
+    GM.PlayerButtonDown = ( ply, keyCode ) =>
+        if keyCode == 107 and IsKeyDown( 81 )
+            RunConsoleCommand( "marker" )
+
+do
+
+    :ReadString, :ReadUInt, :ReadTable = net
+    :ChatText, :Translate = Jailbreak
+    :AddLegacy = notification
+    isstring = isstring
+    unpack = unpack
+
+    Networking = {
+        [ 0 ]: ->
+            gameName = ReadString!
+            SoundHandler( gameName )
+            Jailbreak.GameName = gameName
+        [ 1 ]: ->
+            hook_Run( "HUDItemPickedUp", ReadString! )
+        [ 2 ]: ->
+            AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
+        [ 3 ]: ->
+            data = ReadTable( true )
+            for index = 1, #data
+                value = data[ index ]
+                if isstring( value )
+                    data[ index ] = Translate( value )
+
+            ChatText( unpack( data ) )
+    }
+
+    net.Receive "Jailbreak::Networking", ( len ) ->
+        func = Networking[ ReadUInt( 2 ) ]
+        unless func
+            return
+
+        func( len )

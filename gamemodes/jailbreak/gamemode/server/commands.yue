@@ -1,0 +1,132 @@
+NOTIFY_ERROR = NOTIFY_ERROR
+Jailbreak = Jailbreak
+tonumber = tonumber
+IsValid = IsValid
+:Add = concommand
+
+do
+
+    :Teams, :TeamIsJoinable = Jailbreak
+    :Joinable = team
+
+    Add "changeteam", ( _, args ) =>
+        teamID = args[ 1 ]
+        if teamID
+            teamID = tonumber( teamID ) or 0
+        else
+            teamID = 0
+
+        unless Joinable( teamID )
+            return
+
+        oldTeamID = @Team!
+        if oldTeamID == teamID
+            return
+
+        unless TeamIsJoinable( teamID )
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return
+
+        if @Alive!
+            if Teams[ oldTeamID ]
+                @Kill!
+            else
+                @KillSilent!
+
+        @SetTeam( teamID )
+
+do
+
+    :IsRoundRunning, :HasWarden, :SetShockCollars, :IsShockCollarsActive = Jailbreak
+    CurTime = CurTime
+
+    Add "jb_warden", ( _, args ) =>
+        unless IsValid( @ )
+            return
+
+        unless IsRoundRunning! and @IsGuard! and @Alive!
+            @SendNotify( "#jb.error.warden-failure", NOTIFY_ERROR, 10 )
+            return
+
+        if ( @WardenDelay or 0 ) > CurTime!
+            @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
+            return
+
+        if @IsWarden!
+            @WardenDelay = CurTime! + 10
+            @SetWarden( false )
+            return
+
+        if HasWarden!
+            @SendNotify( "#jb.error.warden-exists", NOTIFY_ERROR, 10 )
+            return
+
+        @WardenDelay = CurTime! + 5
+        @SetWarden( true )
+
+    Add "jb_shock_collars", ( _, args ) =>
+        unless IsValid( @ )
+            return
+
+        unless IsRoundRunning! and @IsInGame! and @IsWarden!
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return
+
+        if ( @ShockCollarsDelay or 0 ) > CurTime!
+            @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
+            return
+
+        requested = args[ 1 ]
+        if requested ~= nil and #requested ~= 0
+            SetShockCollars( requested == "1" )
+        else
+            SetShockCollars( not IsShockCollarsActive! )
+
+        @ShockCollarsDelay = CurTime! + 5
+
+do
+
+    :SetRoundState, :SetRoundTime = Jailbreak
+    :Clamp = math
+
+    Add "jb_force_round", ( _, args ) =>
+        if IsValid( @ ) and not @IsSuperAdmin!
+            return
+
+        index = args[ 1 ]
+        if index
+            index = tonumber( index ) or 0
+
+        if index
+            SetRoundState( Clamp( index, 0, 3 ) )
+        else
+            SetRoundState( 0 )
+            SetRoundTime( 0 )
+
+do
+
+    :IsValidModel = util
+
+    Add "drop", =>
+        dropWeapon = @GetActiveWeapon!
+        unless IsValid( dropWeapon )
+            return
+
+        model = dropWeapon\GetWeaponWorldModel!
+        unless model and IsValidModel( model )
+            return
+
+        @DropWeapon( dropWeapon )
+
+        maxWeight, nextWeapon = nil, nil
+        for weapon in *@GetWeapons!
+            weight = weapon\GetWeight!
+
+            if not maxWeight or maxWeight <= weight
+                nextWeapon = weapon
+                maxWeight = weight
+
+        unless IsValid( nextWeapon )
+            return
+
+        @SelectWeapon( nextWeapon\GetClass! )

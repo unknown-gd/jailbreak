@@ -1,0 +1,130 @@
+Jailbreak = Jailbreak
+hook_Run = hook.Run
+:min, :max = math
+CLIENT = CLIENT
+GM = GM
+
+TEAM_GUARD = TEAM_GUARD
+
+-- Allowing players to take damage
+do
+
+    :IsRoundPreparing = Jailbreak
+
+    GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
+        if IsRoundPreparing!
+            return false
+
+        attacker = damageInfo\GetAttacker!
+        unless attacker\IsValid! and attacker\IsPlayer!
+            return true
+
+        if attacker == ply
+            return true
+
+        if teamID == TEAM_GUARD and teamID == attacker\Team!
+            return false
+
+        return true
+
+-- https://wiki.facepunch.com/gmod/GM:UpdateAnimation
+GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
+	speed = velocity\Length!
+	rate = 1.0
+
+	if speed > 0.2
+		rate = ( speed / maxSeqGroundSpeed )
+
+	rate = min( rate, 2 )
+
+	if ply\WaterLevel() >= 2
+		rate = max( rate, 0.5 )
+	elseif not ply\IsOnGround! and speed >= 1000
+		rate = 0.1
+
+	ply\SetPlaybackRate( rate )
+
+	if CLIENT
+        hook_Run( "GrabEarAnimation", ply )
+        hook_Run( "MouthMoveAnimation", ply )
+
+-- https://wiki.facepunch.com/gmod/GM:ShouldCollide
+GM.ShouldCollide = ( entity, ply ) =>
+    unless ply\IsPlayer! and ply\Alive!
+        return
+
+    if entity\GetClass! == "func_respawnroomvisualizer" and not entity\IsDisabled!
+        return ply\Team! ~= entity\GetNW2Int( "team" )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerFootstep
+do
+
+    :PlayerSlowWalkSpeed = Jailbreak
+
+    GM.PlayerFootstep = ( ply, pos, foot, soundPath, volume, recipientFilter ) =>
+        if ply\Crouching!
+            return true
+
+        velocity = ply\GetVelocity!
+        speed = velocity\Length!
+
+        if speed < PlayerSlowWalkSpeed\GetInt!
+            return true
+
+-- https://wiki.facepunch.com/gmod/GM:FinishMove
+do
+
+    SERVER = SERVER
+
+    GM.FinishMove = ( ply, mv ) =>
+        unless ply\Alive!
+            return
+
+        if SERVER
+            ply.LastVelocity = mv\GetVelocity!
+
+        if ply\IsPlayingTaunt!
+            mv\SetForwardSpeed( 0 )
+            mv\SetSideSpeed( 0 )
+
+-- https://wiki.facepunch.com/gmod/GM:ScalePlayerDamage
+do
+
+    hitGroups = {
+        [ HITGROUP_GENERIC ]: 1
+        [ HITGROUP_HEAD ]: 10
+        [ HITGROUP_CHEST ]: 1
+        [ HITGROUP_STOMACH ]: 1
+        [ HITGROUP_LEFTARM ]: 0.25
+        [ HITGROUP_RIGHTARM ]: 0.25
+        [ HITGROUP_LEFTLEG ]: 0.25
+        [ HITGROUP_RIGHTLEG ]: 0.25
+        [ HITGROUP_GEAR ]: 0.25
+    }
+
+    do
+
+        conVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+        CreateConVar = CreateConVar
+        :AddChangeCallback = cvars
+        tostring = tostring
+        tonumber = tonumber
+
+        for index, default in pairs( hitGroups )
+            conVarName = "jb_hitgroup" .. index .. "_scale"
+            hitGroups[ index ] = CreateConVar( conVarName, tostring( default ), conVarFlags, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 )\GetFloat!
+            AddChangeCallback( conVarName, ( _, __, str ) ->
+                hitGroups[ index ] = tonumber( str ) or 0
+            "Jailbreak::HitGroups" )
+
+    do
+
+        isnumber = isnumber
+
+        GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
+            damageScale = hitGroups[ hitGroup ]
+            if isnumber( damageScale )
+                damageInfo\ScaleDamage( damageScale )
+
+            if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
+                return true

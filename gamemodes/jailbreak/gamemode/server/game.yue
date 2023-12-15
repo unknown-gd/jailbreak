@@ -1,0 +1,764 @@
+:random, :max, :min, :Rand = math
+timer_Simple = timer.Simple
+Jailbreak = Jailbreak
+hook_Run = hook.Run
+IsValid = IsValid
+Vector = Vector
+GM = GM
+
+TEAM_SPECTATOR = TEAM_SPECTATOR
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
+OBS_MODE_ROAMING = OBS_MODE_ROAMING
+OBS_MODE_CHASE = OBS_MODE_CHASE
+
+:Teams = Jailbreak
+
+-- https://wiki.facepunch.com/gmod/GM:ShowTeam
+GM.ShowTeam = ( ply ) =>
+    ply\ConCommand( "jb_showteam" )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
+GM.PlayerInitialSpawn = ( ply, transiton ) =>
+    ply.NextRespawnTime = 0
+
+    ragdoll = ply\GetRagdollEntity!
+    if ragdoll\IsValid!
+        ragdoll\SetNW2Entity( "ragdoll-owner", ply )
+    else
+        ply\SetTeam( ply\IsBot! and TEAM_PRISONER or TEAM_SPECTATOR )
+
+    ply.InitialSpawn = true
+
+-- Player spawn from ragdoll
+GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
+    teamID = ragdoll.Team
+    if not ragdoll.Alive or not teamID or ragdoll\Health! < 1
+        ply\SetTeam( teamID or TEAM_SPECTATOR )
+        ply\KillSilent!
+
+        timer_Simple 0, ->
+            unless ply\IsValid!
+                return
+
+            if ragdoll\IsValid!
+                ply\Spectate( OBS_MODE_CHASE )
+                ply\SpectateEntity( ragdoll )
+            else
+                ply\Spectate( OBS_MODE_ROAMING )
+
+        return true
+
+    ply\SetTeam( teamID )
+
+    ply\SetEyeAngles( ragdoll.PlayerAngles )
+    ply\SetPos( ragdoll\WorldSpaceCenter! )
+    ply\SetModel( ragdoll\GetModel! )
+
+    ply\SetHealth( ply\GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
+    ply\SetArmor( ply\GetMaxArmor! * ( ragdoll.Armor / ragdoll.MaxArmor ) )
+
+    ply\SetPlayerColor( ragdoll\GetPlayerColor! )
+    ply\SetMaterial( ragdoll\GetMaterial! )
+    ply\SetColor( ragdoll\GetColor! )
+    ply\SetSkin( ragdoll\GetSkin! )
+
+    for bodygroup in *ply\GetBodyGroups!
+        ply\SetBodygroup( bodygroup.id, ragdoll\GetBodygroup( bodygroup.id ) )
+
+    for index = 1, #ply\GetMaterials!
+        materialPath = ragdoll\GetSubMaterial( index )
+        if materialPath ~= ""
+            ply\SetSubMaterial( index, materialPath )
+
+    if ragdoll\IsOnFire!
+        ply\Ignite( 16, 16 )
+        ragdoll\Extinguish!
+
+    for boneID = 0, ply\GetBoneCount!
+        ply\ManipulateBonePosition( boneID, ragdoll\GetManipulateBonePosition( boneID ) )
+        ply\ManipulateBoneAngles( boneID, ragdoll\GetManipulateBoneAngles( boneID ) )
+        ply\ManipulateBoneJiggle( boneID, ragdoll\GetManipulateBoneJiggle( boneID ) )
+        ply\ManipulateBoneScale( boneID, ragdoll\GetManipulateBoneScale( boneID ) )
+
+    if ragdoll\IsRagdoll!
+        velocity = Vector!
+
+        count = ragdoll\GetPhysicsObjectCount!
+        for physNum = 0, count - 1
+            phys = ragdoll\GetPhysicsObjectNum( physNum )
+            if IsValid( phys )
+                velocity += phys\GetVelocity!
+
+        velocity /= count
+        ply\SetVelocity( velocity )
+    else
+        phys = ragdoll\GetPhysicsObject!
+        if IsValid( phys )
+            ply\SetVelocity( phys\GetVelocity! )
+
+    ply\SetShockCollar( ragdoll.HasShockCollar == true )
+    Jailbreak.LootRagdoll( ply, ragdoll )
+
+    ply\Give( "jb_hands" )
+    ply\SelectWeapon( "jb_hands" )
+
+    hook_Run( "TeamPlayerSpawn", ply, teamID )
+    ply\SetupHands!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
+do
+
+    :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress = Jailbreak
+    tonumber = tonumber
+    :Explode = string
+
+    GM.PlayerSpawn = ( ply, transiton ) =>
+        ply\DisableWorldClicking( true )
+        ply\SetAvoidPlayers( true )
+        ply\SetCanZoom( false )
+        ply\SetWarden( false )
+        ply\RemoveAllAmmo!
+        ply\StripWeapons!
+        ply\UnSpectate!
+
+        if ply\FlashlightIsOn!
+            ply\Flashlight( false )
+
+        ply\SetSlowWalkSpeed( PlayerSlowWalkSpeed\GetInt! )
+        ply\SetWalkSpeed( PlayerWalkSpeed\GetInt! )
+        ply\SetRunSpeed( PlayerRunSpeed\GetInt! )
+
+        ply\SetMaxHealth( 100 )
+        ply\SetMaxArmor( 100 )
+
+        if ply.InitialSpawn ~= nil
+            ply.InitialSpawn = nil
+
+            ragdoll = ply\GetRagdollEntity!
+            if ragdoll\IsValid!
+                unless hook_Run( "PlayerSpawnFromRagdoll", ply, ragdoll )
+                    ragdoll\Remove!
+
+                return
+
+            if GameInProgress!
+                ply\KillSilent!
+                return
+
+        teamID = ply\Team!
+        unless Teams[ teamID ]
+            ply\KillSilent!
+            return
+
+        if teamID == TEAM_GUARD
+            ply\SetArmor( @GuardsArmor\GetInt! )
+            ply\AllowSecurityAccess( true )
+            ply\AllowSecurityRadio( true )
+            ply\AllowFlashlight( true )
+        else
+            ply\AllowSecurityAccess( false )
+            ply\AllowSecurityRadio( false )
+            ply\AllowFlashlight( false )
+            ply\SetArmor( 0 )
+
+        ply\SetShockCollar( teamID == TEAM_PRISONER )
+        ply\SetMaxArmor( max( 100, ply\Armor! ) )
+        ply\SetHealth( 100 )
+        ply\RemoveRagdoll!
+
+        unless transiton
+            hook_Run( "PlayerLoadout", ply, teamID )
+
+        hook_Run( "PlayerSetModel", ply, teamID )
+
+        isBot = ply\IsBot!
+        if isBot
+
+            ply\SetSkin( random( 0, ply\SkinCount! ) )
+
+            for bodygroup in *ply\GetBodyGroups!
+                ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
+
+        else
+
+            ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
+
+            -- Model bodygroups setup
+            groups = Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
+            for i = 0, ply\GetNumBodyGroups! - 1 do
+                ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
+
+        -- Player color setup
+        unless AllowCustomPlayerColors\GetBool!
+            ply\SetPlayerColor( @DefaultTeamColors[ teamID ] )
+        elseif isBot
+            ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+        else
+            ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
+
+        unless AllowCustomWeaponColors\GetBool!
+            ply\SetWeaponColor( @DefaultTeamColors[ teamID ] )
+        elseif isBot
+            ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+        else
+            weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
+            if weaponColor\Length! < 0.001
+                weaponColor = Vector( 0.001, 0.001, 0.001 )
+
+            ply\SetWeaponColor( weaponColor )
+
+        hook_Run( "TeamPlayerSpawn", ply, teamID )
+        ply\SetupHands!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerSelectSpawn
+do
+
+    vector_origin = vector_origin
+    :Empty, :Shuffle = table
+    :GetSpawnPoint = team
+    :FindByClass = ents
+
+    cache = {}
+    hook.Add "PostCleanupMap", "Jailbreak::ClearSpawnPointCache", ->
+        Empty( cache )
+
+    GM.PlayerSelectSpawn = ( ply, transition ) =>
+        if transiton
+            return
+
+        teamID = ply\Team!
+        unless Teams[ teamID ]
+            teamID = random( 1, 2 )
+
+        for className in *GetSpawnPoint( teamID )
+            spawnPoints = cache[ className ]
+            if spawnPoints == nil
+                spawnPoints = FindByClass( className ) or false
+                cache[ className ] = spawnPoints
+
+            unless spawnPoints
+                continue
+
+            length = #spawnPoints
+            if length == 0
+                continue
+
+            if length ~= 1
+                Shuffle( spawnPoints )
+
+            killLength = length - length * 0.25
+
+            for index = 1, length
+                entity = spawnPoints[ index ]
+                if entity\IsValid! and hook_Run( "IsSpawnpointSuitable", ply, entity, index >= killLength )
+                    return entity
+
+        ply\SetPos( vector_origin )
+
+-- https://wiki.facepunch.com/gmod/GM:IsSpawnpointSuitable
+do
+
+    :TF2Team = Jailbreak
+    :TraceHull = util
+
+    trace = {
+        mask: MASK_PLAYERSOLID
+    }
+
+    GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
+        teamID = ply\Team!
+        unless Teams[ teamID ]
+            return true
+
+        if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or TF2Team( entity.Team ) ~= teamID )
+            return false
+
+        trace.filter = entity
+
+        start = entity\GetPos!
+        trace.start = start
+        trace.endpos = start
+        trace.mins, trace.maxs = ply\GetCollisionBounds!
+
+        traceResult = TraceHull( trace )
+        unless traceResult.Hit
+            return true
+
+        traceEntity = traceResult.Entity
+        unless traceEntity\IsValid!
+            return true
+
+        if traceEntity\IsPlayer! and traceEntity\IsInGame!
+            if makeSuitable
+                traceEntity\Kill!
+                return true
+
+            return false
+
+        return true
+
+-- https://wiki.facepunch.com/gmod/GM:SetupMove
+GM.SetupMove = ( ply, _, cmd ) =>
+    if ply\IsBot! or ply\IsFullyConnected! or not cmd\IsForced!
+        return
+
+    ply\SetNW2Bool( "fully-connected", true )
+    hook_Run( "PlayerInitialized", ply )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerSetModel
+do
+
+    :CustomPlayerModels, :FixModelPath, :PlayerModels, :IsFemalePrison = Jailbreak
+    :TranslatePlayerModel = player_manager
+    :PrecacheModel, :IsValidModel = util
+    :match = string
+
+    GM.PlayerSetModel = ( ply, teamID ) =>
+        requested = FixModelPath( TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
+        if CustomPlayerModels\GetBool! and IsValidModel( requested )
+            PrecacheModel( requested )
+            ply\SetModel( requested )
+            return
+
+        models = PlayerModels[ teamID ][ IsFemalePrison! ]
+        if #models == 1
+            ply\SetModel( models[ 1 ] )
+            return
+
+        if IsValidModel( requested )
+            requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
+            for modelPath in *models
+                if modelPath == requested or match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
+                    ply\SetModel( modelPath )
+                    return
+
+        ply\SetModel( models[ random( 1, #models ) ] )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerSetHandsModel
+do
+
+    :TranslatePlayerHands, :TranslateToPlayerModelName = player_manager
+
+    GM.PlayerSetHandsModel = ( ply, hands ) =>
+        info = TranslatePlayerHands( TranslateToPlayerModelName( ply\GetModel! ) )
+        unless info
+            return
+
+        hands\SetModel( info.model )
+        hands\SetBodyGroups( info.body )
+        hands\SetPlayerColor( ply\GetPlayerColor! )
+        hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
+
+-- https://wiki.facepunch.com/gmod/GM:DoPlayerDeath
+do
+
+    :IsWaitingPlayers = Jailbreak
+
+    GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
+        teamID = ply\Team!
+        unless Teams[ teamID ]
+            return
+
+        ply\AddDeaths( 1 )
+
+        if attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
+            attacker\AddFrags( 1 )
+
+        if IsWaitingPlayers!
+            return
+
+        ragdoll = ply\CreateRagdoll!
+        if ragdoll\IsValid!
+
+            damageOrigin = damageInfo\GetDamagePosition!
+            if ragdoll\IsRagdoll!
+                velocity = damageInfo\GetDamageForce!
+                for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+                    phys = ragdoll\GetPhysicsObjectNum( physNum )
+                    if IsValid( phys )
+                        phys\ApplyForceOffset( velocity / phys\GetMass!, damageOrigin )
+
+            else
+                phys = ragdoll\GetPhysicsObject!
+                if IsValid( phys )
+                    phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
+
+            timer_Simple 0, ->
+                unless ply\IsValid! and ragdoll\IsValid!
+                    return
+
+                ply\Spectate( OBS_MODE_CHASE )
+                ply\SpectateEntity( ragdoll )
+
+GM.PlayerDeath = ( ply, inflictor, attacker ) =>
+    teamID = ply\Team!
+    if Teams[ teamID ]
+        hook_Run( "TeamPlayerDeath", ply, teamID )
+
+GM.PlayerSilentDeath = ( ply ) =>
+    teamID = ply\Team!
+    if Teams[ teamID ]
+        hook_Run( "TeamPlayerDeath", ply, teamID )
+
+do
+
+    movementKeys = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT, IN_JUMP )
+    IN_ATTACK, IN_ATTACK2 = IN_ATTACK, IN_ATTACK2
+    :GameInProgress = Jailbreak
+    CurTime = CurTime
+
+    GM.PlayerDeathThink = ( ply ) =>
+        if not Teams[ ply\Team! ] or GameInProgress!
+            observerMode = ply\GetObserverMode!
+            if observerMode ~= OBS_MODE_ROAMING and observerMode ~= OBS_MODE_CHASE
+                ply\Spectate( OBS_MODE_ROAMING )
+            elseif ply\KeyPressed( movementKeys )
+                if observerMode ~= OBS_MODE_ROAMING
+                    eyeAngles = ply\EyeAngles!
+
+                    ply\Spectate( OBS_MODE_ROAMING )
+                    ply\SpectateEntity!
+
+                    ply\SetEyeAngles( eyeAngles )
+
+            elseif ply\KeyPressed( IN_ATTACK )
+                ply\MoveSpectateID( 1 )
+
+            elseif ply\KeyPressed( IN_ATTACK2 )
+                ply\MoveSpectateID( -1 )
+
+            return
+
+        if ply.NextRespawnTime > CurTime!
+            return
+
+        ply\Spawn!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
+do
+
+    :IsRoundPreparing = Jailbreak
+
+    GM.CanPlayerSuicide = ( ply ) =>
+        if IsRoundPreparing!
+            return false
+
+        return ply\IsInGame!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerDeathSound
+do
+
+    CHAN_VOICE_BASE = CHAN_VOICE_BASE
+
+    GM.PlayerDeathSound = ( ply ) =>
+        if ply\IsGuard!
+            ply\EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_VOICE_BASE, 0, 1 )
+
+        return true
+
+-- Player disconnect handling
+GM.PlayerDisconnected = ( ply ) =>
+    teamID = ply\Team!
+    if Teams[ teamID ]
+        hook_Run( "TeamPlayerDisconnected", ply, teamID )
+
+-- Game info sending
+do
+
+    :Start, :WriteUInt, :WriteString, :Send = net
+
+    GM.PlayerInitialized = ( ply ) =>
+        gameName = Jailbreak.GameName
+        unless gameName
+            return
+
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 0, 2 )
+        WriteString( gameName )
+        Send( ply )
+
+do
+
+    -- TODO: Make convar here
+    -- allowSprayEveryone = CreateConVar( "jailbreak_allow_spray_everyone", "0", FCVAR_ARCHIVE )
+
+    GM.PlayerSpray = ( ply ) =>
+        return not ( ply\IsInGame! and ply\IsPrisoner! )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerShouldTaunt
+GM.PlayerShouldTaunt = ( ply ) =>
+    return ply\IsInGame!
+
+-- https://wiki.facepunch.com/gmod/GM:AllowPlayerPickup
+GM.AllowPlayerPickup = ( ply, entity ) =>
+    return ply\IsInGame!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupItem
+GM.PlayerCanPickupItem = ( ply, entity ) =>
+    return ply\IsInGame!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerNoClip
+GM.PlayerNoClip = ( ply, desiredState ) =>
+    unless desiredState
+        return true
+
+    unless ply\IsInGame!
+        return false
+
+    if ply\IsPlayingTaunt!
+        return false
+
+    return ply\IsSuperAdmin!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerSwitchFlashlight
+GM.PlayerSwitchFlashlight = ( ply, newState ) =>
+    unless newState
+        return true
+
+    return ply\IsInGame! and ply\CanUseFlashlight!
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerUse
+do
+
+    AmmoPickupBlacklist = list.GetForEdit( "Jailbreak::AmmoPickupBlacklist" )
+    list.Set( "Jailbreak::AmmoPickupBlacklist", "weapon_frag", true )
+    CurTime = CurTime
+
+    GM.PlayerUse = ( ply, entity ) =>
+        unless ply\IsInGame!
+            return
+
+        weapon = ply\GetActiveWeapon!
+        if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
+            velocity = ply\GetVelocity!
+            velocity = velocity\GetNormalized! * ( velocity\Length2D! / 2 )
+            entity\SetVelocity( velocity * 2 )
+            ply\SetVelocity( -velocity )
+            return false
+
+        curTime, lastUseTime = CurTime!, ply.LastUseTime or 0
+        ply.LastUseTime = curTime
+
+        className = entity\GetClass!
+
+        if not lastUseTime or ( curTime - lastUseTime ) > 0.025
+            ply.StartUseTime = curTime
+            hook_Run( "PlayerHoldUse", ply, entity, 0 )
+        else
+
+            startUseTime = ply.StartUseTime
+            if startUseTime and hook_Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
+                ply.StartUseTime = nil
+
+        if ( curTime - lastUseTime ) <= 0.025
+            return
+
+        if entity\IsWeapon!
+            if entity.PickupForbidden
+                return false
+
+            if entity.IsTemporaryWeapon
+                entity = entity\GetParent!
+                unless entity\IsValid! and entity\IsWeapon!
+                    return false
+
+            if ply\HasWeapon( className )
+                if AmmoPickupBlacklist[ className ]
+                    return false
+
+                clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
+                if clip1 > 0 and clip1Type >= 0
+                    ply\GiveAmmo( clip1, clip1Type, false )
+                    entity\SetClip1( 0 )
+
+                clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
+                if clip2 > 0 and clip2Type >= 0
+                    ply\GiveAmmo( clip2, clip2Type, false )
+                    entity\SetClip2( 0 )
+
+                return false
+
+            slot = entity\GetSlot!
+            if slot > 0 and slot < 5
+                if slot == 1 or slot == 4
+                    weapons = ply\GetWeaponsInSlot( slot )
+
+                    length = #weapons
+                    if length ~= 0
+                        weapon = weapons[ length ]
+                        if IsValid( weapon )
+                            ply\DropWeapon( weapon )
+                else
+                    for i = 1, 2
+                        weapons = ply\GetWeaponsInSlot( i + 1 )
+
+                        length = #weapons
+                        if length ~= 0
+                            weapon = weapons[ length ]
+                            if IsValid( weapon )
+                                ply\DropWeapon( weapon )
+
+            if hook_Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
+                ply\PickupWeapon( entity, false )
+                return false
+
+        return true
+
+-- https://wiki.facepunch.com/gmod/GM:OnEntityCreated
+do
+
+    COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
+    :AddSpectateTarget = Jailbreak
+    :FindInSphere = ents
+
+    GM.OnEntityCreated = ( entity ) =>
+        if entity\IsPlayer!
+            return
+
+        -- Fuck 'game_player_equip'
+        if entity\GetClass! == "game_player_equip"
+            entity\Remove!
+            return
+
+        if entity\IsSpectateTarget!
+            AddSpectateTarget( entity )
+            return
+
+        unless entity\IsWeapon!
+            return
+
+        timer_Simple 0.025, ->
+            unless entity\IsValid!
+                return
+
+            if IsValid( entity\GetOwner! )
+                return
+
+            if entity\GetPos!\Length! <= 3
+                entity\Remove!
+                return
+
+            entity\SetCollisionGroup( COLLISION_GROUP_WEAPON )
+
+            phys = entity\GetPhysicsObject!
+            unless IsValid( phys ) and phys\IsMotionEnabled!
+                return
+
+            counter = 0
+            for other in *FindInSphere( entity\GetPos!, 32 )
+                if other\IsWeapon! and not IsValid( other\GetOwner! )
+                    counter = counter + 1
+                    if counter >= 5
+                        phys\EnableMotion( false )
+                        return
+
+-- https://wiki.facepunch.com/gmod/GM:EntityRemoved
+do
+
+    :RemoveSpectateTarget = Jailbreak
+
+    GM.EntityRemoved = ( entity, fullUpdate ) =>
+        if fullUpdate
+            return
+
+        if entity\IsSpectateTarget!
+            RemoveSpectateTarget( entity )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerDroppedWeapon
+do
+
+    COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
+    :Create, :Remove = timer
+    :TraceHull = util
+    IsValid = IsValid
+
+    trace = {
+        mask: MASK_SOLID_BRUSHONLY
+    }
+
+    GM.PlayerDroppedWeapon = ( ply, weapon ) =>
+        timerName = "Jailbreak:PlayerDroppedWeapon #" .. weapon\EntIndex!
+        Create timerName, 3, 1, ->
+            Remove( timerName )
+
+            unless weapon\IsValid!
+                return
+
+            phys = weapon\GetPhysicsObject!
+            unless IsValid( phys )
+                return
+
+            start = weapon\WorldSpaceCenter!
+            trace.start = start
+
+            mins, maxs = weapon\GetCollisionBounds!
+            trace.mins, trace.maxs = mins, maxs
+
+            trace.endpos = start + Vector( 0, 0, mins[ 3 ] - 2 )
+
+            if TraceHull( trace ).Hit
+                weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+                phys\EnableMotion( false )
+                return
+
+            @PlayerDroppedWeapon( ply, weapon )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
+do
+
+    GM.GuardsAmmoMult = CreateConVar( "jb_guards_ammo", "1", ConVarFlags, "Guards ammo multiplier ( max * multiplier ) on spawn.", 0, 1000 )
+    :GetAmmoTypes, :GetAmmoMax = game
+
+    GM.PlayerLoadout = ( ply, teamID ) =>
+        if teamID == TEAM_GUARD
+            do
+                mult = @GuardsAmmoMult\GetFloat!
+                for index = 1, #GetAmmoTypes!
+                    ply\GiveAmmo( min( 250, GetAmmoMax( index ) * mult ), index, true )
+
+            if Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
+                avaliableWeapons = @AvaliableWeapons
+                count = #avaliableWeapons / 4
+                gived = {}
+
+                while count > 0
+                    className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
+                    if ply\HasWeapon( className ) or gived[ className ]
+                        continue
+
+                    gived[ className ] = true
+                    ply\Give( className )
+                    count -= 1
+        elseif teamID == TEAM_PRISONER
+            -- TODO: Move to events
+            if not ply\HasWeapon( "weapon_knife" ) and random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
+                ply\Give( "weapon_knife" )
+
+        ply\Give( "jb_hands" )
+        ply\SelectWeapon( "jb_hands" )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
+GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
+    unless ply\IsInGame!
+        return false
+
+    if ply\HasWeapon( weapon\GetClass! )
+        return false
+
+    slot = weapon\GetSlot!
+    if slot == 0 or slot == 5
+        return true
+
+    if ply\HasWeaponsInSlot( slot )
+        return false
+
+    if slot == 1 or slot == 4
+        return true
+
+    for i = 1, 2
+        if ply\HasWeaponsInSlot( i + 1 )
+            return false
+
+    return true

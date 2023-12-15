@@ -1,0 +1,513 @@
+Jailbreak = Jailbreak
+RunConsoleCommand = RunConsoleCommand
+:min, :floor, :random, :Round = math
+:find, :Explode = string
+tonumber = tonumber
+list_Set = list.Set
+:Colors = Jailbreak
+IsValid = IsValid
+
+do
+
+    securityRadio = CreateConVar( "jb_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
+
+    list_Set "DesktopWindows", "walkie-talkie", {
+        title: "#jb.walkie-talkie"
+        icon: "icon16/phone.png"
+        order: 500
+        think: =>
+            if LocalPlayer!\HasSecurityRadio!
+                state = securityRadio\GetBool!
+
+                image = state and "icon16/phone_sound.png" or "icon16/phone.png"
+                if @Image\GetImage! ~= image
+                    @Image\SetImage( image )
+
+                if @IsVisible!
+                    return
+                @Show!
+            elseif @IsVisible!
+                @Hide!
+
+            @GetParent!\Layout!
+
+        click: =>
+            securityRadio\SetBool( not securityRadio\GetBool! )
+    }
+
+do
+
+    Megaphone = CreateConVar( "jb_megaphone", "0", FCVAR_USERINFO, "Activates the warden's ability to speak for the entire map.", 0, 1 )
+
+    list_Set "DesktopWindows", "megaphone", {
+        title: "#jb.megaphone"
+        icon: "icon16/sound_mute.png"
+        order: 500
+        think: =>
+            if LocalPlayer!\IsWarden!
+                state = Megaphone\GetBool!
+
+                image = state and "icon16/sound.png" or "icon16/sound_mute.png"
+                if @Image\GetImage! ~= image
+                    @Image\SetImage( image )
+
+                if @IsVisible!
+                    return
+
+                @Show!
+
+            if @IsVisible!
+                @Hide!
+
+            @GetParent!\Layout!
+
+        click: =>
+            Megaphone\SetBool( not Megaphone\GetBool! )
+    }
+
+list_Set "DesktopWindows", "warden-request", {
+    title: "#jb.warden.join"
+    icon: "icon16/user_suit.png"
+    order: 1000
+    think: =>
+        if Jailbreak.IsRoundRunning!
+            ply = LocalPlayer!
+            if ply\Alive!
+                if Jailbreak.HasWarden!
+                    if ply\IsWarden!
+                        image = "icon16/user.png"
+                        if @Image\GetImage! ~= image
+                            @Image\SetImage( image )
+
+                        text = "#jb.warden.leave"
+                        if @Label\GetText! ~= text
+                            @Label\SetText( text )
+                            @SetTooltip( text )
+
+                        unless @IsVisible!
+                            @Show!
+                            @GetParent!\Layout!
+
+                        return
+                elseif ply\IsGuard!
+                    image = "icon16/user_suit.png"
+                    if @Image\GetImage! ~= image
+                        @Image\SetImage( image )
+
+                    text = "#jb.warden.join"
+                    if @Label\GetText! ~= text
+                        @Label\SetText( text )
+                        @SetTooltip( text )
+
+                    unless @IsVisible!
+                        @Show!
+                        @GetParent!\Layout!
+                    return
+
+        if @IsVisible!
+            @Hide!
+            @GetParent!\Layout!
+
+    click: =>
+        RunConsoleCommand( "jb_warden" )
+}
+
+list_Set "DesktopWindows", "shock-collars", {
+    title: "#jb.shock-collars"
+    icon: "icon16/lightning.png"
+    order: 500
+    think: =>
+        if Jailbreak.GameInProgress!
+            ply = LocalPlayer!
+            if ply\IsWarden! and ply\Alive!
+                state = Jailbreak.IsShockCollarsActive!
+
+                image = state and "icon16/accept.png" or "icon16/cancel.png"
+                if @GetImage! ~= image
+                    @SetImage( image )
+
+                unless @IsVisible!
+                    @Show!
+                    @GetParent!\Layout!
+                return
+
+        if @IsVisible!
+            @Hide!
+            @GetParent!\Layout!
+
+    click: =>
+        RunConsoleCommand( "jb_shock_collars" )
+}
+
+do
+
+    jb_hands_transparency = GetConVar( "jb_hands_transparency" )
+    cl_playermodel = GetConVar( "cl_playermodel" )
+
+    -- TODO: Move convars to cl_init
+    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
+    cl_playercolor = CreateConVar( "cl_playercolor", "0.3 0.3 0.3", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
+    cl_weaponcolor = CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
+    cl_playerbodygroups = CreateConVar( "cl_playerbodygroups", "0", ConVarFlags, "The bodygroups to use, if the model has any" )
+    cl_playerskin = CreateConVar( "cl_playerskin", "0", ConVarFlags, "The skin to use, if the model has any" )
+
+    cvars.AddChangeCallback( "cl_playermodel", ->
+        RunConsoleCommand( "cl_playerbodygroups", "0" )
+        RunConsoleCommand( "cl_playerskin", "0" )
+    "Jailbreak::PlayerModel" )
+
+    playerOptionsAnimations = list.Get( "PlayerOptionsAnimations" )
+    default_animations = { "idle_all_01", "menu_walk" }
+    previewOffset = Vector( -100, 0, -61 )
+
+    playerModels = player_manager.AllValidModels!
+    :PlayerModels, :FixModelPath = Jailbreak
+    input_GetCursorPos = input.GetCursorPos
+    :TranslatePlayerModel = player_manager
+    vector_origin = vector_origin
+    angle_zero = angle_zero
+    :PrecacheModel = util
+    tostring = tostring
+    :concat = table
+    pairs = pairs
+
+    list_Set "DesktopWindows", "player-editor", {
+        title: "#smwidget.playermodel"
+        icon: "icon64/playermodel.png"
+        order: 200
+        click: =>
+            window = @Window
+            if IsValid( window )
+                return
+
+            window = g_ContextMenu\Add( "DFrame" )
+            @Window = window
+
+            window\SetTitle( "#smwidget.playermodel_title" )
+            window\SetSize( 960, 700 )
+            window\Center!
+
+            window\SetSize( min( Jailbreak.ScreenWidth - 16, window\GetWide! ), min( Jailbreak.ScreenHeight - 16, window\GetTall! ) )
+            window\SetMinWidth( window\GetWide! )
+            window\SetMinHeight( window\GetTall! )
+            window\SetSizable( true )
+            window\Center!
+
+            modelPreview = window\Add( "DModelPanel" )
+            modelPreview\Dock( FILL )
+            modelPreview\SetFOV( 36 )
+            modelPreview\SetCamPos( vector_origin )
+            modelPreview\SetDirectionalLight( BOX_RIGHT, Color( 255, 160, 80 ) )
+            modelPreview\SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255 ) )
+            modelPreview\SetAmbientLight( Vector( -64, -64, -64 ) )
+            modelPreview\SetAnimated( true )
+            modelPreview.Angles = angle_zero
+            modelPreview\SetLookAt( Vector( -100, 0, -22 ) )
+
+            sheet = window\Add( "DPropertySheet" )
+            sheet\Dock( RIGHT )
+            sheet\SetSize( 430, 0 )
+
+            -- Models Tab
+            modelsTab = window\Add( "DPanel" )
+            modelsTab\DockPadding( 8, 8, 8, 8 )
+
+            modelsSearch = modelsTab\Add( "DTextEntry" )
+            modelsSearch\Dock( TOP )
+            modelsSearch\DockMargin( 0, 0, 0, 8 )
+            modelsSearch\SetUpdateOnType( true )
+            modelsSearch\SetPlaceholderText( "#spawnmenu.quick_filter" )
+
+            selectPanel = modelsTab\Add( "DPanelSelect" )
+            selectPanel\Dock( FILL )
+
+            for name, modelPath in SortedPairs( playerModels )
+                modelPath = FixModelPath( modelPath )
+
+                icon = vgui.Create( "SpawnIcon" )
+                icon\SetModel( modelPath )
+                icon\SetSize( 64, 64 )
+                icon\SetTooltip( name )
+                icon.ModelName = name
+                icon.ModelPath = modelPath
+                icon.OpenMenu = ->
+                    menu = DermaMenu!
+                    menu\AddOption( "#spawnmenu.menu.copy", ->
+                        SetClipboardText( modelPath )
+                    )\SetIcon( "icon16/page_copy.png" )
+                    menu\Open!
+
+                selectPanel\AddPanel( icon, {
+                    cl_playermodel: name
+                } )
+
+            do
+
+                UpdateAvalibleModels = ->
+                    unless selectPanel\IsValid! and selectPanel\IsVisible!
+                        return
+
+                    allowedPlayerModels = {}
+                    isFemalePrison = Jailbreak.IsFemalePrison!
+
+                    for modelPath in *PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+                        allowedPlayerModels[ modelPath ] = true
+
+                    for modelPath in *PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+                        allowedPlayerModels[ modelPath ] = true
+
+                    filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
+                    for _, icon in pairs( selectPanel\GetItems! )
+                        allowed = Jailbreak.CustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath or "" ]
+                        unless allowed
+                            icon\SetVisible( false )
+                            continue
+
+                        icon\SetVisible( find( icon.ModelName, filter, 1, true ) and find( icon.ModelPath, filter, 1, true ) )
+                    selectPanel\InvalidateLayout!
+
+                    timer.Create( "player-editor-models", 0.5, 0, UpdateAvalibleModels )
+                    modelsSearch.OnValueChange = UpdateAvalibleModels
+                    UpdateAvalibleModels!
+
+            sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
+
+            -- Player Colors Tab
+            colorsPanel = window\Add( "DPanel" )
+            colorsPanel\DockPadding( 8, 8, 8, 8 )
+
+            do
+
+                handsTransparency = colorsPanel\Add( "DNumSlider" )
+                handsTransparency\Dock( TOP )
+                handsTransparency\SetText( "#jb.hands-transparency" )
+                handsTransparency\SetDark( true )
+                handsTransparency\SetTall( 50 )
+                handsTransparency\SetDecimals( 2 )
+                handsTransparency\SetMax( 1 )
+
+                handsTransparency\SetValue( jb_hands_transparency\GetFloat! )
+
+                handsTransparency.OnValueChanged = ( value ) =>
+                    if jb_hands_transparency\GetFloat! ~= value
+                        jb_hands_transparency\SetFloat( value )
+
+            -- Player Color
+            do
+
+                label = colorsPanel\Add( "DLabel" )
+                label\SetText( "#smwidget.color_plr" )
+                label\SetTextColor( Colors.black )
+                label\Dock( TOP )
+
+            do
+
+                playerColor = colorsPanel\Add( "DColorMixer" )
+                playerColor\SetAlphaBar( false )
+                playerColor\SetPalette( false )
+                playerColor\Dock( TOP )
+                playerColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
+
+                playerColor.ValueChanged = =>
+                    vector = @GetVector!
+
+                    entity = modelPreview.Entity
+                    if IsValid( entity )
+                        entity\SetPlayerColor( vector )
+                    else
+                        timer.Simple 0, ->
+                            if playerColor\IsValid!
+                                playerColor\ValueChanged!
+
+                    cl_playercolor\SetString( tostring( vector ) )
+
+                playerColor\SetVector( Vector( cl_playercolor\GetString! ) )
+
+            -- Weapon Color
+            do
+
+                label = colorsPanel\Add( "DLabel" )
+                label\SetText( "#smwidget.color_wep" )
+                label\SetTextColor( Colors.black )
+                label\DockMargin( 0, 32, 0, 0 )
+                label\Dock( TOP )
+
+            do
+
+                weaponColor = colorsPanel\Add( "DColorMixer" )
+                weaponColor\SetAlphaBar( false )
+                weaponColor\SetPalette( false )
+                weaponColor\Dock( TOP )
+                weaponColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
+
+                weaponColor.ValueChanged = =>
+                    cl_weaponcolor\SetString( tostring( @GetVector! ) )
+
+                weaponColor\SetVector( Vector( cl_weaponcolor\GetString! ) )
+
+            sheet\AddSheet( "#smwidget.colors", colorsPanel, "icon16/color_wheel.png" )
+
+            -- Bodygroups Tab
+            bodygroupsPanel = window\Add( "DPanel" )
+            bodygroupsPanel\DockPadding( 8, 8, 8, 8 )
+
+            bodygroupsList = bodygroupsPanel\Add( "DPanelList" )
+            bodygroupsList\EnableVerticalScrollbar( true )
+            bodygroupsList\Dock( FILL )
+
+            bodygroupsSheet = sheet\AddSheet( "#smwidget.bodygroups", bodygroupsPanel, "icon16/cog.png" )
+
+            UpdateBodyGroups = ( pnl, value ) ->
+                previewEntity = modelPreview.Entity
+                if previewEntity
+                    previewEntity\SetBodygroup( pnl.typenum, Round( value ) )
+
+                str = Explode( " ", cl_playerbodygroups\GetString! )
+                if #str < pnl.typenum + 1
+                    for index = 1, pnl.typenum + 1
+                        str[ index ] = str[ index ] or 0
+
+                str[ pnl.typenum + 1 ] = Round( value )
+                cl_playerbodygroups\SetString( concat( str, " " ) )
+
+            SetSkin = ( value ) =>
+                value = floor( value )
+
+                previewEntity = modelPreview.Entity
+                if previewEntity
+                    previewEntity\SetSkin( value )
+
+                if value ~= cl_playerskin\GetInt!
+                    cl_playerskin\SetString( value )
+
+            -- Player Model
+            SetupModel = ( modelName ) ->
+                unless modelPreview
+                    return
+
+                requested = FixModelPath( TranslatePlayerModel( modelName ) )
+                PrecacheModel( requested )
+                modelPreview\SetModel( requested )
+
+                bodygroupsList\Clear!
+
+                previewEntity = modelPreview.Entity
+                unless previewEntity
+                    return
+
+                previewEntity\SetPos( previewOffset )
+
+                bodygroupsTab = bodygroupsSheet.Tab
+                if IsValid( bodygroupsTab )
+                    if bodygroupsTab\IsVisible!
+                        bodygroupsTab\SetVisible( false )
+
+                    -- Skin
+                    skinCount = previewEntity\SkinCount! - 1
+                    if skinCount > 0
+                        skins = vgui.Create( "DNumSlider" )
+                        skins\Dock( TOP )
+                        skins\SetText( "Skin" )
+                        skins\SetDark( true )
+                        skins\SetTall( 50 )
+                        skins\SetDecimals( 0 )
+                        skins\SetMax( skinCount )
+                        skins\SetValue( cl_playerskin\GetInt! )
+                        skins.OnValueChanged = SetSkin
+                        bodygroupsList\AddItem( skins )
+
+                        cvars.AddChangeCallback( "cl_playerskin", ( _, __, value ) ->
+                            value = tonumber( value ) or 0
+                            skins\SetValue( value )
+                            SetSkin( nil, value )
+                        "player-editor" )
+
+                        unless bodygroupsTab\IsVisible!
+                            bodygroupsTab\SetVisible( true )
+
+                    -- Bodygroups
+                    groups = Explode( " ", cl_playerbodygroups\GetString! )
+                    for index = 0, previewEntity\GetNumBodyGroups! - 1
+                        if previewEntity\GetBodygroupCount( index ) <= 1
+                            continue
+
+                        bodygroup = vgui.Create( "DNumSlider" )
+                        bodygroup\Dock( TOP )
+                        bodygroup\SetText( previewEntity\GetBodygroupName( index ) )
+                        bodygroup\SetDark( true )
+                        bodygroup\SetTall( 50 )
+                        bodygroup\SetDecimals( 0 )
+                        bodygroup.typenum = index
+                        bodygroup\SetMax( previewEntity\GetBodygroupCount( index ) - 1 )
+                        bodygroup\SetValue( groups[ index + 1 ] or 0 )
+                        bodygroup.OnValueChanged = UpdateBodyGroups
+                        bodygroupsList\AddItem( bodygroup )
+
+                        previewEntity\SetBodygroup( index, groups[ index + 1 ] or 0 )
+
+                        unless bodygroupsTab\IsVisible!
+                            bodygroupsTab\SetVisible( true )
+
+                sheet.tabScroller\InvalidateLayout!
+
+                -- Animations
+                anims = playerOptionsAnimations[ modelName ]
+                if not anims or #anims == 0
+                    anims = default_animations
+
+                sequence = previewEntity\LookupSequence( anims[ random( 1, #anims ) ] )
+                if sequence > 0
+                    previewEntity\ResetSequence( sequence )
+
+            cvars.AddChangeCallback( "cl_playermodel", ( _, __, modelName ) ->
+                SetupModel( modelName )
+            "player-editor" )
+
+            SetupModel( cl_playermodel\GetString! )
+
+            modelPreview.DragMousePress = =>
+                @PressX, @PressY = input_GetCursorPos!
+                @Pressed = true
+
+            modelPreview.DragMouseRelease = =>
+                @Pressed = false
+
+            modelPreview.LayoutEntity = ( entity ) =>
+                if @bAnimated
+                    @RunAnimation!
+
+                if @Pressed
+                    mx, my = input_GetCursorPos!
+                    @Angles[ 2 ] = @Angles[ 2 ] - ( ( @PressX or mx ) - mx ) / 2
+                    @PressX, @PressY = mx, my
+
+                entity\SetAngles( @Angles )
+    }
+
+list_Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
+
+list_Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
+list_Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
+
+list_Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
+list_Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
+
+list_Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
+list_Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
+
+list_Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
+list_Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )

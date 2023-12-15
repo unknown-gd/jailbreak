@@ -1,0 +1,368 @@
+Jailbreak = Jailbreak
+GetGlobal2Int = GetGlobal2Int
+:ceil, :max = math
+:GetAll = player
+NULL = NULL
+
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
+do
+
+    guardsDiff = Jailbreak.GuardsDiff
+    :Joinable = team
+
+    -- Returns true if team is joinable
+    Jailbreak.TeamIsJoinable = ( requestedTeamID ) ->
+            unless Joinable( requestedTeamID )
+                return false
+
+            guardCount, prisonerCount = 0, 0
+            for ply in *GetAll!
+                teamID = ply\Team!
+                if teamID == TEAM_GUARD
+                    guardCount += 1
+                elseif teamID == TEAM_PRISONER
+                    prisonerCount += 1
+
+            switch requestedTeamID
+                when TEAM_PRISONER
+                    if prisonerCount == 0
+                        return true
+
+                    return guardCount ~= 0
+
+                when TEAM_GUARD
+                    if guardCount == 0
+                        return true
+
+                    if prisonerCount == 0
+                        return false
+
+                    return guardCount < ceil( prisonerCount / guardsDiff\GetInt! )
+
+            return true
+
+
+-- Returns fixed model path
+do
+
+    :gsub, :lower = string
+
+    Jailbreak.FixModelPath = ( modelPath ) ->
+        return gsub( lower( modelPath ), "[\\/]+", "/" )
+
+-- Getting player count in team
+Jailbreak.GetPlayersCount = ( teamID, alive ) ->
+    count = 0
+    for ply in *GetAll!
+        if teamID ~= nil and ply\Team! ~= teamID
+            continue
+
+        if alive ~= nil and ply\Alive! ~= alive
+            continue
+
+        count += 1
+
+    return count
+
+do
+
+    ipairs = ipairs
+
+    -- Getting players in teams
+    Jailbreak.GetTeamPlayers = ( alive, ... ) ->
+        teams, players = { ... }, GetAll!
+        for index, teamID in ipairs( teams )
+            tbl, length = {}, 0
+
+            for ply in *players
+                if ply\Team! ~= teamID
+                    continue
+
+                if alive ~= nil and ply\Alive! ~= alive
+                    continue
+
+                length += 1
+                tbl[ length ] = ply
+
+            teams[ index ] = tbl
+
+        return teams
+
+    -- Getting player count in teams
+    Jailbreak.GetTeamPlayersCount = ( alive, ... ) ->
+        teams, players = { ... }, GetAll!
+        for index, teamID in ipairs( teams )
+            count = 0
+            for ply in *players
+                if ply\Team! ~= teamID
+                    continue
+
+                if alive ~= nil and ply\Alive! ~= alive
+                    continue
+
+                count += 1
+
+            teams[ index ] = count
+
+        return teams
+
+do
+
+    -- Returns warden as player
+    getWarden = ->
+        warden = Jailbreak.Warden
+        if warden and warden\IsValid! and warden\IsWarden! and warden\IsInGame!
+            return warden
+
+        for ply in *GetAll!
+            if ply\IsWarden!
+                Jailbreak.Warden = ply
+                return ply
+
+        return NULL
+
+    Jailbreak.GetWarden = getWarden
+
+    -- Returns true if warden is exists
+    Jailbreak.HasWarden = ->
+        warden = getWarden!
+        return warden\IsValid! and warden\IsInGame!
+
+-- Round states
+do
+
+    ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+    ROUND_PREPARING = ROUND_PREPARING
+    ROUND_RUNNING = ROUND_RUNNING
+    ROUND_ENDED = ROUND_ENDED
+
+    -- Returns round state as integer
+    getRoundState = ->
+        return GetGlobal2Int( "round-state" )
+
+    Jailbreak.GetRoundState = getRoundState
+
+    -- Returns true if game is waiting players
+    Jailbreak.IsWaitingPlayers = =>
+        return getRoundState! == ROUND_WAITING_PLAYERS
+
+    -- Returns true if round is preparing
+    Jailbreak.IsRoundPreparing = =>
+        return getRoundState! == ROUND_PREPARING
+
+    -- Returns true if round is running
+    Jailbreak.IsRoundRunning = =>
+        return getRoundState! == ROUND_RUNNING
+
+    -- Returns true if round is ended
+    Jailbreak.IsRoundEnded = =>
+        return getRoundState! == ROUND_ENDED
+
+    -- Returns true if game is in progress
+    Jailbreak.GameInProgress = =>
+        state = getRoundState!
+        return state ~= ROUND_WAITING_PLAYERS and state ~= ROUND_PREPARING
+
+do
+
+    -- Returns round time as integer
+    getRoundTime = ->
+        return GetGlobal2Int( "next-round-state" )
+
+    Jailbreak.GetRoundTime = getRoundTime
+
+    -- Returns round remaining time
+    Jailbreak.GetRemainingTime = =>
+        return max( 0, getRoundTime! - CurTime! )
+
+-- Returns winning team index
+Jailbreak.GetWinningTeam = ->
+    return GetGlobal2Int( "winning-team" )
+
+-- Returns true if shock collars are active
+Jailbreak.IsShockCollarsActive = ->
+    return GetGlobal2Bool( "shock-collars" )
+
+-- Returns warden coins as integer
+Jailbreak.GetWardenCoins = ->
+    return GetGlobal2Int( "warden-coins" )
+
+-- Returns true if female prison is enabled
+Jailbreak.IsFemalePrison = ->
+    return GetGlobal2Bool( "female-prison" )
+
+-- Entity metatable functions
+ENTITY = FindMetaTable( "Entity" )
+:GetNW2Bool, :GetNW2Entity = ENTITY
+
+do
+
+    -- Returns true if entity is player ragdoll
+    ENTITY.IsPlayerRagdoll = =>
+        return GetNW2Bool( @, "is-player-ragdoll" )
+
+    -- Returns ragdoll owner
+    ENTITY.GetRagdollOwner = =>
+        return GetNW2Entity( @, "ragdoll-owner" )
+
+
+    -- Returns true if entity is under water
+    do
+
+        :WaterLevel = ENTITY
+
+        ENTITY.IsUnderwater = =>
+            return WaterLevel( @ ) == 3
+
+    -- Returns player color as vector
+    do
+
+        defaultColor = Vector( 0.25, 0.35, 0.4 )
+        :GetNW2Vector = ENTITY
+
+        ENTITY.GetPlayerColor = =>
+            return GetNW2Vector( @, "player-color", defaultColor )
+
+    -- Sets player color
+    do
+
+        :SetNW2Var = ENTITY
+
+        ENTITY.SetPlayerColor = ( vector ) =>
+            SetNW2Var( @, "player-color", vector )
+
+do
+
+    PLAYER = FindMetaTable( "Player" )
+
+    -- Returns true if player is fully connected
+    PLAYER.IsFullyConnected = =>
+        return GetNW2Bool( @, "fully-connected" )
+
+    -- Returns weapons in slot as table
+    PLAYER.GetWeaponsInSlot = ( slot ) =>
+        weapons = {}
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                weapons[] = weapon
+
+        return weapons
+
+    -- Returns true if player has weapons in slot
+    PLAYER.HasWeaponsInSlot = ( slot ) =>
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                return true
+
+        return false
+
+    -- Returns count of weapons in slot
+    PLAYER.GetCountWeaponsInSlot = ( slot ) =>
+        count = 0
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                count += 1
+
+        return count
+
+    -- Returns player ragdoll as entity
+    do
+
+        :FindByClass = ents
+
+        PLAYER.GetRagdollEntity = =>
+            value = GetNW2Entity( @, "player-ragdoll" )
+            if value\IsValid!
+                return value
+
+            isBot = @IsBot!
+            sid64 = isBot and @Nick! or @SteamID64!
+
+            for entity in *FindByClass( "prop_ragdoll" )
+                if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                    @SetNW2Entity( "player-ragdoll", entity )
+                    return entity
+
+            for entity in *FindByClass( "prop_physics" )
+                if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                    @SetNW2Entity( "player-ragdoll", entity )
+                    return entity
+
+            return NULL
+
+    -- Returns true if player is in game
+    do
+
+        teams = Jailbreak.Teams
+
+        PLAYER.IsInGame = =>
+            return teams[ @Team! ] and @Alive!
+
+    -- Returns true if player is guard
+    PLAYER.IsGuard = =>
+        return @Team! == TEAM_GUARD
+
+    -- Returns true if player is prisoner
+    PLAYER.IsPrisoner = =>
+        return @Team! == TEAM_PRISONER
+
+    -- Returns true if player is warden
+    PLAYER.IsWarden = =>
+        return GetNW2Bool( @, "is-warden" )
+
+    -- Returns true if player is muted by warden
+    PLAYER.IsMutedByWarden = =>
+        return GetNW2Bool( @, "warden-mute" )
+
+    -- Returns true if player has shock collar
+    PLAYER.HasShockCollar = =>
+        return GetNW2Bool( @, "shock-collar" )
+
+    -- Returns true if player has security access
+    PLAYER.HasSecurityAccess = =>
+        return GetNW2Bool( @, "security-access" )
+
+    -- Returns true if player has security radio
+    PLAYER.HasSecurityRadio = =>
+        return GetNW2Bool( @, "security-radio" )
+
+    -- Returns table of players near player by distance
+    do
+
+        :FindInSphere = ents
+
+        PLAYER.GetNearPlayers = ( distance, isTeam ) =>
+            teamID = false
+            if isTeam
+                teamID = @Team!
+
+            players = {}
+            for ply in *FindInSphere( @EyePos!, distance )
+                unless ply\IsPlayer!
+                    continue
+
+                if isTeam and ply\Team! ~= teamID
+                    continue
+
+                players[] = ply
+
+            return players
+
+-- Silly spark sounds
+do
+
+    sounds = {}
+
+    for number = 1, 6 do
+        sounds[ number ] = "ambient/energy/spark" .. number .. ".wav"
+
+    sound.Add {
+        name: "Jailbreak.Shock"
+        channel: CHAN_WEAPON
+        level: SNDLVL_70dB
+        sound: sounds
+        pitch: 100
+        volume: 1
+    }

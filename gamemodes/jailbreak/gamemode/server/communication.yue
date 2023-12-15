@@ -1,0 +1,290 @@
+Jailbreak = Jailbreak
+net = net
+GM = GM
+
+colors = Jailbreak.Colors
+:white = colors
+
+:sub, :lower, :find, :match, :Trim = string
+:min, :random = math
+:GetHumans = player
+:GetColor = team
+
+-- Custom Chat Messages
+sendChatText = nil
+do
+
+    :Start, :WriteUInt, :WriteTable, :Send, :Broadcast = net
+
+    sendChatText = ( target, ... ) ->
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 3, 2 )
+        WriteTable( { ... }, true )
+
+        if target
+            Send( target )
+        else
+            Broadcast!
+
+Jailbreak.SendChatText = sendChatText
+
+-- Chat Commands
+chatCommands = Jailbreak.ChatCommands
+unless chatCommands
+    chatCommands = {}
+    Jailbreak.ChatCommands = chatCommands
+
+setChatCommand = ( str, func ) ->
+    chatCommands[ lower( str ) ] = func
+
+Jailbreak.SetChatCommand = setChatCommand
+
+-- Local Out of Character (LOOC)
+do
+
+    looc = ( text ) =>
+        sendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance\GetInt!, false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
+
+    setChatCommand "looc", looc
+    setChatCommand "", looc
+
+-- Emotions / Actions
+do
+
+    customEmotion = ( ... ) =>
+        sendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " ", ... )
+
+    Jailbreak.Emotion = customEmotion
+
+    emotion = ( text ) =>
+        customEmotion( @, lower( text ) )
+
+    setChatCommand "e", emotion
+    setChatCommand "me", emotion
+    setChatCommand "emotion", emotion
+
+    -- Coin Flip
+    do
+
+        coinFlip = ( _, text ) =>
+            emotion( @, "#jb.chat.coin-flip #jb.chat.coin-flip." .. random( 0, 1 ) )
+
+        setChatCommand "coin", coinFlip
+        setChatCommand "flip", coinFlip
+
+    -- Roll Dice ( /roll <from> <to> )
+    do
+
+        tonumber = tonumber
+
+        setChatCommand "roll", ( text ) =>
+            int1, int2 = match( text, "(-?%d+)%s+(-?%d+)" )
+            unless int1 and int2
+                int1, int2 = 0, 100
+
+            emotion( @, "#jb.chat.rolled " .. random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
+
+-- Out of Character ( OOC )
+ooc = ( text ) =>
+    sendChatText( false, colors.turquoise, "[#jb.chat.ooc] ", @GetPlayerColor!\ToColor!, @Nick!, white, ": " .. text )
+
+Jailbreak.OOC = ooc
+
+do
+
+    jb_ooc = CreateConVar( "jb_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
+
+    func = ( text ) =>
+        if Jailbreak.GameInProgress! and not ( jb_ooc\GetBool! or @IsAdmin! )
+            @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
+            return
+
+        ooc( @, text )
+
+    setChatCommand "ooc", func
+    setChatCommand "/", func
+
+-- Whisper
+whisperDistance = CreateConVar( "jb_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
+
+whisper = ( text ) =>
+    sendChatText( @GetNearPlayers( whisperDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
+
+Jailbreak.Whisper = Whisper
+
+setChatCommand "w", Whisper
+setChatCommand "whisper", Whisper
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerSay
+GM.PlayerSay = ( ply, text, isTeam ) =>
+    text = Trim( text )
+
+    if sub( text, 1, 1 ) == "/"
+        _, endPos, command = find( text, "^/([^%s]+)" )
+        if command
+            func = chatCommands[ lower( command ) ]
+            if func
+                return func( ply, sub( text, min( endPos + 2, #text ) ) ) or ""
+
+        return ""
+
+    if isTeam
+        ply\Say( text, false )
+        return ""
+
+    elseif ply\UsingSecurityRadio!
+        players = {}
+        for pl in *GetHumans!
+            if pl\HasSecurityRadio!
+                players[] = pl
+
+        sendChatText( players, "[#jb.walkie-talkie] ", ply\GetPlayerColor!\ToColor!, ply\Nick!, white, " #jb.chat.says: \"" .. text .. "\"" )
+        whisper( ply, text )
+        return ""
+
+    unless Jailbreak.GameInProgress!
+        ooc( ply, text )
+        return ""
+
+    return text
+
+hook.Add "PlayerInitialSpawn", "Jailbreak::Communication", =>
+    unless @IsBot!
+        @AvailableSpeakers = {}
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerCanSeePlayersChat
+GM.PlayerCanSeePlayersChat = ( _, isTeam, listener, speaker ) =>
+    if listener\IsBot!
+        return false
+
+    unless speaker and speaker\IsValid!
+        return true
+
+    if isTeam and listener\Team! ~= speaker\Team!
+        return false
+
+    return listener.AvailableSpeakers[ speaker ] ~= nil
+
+-- New warden notification
+GM.WardenChanged = ( ply, state ) =>
+    sendChatText( false, ply\GetPlayerColor!\ToColor!, ply\Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
+
+-- Other
+setChatCommand "warden", =>
+    @ConCommand( "jb_warden" )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerCanHearPlayersVoice
+GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
+    if listener\IsBot! or speaker\IsBot! or listener\EntIndex! == speaker\EntIndex!
+        return false, false
+
+    stereoSound = listener.AvailableSpeakers[ speaker ]
+    if stereoSound ~= nil
+        return true, stereoSound
+
+    return false, false
+
+do
+
+    sendVolumes = nil
+    do
+
+        voiceChatUDP = CreateConVar( "jb_voice_chat_udp", "1", ConVarFlags, "Use faster udp voice chat packets instead of tcp.", 0, 1 )
+        :Start, :WriteUInt, :WriteEntity, :WriteFloat, :Send = net
+        util.AddNetworkString( "JB::Communication" )
+
+        sendVolumes = ( listener, volumes ) ->
+            length = #volumes
+            if length == 0
+                return
+
+            Start( "JB::Communication", voiceChatUDP\GetBool! )
+            WriteUInt( length, 10 )
+
+            for i = 1, length
+                data = volumes[ i ]
+                WriteEntity( data[ 1 ] )
+                WriteFloat( data[ 2 ] )
+
+            Send( listener )
+
+    Distance = FindMetaTable( "Vector" ).Distance
+    EyePos = FindMetaTable( "Entity" ).EyePos
+    player_GetHumans = player.GetHumans
+    RecipientFilter = RecipientFilter
+    :max, :Clamp, :Round = math
+    :IsRoundRunning = Jailbreak
+    :Empty = table
+
+    allTalk = GetConVar( "sv_alltalk" )\GetInt! > 2
+    cvars.AddChangeCallback( "sv_alltalk", ( _, __, value ) ->
+        allTalk = ( tonumber( value ) or 2 ) > 2
+    "Jailbreak" )
+
+    voiceChatSpeed = CreateConVar( "jb_voice_chat_speed", "4", ConVarFlags, "Speed of voice chat packets sending.", 0, 10 )
+    cvars.AddChangeCallback( voiceChatSpeed\GetName!, ( _, __, value ) ->
+        timer.Adjust( "JB::Communication", 1 / ( tonumber( value ) or 4 ) )
+    "Jailbreak" )
+
+    timer.Create "JB::Communication", 1 / voiceChatSpeed\GetInt!, 0, ->
+        minDistance, maxDistance = Jailbreak.VoiceChatMinDistance\GetInt!, Jailbreak.VoiceChatMaxDistance\GetInt!
+        players = player_GetHumans!
+
+        for listener in *players
+            speakers = listener.AvailableSpeakers
+            Empty( speakers )
+
+            listenerIndex = listener\EntIndex!
+            volumes = {}
+
+            if allTalk or not IsRoundRunning!
+                for speaker in *players
+                    if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                        continue
+
+                    volumes[] = { speaker, 1 }
+                    speakers[ speaker ] = false
+
+                sendVolumes( listener, volumes )
+                continue
+
+            origin = EyePos( listener )
+
+            rf = RecipientFilter!
+            rf\AddPAS( origin )
+
+            isInGame = listener\IsInGame!
+            hasRadio = isInGame and listener\HasSecurityRadio!
+
+            for speaker in *rf\GetPlayers!
+                if speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                    continue
+
+                if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
+                    continue
+
+                unless speaker\IsInGame!
+                    unless isInGame
+                        volumes[] = { speaker, 1 }
+                        speakers[ speaker ] = false
+
+                    continue
+
+                if speaker\IsMutedByWarden!
+                    continue
+
+                volume = Round( 1 - Clamp( max( 0, Distance( origin, EyePos( speaker ) ) - minDistance ) / maxDistance, 0, 1 ), 2 )
+                if volume > 0
+                    volumes[] = { speaker, volume }
+                    speakers[ speaker ] = true
+
+            for speaker in *players
+                if speakers[ speaker ] ~= nil or speaker\IsBot! or speaker\EntIndex! == listenerIndex
+                    continue
+
+                if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
+                    volumes[] = { speaker, 1 }
+                    speakers[ speaker ] = false
+
+            sendVolumes( listener, volumes )
+

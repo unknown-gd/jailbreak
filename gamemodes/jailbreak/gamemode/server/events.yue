@@ -1,7 +1,9 @@
 ErrorNoHaltWithStack = ErrorNoHaltWithStack
 :random, :Clamp, :Rand = math
+hook_Remove = hook.Remove
 Jailbreak = Jailbreak
 tostring = tostring
+hook_Add = hook.Add
 xpcall = xpcall
 :gsub = string
 
@@ -142,7 +144,7 @@ do
     Models = player_manager.AllValidModels!
 
     event = Jailbreak.RegisterEvent "masquerade", ->
-            hook.Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
+            hook_Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
                 modelPath = Random( Models )
                 if modelPath ~= nil
                     modelPath = Jailbreak.FixModelPath( modelPath )
@@ -150,7 +152,7 @@ do
                     @SetModel( modelPath )
                     return true
 
-            hook.Add "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent", =>
+            hook_Add "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent", =>
                 if @IsBot!
                     return
 
@@ -163,8 +165,8 @@ do
 
             return true, true,
         ->
-            hook.Remove "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent"
-            hook.Remove "PlayerSetModel", "Jailbreak::MasqueradeEvent"
+            hook_Remove "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent"
+            hook_Remove "PlayerSetModel", "Jailbreak::MasqueradeEvent"
 
     event\SetFinishState( ROUND_ENDED )
     event\SetType( "playermodel" )
@@ -191,11 +193,11 @@ do
 do
 
     event = Jailbreak.RegisterEvent "grass-is-lava", ->
-            hook.Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
+            hook_Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
                 @EmitSound( "vo/npc/" .. ( Jailbreak.IsFemalePrison! and "female01" or "male01" ) .. "/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                 return true
 
-            hook.Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
+            hook_Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
                 unless @IsInGame!
                     return
 
@@ -226,8 +228,8 @@ do
 
             return true, false,
         ->
-            hook.Remove "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent"
-            hook.Remove "PlayerFootstep", "Jailbreak::GrassIsLavaEvent"
+            hook_Remove "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent"
+            hook_Remove "PlayerFootstep", "Jailbreak::GrassIsLavaEvent"
 
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( ROUND_ENDED )

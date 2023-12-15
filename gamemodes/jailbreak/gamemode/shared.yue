@@ -1,5 +1,7 @@
+GM = GM
 GM.Name = "Jailbreak"
 GM.Author = "Unknown Developer & Gunter"
+GM.Version = "1.0.0"
 GM.TeamBased = true
 
 global Jailbreak = Jailbreak or {}
@@ -20,43 +22,33 @@ $lua[==[
 local Jailbreak = Jailbreak
 local TEAM_GUARD = TEAM_GUARD
 local TEAM_PRISONER = TEAM_PRISONER
-
-local ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
-local ROUND_PREPARING = ROUND_PREPARING
-local ROUND_RUNNING = ROUND_RUNNING
-local ROUND_ENDED = ROUND_ENDED
 ]==]
 
-Jailbreak.Colors = {
-    spectators: Color( 220, 220, 220 )
-    light_grey: Color( 200, 200, 200 )
-    turquoise: Color( 75, 200, 200 )
-    asparagus: Color( 128, 154, 86 )
-    prisoners: Color( 255, 89, 50 )
-    dark_grey: Color( 33, 33, 33 )
-    console: Color( 30, 130, 255 )
-    guards: Color( 50, 185, 255 )
-    grey: Color( 180, 180, 180 )
-    pink: Color( 225, 50, 100 )
-    blue: Color( 0, 190, 255 )
-    red: Color( 255, 50, 50 )
-    black: Color( 0, 0, 0 )
-    white: color_white
-}
+do
+
+    Color = Color
+
+    Jailbreak.Colors = {
+        spectators: Color( 220, 220, 220 )
+        light_grey: Color( 200, 200, 200 )
+        turquoise: Color( 75, 200, 200 )
+        asparagus: Color( 128, 154, 86 )
+        prisoners: Color( 255, 89, 50 )
+        dark_grey: Color( 33, 33, 33 )
+        console: Color( 30, 130, 255 )
+        guards: Color( 50, 185, 255 )
+        grey: Color( 180, 180, 180 )
+        pink: Color( 225, 50, 100 )
+        blue: Color( 0, 190, 255 )
+        red: Color( 255, 50, 50 )
+        black: Color( 0, 0, 0 )
+        white: color_white
+    }
 
 Jailbreak.Teams = {
     [ TEAM_PRISONER ]: true
     [ TEAM_GUARD ]: true
 }
-
-:ceil, :min, :max = math
-hook_Run = hook.Run
-IsValid = IsValid
-:GetAll = player
-SERVER = SERVER
-CLIENT = CLIENT
-team = team
-NULL = NULL
 
 do
 
@@ -66,7 +58,6 @@ do
     Jailbreak.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "110", ConVarFlags, "The speed of the player while slow walking.", 0, 3000 )
 
     Jailbreak.CustomPlayerModels = CreateConVar( "jb_custom_player_models", "0", ConVarFlags, "If enabled, the player can put any playermodel he wants.", 0, 1 )
-    Jailbreak.Classic = CreateConVar( "jb_classic", "0", ConVarFlags, "Classic jailbreak, without any innovations. Specially for Erik_Maksimets <3", 0, 1 )
     Jailbreak.MouthLessAnimations = CreateConVar( "jb_mouth_less_animations", "1", ConVarFlags, "Funny mouth less animations.", 0, 10 )
 
     Jailbreak.VoiceIcons = CreateConVar( "jb_voice_icons", "1", ConVarFlags, "Show voice/chat icons on players.", 0, 1 )
@@ -78,384 +69,89 @@ do
     Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )
     Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )
 
-    do
-
-        GuardsDiff = CreateConVar( "jb_guards_diff", "4", ConVarFlags, "Number of prisoners per guard.", 0, 1000 )
-        Jailbreak.GuardsDiff = GuardsDiff
-        :Joinable = team
-
-        Jailbreak.TeamIsJoinable = ( requestedTeamID ) ->
-                unless Joinable( requestedTeamID )
-                    return false
-
-                guardCount, prisonerCount = 0, 0
-                for ply in *GetAll!
-                    teamID = ply\Team!
-                    if teamID == TEAM_GUARD
-                        guardCount += 1
-                    elseif teamID == TEAM_PRISONER
-                        prisonerCount += 1
-
-                switch requestedTeamID
-                    when TEAM_PRISONER
-                        if prisonerCount == 0
-                            return true
-
-                        return guardCount ~= 0
-
-                    when TEAM_GUARD
-                        if guardCount == 0
-                            return true
-
-                        if prisonerCount == 0
-                            return false
-
-                        return guardCount < ceil( prisonerCount / GuardsDiff\GetInt! )
-
-                return true
+    Jailbreak.GuardsDiff = CreateConVar( "jb_guards_diff", "4", ConVarFlags, "Number of prisoners per guard.", 0, 1000 )
 
     GM.DeathNotice = CreateConVar( "jb_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
     GM.TargetID = CreateConVar( "jb_targetid", "1", ConVarFlags, "Draw target id.", 0, 1 )
 
-    do
-
-        tonumber = tonumber
-        isnumber = isnumber
-
-        HitGroups = {
-            [HITGROUP_GENERIC]: 1
-            [HITGROUP_HEAD]: 10
-            [HITGROUP_CHEST]: 1
-            [HITGROUP_STOMACH]: 1
-            [HITGROUP_LEFTARM]: 0.25
-            [HITGROUP_RIGHTARM]: 0.25
-            [HITGROUP_LEFTLEG]: 0.25
-            [HITGROUP_RIGHTLEG]: 0.25
-            [HITGROUP_GEAR]: 0.25
-        }
-
-        for index, default in pairs( HitGroups )
-            conVarName = "jb_hitgroup" .. index .. "_scale"
-            HitGroups[ index ] = CreateConVar( conVarName, tostring( default ), ConVarFlags, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 )\GetFloat!
-            cvars.AddChangeCallback( conVarName, ( _, __, str ) ->
-                HitGroups[ index ] = tonumber( str ) or 0
-            "Jailbreak" )
-
-        GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
-            damageScale = HitGroups[ hitGroup ]
-            if isnumber( damageScale )
-                damageInfo\ScaleDamage( damageScale )
-
-            if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
-                return true
-
-Jailbreak.GetPlayersCount = ( teamID, alive ) ->
-    count = 0
-    for ply in *GetAll!
-        if teamID ~= nil and ply\Team! ~= teamID
-            continue
-
-        if alive ~= nil and ply\Alive! ~= alive
-            continue
-
-        count += 1
-
-    return count
-
-Jailbreak.GetTeamPlayers = ( alive, ... ) ->
-    teams, players = { ... }, GetAll!
-    for index, teamID in ipairs( teams )
-        tbl, length = {}, 0
-
-        for ply in *players
-            if ply\Team! ~= teamID
-                continue
-
-            if alive ~= nil and ply\Alive! ~= alive
-                continue
-
-            length += 1
-            tbl[ length ] = ply
-
-        teams[ index ] = tbl
-
-    return teams
-
-Jailbreak.GetTeamPlayersCount = ( alive, ... ) ->
-    teams, players = { ... }, GetAll!
-    for index, teamID in ipairs( teams )
-        count = 0
-        for ply in *players
-            if ply\Team! ~= teamID
-                continue
-
-            if alive ~= nil and ply\Alive! ~= alive
-                continue
-
-            count += 1
-
-        teams[ index ] = count
-
-    return teams
-
-Jailbreak.GetWarden = ->
-    warden = Jailbreak.Warden
-    if IsValid( warden ) and warden\IsWarden! and warden\IsInGame!
-        return warden
-
-    for ply in *GetAll!
-        if ply\IsWarden!
-            Jailbreak.Warden = ply
-            return ply
-
-    return NULL
-
-do
-
-    GetRoundState = ->
-        return GetGlobal2Int( "round-state" )
-
-    Jailbreak.GetRoundState = GetRoundState
-
-    Jailbreak.IsWaitingPlayers = =>
-        return GetRoundState! == ROUND_WAITING_PLAYERS
-
-    Jailbreak.IsRoundPreparing = =>
-        return GetRoundState! == ROUND_PREPARING
-
-    Jailbreak.IsRoundRunning = =>
-        return GetRoundState! == ROUND_RUNNING
-
-    Jailbreak.IsRoundEnded = =>
-        return GetRoundState! == ROUND_ENDED
-
-    Jailbreak.GameInProgress = =>
-        state = GetRoundState!
-        return state ~= ROUND_WAITING_PLAYERS and state ~= ROUND_PREPARING
-
-do
-
-    GetRoundTime = ->
-        return GetGlobal2Int( "next-round-state" )
-
-    Jailbreak.GetRoundTime = GetRoundTime
-
-    Jailbreak.GetRemainingTime = =>
-        return max( 0, GetRoundTime! - CurTime! )
-
-Jailbreak.GetWinningTeam = ->
-    return GetGlobal2Int( "winning-team" )
-
-Jailbreak.IsShockCollarsActive = ->
-    return GetGlobal2Bool( "shock-collars" )
-
-Jailbreak.GetWardenCoins = ->
-    return GetGlobal2Int( "warden-coins" )
-
-Jailbreak.IsFemalePrison = ->
-    return GetGlobal2Bool( "female-prison" )
-
-Jailbreak.TF2Team = ( teamID ) ->
-    return teamID % 2 + 1
-
-do
-
-    :gsub, :lower = string
-
-    Jailbreak.FixModelPath = ( modelPath ) ->
-        return gsub( lower( modelPath ), "[\\/]+", "/" )
-
-GM.GuardMaleModels = {
+GuardMaleModels = {
     "models/player/gasmask.mdl"
     "models/player/riot.mdl"
     "models/player/swat.mdl"
     "models/player/urban.mdl"
 }
 
-GM.GuardFemaleModels = {
+GuardFemaleModels = {
     "models/player/police_fem.mdl"
 }
 
-GM.CreateTeams = =>
+do
 
+    :SetUp, :SetSpawnPoint = team
     colors = Jailbreak.Colors
 
-    team.SetUp( TEAM_PRISONER, "#jb.team.prisoners", colors.prisoners, true )
-    team.SetSpawnPoint( TEAM_PRISONER, {
-        "info_player_terrorist"
-        "info_player_teamspawn"
-        "diprip_start_team_red"
-        "info_player_human"
-        "info_player_rebel"
-        "info_player_axis"
-        "info_player_red"
-    } )
+    GM.CreateTeams = =>
+        SetUp( TEAM_PRISONER, "#jb.team.prisoners", colors.prisoners, true )
+        SetSpawnPoint( TEAM_PRISONER, {
+            "info_player_terrorist"
+            "info_player_teamspawn"
+            "diprip_start_team_red"
+            "info_player_human"
+            "info_player_rebel"
+            "info_player_axis"
+            "info_player_red"
+        } )
 
-    team.SetUp( TEAM_GUARD, "#jb.team.guards", colors.guards, true )
-    team.SetSpawnPoint( TEAM_GUARD, {
-        "info_player_counterterrorist"
-        "diprip_start_team_blue"
-        "info_player_deathmatch"
-        "info_player_teamspawn"
-        "info_player_combine"
-        "info_player_allies"
-        "gmod_player_start"
-        "info_player_human"
-        "info_player_blue"
-    } )
+        SetUp( TEAM_GUARD, "#jb.team.guards", colors.guards, true )
+        SetSpawnPoint( TEAM_GUARD, {
+            "info_player_counterterrorist"
+            "diprip_start_team_blue"
+            "info_player_deathmatch"
+            "info_player_teamspawn"
+            "info_player_combine"
+            "info_player_allies"
+            "gmod_player_start"
+            "info_player_human"
+            "info_player_blue"
+        } )
 
-    team.SetUp( TEAM_SPECTATOR, "#jb.team.spectators", colors.spectators, true )
+        SetUp( TEAM_SPECTATOR, "#jb.team.spectators", colors.spectators, true )
 
-do
-
-    ENTITY = FindMetaTable( "Entity" )
-
-    ENTITY.IsPlayerRagdoll = =>
-        return @GetNW2Bool( "is-player-ragdoll" )
-
-    ENTITY.GetRagdollOwner = =>
-        return @GetNW2Entity( "ragdoll-owner" )
-
-    ENTITY.IsUnderwater = =>
-        return @WaterLevel! == 3
-
-    do
-
-        defaultColor = Vector( 0.25, 0.35, 0.4 )
-
-        ENTITY.GetPlayerColor = =>
-            return @GetNW2Vector( "player-color", defaultColor )
-
-    ENTITY.SetPlayerColor = ( vector ) =>
-        @SetNW2Var( "player-color", vector )
-
-    Jailbreak.HasWarden = ->
-        warden = Jailbreak.GetWarden!
-        return warden\IsValid! and warden\IsInGame!
+-- Gamemode utils & functions
+include( "shared/utils.lua" )
 
 do
 
-    PLAYER = FindMetaTable( "Player" )
-
-    PLAYER.GetWeaponsInSlot = ( slot ) =>
-        weapons = {}
-        for weapon in *@GetWeapons!
-            if weapon\GetSlot! == slot
-                weapons[] = weapon
-
-        return weapons
-
-    PLAYER.HasWeaponsInSlot = ( slot ) =>
-        for weapon in *@GetWeapons!
-            if weapon\GetSlot! == slot
-                return true
-
-        return false
-
-    PLAYER.GetCountWeaponsInSlot = ( slot ) =>
-        count = 0
-        for weapon in *@GetWeapons!
-            if weapon\GetSlot! == slot
-                count += 1
-
-        return count
-
-    PLAYER.GetRagdollEntity = =>
-        value = @GetNW2Entity( "player-ragdoll" )
-        if value\IsValid!
-            return value
-
-        isBot = @IsBot!
-        sid64 = isBot and @Nick! or @SteamID64!
-
-        for entity in *ents.FindByClass( "prop_ragdoll" )
-            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
-                @SetNW2Entity( "player-ragdoll", entity )
-                return entity
-
-        for entity in *ents.FindByClass( "prop_physics" )
-            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
-                @SetNW2Entity( "player-ragdoll", entity )
-                return entity
-
-        return NULL
-
-    PLAYER.IsInGame = =>
-        return Jailbreak.Teams[ @Team! ] and @Alive!
-
-    PLAYER.IsGuard = =>
-        return @Team! == TEAM_GUARD
-
-    PLAYER.IsWarden = =>
-        return @GetNW2Bool( "is-warden" )
-
-    PLAYER.IsPrisoner = =>
-        return @Team! == TEAM_PRISONER
-
-    PLAYER.IsMutedByWarden = =>
-        return @GetNW2Bool( "warden-mute" )
-
-    PLAYER.HasShockCollar = =>
-        return @GetNW2Bool( "shock-collar" )
-
-    PLAYER.HasSecurityAccess = =>
-        return @GetNW2Bool( "security-access" )
-
-    PLAYER.HasSecurityRadio = =>
-        return @GetNW2Bool( "security-radio" )
-
-    PLAYER.IsFullyConnected = =>
-        return @GetNW2Bool( "fully-connected" )
-
-    PLAYER.GetNearPlayers = ( distance, isTeam ) =>
-        teamID = false
-        if isTeam
-            teamID = @Team!
-
-        players = {}
-        for ply in *ents.FindInSphere( @EyePos!, distance )
-            unless ply\IsPlayer!
-                continue
-
-            if isTeam and ply\Team! ~= teamID
-                continue
-
-            players[] = ply
-
-        return players
-
-do
-
-    util_PrecacheModel = util.PrecacheModel
-    util_IsValidModel = util.IsValidModel
-
-    maleGuards = {}
-    for modelPath in *GM.GuardMaleModels
-        modelPath = Jailbreak.FixModelPath( modelPath )
-        util_PrecacheModel( modelPath )
-        maleGuards[] = modelPath
+    :FixModelPath = Jailbreak
+    :PrecacheModel = util
 
     femaleGuards = {}
-    for modelPath in *GM.GuardFemaleModels
-        modelPath = Jailbreak.FixModelPath( modelPath )
-        util_PrecacheModel( modelPath )
+    for modelPath in *GuardFemaleModels
+        modelPath = FixModelPath( modelPath )
+        PrecacheModel( modelPath )
         femaleGuards[] = modelPath
+
+    maleGuards = {}
+    for modelPath in *GuardMaleModels
+        modelPath = FixModelPath( modelPath )
+        PrecacheModel( modelPath )
+        maleGuards[] = modelPath
 
     femalePrisoners = {}
     for i = 1, 6
-        modelPath = Jailbreak.FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
-        util_PrecacheModel( modelPath )
+        modelPath = FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
+        PrecacheModel( modelPath )
         femalePrisoners[] = modelPath
 
     malePrisoners = {}
     for i = 1, 9
-        modelPath = Jailbreak.FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
-        util_PrecacheModel( modelPath )
+        modelPath = FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
+        PrecacheModel( modelPath )
         malePrisoners[] = modelPath
 
     for i = 2, 8, 2
-        modelPath = Jailbreak.FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
-        util_PrecacheModel( modelPath )
+        modelPath = FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
+        PrecacheModel( modelPath )
         malePrisoners[] = modelPath
 
     Jailbreak.PlayerModels = {
@@ -470,452 +166,11 @@ do
         }
     }
 
-    Weapons = {
-        Classes: {
-            weapon_knife: {
-                "arc9_go_knife_bayonet"
-                "arc9_fas_dv2"
-                "arccw_melee_knife"
-                "weapon_crowbar"
-            }
+-- Gamemode events and functions
+include( "shared/game.lua" )
 
-            weapon_ak47: {
-                "swb_css_ak47"
-                "arc9_go_ak47"
-                "arc9_fas_ak47"
-                "arccw_ur_ak"
-                "arccw_ak47"
-                "m9k_ak74"
-                "weapon_ar2"
-            }
+-- Weapons handling
+include( "shared/weapons.lua" )
 
-            weapon_aug: {
-                "swb_css_aug"
-                "arc9_go_aug"
-                "arc9_fas_m16a2"
-                "arccw_ud_mini14"
-                "arccw_augpara"
-                "9k_auga3"
-                "weapon_ar2"
-            }
-
-            weapon_awp: {
-                "swb_css_awp"
-                "arc9_go_awp"
-                "arc9_fas_m24"
-                "arccw_ur_aw"
-                "arccw_awm"
-                "m9k_m98b"
-                "weapon_crossbow"
-            }
-
-            weapon_deagle: {
-                "swb_css_deagle"
-                "arc9_go_deagle"
-                "arc9_fas_deagle"
-                "arccw_ur_deagle"
-                "arccw_deagle357"
-                "m9k_deagle"
-                "weapon_357"
-            }
-
-            weapon_elite: {
-                "swb_css_fiveseven"
-                "arc9_go_elite"
-                "arc9_fas_m93r"
-                "arccw_ud_glock"
-                "arccw_makarov"
-                "m9k_hk45"
-                "weapon_pistol"
-            }
-
-            weapon_famas: {
-                "swb_css_famas"
-                "arc9_go_famas"
-                "arc9_fas_famas"
-                "arccw_ur_db"
-                "arccw_famas"
-                "m9k_famas"
-                "weapon_ar2"
-            }
-
-            weapon_fiveseven: {
-                "swb_css_fiveseven"
-                "arc9_go_fiveseven"
-                "arc9_fas_grach"
-                "arccw_ur_m1911"
-                "arccw_fiveseven"
-                "m9k_m92beretta"
-                "weapon_pistol"
-            }
-
-            weapon_g3sg1: {
-                "swb_css_g3sg1"
-                "arc9_go_g1sg3"
-                "arc9_fas_svd"
-                "arccw_ur_g3"
-                "arccw_g3a3"
-                "m9k_dragunov"
-                "weapon_crossbow"
-            }
-
-            weapon_galil: {
-                "swb_css_galil"
-                "arc9_go_galilar"
-                "arc9_fas_ak74"
-                "arccw_ur_spas12"
-                "arccw_galil556"
-                "m9k_winchester73"
-                "weapon_ar2"
-            }
-
-            weapon_glock: {
-                "swb_css_glock"
-                "arc9_go_glock"
-                "arc9_fas_g20"
-                "arccw_ud_glock"
-                "arccw_g18"
-                "m9k_glock"
-                "weapon_pistol"
-            }
-
-            weapon_m249: {
-                "swb_css_m249"
-                "arc9_go_negev"
-                "arc9_fas_rpk"
-                "arccw_ud_m16"
-                "arccw_minimi"
-                "m9k_pkm"
-                "weapon_ar2"
-            }
-
-            weapon_m3: {
-                "swb_css_m3super"
-                "arc9_go_nova"
-                "arc9_fas_m3super90"
-                "arccw_ud_870"
-                "arccw_shorty"
-                "m9k_ithacam37"
-                "weapon_shotgun"
-            }
-
-            weapon_m4a1: {
-                "swb_css_m4a1"
-                "arc9_go_m4a1"
-                "arc9_fas_m4a1"
-                "arccw_ud_m16"
-                "arccw_m4a1"
-                "m9k_m4a1"
-                "weapon_ar2"
-            }
-
-            weapon_mac10: {
-                "swb_css_mac10"
-                "arc9_go_mac10"
-                "arc9_fas_mac11"
-                "arccw_ud_uzi"
-                "arccw_mac11"
-                "m9k_uzi"
-                "weapon_smg1"
-            }
-
-            weapon_mp5navy: {
-                "swb_css_mp5"
-                "arc9_go_mp5sd"
-                "arc9_fas_mp5"
-                "arccw_ur_mp5"
-                "arccw_mp5"
-                "m9k_mp5"
-                "weapon_smg1"
-            }
-
-            weapon_p228: {
-                "swb_css_p228"
-                "arc9_go_p250"
-                "arc9_fas_p226"
-                "arccw_ur_m1911"
-                "arccw_p228"
-                "m9k_hk45"
-                "weapon_pistol"
-            }
-
-            weapon_p90: {
-                "swb_css_p90"
-                "arc9_go_p90"
-                "arc9_fas_bizon"
-                "arccw_ur_mp5"
-                "arccw_p90"
-                "m9k_bizonp19"
-                "weapon_smg1"
-            }
-
-            weapon_scout: {
-                "swb_css_scout"
-                "arc9_go_ssg08"
-                "arc9_fas_sks"
-                "arccw_ud_mini14"
-                "arccw_scout"
-                "m9k_m24"
-                "weapon_crossbow"
-            }
-
-            weapon_sg550: {
-                "swb_css_sg550"
-                "arc9_go_scar20"
-                "arc9_fas_sr25"
-                "arccw_ur_g3"
-                "arccw_sg550"
-                "m9k_sl8"
-                "weapon_crossbow"
-            }
-
-            weapon_sg552: {
-                "swb_css_sg552"
-                "arc9_go_sg556"
-                "arc9_fas_sg550"
-                "arccw_ud_mini14"
-                "arccw_sg552"
-                "m9k_m16a4_acog"
-                "weapon_ar2"
-            }
-
-            weapon_tmp: {
-                "swb_css_tmp"
-                "arc9_go_mp9"
-                "arc9_fas_uzi"
-                "arccw_ud_uzi"
-                "arccw_tmp"
-                "m9k_mp9"
-                "weapon_smg1"
-            }
-
-            weapon_ump45: {
-                "swb_css_ump"
-                "arc9_go_ump"
-                "arc9_fas_colt"
-                "arccw_ur_mp5"
-                "arccw_ump45"
-                "m9k_ump45"
-                "weapon_smg1"
-            }
-
-            weapon_usp: {
-                "swb_css_usp"
-                "arc9_go_usp"
-                "arc9_fas_m1911"
-                "arccw_ur_329"
-                "arccw_usp"
-                "m9k_usp"
-                "weapon_pistol"
-            }
-
-            weapon_xm1014: {
-                "swb_css_usp"
-                "arc9_go_xm1014"
-                "arc9_fas_saiga"
-                "arccw_ud_m1014"
-                "arccw_m1014"
-                "m9k_spas12"
-                "weapon_shotgun"
-            }
-
-            weapon_hegrenade: {
-                "arc9_go_nade_frag"
-                "arc9_fas_m67"
-                "arccw_ud_m79"
-                "arccw_nade_frag"
-                "weapon_frag"
-            }
-
-            weapon_smokegrenade: {
-                "arc9_go_nade_smoke"
-                "arc9_fas_m18"
-                "arccw_nade_smoke"
-                "weapon_crowbar"
-            }
-
-            weapon_flashbang: {
-                "arc9_go_nade_flashbang"
-                "arc9_fas_m84"
-                "arccw_nade_flash"
-                "weapon_crowbar"
-            }
-
-            weapon_c4: {
-                "arc9_go_nade_c4"
-                "m9k_suicide_bomb"
-                "weapon_slam"
-            }
-        }
-
-        Offsets: {
-            arccw_ur_deagle: { Vector( -10, 0, 8 ), Angle( 0, 0, 0 ) }
-            arccw_ur_m1911: { Vector( -10, 0, 6 ), Angle( 0, 0, 0 ) }
-            weapon_crowbar: { Vector( 0, 0, 10 ), Angle( 90, 0, 0 ) }
-            arccw_ur_mp5: { Vector( 0, 0, 0 ), Angle( 0, 0, 180 ) }
-            arccw_ud_m79: { Vector( 0, 0, 0 ), Angle( -90, 0, 0 ) }
-            arccw_ud_m16: { Vector( 0, 0, 10 ), Angle( 30, 0, 0 ) }
-            arccw_ur_ak: { Vector( -5, 0, 8 ), Angle( 30, 0, 0 ) }
-        }
-    }
-
-    if SERVER
-        file.CreateDir( "jailbreak" )
-
-        fileName = "jailbreak/weapon-handler.json"
-        if file.Exists( fileName, "DATA" )
-            json = file.Read( fileName, "DATA" )
-            if isstring( json )
-                data = util.JSONToTable( json )
-                if istable( data )
-                    table.Empty( Weapons )
-                    for key, value in pairs( data )
-                        Weapons[ key ] = value
-
-        else
-            file.Write( fileName, util.TableToJSON( Weapons, true ) )
-
-    avaliableWeapons = GM.AvaliableWeapons
-    unless istable( avaliableWeapons )
-        avaliableWeapons = {}
-        GM.AvaliableWeapons = avaliableWeapons
-
-    WeaponHandler = WeaponHandler
-
-    GM.PreGamemodeLoaded = =>
-        for className, alternatives in pairs( Weapons.Classes )
-            avaliableWeapons[] = className
-
-            alternative = WeaponHandler( className, alternatives, Weapons.Offsets ).Alternative
-            unless alternative
-                continue
-
-            weapon = weapons.GetStored( alternative )
-            unless weapon
-                continue
-
-            weapon.DrawWeaponInfoBox = false
-
-            viewModel = weapon.ViewModel
-            if viewModel and #viewModel ~= 0 and util_IsValidModel( viewModel )
-                util_PrecacheModel( viewModel )
-
-            worldModel = weapon.WorldModel
-            if worldModel and #worldModel ~= 0 and util_IsValidModel( worldModel )
-                util_PrecacheModel( worldModel )
-
-do
-
-    IN_ATTACK = IN_ATTACK
-    IN_WALK = IN_WALK
-
-    GM.StartCommand = ( ply, cmd ) =>
-        if ply\IsInGame! and cmd\KeyDown( IN_WALK ) and cmd\KeyDown( IN_ATTACK )
-            cmd\RemoveKey( IN_ATTACK )
-
-GM.FinishMove = ( ply, mv ) =>
-    unless ply\Alive!
-        return
-
-    if SERVER
-        ply.LastMoveVelocity = mv\GetVelocity!
-
-    if ply\IsPlayingTaunt!
-        mv\SetForwardSpeed( 0 )
-        mv\SetSideSpeed( 0 )
-
-GM.ShouldCollide = ( entity, ply ) =>
-    unless ply\IsPlayer! and ply\Alive!
-        return
-
-    if entity\GetClass! == "func_respawnroomvisualizer" and not entity\IsDisabled!
-        return ply\Team! ~= entity\GetNW2Int( "team" )
-
-do
-
-    singleHandHoldTypes = {
-        grenade: true
-        normal: true
-        melee: true
-        knife: true
-        fist: true
-        slam: true
-    }
-
-    hook.Add "CalcMainActivity", "Jailbreak::Additional Animations", ( velocity ) =>
-        unless @IsOnGround!
-            return
-
-        if velocity\Length! >= @GetRunSpeed! * 0.95
-            weapon = @GetActiveWeapon!
-            if IsValid( weapon ) and not singleHandHoldTypes[ weapon\GetHoldType! ]
-                return
-
-            return ACT_HL2MP_RUN_FAST, -1
-        elseif @Crouching! and velocity\Length2DSqr! < 1
-            weapon = @GetActiveWeapon!
-            if IsValid( weapon ) and weapon\GetHoldType! ~= "normal"
-                return
-
-            return ACT_MP_JUMP, @LookupSequence( "pose_ducking_01" )
-
-GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
-    if Jailbreak.IsRoundPreparing!
-        return false
-
-    attacker = damageInfo\GetAttacker!
-    unless attacker\IsValid! and attacker\IsPlayer!
-        return true
-
-    if attacker == ply
-        return true
-
-    if teamID == TEAM_GUARD and teamID == attacker\Team!
-        return false
-
-    return true
-
-do
-
-    sounds = {}
-    for number = 1, 6 do
-        sounds[ number ] = "ambient/energy/spark" .. number .. ".wav"
-
-    sound.Add {
-        name: "Jailbreak.Shock"
-        channel: CHAN_WEAPON
-        level: SNDLVL_70dB
-        sound: sounds
-        pitch: 100
-        volume: 1
-    }
-
-GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
-	speed = velocity\Length!
-	rate = 1.0
-
-	if speed > 0.2
-		rate = ( speed / maxSeqGroundSpeed )
-
-	rate = min( rate, 2 )
-
-	if ply\WaterLevel() >= 2
-		rate = max( rate, 0.5 )
-	elseif not ply\IsOnGround! and speed >= 1000
-		rate = 0.1
-
-	ply\SetPlaybackRate( rate )
-
-	if CLIENT
-        hook_Run( "GrabEarAnimation", ply )
-        hook_Run( "MouthMoveAnimation", ply )
-
-GM.PlayerFootstep = ( ply, pos, foot, soundPath, volume, recipientFilter ) =>
-    if ply\Crouching!
-        return true
-
-    velocity = ply\GetVelocity!
-    speed = velocity\Length!
-
-    if speed < Jailbreak.PlayerSlowWalkSpeed\GetInt!
-        return true
+-- Additional game details
+include( "shared/extra.lua" )

@@ -1,0 +1,215 @@
+GM = GM
+Jailbreak = Jailbreak
+colors = Jailbreak.Colors
+:grey, :white = colors
+:find = string
+:Clamp, :Rand, :abs, :sin, :min = math
+
+do
+
+    :AddText = chat
+    :date = os
+
+    chatTime = CreateClientConVar( "jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1 )
+
+    Jailbreak.ChatText = ( ... ) ->
+        if chatTime\GetBool!
+            AddText( grey, date( "[%H:%M:%S] " ), white, ... )
+        else
+            AddText( white, ... )
+
+do
+
+    TEXT_FILTER_GAME_CONTENT = TEXT_FILTER_GAME_CONTENT
+    TEXT_FILTER_CHAT = TEXT_FILTER_CHAT
+    :ChatText, :Translate = Jailbreak
+    :FilterText = util
+    :Number = cvars
+    unpack = unpack
+    :band = bit
+
+    GM.OnPlayerChat = ( ply, text, _, isDead ) =>
+        result = {}
+
+        if isDead
+            result[] = colors.light_grey
+            result[] = Translate( "[#jb.chat.dead] " )
+
+        if ply and ply\IsValid!
+            result[] = ply\GetPlayerColor!\ToColor!
+            result[] = ply\Nick!
+            text = FilterText( text, ( band( Number( "cl_chatfilters", 0 ), 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, ply )
+        else
+            result[] = colors.console
+            result[] = Translate( "#jb.chat.console" )
+
+        result[] = white
+        result[] = Translate( " #jb.chat.says: \"" .. text .. "\"" )
+
+        ChatText( unpack( result ) )
+        return true
+
+do
+
+    PLAYER = FindMetaTable( "Player" )
+    PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
+    :ReadEntity, :ReadFloat, :ReadUInt = net
+
+    net.Receive "JB::Communication", ->
+        for i = 1, ReadUInt( 10 )
+            ply, volume = ReadEntity!, ReadFloat!
+            if ply\IsValid!
+                PLAYER_SetVoiceVolumeScale( ply, volume )
+
+do
+
+    GESTURE_SLOT_VCD = GESTURE_SLOT_VCD
+    ACT_GMOD_IN_CHAT = ACT_GMOD_IN_CHAT
+    FrameTime = FrameTime
+    :Approach = math
+
+    GM.GrabEarAnimation = ( ply ) =>
+        if ply\IsPlayingTaunt!
+            return
+
+        weight = ply.ChatGestureWeight or 0
+
+        if ply\IsTyping!
+            weight = Approach( weight, 1, FrameTime! * 5 )
+        else
+            weight = Approach( weight, 0, FrameTime! * 5 )
+
+        if weight > 0
+            ply\AnimRestartGesture( GESTURE_SLOT_VCD, ACT_GMOD_IN_CHAT, true )
+            ply\AnimSetGestureWeight( GESTURE_SLOT_VCD, weight )
+
+        ply.ChatGestureWeight = weight
+
+do
+
+    patterns = {
+        "right_corner_puller"
+    	"left_corner_puller"
+
+        "right_cheek_raiser"
+        "left_cheek_raiser"
+
+        "right_part"
+        "left_part"
+
+        "jaw_drop"
+
+        "right_mouth_drop"
+        "left_mouth_drop"
+
+        "smile"
+        "lower_lip"
+
+        -- "corner_depressor"
+    }
+
+    mults = {
+        right_cheek_raiser: 0.25
+        left_cheek_raiser: 0.25
+        -- right_mouth_drop: 0.5
+        -- left_mouth_drop: 0.5
+        lower_lip: 0.05
+        jaw_drop: 0.5
+        smile: 0.05
+    }
+
+    angle_zero = angle_zero
+    cache = {}
+
+    GM.MouthMoveAnimation = ( ply ) =>
+        flexes = cache[ ply\GetModel! ]
+        if flexes == nil
+            flexes = {}
+            for flex = 0, ply\GetFlexNum!
+                sourceIndex = -1
+                for index, pattern in ipairs( patterns )
+                    flexName = ply\GetFlexName( flex )
+                    if flexName == pattern or find( flexName, pattern, 1, false ) ~= nil
+                        mults[ index ] = mults[ flexName ]
+                        sourceIndex = index
+                        break
+
+                if sourceIndex ~= -1
+                    flexes[] = { flex, sourceIndex, ply\GetFlexBounds( flex ) }
+
+            if #flexes == 0
+                flexes = false
+
+            cache[ ply\GetModel! ] = flexes
+
+        voiceVolume = ply\IsSpeaking! and ply\VoiceVolume! or 0
+
+        lastVoiceVolume = ply.LastVoiceVolume
+        if lastVoiceVolume == nil
+            lastVoiceVolume = voiceVolume
+
+        if lastVoiceVolume > 0
+            voiceVolume = lastVoiceVolume + ( voiceVolume - lastVoiceVolume ) / 4
+            if voiceVolume < 0.01
+                voiceVolume = 0
+
+        ply.LastVoiceVolume = voiceVolume
+
+        maxVoiceVolume = ply.MaxVoiceVolume
+        if maxVoiceVolume == nil or maxVoiceVolume < voiceVolume
+            maxVoiceVolume = voiceVolume
+            ply.MaxVoiceVolume = maxVoiceVolume
+
+        frac = 0
+        if maxVoiceVolume > 0 and voiceVolume > 0
+            frac = voiceVolume / maxVoiceVolume
+
+        if flexes
+            ply\SetFlexScale( 2 )
+
+            for data in *flexes
+                flex = data[ 1 ]
+                if frac > 0
+                    nextVolume = abs( sin( flex * ( 1 / #flexes ) + CurTime! ) ) * frac + frac
+                    ply\SetFlexWeight( flex, Clamp( nextVolume, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) )
+                else
+                    ply\SetFlexWeight( flex, 0 )
+
+            return
+
+        value = Jailbreak.MouthLessAnimations\GetInt!
+        if value == 0
+            return
+
+        angles = Angle!
+        if frac > 0
+            if value <= 2
+                angles[ 1 ] = Rand( -90, 90 )
+                angles[ 2 ] = Rand( -180, 180 )
+                angles[ 3 ] = 0
+
+            elseif value <= 5
+                angle = min( 720, value * 144 )
+                angles[ 1 ] = Rand( -angle, angle )
+                angles[ 2 ] = Rand( -angle, angle )
+                angles[ 3 ] = 0
+
+            else
+                angle = min( 720, value * 72 )
+                angles[ 1 ] = Rand( -angle, angle )
+                angles[ 2 ] = Rand( -angle, angle )
+                angles[ 3 ] = Rand( -angle, angle )
+
+            angles = ( angles / 2 ) * frac
+
+        angles = LerpAngle( 0.25, ply.MouthLessAngles or angle_zero, angles )
+        ply.MouthLessAngles = angles
+
+        if value > 1
+            ply\ManipulateBoneAngles( 0, angles, false )
+        else
+            boneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
+            if boneID and boneID >= 0
+                ply\ManipulateBoneAngles( boneID, angles, false )
+            else
+                ply\ManipulateBoneAngles( 0, angles, false )

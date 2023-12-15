@@ -1,0 +1,234 @@
+Jailbreak = Jailbreak
+hook_Run = hook.Run
+
+-- Networking
+util.AddNetworkString( "Jailbreak::Networking" )
+
+-- Workshop content
+resource.AddWorkshop( "3093227948" )
+resource.AddWorkshop( "2950445307" )
+resource.AddWorkshop( "2661291057" )
+resource.AddWorkshop( "643148462" )
+
+-- https://wiki.facepunch.com/gmod/Enums/NOTIFY
+global NOTIFY_GENERIC = 0
+global NOTIFY_ERROR = 1
+global NOTIFY_UNDO = 2
+global NOTIFY_HINT = 3
+global NOTIFY_CLEANUP = 4
+
+-- TF2 teams to jailbreak teams
+Jailbreak.TF2Team = ( teamID ) ->
+    return teamID % 2 + 1
+
+-- Shock collar effect
+do
+
+    CHAN_STATIC = CHAN_STATIC
+    :random = math
+    :Effect = util
+
+    Jailbreak.ShockCollarEffect = =>
+        boneID, origin = @LookupBone( "ValveBiped.Bip01_Head1" ), nil
+        if boneID and boneID >= 0
+            matrix = @GetBoneMatrix( boneID )
+            if matrix
+                origin = matrix\GetTranslation!
+
+        -- TODO: Check later
+        fx = EffectData!
+        fx\SetScale( 0.5 )
+        fx\SetOrigin( origin or @EyePos! )
+        fx\SetMagnitude( random( 3, 5 ) )
+        fx\SetRadius( random( 1, 5 ) )
+        Effect( "ElectricSpark", fx )
+
+        @EmitSound( "Jailbreak.Shock", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+
+do
+
+    SetGlobal2Bool = SetGlobal2Bool
+
+    -- Female prison
+    do
+
+        :IsFemalePrison = Jailbreak
+
+        Jailbreak.SetFemalePrison = ( bool ) ->
+            if bool == IsFemalePrison!
+                return
+
+            SetGlobal2Bool( "female-prison", bool )
+
+    -- Shock collars
+    do
+
+        :IsShockCollarsActive = Jailbreak
+
+        Jailbreak.SetShockCollars = ( bool, silent ) ->
+            if bool == IsShockCollarsActive!
+                return
+
+            SetGlobal2Bool( "shock-collars", bool )
+
+            unless silent
+                hook_Run( "ShockCollars", bool )
+
+-- Warden coins
+do
+
+    SetGlobal2Int = SetGlobal2Int
+    :GetWardenCoins = Jailbreak
+
+    Jailbreak.SetWardenCoins = ( value, silent ) ->
+        oldValue = GetWardenCoins!
+        if value == oldValue
+            return
+
+        SetGlobal2Int( "warden-coins", value )
+
+        unless silent
+            hook_Run( "WardenCoins", oldValue, value )
+
+-- Spectate targets
+do
+
+    targets = Jailbreak.SpectateTargets
+    unless targets
+        targets = {}
+        Jailbreak.SpectateTargets = targets
+
+    removeSpectateTarget = nil
+    do
+
+        :remove = table
+
+        removeSpectateTarget = =>
+            for index = 1, #targets
+                if targets[ index ] == @
+                    remove( targets, index )
+                    break
+
+    Jailbreak.RemoveSpectateTarget = removeSpectateTarget
+
+    do
+
+        IsValid = IsValid
+
+        Jailbreak.AddSpectateTarget = =>
+            if IsValid( @ )
+                removeSpectateTarget( @ )
+                targets[] = @
+
+-- Entity metatable
+do
+
+    ENTITY = FindMetaTable( "Entity" )
+    :GetClass = ENTITY
+
+    -- Check if the entity is a available spectate target
+    ENTITY.IsSpectateTarget = =>
+        if @IsPlayer! and @IsInGame!
+            return true
+
+        if @IsPlayerRagdoll!
+            return true
+
+        return GetClass( @ ) == "info_observer_point"
+
+    -- Check if the entity is a prop
+    do
+
+        classNames = list.GetForEdit( "prop-classnames" )
+        classNames.prop_physics_multiplayer = true
+        classNames.prop_physics_override = true
+        classNames.prop_dynamic_override = true
+        classNames.prop_dynamic = true
+        classNames.prop_ragdoll = true
+        classNames.prop_physics = true
+        classNames.prop_detail = true
+        classNames.prop_static = true
+
+        ENTITY.IsProp = =>
+            return classNames[ GetClass( @ ) ]
+
+do
+
+    CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
+    :CloseRangeDamageTypes = Jailbreak
+    :band = bit
+
+    -- Returns true if the damage type is close range
+    CTakeDamageInfo.IsCloseRangeDamage = =>
+        damageType = @GetDamageType!
+        for int in *CloseRangeDamageTypes
+            if band( damageType, int ) == int
+                return true
+
+        return false
+
+Jailbreak.LootRagdoll = ( ragdoll ) =>
+    velocity = Vector!
+
+    direction = @EyePos! - ragdoll\WorldSpaceCenter!
+    direction\Normalize!
+
+    if ragdoll.HasFlashlight and not @CanUseFlashlight!
+        velocity += direction * 150
+        @AllowFlashlight( true )
+        @SendPickupNotify( "jb.flashlight" )
+        ragdoll.HasFlashlight = nil
+
+    if ragdoll.HasSecurityAccess and not @HasSecurityAccess!
+        velocity += direction * 50
+        @AllowSecurityAccess( true )
+        @SendPickupNotify( "jb.access-card" )
+        ragdoll.HasSecurityAccess = nil
+
+    if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
+        velocity += direction * 50
+        @AllowSecurityRadio( true )
+        @SendPickupNotify( "jb.walkie-talkie" )
+        ragdoll.HasSecurityRadio = nil
+
+    weapons = ragdoll.Weapons
+    if istable( weapons )
+        for weapon in *weapons
+            unless weapon\IsValid! and not IsValid( weapon\GetOwner! )
+                continue
+
+            weapon\SetNotSolid( false )
+            weapon\SetNoDraw( false )
+            weapon\SetParent!
+
+            weapon.PickupForbidden = nil
+            @PickupWeapon( weapon )
+            velocity += direction * 200
+    ragdoll.Weapons = nil
+
+    ammo = ragdoll.Ammo
+    if istable( ammo )
+        for ammoType, ammoCount in pairs( ammo )
+            @GiveAmmo( ammoCount, ammoType )
+            velocity += direction * 100
+    ragdoll.Ammo = nil
+
+    if velocity\Length! < 100
+        return
+
+    if ragdoll\IsRagdoll!
+        physParts = {}
+        for physNum = 1, ragdoll\GetPhysicsObjectCount! - 1 do
+            phys = ragdoll\GetPhysicsObjectNum( physNum )
+            if IsValid( phys )
+                physParts[] = phys
+
+        Shuffle( physParts )
+
+        for index = 1, min( #physParts, 4 )
+            physParts[ index ]\ApplyForceCenter( velocity )
+
+    else
+        phys = ragdoll\GetPhysicsObject!
+        if IsValid( phys )
+            phys\ApplyForceCenter( velocity )

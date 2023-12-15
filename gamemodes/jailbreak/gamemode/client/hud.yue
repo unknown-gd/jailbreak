@@ -1,0 +1,233 @@
+GM = GM
+Jailbreak = Jailbreak
+hook_Run = hook.Run
+
+colors = Jailbreak.Colors
+:white = colors
+
+:GetPhrase = language
+:format = string
+:Clamp = math
+
+ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+ROUND_RUNNING = ROUND_RUNNING
+ROUND_ENDED = ROUND_ENDED
+
+TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
+:GetName, :GetColor = team
+
+GM.HUDShouldDraw = ( name ) =>
+    if @PlayingTaunt and name == "CHudWeaponSelection"
+        return false
+
+    return true
+
+GM.HUDPaint = =>
+    if @TargetID\GetBool!
+        hook_Run( "HUDDrawTargetID" )
+
+    hook_Run( "HUDDrawPickupHistory" )
+
+    if @DeathNotice\GetBool!
+        hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+
+    state = Jailbreak.GetRoundState!
+    if state == ROUND_RUNNING
+        return
+
+    str = GetPhrase( "jb.round." .. state )
+    if state ~= ROUND_WAITING_PLAYERS
+        remainingTime = Jailbreak.GetRemainingTime!
+        if remainingTime == 0
+            return
+
+        str = format( str, remainingTime )
+
+    screenCenterX = Jailbreak.ScreenCenterX
+    draw.DrawText( str, "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
+
+    if state == ROUND_ENDED
+        teamID = Jailbreak.GetWinningTeam!
+        if Jailbreak.Teams[ teamID ]
+            draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
+        else
+            draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, colors.light_grey, TEXT_ALIGN_CENTER )
+
+do
+
+
+    :SetFont, :GetTextSize = surface
+    black = Color( 0, 0, 0, 120 )
+    EyeAngles = EyeAngles
+    MASK_SHOT = MASK_SHOT
+    :SimpleText = draw
+    :TraceLine = util
+    EyePos = EyePos
+    Lerp = Lerp
+
+    red = colors.red
+
+    trace = {
+        mask: MASK_SHOT
+    }
+
+    GM.HUDDrawTargetID = =>
+        entity = @ViewEntity
+        unless entity\IsValid! and entity\IsPlayer!
+            return
+
+        if entity\Alive! and not @PlayingTaunt
+            trace.filter = entity
+        else
+            trace.filter = nil
+
+        eyePos, eyeAngles = EyePos!, EyeAngles!
+
+        trace.start = eyePos
+        trace.endpos = eyePos + eyeAngles\Forward! * Jailbreak.VoiceChatMinDistance\GetInt!
+
+        traceResult = TraceLine( trace )
+        unless traceResult.Hit
+            return
+
+        if traceResult.HitWorld
+            return
+
+        entity = traceResult.Entity
+        unless entity\IsValid!
+            return
+
+        isPlayerRagdoll = entity\IsPlayerRagdoll!
+        isPlayer = entity\IsPlayer!
+        text = "Unknown"
+        color = white
+
+        if isPlayer
+            unless entity\Alive!
+                return
+
+            text = entity\Nick!
+            color = entity\GetPlayerColor!\ToColor!
+            frac = Clamp( entity\Health! / entity\GetMaxHealth!, 0, 1 )
+
+            if ( color.r + color.g + color.b ) < 125
+                color.r = Lerp( frac, red.r, color.r )
+                color.g = Lerp( frac, red.g, color.g )
+                color.b = Lerp( frac, red.b, color.b )
+            else
+                color.r = Lerp( frac, 0, color.r )
+                color.g = Lerp( frac, 0, color.g )
+                color.b = Lerp( frac, 0, color.b )
+        elseif isPlayerRagdoll
+            text = entity\GetNW2String( "owner-nickname", "unknown" )
+            color = entity\GetPlayerColor!\ToColor!
+        elseif entity\IsWeapon!
+            printName = nil
+            if entity\IsScripted!
+                printName = entity.PrintName
+
+            if printName
+                printName = "#" .. printName
+            else
+                printName = entity\GetPrintName!
+
+            if printName == "Scripted Weapon"
+                printName = "#" .. entity\GetClass!
+
+            text = Jailbreak.Translate( printName )
+        else
+            className = entity\GetClass!
+            if className == "class C_BaseEntity"
+                className = "func_button"
+
+            text = Jailbreak.Translate( "#jb." .. className )
+
+        font = "TargetID"
+        SetFont( font )
+        width, height = GetTextSize( text )
+
+        x = Jailbreak.ScreenCenterX - width / 2
+        y = Jailbreak.ScreenCenterY + 30
+
+        black.a = 120
+        SimpleText( text, font, x + 1, y + 1, black )
+
+        black.a = 50
+        SimpleText( text, font, x + 2, y + 2, black )
+        SimpleText( text, font, x, y, color )
+
+        y += height + 5
+
+        unless isPlayer or isPlayerRagdoll
+            return
+
+        font = "TargetIDSmall"
+        SetFont( font )
+
+        teamID = nil
+        if isPlayer
+            teamID = entity\Team!
+            text = GetName( teamID )
+        elseif isPlayerRagdoll
+            text = "#jb.team.dead"
+
+        width, height = GetTextSize( text )
+        x = Jailbreak.ScreenCenterX - width / 2
+
+        black.a = 120
+        SimpleText( text, font, x + 1, y + 1, black )
+
+        black.a = 50
+        SimpleText( text, font, x + 2, y + 2, black )
+
+        if isPlayer
+            SimpleText( text, font, x, y, GetColor( teamID ) )
+        elseif isPlayerRagdoll
+            SimpleText( text, font, x, y, colors.light_grey )
+
+do
+
+    hook_Add = hook.Add
+
+    HUDs = {
+        CHudSecondaryAmmo: true
+        -- CHudSuitPower: true
+        CHudBattery: true
+        CHudHealth: true
+        CHudAmmo: true
+    }
+
+    GM.StartChat = ( isTeam ) =>
+        if @Reskined
+            return
+
+        hook_Add "Think", "JB::CHudReskin", ->
+            viewport = vgui.GetKeyboardFocus!
+            unless IsValid( viewport )
+                return
+
+            hook.Remove "Think", "JB::CHudReskin"
+            @Reskined = true
+            chat.Close!
+
+            for index = 1, 5
+                panel = viewport\GetParent!
+                unless IsValid( panel )
+                    break
+
+                viewport = panel
+
+            unless IsValid( viewport )
+                return
+
+            for panel in *viewport\GetChildren!
+                unless HUDs[ panel\GetClassName! ]
+                    continue
+
+                ply = LocalPlayer!
+                unless IsValid( ply )
+                    return
+
+                hook_Add "Think", panel, =>
+                    @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
+                    -- @SetFontInternal( "ChatFont" )

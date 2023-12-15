@@ -1,0 +1,277 @@
+Jailbreak = Jailbreak
+:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime = Jailbreak
+hook_Run = hook.Run
+CurTime = CurTime
+GM = GM
+
+ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+ROUND_RUNNING = ROUND_RUNNING
+ROUND_ENDED = ROUND_ENDED
+
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
+setRoundState, setWinningTeam, setRoundTime = nil, nil, nil
+do
+
+    SetGlobal2Int = SetGlobal2Int
+
+    -- Set the round state
+    do
+
+        :GetRoundState = Jailbreak
+
+        setRoundState = ( state, silent ) ->
+            oldState = GetRoundState!
+            SetGlobal2Int( "round-state", state )
+            unless silent
+                hook_Run( "RoundStateChanged", oldState, state )
+
+    Jailbreak.SetRoundState = setRoundState
+
+    -- Set the winning team
+    setWinningTeam = ( teamID ) ->
+        if Teams[ teamID ]
+            team.AddScore( teamID, 1 )
+
+        SetGlobal2Int( "winning-team", teamID )
+
+    Jailbreak.SetWinningTeam = setWinningTeam
+
+    -- Set the round time
+    setRoundTime = ( int ) ->
+        SetGlobal2Int( "next-round-state", CurTime! + int )
+
+    Jailbreak.SetRoundTime = setRoundTime
+
+-- Perform a round state change
+do
+
+    :RunEvents, :SetShockCollars, :SpectateTargets, :TeamIsJoinable, :GuardsDiff, :GetWarden = Jailbreak
+    timer_Simple = timer.Simple
+    :ceil, :random = math
+    :CleanUpMap = game
+    :GetAll = player
+    pairs = pairs
+
+    GM.RoundStateChanged = ( old, new ) =>
+        RunEvents( new )
+
+        switch ( new )
+            when ROUND_WAITING_PLAYERS
+                SetShockCollars( false )
+
+                for key in pairs( SpectateTargets )
+                    SpectateTargets[ key ] = nil
+
+                for ply in *GetAll!
+                    if ply\IsInGame!
+                        ply\KillSilent!
+
+                    if ply\IsBot! or ply\IsGuard!
+                        ply\SetTeam( TEAM_PRISONER )
+
+                timer_Simple( 0, CleanUpMap )
+
+            when ROUND_PREPARING
+                SetShockCollars( true )
+
+                for ply in *GetAll!
+                    if ply\IsBot!
+                        ply\SetTeam( TEAM_PRISONER )
+
+                    if Teams[ ply\Team! ]
+                        ply\Spawn!
+
+                timer_Simple( 0, CleanUpMap )
+
+            when ROUND_RUNNING
+                players = GetAll!
+
+                for ply in *players
+                    if ply\IsBot!
+                        for i = 1, 2
+                            if TeamIsJoinable( i )
+                                if ply\Team! ~= i
+                                    ply\SetTeam( i )
+                                    ply\KillSilent!
+
+                                break
+
+                guardCount, prisonerCount = 0, 0
+                for ply in *players
+                    teamID = ply\Team!
+                    if teamID == TEAM_GUARD
+                        guardCount += 1
+                    elseif teamID == TEAM_PRISONER
+                        prisonerCount += 1
+
+                prisonersPerGuard = GuardsDiff\GetInt!
+                desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
+
+                while ( ( guardCount + prisonerCount ) - desiredGuardCount ) > prisonersPerGuard and guardCount > desiredGuardCount
+                    guards = {}
+                    for ply in *players
+                        if ply\IsGuard!
+                            guards[] = ply
+
+                    length = #guards
+                    if length == 0
+                        guardCount = 0
+                        break
+
+                    guard = guards[ random( 1, length ) ]
+                    guard\SetTeam( TEAM_PRISONER )
+                    guard\Spawn!
+
+                    guardCount, prisonerCount = 0, 0
+                    for ply in *players
+                        teamID = ply\Team!
+                        if teamID == TEAM_GUARD
+                            guardCount += 1
+                        elseif teamID == TEAM_PRISONER
+                            prisonerCount += 1
+
+                    desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
+
+                if guardCount == 0 or prisonerCount == 0
+                    setRoundState( ROUND_WAITING_PLAYERS )
+                    return
+
+                guards = {}
+                for ply in *players
+                    teamID = ply\Team!
+                    if Teams[ teamID ]
+                        if teamID == TEAM_GUARD
+                            guards[] = ply
+                        elseif teamID == TEAM_PRISONER
+                            ply\SetShockCollar( true )
+
+                        unless ply\Alive!
+                            ply\Spawn!
+
+                if #guards == 1
+                    guards[ 1 ]\SetWarden( true )
+
+                SetShockCollars( true )
+
+                roundTime = RoundTime\GetInt!
+                if roundTime > 0
+                    setRoundTime( roundTime )
+
+            when ROUND_ENDED
+                teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+                if teams[ 1 ] > teams[ 2 ]
+                    setWinningTeam( TEAM_GUARD )
+                elseif teams[ 1 ] < teams[ 2 ]
+                    setWinningTeam( TEAM_PRISONER )
+                else
+                    setWinningTeam( 0 )
+
+                warden = GetWarden!
+                if warden and warden\IsValid!
+                    warden\SetWarden( false, true )
+
+                setRoundTime( PrepareTime\GetInt! )
+
+-- https://wiki.facepunch.com/gmod/GM:PlayerChangedTeam
+do
+
+    :IsRoundPreparing, :GetPlayersCount = Jailbreak
+
+    GM.PlayerChangedTeam = ( ply, oldTeam, newTeam ) =>
+        if IsRoundPreparing! and Teams[ oldTeam ] and ( GetPlayersCount( oldTeam ) - 1 ) == 0
+            setRoundState( ROUND_WAITING_PLAYERS )
+
+-- Called when a in game player dies
+do
+
+    :RemoveSpectateTarget, :IsRoundRunning = Jailbreak
+    :Create, :Remove = timer
+
+    GM.TeamPlayerDeath = ( ply, teamID ) =>
+        ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
+        ply\UnSpectate!
+
+        RemoveSpectateTarget( ply )
+        ply\AllowSecurityAccess( false )
+        ply\AllowSecurityRadio( false )
+        ply\AllowFlashlight( false )
+
+        if ply\HasShockCollar!
+            ply\SetShockCollar( false, true )
+
+        isWarden = ply\IsWarden!
+        if isWarden
+            ply\SetWarden( false, true )
+
+        if ply\FlashlightIsOn!
+            ply\Flashlight( false )
+
+        Create "Jailbreak::TeamPlayerDeath", 0.5, 1, ->
+            Remove "Jailbreak::TeamPlayerDeath"
+            unless IsRoundRunning!
+                return
+
+            teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+            if teams[ 1 ] == 0 or teams[ 2 ] == 0
+                setRoundState( ROUND_ENDED )
+            elseif isWarden and ply\IsValid!
+                hook_Run( "WardenChanged", ply, false )
+
+    GM.TeamPlayerDisconnected = ( ply, teamID ) =>
+        unless ply\Alive!
+            return
+
+        RemoveSpectateTarget( ply )
+        ply\CreateRagdoll!
+
+        if ply\IsWarden!
+            ply\SetWarden( false )
+
+        Create "Jailbreak::TeamPlayerDisconnected", 0.5, 1, ->
+            Remove "Jailbreak::TeamPlayerDisconnected"
+            unless IsRoundRunning!
+                return
+
+            teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+            if teams[ 1 ] == 0 or teams[ 2 ] == 0
+                setRoundState( ROUND_ENDED )
+
+do
+
+    :AddSpectateTarget, :IsWaitingPlayers = Jailbreak
+
+    GM.TeamPlayerSpawn = ( ply, teamID ) =>
+        ply\SetNoCollideWithTeammates( teamID == TEAM_GUARD or Jailbreak.GameName == "tf" )
+        AddSpectateTarget( ply )
+
+        if IsWaitingPlayers!
+            teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+            if teams[ 1 ] > 0 and teams[ 2 ] > 0
+                setRoundState( ROUND_PREPARING )
+                setRoundTime( PrepareTime\GetInt! )
+
+do
+
+    :GetRoundTime, :GetRoundState = Jailbreak
+    :AddScore = team
+
+    GM.Think = =>
+        if GetRoundTime! > CurTime!
+            return
+
+        switch GetRoundState!
+            when ROUND_PREPARING
+                setRoundState( ROUND_RUNNING )
+            when ROUND_RUNNING
+                if RoundTime\GetInt! == 0
+                    return
+
+                AddScore( TEAM_GUARD, 1 )
+                setWinningTeam( TEAM_GUARD )
+
+                setRoundState( ROUND_ENDED, true )
+                setRoundTime( PrepareTime\GetInt! )
+            when ROUND_ENDED
+                setRoundState( ROUND_WAITING_PLAYERS )

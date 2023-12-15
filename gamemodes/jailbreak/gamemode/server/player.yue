@@ -1,0 +1,261 @@
+Jailbreak = Jailbreak
+hook_Run = hook.Run
+:Create = ents
+NULL = NULL
+
+PLAYER = FindMetaTable( "Player" )
+
+do
+
+    :Start, :WriteUInt, :WriteTable, :WriteString, :Send = net
+
+    PLAYER.SendPickupNotify = ( itemName ) =>
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 1, 2 )
+        WriteString( itemName )
+        Send( @ )
+
+    PLAYER.SendNotify = ( text, typeID, length, ... ) =>
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 2, 2 )
+        WriteString( text )
+        WriteTable( { ... }, true )
+        WriteUInt( typeID, 3 )
+        WriteUInt( length, 16 )
+        Send( @ )
+
+PLAYER.SetWarden = ( bool, silent ) =>
+    if bool == @IsWarden!
+        return
+
+    @SetNW2Bool( "is-warden", bool )
+    unless silent
+        hook_Run( "WardenChanged", @, bool )
+
+PLAYER.SetShockCollar = ( bool, silent ) =>
+    if bool == @HasShockCollar!
+        return
+
+    @SetNW2Bool( "shock-collar", bool )
+    unless silent
+        hook_Run( "ShockCollarChanged", @, bool )
+
+PLAYER.AllowSecurityAccess = ( bool ) =>
+    @SetNW2Bool( "security-access", bool )
+
+PLAYER.AllowSecurityRadio = ( bool ) =>
+    @SetNW2Bool( "security-radio", bool )
+
+do
+
+    :SpectateTargets = Jailbreak
+
+    PLAYER.MoveSpectateID = ( move, players ) =>
+        if #SpectateTargets == 0
+            return
+
+        index, length = ( @LastSpectatedEntity or 0 ) + move, #SpectateTargets
+        if index > length
+            index = 1
+        elseif index < 1
+            index = length
+
+        entity = SpectateTargets[ index ]
+        if entity\IsPlayer! or entity\IsRagdoll!
+            @SpectateEntity( entity )
+
+            if @GetObserverMode! ~= OBS_MODE_CHASE
+                @Spectate( OBS_MODE_CHASE )
+
+        else
+
+            if @GetObserverMode! ~= OBS_MODE_ROAMING
+                @Spectate( OBS_MODE_ROAMING )
+
+            @SetPos( entity\GetPos! )
+
+            angles = entity\GetAngles!
+            angles[ 3 ] = 0
+            @SetEyeAngles( angles )
+
+        @LastSpectatedEntity = index
+
+PLAYER.UsingSecurityRadio = =>
+    return @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
+
+PLAYER.UsingMegaphone = =>
+    return @IsWarden! and @GetInfo( "jb_megaphone" ) == "1"
+
+do
+
+    WeaponHandlers = WeaponHandlers or {}
+
+    PLAYER.Give = ( className, noAmmo ) =>
+        handler = WeaponHandlers[ className ]
+        if handler
+            className = handler.Alternative or className
+
+        if @HasWeapon( className )
+            return NULL
+
+        weapon = Create( className )
+        unless IsValid( weapon )
+            return NULL
+
+        weapon\SetAngles( @GetAngles! )
+        weapon\SetPos( @GetPos! )
+
+        weapon\Spawn!
+        weapon\Activate!
+
+        unless weapon\IsWeapon!
+            return weapon
+
+        if hook_Run( "PlayerCanPickupWeapon", @, weapon ) == false
+            weapon\Remove!
+            return NULL
+
+        if noAmmo
+            weapon\SetClip1( 0 )
+            weapon\SetClip2( 0 )
+
+        @PickupWeapon( weapon, false )
+        return weapon
+
+PLAYER.SetMutedByWarden = ( bool ) =>
+    @SetNW2Bool( "warden-mute", bool )
+
+PLAYER.RemoveRagdoll = =>
+    ragdoll = @GetRagdollEntity!
+    if ragdoll\IsValid!
+        ragdoll\Remove!
+
+PLAYER.CreateClientsideRagdoll = PLAYER.CreateClientsideRagdoll or PLAYER.CreateRagdoll
+COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
+
+do
+
+    :FixModelPath, :AddSpectateTarget = Jailbreak
+    :IsInWorld, :IsValidModel = util
+
+    PLAYER.CreateRagdoll = =>
+        @RemoveRagdoll!
+
+        spawnOrigin = @WorldSpaceCenter!
+        unless IsInWorld( spawnOrigin )
+            return NULL
+
+        modelPath = @GetModel!
+        unless modelPath
+            return NULL
+
+        modelPath = FixModelPath( modelPath )
+        unless IsValidModel( modelPath )
+            return NULL
+
+        ragdoll = Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
+        ragdoll\SetAngles( @GetAngles! )
+        ragdoll\SetModel( modelPath )
+        ragdoll\SetPos( spawnOrigin )
+        ragdoll\Spawn!
+
+        ragdoll.Team = @Team!
+
+        if @IsInGame!
+            ragdoll.Alive = true
+
+            angles = @EyeAngles!
+            angles[ 1 ] = 0
+            angles[ 3 ] = 0
+            ragdoll.PlayerAngles = angles
+
+            ragdoll\SetMaxHealth( @GetMaxHealth! )
+            ragdoll\SetHealth( @Health! )
+
+            ragdoll.MaxArmor = @GetMaxArmor!
+            ragdoll.Armor = @Armor!
+        else
+            ragdoll.Alive = false
+
+        for bodygroup in *@GetBodyGroups!
+            ragdoll\SetBodygroup( bodygroup.id, @GetBodygroup( bodygroup.id ) )
+
+        ragdoll\SetFlexScale( @GetFlexScale! )
+        for flexID = 0, @GetFlexNum!
+            ragdoll\SetFlexWeight( flexID, @GetFlexWeight( flexID ) )
+
+        ragdoll\SetPlayerColor( @GetPlayerColor! )
+        ragdoll\SetMaterial( @GetMaterial! )
+        ragdoll\SetColor( @GetColor! )
+        ragdoll\SetSkin( @GetSkin! )
+
+        for index = 1, #@GetMaterials!
+            materialPath = @GetSubMaterial( index )
+            if materialPath ~= ""
+                ragdoll\SetSubMaterial( index, materialPath )
+
+        ragdoll\SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
+        ragdoll\SetNW2Bool( "is-player-ragdoll", true )
+        ragdoll\SetNW2Entity( "ragdoll-owner", @ )
+        @SetNW2Entity( "player-ragdoll", ragdoll )
+
+        unless @IsBot!
+            ragdoll\SetNW2String( "owner-steamid64", @SteamID64! )
+        ragdoll\SetNW2String( "owner-nickname", @Nick! )
+
+        for boneID = 0, @GetBoneCount!
+            ragdoll\ManipulateBonePosition( boneID, @GetManipulateBonePosition( boneID ) )
+            ragdoll\ManipulateBoneAngles( boneID, @GetManipulateBoneAngles( boneID ) )
+            ragdoll\ManipulateBoneJiggle( boneID, @GetManipulateBoneJiggle( boneID ) )
+            ragdoll\ManipulateBoneScale( boneID, @GetManipulateBoneScale( boneID ) )
+
+        if ragdoll\IsRagdoll!
+            velocity = @LastVelocity
+            for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+                phys = ragdoll\GetPhysicsObjectNum( physNum )
+                unless IsValid( phys )
+                    continue
+
+                boneID = ragdoll\TranslatePhysBoneToBone( physNum )
+                if boneID < 0
+                    continue
+
+                origin, angles = @GetBonePosition( boneID )
+                phys\SetVelocity( velocity )
+                phys\SetAngles( angles )
+                phys\SetPos( origin )
+                phys\Wake!
+
+        else
+            phys = ragdoll\GetPhysicsObject!
+            if IsValid( phys )
+                phys\SetVelocity( @LastVelocity )
+                phys\Wake!
+
+        if @IsOnFire!
+            ragdoll\Ignite( 16, 64 )
+            @Extinguish!
+
+        hook_Run( "PlayerRagdollCreated", @, ragdoll )
+
+        ragdoll.HasSecurityAccess = @HasSecurityAccess!
+        ragdoll.HasSecurityRadio = @HasSecurityRadio!
+        ragdoll.HasFlashlight = @CanUseFlashlight!
+        ragdoll.HasShockCollar = @HasShockCollar!
+
+        weapons = {}
+        for weapon in *@GetWeapons!
+            @DropWeapon( weapon )
+
+            weapon\SetPos( spawnOrigin )
+            weapon\SetParent( ragdoll )
+            weapon\SetNotSolid( true )
+            weapon\SetNoDraw( true )
+
+            weapon.PickupForbidden = true
+            weapons[] = weapon
+        ragdoll.Weapons = weapons
+        ragdoll.Ammo = @GetAmmo!
+
+        AddSpectateTarget( ragdoll )
+        return ragdoll

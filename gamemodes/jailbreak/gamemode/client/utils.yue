@@ -1,0 +1,36 @@
+Jailbreak = Jailbreak
+
+do
+
+    RunConsoleCommand = RunConsoleCommand
+
+    Jailbreak.ChangeTeam = ( teamID ) ->
+        RunConsoleCommand( "changeteam", teamID )
+
+do
+
+    :sub, :gsub = string
+    :GetPhrase = language
+
+    filter = ( placeholder ) ->
+        fulltext = GetPhrase( placeholder )
+        if fulltext == placeholder and sub( placeholder, 1, 3 ) == "jb."
+            return GetPhrase( sub( placeholder, 4 ) )
+
+        return fulltext
+
+    Jailbreak.Translate = ( str ) ->
+        return gsub( str, "#([%w%.-_]+)", filter )
+
+do
+
+    ScrW, ScrH = ScrW, ScrH
+
+    width, height = ScrW!, ScrH!
+    Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
+    Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
+
+    hook.Add "OnScreenSizeChanged", "Jailbreak::OnScreenSizeChanged", ->
+        width, height = ScrW!, ScrH!
+        Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
+        Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2

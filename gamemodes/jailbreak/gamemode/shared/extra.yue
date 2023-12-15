@@ -1,0 +1,38 @@
+-- Disallow player shoot on marker setup
+do
+
+    IN_ATTACK = IN_ATTACK
+    IN_WALK = IN_WALK
+
+    hook.Add "StartCommand", "Jailbreak::Markers", ( cmd ) =>
+        if @IsInGame! and cmd\KeyDown( IN_WALK ) and cmd\KeyDown( IN_ATTACK )
+            cmd\RemoveKey( IN_ATTACK )
+
+-- Funny run and crouch animations
+do
+
+    singleHandHoldTypes = {
+        grenade: true
+        normal: true
+        melee: true
+        knife: true
+        fist: true
+        slam: true
+    }
+
+    hook.Add "CalcMainActivity", "Jailbreak::Additional Animations", ( velocity ) =>
+        unless @IsOnGround!
+            return
+
+        if velocity\Length! >= @GetRunSpeed! * 0.95
+            weapon = @GetActiveWeapon!
+            if weapon and weapon\IsValid! and not singleHandHoldTypes[ weapon\GetHoldType! ]
+                return
+
+            return ACT_HL2MP_RUN_FAST, -1
+        elseif @Crouching! and velocity\Length2DSqr! < 1
+            weapon = @GetActiveWeapon!
+            if weapon and weapon\IsValid! and weapon\GetHoldType! ~= "normal"
+                return
+
+            return ACT_MP_JUMP, @LookupSequence( "pose_ducking_01" )
