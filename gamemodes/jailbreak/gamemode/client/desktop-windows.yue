@@ -258,7 +258,7 @@ do
 
                     filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
                     for _, icon in pairs( selectPanel\GetItems! )
-                        allowed = Jailbreak.CustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath or "" ]
+                        allowed = Jailbreak.AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath or "" ]
                         unless allowed
                             icon\SetVisible( false )
                             continue

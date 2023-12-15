@@ -310,14 +310,14 @@ GM.SetupMove = ( ply, _, cmd ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetModel
 do
 
-    :CustomPlayerModels, :FixModelPath, :PlayerModels, :IsFemalePrison = Jailbreak
+    :AllowCustomPlayerModels, :FixModelPath, :PlayerModels, :IsFemalePrison = Jailbreak
     :TranslatePlayerModel = player_manager
     :PrecacheModel, :IsValidModel = util
     :match = string
 
     GM.PlayerSetModel = ( ply, teamID ) =>
         requested = FixModelPath( TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
-        if CustomPlayerModels\GetBool! and IsValidModel( requested )
+        if AllowCustomPlayerModels\GetBool! and IsValidModel( requested )
             PrecacheModel( requested )
             ply\SetModel( requested )
             return

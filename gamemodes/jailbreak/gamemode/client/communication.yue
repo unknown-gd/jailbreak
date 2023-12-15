@@ -7,12 +7,16 @@ colors = Jailbreak.Colors
 
 do
 
-    :AddText = chat
+    :AddText, :PlaySound = chat
     :date = os
 
     chatTime = CreateClientConVar( "jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1 )
+    chatSound = CreateClientConVar( "jb_chat_sound", "1", true, false, "Play sound of chat messages.", 0, 1 )
 
     Jailbreak.ChatText = ( ... ) ->
+        if chatSound\GetBool!
+            PlaySound!
+
         if chatTime\GetBool!
             AddText( grey, date( "[%H:%M:%S] " ), white, ... )
         else
