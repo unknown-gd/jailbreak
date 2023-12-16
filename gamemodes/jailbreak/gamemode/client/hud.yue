@@ -255,4 +255,3 @@ do
                         return
 
                     @SetFGColorEx( ply\GetTeamColor!\Unpack! )
-                    -- @SetFontInternal( "ChatFont" )

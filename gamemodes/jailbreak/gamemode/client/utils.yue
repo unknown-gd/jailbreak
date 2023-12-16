@@ -25,12 +25,78 @@ do
 do
 
     ScrW, ScrH = ScrW, ScrH
+    hook_Run = hook.Run
+    :min, :max = math
 
     width, height = ScrW!, ScrH!
+    vmin, vmax = min( width, height ) / 100, max( width, height ) / 100
+
     Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
     Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
 
     hook.Add "OnScreenSizeChanged", "Jailbreak::OnScreenSizeChanged", ->
         width, height = ScrW!, ScrH!
+        vmin, vmax = min( width, height ) / 100, max( width, height ) / 100
+
         Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
         Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
+        hook_Run( "ScreenResolutionChanged", width, height )
+
+    Jailbreak.VMin = ( number ) ->
+        if number ~= nil
+            return vmin * number
+
+        return vmin
+
+    Jailbreak.VMax = ( number ) ->
+        if number ~= nil
+            return vmax * number
+
+        return vmax
+
+do
+
+    fonts = Jailbreak.Fonts
+    unless istable( fonts )
+        fonts = {}
+        Jailbreak.Fonts = fonts
+
+    :CreateFont = surface
+    :VMin = Jailbreak
+    :remove = table
+
+    fontData = {
+        extended: true
+        weight: 500
+        blursize: 0
+        scanlines: 0
+        antialias: true
+        underline: false
+        italic: false
+        strikeout: false
+        symbol: false
+        rotary: false
+        shadow: false
+        additive: false
+        outline: false
+    }
+
+    Jailbreak.Font = ( fontName, font, size ) ->
+        fontData.font, fontData.size = font, VMin( size )
+        for index = 1, #fonts
+            if fonts[ index ].fontName == fontName
+                remove( fonts, index )
+                break
+
+        fonts[] = {
+            :fontName
+            :font
+            :size
+        }
+
+        CreateFont fontName, fontData
+
+    hook.Add "ScreenResolutionChanged", "Jailbreak::Fonts" , ->
+        for data in *fonts
+            fontData.font, fontData.size = data.font, VMin( data.size )
+            CreateFont data.fontName, fontData

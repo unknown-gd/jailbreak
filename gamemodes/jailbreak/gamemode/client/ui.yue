@@ -407,7 +407,7 @@ do
     PANEL = {}
 
     PANEL.OnRemove = =>
-        hook.Remove "OnScreenSizeChanged", @
+        hook.Remove "ScreenResolutionChanged", @
         hook.Remove "PlayerButtonDown", @
 
     PANEL.CloseKeys = {
@@ -419,7 +419,7 @@ do
     PANEL.Init = =>
         @DockPadding( 16, 16, 16, 16 )
 
-        hook_Add "OnScreenSizeChanged", @, @Remove
+        hook_Add "ScreenResolutionChanged", @, @Remove
         hook_Add "PlayerButtonDown", @, ( ply, key ) =>
             if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
                 @Remove!
