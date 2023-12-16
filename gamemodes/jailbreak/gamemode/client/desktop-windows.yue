@@ -141,26 +141,11 @@ list_Set "DesktopWindows", "shock-collars", {
 
 do
 
-    jb_hands_transparency = GetConVar( "jb_hands_transparency" )
-    cl_playermodel = GetConVar( "cl_playermodel" )
-
-    -- TODO: Move convars to cl_init
-    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
-    cl_playercolor = CreateConVar( "cl_playercolor", "0.3 0.3 0.3", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
-    cl_weaponcolor = CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", ConVarFlags, "The value is a Vector - so between 0-1 - not between 0-255" )
-    cl_playerbodygroups = CreateConVar( "cl_playerbodygroups", "0", ConVarFlags, "The bodygroups to use, if the model has any" )
-    cl_playerskin = CreateConVar( "cl_playerskin", "0", ConVarFlags, "The skin to use, if the model has any" )
-
-    cvars.AddChangeCallback( "cl_playermodel", ->
-        RunConsoleCommand( "cl_playerbodygroups", "0" )
-        RunConsoleCommand( "cl_playerskin", "0" )
-    "Jailbreak::PlayerModel" )
-
+    :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
     playerOptionsAnimations = list.Get( "PlayerOptionsAnimations" )
     default_animations = { "idle_all_01", "menu_walk" }
     previewOffset = Vector( -100, 0, -61 )
 
-    playerModels = player_manager.AllValidModels!
     :PlayerModels, :FixModelPath = Jailbreak
     input_GetCursorPos = input.GetCursorPos
     :TranslatePlayerModel = player_manager
@@ -221,7 +206,7 @@ do
             selectPanel = modelsTab\Add( "DPanelSelect" )
             selectPanel\Dock( FILL )
 
-            for name, modelPath in SortedPairs( playerModels )
+            for name, modelPath in SortedPairs( player_manager.AllValidModels! )
                 modelPath = FixModelPath( modelPath )
 
                 icon = vgui.Create( "SpawnIcon" )
@@ -243,7 +228,7 @@ do
 
             do
 
-                UpdateAvalibleModels = ->
+                updateAvalibleModels = ->
                     unless selectPanel\IsValid! and selectPanel\IsVisible!
                         return
 
@@ -258,7 +243,7 @@ do
 
                     filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
                     for _, icon in pairs( selectPanel\GetItems! )
-                        allowed = Jailbreak.AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath or "" ]
+                        allowed = AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ]
                         unless allowed
                             icon\SetVisible( false )
                             continue
@@ -266,9 +251,9 @@ do
                         icon\SetVisible( find( icon.ModelName, filter, 1, true ) and find( icon.ModelPath, filter, 1, true ) )
                     selectPanel\InvalidateLayout!
 
-                    timer.Create( "player-editor-models", 0.5, 0, UpdateAvalibleModels )
-                    modelsSearch.OnValueChange = UpdateAvalibleModels
-                    UpdateAvalibleModels!
+                timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
+                modelsSearch.OnValueChange = updateAvalibleModels
+                updateAvalibleModels!
 
             sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
 
@@ -286,11 +271,10 @@ do
                 handsTransparency\SetDecimals( 2 )
                 handsTransparency\SetMax( 1 )
 
-                handsTransparency\SetValue( jb_hands_transparency\GetFloat! )
+                handsTransparency\SetValue( HandsTransparency\GetFloat! )
 
                 handsTransparency.OnValueChanged = ( value ) =>
-                    if jb_hands_transparency\GetFloat! ~= value
-                        jb_hands_transparency\SetFloat( value )
+                    HandsTransparency\SetFloat( value )
 
             -- Player Color
             do
@@ -319,9 +303,9 @@ do
                             if playerColor\IsValid!
                                 playerColor\ValueChanged!
 
-                    cl_playercolor\SetString( tostring( vector ) )
+                    PlayerColor\SetString( tostring( vector ) )
 
-                playerColor\SetVector( Vector( cl_playercolor\GetString! ) )
+                playerColor\SetVector( Vector( PlayerColor\GetString! ) )
 
             -- Weapon Color
             do
@@ -341,9 +325,9 @@ do
                 weaponColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
 
                 weaponColor.ValueChanged = =>
-                    cl_weaponcolor\SetString( tostring( @GetVector! ) )
+                    PlayerWeaponColor\SetString( tostring( @GetVector! ) )
 
-                weaponColor\SetVector( Vector( cl_weaponcolor\GetString! ) )
+                weaponColor\SetVector( Vector( PlayerWeaponColor\GetString! ) )
 
             sheet\AddSheet( "#smwidget.colors", colorsPanel, "icon16/color_wheel.png" )
 
@@ -362,13 +346,13 @@ do
                 if previewEntity
                     previewEntity\SetBodygroup( pnl.typenum, Round( value ) )
 
-                str = Explode( " ", cl_playerbodygroups\GetString! )
+                str = Explode( " ", PlayerBodyGroups\GetString! )
                 if #str < pnl.typenum + 1
                     for index = 1, pnl.typenum + 1
                         str[ index ] = str[ index ] or 0
 
                 str[ pnl.typenum + 1 ] = Round( value )
-                cl_playerbodygroups\SetString( concat( str, " " ) )
+                PlayerBodyGroups\SetString( concat( str, " " ) )
 
             SetSkin = ( value ) =>
                 value = floor( value )
@@ -377,8 +361,7 @@ do
                 if previewEntity
                     previewEntity\SetSkin( value )
 
-                if value ~= cl_playerskin\GetInt!
-                    cl_playerskin\SetString( value )
+                PlayerSkin\SetString( value )
 
             -- Player Model
             SetupModel = ( modelName ) ->
@@ -412,21 +395,15 @@ do
                         skins\SetTall( 50 )
                         skins\SetDecimals( 0 )
                         skins\SetMax( skinCount )
-                        skins\SetValue( cl_playerskin\GetInt! )
+                        skins\SetValue( PlayerSkin\GetInt! )
                         skins.OnValueChanged = SetSkin
                         bodygroupsList\AddItem( skins )
-
-                        cvars.AddChangeCallback( "cl_playerskin", ( _, __, value ) ->
-                            value = tonumber( value ) or 0
-                            skins\SetValue( value )
-                            SetSkin( nil, value )
-                        "player-editor" )
 
                         unless bodygroupsTab\IsVisible!
                             bodygroupsTab\SetVisible( true )
 
                     -- Bodygroups
-                    groups = Explode( " ", cl_playerbodygroups\GetString! )
+                    groups = Explode( " ", PlayerBodyGroups\GetString! )
                     for index = 0, previewEntity\GetNumBodyGroups! - 1
                         if previewEntity\GetBodygroupCount( index ) <= 1
                             continue
@@ -459,11 +436,11 @@ do
                 if sequence > 0
                     previewEntity\ResetSequence( sequence )
 
-            cvars.AddChangeCallback( "cl_playermodel", ( _, __, modelName ) ->
+            cvars.AddChangeCallback( PlayerModel\GetName!, ( _, __, modelName ) ->
                 SetupModel( modelName )
             "player-editor" )
 
-            SetupModel( cl_playermodel\GetString! )
+            SetupModel( PlayerModel\GetString! )
 
             modelPreview.DragMousePress = =>
                 @PressX, @PressY = input_GetCursorPos!

@@ -220,7 +220,10 @@ do
     :IsValidModel = util
     cache = {}
 
-    isFoodModel = ( modelName ) =>
+    isFoodModel = ( modelName ) ->
+        unless modelName
+            return false
+
         cached = cache[ modelName ]
         if cached ~= nil
             return cached
@@ -261,10 +264,10 @@ do
             healing = Clamp( mins\Distance( maxs ) / 64, 0, 1 )
             cache[ modelPath ] = healing
 
-        maxHealth = ply\GetMaxHealth!
-        ply\SetHealth( Clamp( ply\Health! + floor( maxHealth * healing ), 0, maxHealth ) )
+        maxHealth = @GetMaxHealth!
+        @SetHealth( Clamp( @Health! + floor( maxHealth * healing ), 0, maxHealth ) )
 
-        ply\EmitSound( foodEatingSound, 50, random( 80, 120 ), Rand( 0.6, 1 ), CHAN_STATIC, 0, 1 )
+        @EmitSound( foodEatingSound, 50, random( 80, 120 ), Rand( 0.6, 1 ), CHAN_STATIC, 0, 1 )
         entity\Remove!
         return true
 

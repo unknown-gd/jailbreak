@@ -557,7 +557,6 @@ do
         ["class C_BaseEntity"]: Material( "icon16/keyboard.png", "mips" )
         sent_soccerball: Material( "icon16/sport_basketball.png", "mips" )
         prop_ragdoll: Material( "icon16/user_delete.png", "mips" )
-        jb_food: Material( "icon16/drink.png", "mips" )
         prop_combine_ball: ErrorIcon
         npc_grenade_frag: ErrorIcon
         npc_satchel: ErrorIcon

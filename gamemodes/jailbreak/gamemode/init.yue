@@ -34,8 +34,8 @@ do
     Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
     Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", ConVarFlags, "The speed of the player while running.", 0, 3000 )
 
-    Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "1.5", ConVarFlags, "Time to eat food in seconds.", 0, 300 )
-    Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "2", ConVarFlags, "Time to looting a ragdoll in seconds.", 0, 300 )
+    Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "0.5", ConVarFlags, "Time to eat food in seconds.", 0, 300 )
+    Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "1.5", ConVarFlags, "Time to looting a ragdoll in seconds.", 0, 300 )
 
     Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", ConVarFlags, "Allow custom player colors.", 0, 1 )
     Jailbreak.AllowCustomWeaponColors = CreateConVar( "jb_allow_custom_weapon_colors", "1", ConVarFlags, "Allow custom weapon colors.", 0, 1 )
