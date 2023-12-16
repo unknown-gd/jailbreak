@@ -232,10 +232,9 @@ do
 
         PLAYER_GetPlayerColor = PLAYER.GetPlayerColor
         :ToColor = FindMetaTable( "Vector" )
-        :IsPlayer = ENTITY
 
         ENTITY.GetModelColor = =>
-            return ToColor( IsPlayer( @ ) and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ ) )
+            return ToColor( @IsPlayer! and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ ) )
 
 -- Sets player color
 do
