@@ -30,8 +30,6 @@ do
     :Joinable = team
 
     Jailbreak.ChangeTeam = ( teamID ) =>
-        print @, teamID
-
         unless Joinable( teamID )
             return
 

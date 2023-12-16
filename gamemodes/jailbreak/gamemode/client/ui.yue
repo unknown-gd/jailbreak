@@ -2,6 +2,7 @@ Jailbreak = Jailbreak
 GM = GM
 
 :ceil, :min, :max, :sin, :floor, :random, :Rand, :Round = math
+:PlaySound, :DrawRect, :SetDrawColor = surface
 :format, :upper, :find, :Explode = string
 :TeamIsJoinable, :ChangeTeam = Jailbreak
 LocalPlayer = LocalPlayer
@@ -10,7 +11,6 @@ list_Set = list.Set
 hook_Add = hook.Add
 hook_Run = hook.Run
 IsValid = IsValid
-surface = surface
 :GetAll = player
 Vector = Vector
 pairs = pairs
@@ -34,11 +34,18 @@ GM.ContextMenuOpen = ->
 
 do
 
+    :GetRoundState, :GetRemainingTime = Jailbreak
+    TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
+    :GetCursorPos, :SetCursorPos = input
+    CloseDermaMenus = CloseDermaMenus
+    :DrawText = draw
+
     PANEL = {}
 
     AccessorFunc( PANEL, "m_bHangOpen", "HangOpen" )
 
     PANEL.Init = =>
+        @CursorX, @CursorY = 0, 0
         @SetWorldClicker( true )
         @m_bHangOpen = false
         @Dock( FILL )
@@ -59,15 +66,15 @@ do
         @SetKeyboardInputEnabled( false )
         @SetMouseInputEnabled( true )
 
-        RestoreCursorPosition!
         @InvalidateLayout( true )
+        SetCursorPos( @CursorX, @CursorY )
 
     PANEL.Close = ( bSkipAnim ) =>
         if @GetHangOpen!
             @SetHangOpen( false )
             return
 
-        RememberCursorPosition!
+        @CursorX, @CursorY = GetCursorPos!
         CloseDermaMenus!
 
         @SetKeyboardInputEnabled( false )
@@ -84,14 +91,14 @@ do
         @SetKeyboardInputEnabled( false )
 
     PANEL.Paint = ( width, height ) =>
-        if Jailbreak.GetRoundState! ~= ROUND_RUNNING
+        if GetRoundState! ~= ROUND_RUNNING
             return
 
-        remainingTime = Jailbreak.GetRemainingTime!
+        remainingTime = GetRemainingTime!
         if remainingTime == 0
             return
 
-        draw.DrawText( upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, white, TEXT_ALIGN_CENTER )
+        DrawText( upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, white, TEXT_ALIGN_CENTER )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 
@@ -306,6 +313,7 @@ do
 -- Button
 do
 
+    -- TODO: Rewrite this
     PANEL = {}
 
     PANEL.Init = =>
@@ -317,7 +325,7 @@ do
         unless @IsEnabled!
             return
 
-        surface.PlaySound( "garrysmod/ui_hover.wav" )
+        PlaySound( "garrysmod/ui_hover.wav" )
 
     PANEL.Paint = ( width, height ) =>
         color = @Color
@@ -332,14 +340,14 @@ do
         elseif @Hovered
             a = 250
 
-        surface.SetDrawColor( r, g, b, a )
-        surface.DrawRect( 0, 0, width, height )
+        SetDrawColor( r, g, b, a )
+        DrawRect( 0, 0, width, height )
 
     PANEL.DoClick = =>
         unless @IsEnabled!
             return
 
-        surface.PlaySound( "garrysmod/ui_click.wav" )
+        PlaySound( "garrysmod/ui_click.wav" )
 
         teamID = @Team
         if teamID
@@ -529,8 +537,8 @@ do
         @Center!
 
     PANEL.Paint = ( width, height ) =>
-        surface.SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-        surface.DrawRect( 0, 0, width, height )
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+        DrawRect( 0, 0, width, height )
 
     vgui.Register( "JB.TeamSelect", PANEL, "EditablePanel" )
 

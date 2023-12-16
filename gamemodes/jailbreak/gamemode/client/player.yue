@@ -32,6 +32,8 @@ do
     }
 
     GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
+        @Player = ply
+
         view = @PlayerView
         view.origin = origin
         view.angles = angles
