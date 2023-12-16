@@ -402,37 +402,57 @@ GM.PlayerSilentDeath = ( ply ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
 
-    movementKeys = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT, IN_JUMP )
-    IN_ATTACK, IN_ATTACK2 = IN_ATTACK, IN_ATTACK2
+    OBS_MODE_NONE = OBS_MODE_NONE
     :GameInProgress = Jailbreak
-    CurTime = CurTime
 
     GM.PlayerDeathThink = ( ply ) =>
-        if not Teams[ ply\Team! ] or GameInProgress!
-            observerMode = ply\GetObserverMode!
-            if observerMode ~= OBS_MODE_ROAMING and observerMode ~= OBS_MODE_CHASE
-                ply\Spectate( OBS_MODE_ROAMING )
-            elseif ply\KeyPressed( movementKeys )
-                if observerMode ~= OBS_MODE_ROAMING
-                    eyeAngles = ply\EyeAngles!
-
-                    ply\Spectate( OBS_MODE_ROAMING )
-                    ply\SpectateEntity!
-
-                    ply\SetEyeAngles( eyeAngles )
-
-            elseif ply\KeyPressed( IN_ATTACK )
-                ply\MoveSpectateID( 1 )
-
-            elseif ply\KeyPressed( IN_ATTACK2 )
-                ply\MoveSpectateID( -1 )
-
+        if Teams[ ply\Team! ] and not GameInProgress!
+            ply\Spawn!
             return
 
-        if ply.NextRespawnTime > CurTime!
+        if ply\GetObserverMode! == OBS_MODE_NONE
+            ply\Spectate( OBS_MODE_ROAMING )
+
+-- Spectator controls
+do
+
+    IN_ATTACK, IN_ATTACK2 = IN_ATTACK, IN_ATTACK2
+
+    MovementKeys = {
+        [ IN_FORWARD ]: true
+        [ IN_BACK ]: true
+        [ IN_MOVELEFT ]: true
+        [ IN_MOVERIGHT ]: true
+    }
+
+    GM.KeyPress = ( ply, key ) =>
+        if ply\IsInGame!
             return
 
-        ply\Spawn!
+        if MovementKeys[ key ]
+            if ply\GetObserverMode! == OBS_MODE_ROAMING
+                return
+
+            eyeAngles = ply\EyeAngles!
+
+            ply\Spectate( OBS_MODE_ROAMING )
+            ply\SpectateEntity!
+
+            ply\SetEyeAngles( eyeAngles )
+
+        elseif key == IN_ATTACK
+            ply\MoveObserveIndex( 1 )
+
+        elseif key == IN_ATTACK2
+            ply\MoveObserveIndex( -1 )
+
+        elseif key == IN_JUMP and IsValid( ply\GetObserverTarget! )
+            switch ply\GetObserverMode!
+                when OBS_MODE_CHASE
+                    ply\Spectate( OBS_MODE_IN_EYE )
+                when OBS_MODE_IN_EYE
+                    ply\Spectate( OBS_MODE_CHASE )
+
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
