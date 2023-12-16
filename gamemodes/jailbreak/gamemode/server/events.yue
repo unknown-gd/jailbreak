@@ -266,3 +266,33 @@ do
     event\SetColor( colors.red )
     event\SetType( "damage" )
     event\ConVar( 5 )
+
+do
+
+    :GetTeamPlayers, :IsRoundRunning = Jailbreak
+    TEAM_PRISONER = TEAM_PRISONER
+    timer_Simple = timer.Simple
+    :ceil = math
+
+    event = Jailbreak.RegisterEvent "random-knife", ->
+        timer_Simple 0, ->
+            unless IsRoundRunning!
+                return
+
+            prisoners = GetTeamPlayers( true, TEAM_PRISONER )[ 1 ]
+            prisonerCount = #prisoners
+            if prisonerCount == 0
+                return
+
+            for i = 1, ceil( prisonerCount * 0.25 )
+                ply = prisoners[ random( 1, prisonerCount ) ]
+                unless ply and ply\IsValid!
+                    continue
+
+                unless ply\HasWeapon( "weapon_knife" )
+                    ply\Give( "weapon_knife" )
+
+    event\SetStartState( ROUND_RUNNING )
+    event\SetFinishState( nil )
+    event\SetType( "weapon" )
+    event\ConVar( 10 )

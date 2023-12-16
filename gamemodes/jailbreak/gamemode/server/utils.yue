@@ -1,5 +1,6 @@
 Jailbreak = Jailbreak
 hook_Run = hook.Run
+IsValid = IsValid
 
 -- Networking
 util.AddNetworkString( "Jailbreak::Networking" )
@@ -111,14 +112,10 @@ do
 
     Jailbreak.RemoveSpectateTarget = removeSpectateTarget
 
-    do
-
-        IsValid = IsValid
-
-        Jailbreak.AddSpectateTarget = =>
-            if IsValid( @ )
-                removeSpectateTarget( @ )
-                targets[] = @
+    Jailbreak.AddSpectateTarget = =>
+        if IsValid( @ )
+            removeSpectateTarget( @ )
+            targets[] = @
 
 -- Entity metatable
 do
@@ -167,68 +164,76 @@ do
 
         return false
 
-Jailbreak.LootRagdoll = ( ragdoll ) =>
-    velocity = Vector!
+do
 
-    direction = @EyePos! - ragdoll\WorldSpaceCenter!
-    direction\Normalize!
+    istable = istable
+    :Shuffle = table
+    Vector = Vector
+    pairs = pairs
+    :min = math
 
-    if ragdoll.HasFlashlight and not @CanUseFlashlight!
-        velocity += direction * 150
-        @AllowFlashlight( true )
-        @SendPickupNotify( "jb.flashlight" )
-        ragdoll.HasFlashlight = nil
+    Jailbreak.LootRagdoll = ( ragdoll ) =>
+        velocity = Vector!
 
-    if ragdoll.HasSecurityAccess and not @HasSecurityAccess!
-        velocity += direction * 50
-        @AllowSecurityAccess( true )
-        @SendPickupNotify( "jb.access-card" )
-        ragdoll.HasSecurityAccess = nil
+        direction = @EyePos! - ragdoll\WorldSpaceCenter!
+        direction\Normalize!
 
-    if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
-        velocity += direction * 50
-        @AllowSecurityRadio( true )
-        @SendPickupNotify( "jb.walkie-talkie" )
-        ragdoll.HasSecurityRadio = nil
+        if ragdoll.HasFlashlight and not @CanUseFlashlight!
+            velocity += direction * 150
+            @AllowFlashlight( true )
+            @SendPickupNotify( "jb.flashlight" )
+            ragdoll.HasFlashlight = nil
 
-    weapons = ragdoll.Weapons
-    if istable( weapons )
-        for weapon in *weapons
-            unless weapon\IsValid! and not IsValid( weapon\GetOwner! )
-                continue
+        if ragdoll.HasSecurityAccess and not @HasSecurityAccess!
+            velocity += direction * 50
+            @AllowSecurityAccess( true )
+            @SendPickupNotify( "jb.access-card" )
+            ragdoll.HasSecurityAccess = nil
 
-            weapon\SetNotSolid( false )
-            weapon\SetNoDraw( false )
-            weapon\SetParent!
+        if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
+            velocity += direction * 50
+            @AllowSecurityRadio( true )
+            @SendPickupNotify( "jb.walkie-talkie" )
+            ragdoll.HasSecurityRadio = nil
 
-            weapon.PickupForbidden = nil
-            @PickupWeapon( weapon )
-            velocity += direction * 200
-    ragdoll.Weapons = nil
+        weapons = ragdoll.Weapons
+        if istable( weapons )
+            for weapon in *weapons
+                unless weapon\IsValid! and not IsValid( weapon\GetOwner! )
+                    continue
 
-    ammo = ragdoll.Ammo
-    if istable( ammo )
-        for ammoType, ammoCount in pairs( ammo )
-            @GiveAmmo( ammoCount, ammoType )
-            velocity += direction * 100
-    ragdoll.Ammo = nil
+                weapon\SetNotSolid( false )
+                weapon\SetNoDraw( false )
+                weapon\SetParent!
 
-    if velocity\Length! < 100
-        return
+                weapon.PickupForbidden = nil
+                @PickupWeapon( weapon )
+                velocity += direction * 200
+        ragdoll.Weapons = nil
 
-    if ragdoll\IsRagdoll!
-        physParts = {}
-        for physNum = 1, ragdoll\GetPhysicsObjectCount! - 1 do
-            phys = ragdoll\GetPhysicsObjectNum( physNum )
+        ammo = ragdoll.Ammo
+        if istable( ammo )
+            for ammoType, ammoCount in pairs( ammo )
+                @GiveAmmo( ammoCount, ammoType )
+                velocity += direction * 100
+        ragdoll.Ammo = nil
+
+        if velocity\Length! < 100
+            return
+
+        if ragdoll\IsRagdoll!
+            physParts = {}
+            for physNum = 1, ragdoll\GetPhysicsObjectCount! - 1 do
+                phys = ragdoll\GetPhysicsObjectNum( physNum )
+                if IsValid( phys )
+                    physParts[] = phys
+
+            Shuffle( physParts )
+
+            for index = 1, min( #physParts, 4 )
+                physParts[ index ]\ApplyForceCenter( velocity )
+
+        else
+            phys = ragdoll\GetPhysicsObject!
             if IsValid( phys )
-                physParts[] = phys
-
-        Shuffle( physParts )
-
-        for index = 1, min( #physParts, 4 )
-            physParts[ index ]\ApplyForceCenter( velocity )
-
-    else
-        phys = ragdoll\GetPhysicsObject!
-        if IsValid( phys )
-            phys\ApplyForceCenter( velocity )
+                phys\ApplyForceCenter( velocity )
