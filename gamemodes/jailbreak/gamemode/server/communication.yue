@@ -170,6 +170,36 @@ GM.WardenChanged = ( ply, state ) =>
 setChatCommand "warden", =>
     @ConCommand( "jb_warden" )
 
+do
+
+    :ChangeTeam = Jailbreak
+    func = ( text ) =>
+        ChangeTeam( @, tonumber( text ) or 0 )
+
+    setChatCommand "changeteam", func
+    setChatCommand "team", func
+
+    do
+
+        TEAM_PRISONER = TEAM_PRISONER
+
+        setChatCommand "prisoners", =>
+            ChangeTeam( @, TEAM_PRISONER )
+
+    do
+
+        TEAM_GUARD = TEAM_GUARD
+
+        setChatCommand "guards", =>
+            ChangeTeam( @, TEAM_GUARD )
+
+    do
+
+        TEAM_SPECTATOR = TEAM_SPECTATOR
+
+        setChatCommand "spectators", =>
+            ChangeTeam( @, TEAM_SPECTATOR )
+
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanHearPlayersVoice
 GM.PlayerCanHearPlayersVoice = ( listener, speaker ) =>
     if listener\IsBot! or speaker\IsBot! or listener\EntIndex! == speaker\EntIndex!

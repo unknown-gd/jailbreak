@@ -21,36 +21,40 @@ GM.HUDShouldDraw = ( name ) =>
 
     return true
 
-GM.HUDPaint = =>
-    if @TargetID\GetBool!
-        hook_Run( "HUDDrawTargetID" )
+do
 
-    hook_Run( "HUDDrawPickupHistory" )
+    :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams = Jailbreak
 
-    if @DeathNotice\GetBool!
-        hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+    GM.HUDPaint = =>
+        if @TargetID\GetBool!
+            hook_Run( "HUDDrawTargetID" )
 
-    state = Jailbreak.GetRoundState!
-    if state == ROUND_RUNNING
-        return
+        hook_Run( "HUDDrawPickupHistory" )
 
-    str = GetPhrase( "jb.round." .. state )
-    if state ~= ROUND_WAITING_PLAYERS
-        remainingTime = Jailbreak.GetRemainingTime!
-        if remainingTime == 0
+        if @DeathNotice\GetBool!
+            hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+
+        state = GetRoundState!
+        if state == ROUND_RUNNING
             return
 
-        str = format( str, remainingTime )
+        str = GetPhrase( "jb.round." .. state )
+        if state ~= ROUND_WAITING_PLAYERS
+            remainingTime = GetRemainingTime!
+            if remainingTime == 0
+                return
 
-    screenCenterX = Jailbreak.ScreenCenterX
-    draw.DrawText( str, "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
+            str = format( str, remainingTime )
 
-    if state == ROUND_ENDED
-        teamID = Jailbreak.GetWinningTeam!
-        if Jailbreak.Teams[ teamID ]
-            draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
-        else
-            draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, colors.light_grey, TEXT_ALIGN_CENTER )
+        screenCenterX = Jailbreak.ScreenCenterX
+        draw.DrawText( str, "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
+
+        if state == ROUND_ENDED
+            teamID = GetWinningTeam!
+            if Teams[ teamID ]
+                draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
+            else
+                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, Colors.light_grey, TEXT_ALIGN_CENTER )
 
 do
 
