@@ -45,6 +45,7 @@ do
         white: color_white
     }
 
+Jailbreak.DefaultPlayerColor = Vector( 0.25, 0.35, 0.4 )
 Jailbreak.Teams = {
     [ TEAM_PRISONER ]: true
     [ TEAM_GUARD ]: true

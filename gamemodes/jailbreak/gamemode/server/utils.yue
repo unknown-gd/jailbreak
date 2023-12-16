@@ -58,12 +58,13 @@ do
     :random = math
     :Effect = util
 
-    Jailbreak.ShockCollarEffect = =>
-        boneID, origin = @LookupBone( "ValveBiped.Bip01_Head1" ), nil
-        if boneID and boneID >= 0
-            matrix = @GetBoneMatrix( boneID )
-            if matrix
-                origin = matrix\GetTranslation!
+    Jailbreak.ShockCollarEffect = ( origin, pitch ) =>
+        unless origin
+            boneID = @LookupBone( "ValveBiped.Bip01_Head1" )
+            if boneID and boneID >= 0
+                matrix = @GetBoneMatrix( boneID )
+                if matrix
+                    origin = matrix\GetTranslation!
 
         fx = EffectData!
         fx\SetScale( 0.5 )
@@ -72,7 +73,7 @@ do
         fx\SetRadius( random( 1, 5 ) )
         Effect( "ElectricSpark", fx )
 
-        @EmitSound( "Jailbreak.Shock", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        @EmitSound( "Jailbreak.Shock", 75, pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
 do
 

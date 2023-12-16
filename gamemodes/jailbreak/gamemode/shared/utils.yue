@@ -213,14 +213,29 @@ do
     ENTITY.IsUnderwater = =>
         return WaterLevel( @ ) == 3
 
--- Returns player color as vector
 do
 
-    defaultColor = Vector( 0.25, 0.35, 0.4 )
-    :GetNW2Vector = ENTITY
+    -- Returns player color as vector
+    getPlayerColor = nil
+    do
 
-    ENTITY.GetPlayerColor = =>
-        return GetNW2Vector( @, "player-color", defaultColor )
+        :DefaultPlayerColor = Jailbreak
+        :GetNW2Vector = ENTITY
+
+        getPlayerColor = =>
+            return GetNW2Vector( @, "player-color", DefaultPlayerColor )
+
+        ENTITY.GetPlayerColor = getPlayerColor
+
+    -- Returns entity custom color
+    do
+
+        PLAYER_GetPlayerColor = PLAYER.GetPlayerColor
+        :ToColor = FindMetaTable( "Vector" )
+        :IsPlayer = ENTITY
+
+        ENTITY.GetModelColor = =>
+            return ToColor( IsPlayer( @ ) and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ ) )
 
 -- Sets player color
 do
@@ -229,17 +244,6 @@ do
 
     ENTITY.SetPlayerColor = ( vector ) =>
         SetNW2Var( @, "player-color", vector )
-
--- Returns entity custom color
-do
-
-    PLAYER_GetPlayerColor = PLAYER.GetPlayerColor
-    ENTITY_GetPlayerColor = ENTITY.GetPlayerColor
-    :ToColor = FindMetaTable( "Vector" )
-    :IsPlayer = PLAYER
-
-    ENTITY.GetModelColor = =>
-        return ToColor( IsPlayer( @ ) and PLAYER_GetPlayerColor( @ ) or ENTITY_GetPlayerColor( @ ) )
 
 -- Returns player team color
 do
