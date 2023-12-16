@@ -1,8 +1,8 @@
 Jailbreak = Jailbreak
 GM = GM
 
+:PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
 :ceil, :min, :max, :sin, :floor, :random, :Rand, :Round = math
-:PlaySound, :DrawRect, :SetDrawColor = surface
 :format, :upper, :find, :Explode = string
 :TeamIsJoinable, :ChangeTeam = Jailbreak
 LocalPlayer = LocalPlayer
@@ -21,8 +21,11 @@ ROUND_RUNNING = ROUND_RUNNING
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
-colors = Jailbreak.Colors
-:dark_grey, :black, :white = colors
+:Colors, :VMin = Jailbreak
+:dark_grey, :black, :white = Colors
+
+Jailbreak.Font( "Jailbreak::TeamSelect", "Roboto Mono Bold", 4 )
+Jailbreak.Font( "Jailbreak::TeamButtons", "Roboto Mono Medium", 4 )
 
 PANEL_META = FindMetaTable( "Panel" )
 
@@ -38,7 +41,6 @@ do
     TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
     :GetCursorPos, :SetCursorPos = input
     CloseDermaMenus = CloseDermaMenus
-    :DrawText = draw
 
     PANEL = {}
 
@@ -98,7 +100,21 @@ do
         if remainingTime == 0
             return
 
-        DrawText( upper( format( GetPhrase( "jb.round.2" ), remainingTime ) ), "DermaLarge", width / 2, 32, white, TEXT_ALIGN_CENTER )
+        SetFont( "Jailbreak::RoundState" )
+        text = format( GetPhrase( "jb.round.2" ), remainingTime )
+        x, y = Jailbreak.ScreenCenterX - GetTextSize( text ) / 2, VMin( 1 )
+
+        SetTextPos( x - 1, y - 1 )
+        SetTextColor( black.r, black.g, black.b, 50 )
+        DrawText( text )
+
+        SetTextPos( x + 3, y + 3 )
+        SetTextColor( black.r, black.g, black.b, 120 )
+        DrawText( text )
+
+        SetTextColor( white )
+        SetTextPos( x, y )
+        DrawText( text )
 
     vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
 
@@ -318,7 +334,7 @@ do
 
     PANEL.Init = =>
         @SetTextColor( white )
-        @SetFont( "DermaLarge" )
+        @SetFont( "Jailbreak::TeamButtons" )
 
     PANEL.OnCursorEntered = =>
         unless @IsEnabled!
@@ -434,7 +450,7 @@ do
             title\SetText( "#jb.team-select" )
             title\SetTextColor( white )
             title\SetContentAlignment( 5 )
-            title\SetFont( "DermaLarge" )
+            title\SetFont( "Jailbreak::TeamSelect" )
 
             title\DockMargin( 0, 0, 0, 16 )
             title\Dock( TOP )
@@ -491,7 +507,7 @@ do
 
             button = @Add( "JB.TeamButton" )
             button\SetText( "#jb.team.random" )
-            button.Color = colors.asparagus
+            button.Color = Colors.asparagus
             button.MainPanel = @
 
             button\DockMargin( 0, 16, 0, 0 )
