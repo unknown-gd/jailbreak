@@ -1,8 +1,8 @@
-GM = GM
-Jailbreak = Jailbreak
 RunConsoleCommand = RunConsoleCommand
+Jailbreak = Jailbreak
 hook_Run = hook.Run
 :format = string
+GM = GM
 
 do
 
@@ -13,7 +13,8 @@ do
     "Jailbreak::LanguageChanged" )
 
 GM.InitPostEntity = =>
-    @PlayingTaunt = false
+    Jailbreak.Player = LocalPlayer!
+    Jailbreak.PlayingTaunt = false
     chat.Open( 1 )
 
     timer.Simple 0.5, ->

@@ -1,21 +1,23 @@
+Jailbreak = Jailbreak
 hook_Run = hook.Run
 IsValid = IsValid
 :Clamp = math
 drive = drive
 GM = GM
 
-GM.ViewEntity = NULL
-GM.PlayerView = {}
+Jailbreak.ViewEntity = NULL
+Jailbreak.Player = NULL
 
 GM.ShouldDrawLocalPlayer = ( ply ) =>
-    entity = @ViewEntity
-    if entity\IsValid!
-        if entity\IsPlayer! and ply\IsPlayingTaunt!
-            return true
+    if ply ~= Jailbreak.ViewEntity
+        return true
 
-        tauntLerpOut = entity.TauntFraction
-        if tauntLerpOut and tauntLerpOut > 0
-            return true
+    if ply\IsPlayingTaunt!
+        return true
+
+    tauntLerpOut = ply.TauntFraction
+    if tauntLerpOut and tauntLerpOut > 0
+        return true
 
     return false
 
@@ -31,10 +33,14 @@ do
         maxs: Vector( 8, 8, 8 )
     }
 
-    GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
-        @Player = ply
+    view = Jailbreak.PlayerView
+    unless istable( view )
+        view = {}
+        Jailbreak.PlayerView = view
 
-        view = @PlayerView
+    GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
+        Jailbreak.Player = ply
+
         view.origin = origin
         view.angles = angles
         view.fov = fov
@@ -45,14 +51,22 @@ do
         if CalcView( ply, view )
             return view
 
-        entity = ply\GetViewEntity!
-        if entity\IsValid!
-            @ViewEntity = entity
+        entity = nil
+        unless ply\Alive!
+            entity = ply\GetObserverTarget!
+
+        unless entity and entity\IsValid!
+            entity = ply\GetViewEntity!
+
+        unless entity and entity\IsValid!
+            entity = ply
+
+        Jailbreak.ViewEntity = entity
 
         unless entity\IsPlayer! and entity\Alive!
             return view
 
-        isPlayingTaunt = @PlayingTaunt
+        isPlayingTaunt = Jailbreak.PlayingTaunt
 
         tauntFraction = entity.TauntFraction
         unless tauntFraction
@@ -137,15 +151,15 @@ do
         if CreateMove( cmd )
             return true
 
-        entity = @ViewEntity
+        entity = Jailbreak.ViewEntity
         unless entity\IsValid! and entity\IsPlayer! and entity\Alive!
             return
 
         unless entity\IsPlayingTaunt!
-            @PlayingTaunt = false
+            Jailbreak.PlayingTaunt = false
             return
 
-        @PlayingTaunt = true
+        Jailbreak.PlayingTaunt = true
 
         -- FrameTime!
         tauntViewAngles = entity.TauntViewAngles

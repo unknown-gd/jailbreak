@@ -16,7 +16,7 @@ TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
 :GetName, :GetColor = team
 
 GM.HUDShouldDraw = ( name ) =>
-    if @PlayingTaunt and name == "CHudWeaponSelection"
+    if Jailbreak.PlayingTaunt and name == "CHudWeaponSelection"
         return false
 
     return true
@@ -59,6 +59,19 @@ do
 
 do
 
+    :SourceHUD = Jailbreak
+
+    hook.Add "HUDPaint", "Jailbreak::Source HUD", ->
+        if Jailbreak.ViewEntity ~= Jailbreak.Player
+            return
+
+        for className in *SourceHUD
+            panel = Jailbreak[ className ]
+            if panel and panel\IsValid!
+                panel\PaintManual( true )
+
+do
+
     :Translate, :VoiceChatMinDistance = Jailbreak
     :SetFont, :GetTextSize = surface
     black = Color( 0, 0, 0, 120 )
@@ -76,14 +89,18 @@ do
     }
 
     GM.HUDDrawTargetID = =>
-        entity = @ViewEntity
-        unless entity\IsValid! and entity\IsPlayer!
+        ply = Jailbreak.Player
+        unless ply\IsValid!
             return
 
-        if entity\Alive! and not @PlayingTaunt
-            trace.filter = entity
-        else
-            trace.filter = nil
+        trace.filter = nil
+
+        if ply\Alive! and not Jailbreak.PlayingTaunt
+            trace.filter = ply
+        elseif ply\GetObserverMode! == OBS_MODE_IN_EYE
+            target = Jailbreak.ViewEntity
+            if IsValid( target )
+                trace.filter = target
 
         eyePos, eyeAngles = EyePos!, EyeAngles!
 
@@ -197,13 +214,9 @@ do
 
     hook_Add = hook.Add
 
-    HUDs = {
-        CHudSecondaryAmmo: true
-        -- CHudSuitPower: true
-        CHudBattery: true
-        CHudHealth: true
-        CHudAmmo: true
-    }
+    :SourceHUD = Jailbreak
+    for className in *SourceHUD
+        SourceHUD[ className ] = true
 
     GM.StartChat = ( isTeam ) =>
         if @Reskined
@@ -229,13 +242,17 @@ do
                 return
 
             for panel in *viewport\GetChildren!
-                unless HUDs[ panel\GetClassName! ]
+                className = panel\GetClassName!
+                unless SourceHUD[ className ]
                     continue
 
-                ply = LocalPlayer!
-                unless IsValid( ply )
-                    return
+                panel\SetPaintedManually( true )
+                Jailbreak[ className ] = panel
 
                 hook_Add "Think", panel, =>
-                    @SetFGColorEx( team.GetColor( ply\Team! )\Unpack! )
+                    ply = Jailbreak.Player
+                    unless ply\IsValid!
+                        return
+
+                    @SetFGColorEx( ply\GetTeamColor!\Unpack! )
                     -- @SetFontInternal( "ChatFont" )

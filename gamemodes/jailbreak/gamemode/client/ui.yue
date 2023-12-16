@@ -319,7 +319,6 @@ do
     PANEL.Init = =>
         @SetTextColor( white )
         @SetFont( "DermaLarge" )
-        @Player = LocalPlayer!
 
     PANEL.OnCursorEntered = =>
         unless @IsEnabled!
@@ -354,8 +353,12 @@ do
             ChangeTeam( teamID )
         else
 
+            ply = Jailbreak.Player
+            unless IsValid( ply )
+                return
+
             for i = 1, 2
-                if i ~= @Player\Team! and TeamIsJoinable( i )
+                if i ~= ply\Team! and TeamIsJoinable( i )
                     ChangeTeam( i )
                     break
 
@@ -379,11 +382,6 @@ do
             @SetEnabled( enabled )
             return
 
-        enabled = teamID ~= @Player\Team! and TeamIsJoinable( teamID )
-        if enabled ~= @IsEnabled!
-            @SetEnabled( enabled )
-            @SetCursor( enabled and "hand" or "no" )
-
         unless @Color
             @Color = team.GetColor( teamID )
 
@@ -391,6 +389,15 @@ do
         if count ~= @Count
             @SetText( team.GetName( teamID ) .. " x" .. count )
             @Count = count
+
+        ply = Jailbreak.Player
+        unless IsValid( ply )
+            return
+
+        enabled = teamID ~= ply\Team! and TeamIsJoinable( teamID )
+        if enabled ~= @IsEnabled!
+            @SetEnabled( enabled )
+            @SetCursor( enabled and "hand" or "no" )
 
     vgui.Register( "JB.TeamButton", PANEL, "DButton" )
 
@@ -511,7 +518,7 @@ do
                 ChangeTeam( TEAM_PRISONER )
                 @Remove!
             elseif IsKeyDown( 4 )
-                ply = @Player
+                ply = Jailbreak.Player
                 unless IsValid( ply )
                     return
 

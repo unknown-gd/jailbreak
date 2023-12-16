@@ -1,6 +1,15 @@
 include( "shared.lua" )
 Jailbreak = Jailbreak
 
+Jailbreak.SourceHUD = {
+    "CHudWeaponSelection"
+    "CHudSecondaryAmmo"
+    "CHudSuitPower"
+    "CHudBattery"
+    "CHudHealth"
+    "CHudAmmo"
+}
+
 do
 
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
