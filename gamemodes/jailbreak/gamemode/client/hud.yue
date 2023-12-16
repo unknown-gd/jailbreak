@@ -24,6 +24,7 @@ GM.HUDShouldDraw = ( name ) =>
 do
 
     :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams = Jailbreak
+    :DrawText = draw
 
     GM.HUDPaint = =>
         if @TargetID\GetBool!
@@ -47,14 +48,14 @@ do
             str = format( str, remainingTime )
 
         screenCenterX = Jailbreak.ScreenCenterX
-        draw.DrawText( str, "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
+        DrawText( str, "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
 
         if state == ROUND_ENDED
             teamID = GetWinningTeam!
             if Teams[ teamID ]
-                draw.DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
+                DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
             else
-                draw.DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, Colors.light_grey, TEXT_ALIGN_CENTER )
+                DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, Colors.light_grey, TEXT_ALIGN_CENTER )
 
 do
 
