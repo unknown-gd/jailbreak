@@ -1,8 +1,10 @@
 NOTIFY_ERROR = NOTIFY_ERROR
 Jailbreak = Jailbreak
+:HasWarden = Jailbreak
 tonumber = tonumber
 IsValid = IsValid
 :Add = concommand
+CurTime = CurTime
 
 do
 
@@ -37,8 +39,7 @@ do
 
 do
 
-    :IsRoundRunning, :HasWarden, :SetShockCollars, :IsShockCollarsActive = Jailbreak
-    CurTime = CurTime
+    :IsRoundRunning, :SetShockCollars, :IsShockCollarsActive = Jailbreak
 
     Add "jb_warden", ( _, args ) =>
         unless IsValid( @ )
@@ -130,3 +131,108 @@ do
             return
 
         @SelectWeapon( nextWeapon\GetClass! )
+
+do
+
+    util.AddNetworkString( "Jailbreak::Markers" )
+
+    :Markers, :VoiceChatMinDistance, :MarkersLifetime, :MarkersCount, :Emotion = Jailbreak
+    :Start, :WriteEntity, :WriteBool, :WriteVector, :Send, :Broadcast = net
+    :TraceLine = util
+
+    trace = {
+        mask: MASK_SHOT
+    }
+
+    Add "marker", =>
+        unless Markers\GetBool!
+            return
+
+        unless IsValid( @ ) and @IsInGame!
+            return
+
+        if @NextMarker and CurTime! < @NextMarker
+            return
+
+        isWarden, isPrisoner = @IsWarden!, @IsPrisoner!
+        if not isWarden and @IsGuard! and not HasWarden!
+            isWarden = true
+
+        unless isWarden or isPrisoner
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return
+
+        distance = 0
+        if isWarden
+            distance = 32768
+        elseif isPrisoner
+            distance = VoiceChatMinDistance\GetInt!
+
+        @LagCompensation( true )
+
+        trace.filter = @
+
+        start = @EyePos!
+        trace.start = start
+        trace.endpos = start + @GetAimVector! * distance
+
+        traceResult = TraceLine( trace )
+
+        @LagCompensation( false )
+
+        unless traceResult.Hit
+            return
+
+        @NextMarker = CurTime! + ( MarkersLifetime\GetInt! / MarkersCount\GetInt! )
+
+        entity = traceResult.Entity
+        isValid = IsValid( entity )
+
+        Start( "Jailbreak::Markers" )
+        WriteEntity( @ )
+        WriteBool( isValid )
+
+        if isValid
+            WriteEntity( entity )
+            WriteVector( entity\WorldToLocal( traceResult.HitPos ) )
+        else
+            WriteVector( traceResult.HitPos )
+
+        if isWarden
+            Broadcast!
+        elseif isPrisoner
+            players, hasSender = @GetNearPlayers( distance, true ), false
+            for ply in *players
+                if ply == @
+                    hasSender = true
+                    break
+
+            unless hasSender
+                players[] = @
+
+            Send( players )
+
+        if entity\IsValid!
+            if entity\IsPlayer!
+                Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\Nick!, white, "." )
+            elseif entity\IsPlayerRagdoll!
+                Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\GetNW2String( "owner-nickname", "unknown" ), white, "." )
+            elseif entity\IsWeapon!
+                printName = nil
+                if entity\IsScripted!
+                    printName = entity.PrintName
+
+                if printName
+                    printName = "#" .. printName
+                else
+                    printName = entity\GetPrintName!
+
+                if printName == "Scripted Weapon"
+                    printName = "#" .. entity\GetClass!
+
+                Emotion( @, "#jb.chat.pointed-at \"" .. printName .. "\"." )
+            else
+                Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
+
+        else
+            Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )

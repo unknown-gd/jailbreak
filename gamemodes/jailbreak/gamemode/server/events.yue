@@ -20,12 +20,14 @@ class JailbreakEvent
     new: ( name, init, finish ) =>
         assert isstring( name ), "name must be a string"
         assert isfunction( init ), "init must be a function"
-        assert isfunction( finish ), "finish must be a function"
 
         @startState = ROUND_PREPARING
         @finishState = ROUND_RUNNING
         @type = "default"
-        @finish = finish
+
+        if isfunction( finish )
+            @finish = finish
+
         @color = white
         @init = init
         @name = name

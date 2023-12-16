@@ -15,6 +15,7 @@ do
         if ply\HasShockCollar! and band( damageType, DMG_SHOCK ) == DMG_SHOCK
             ply\SendNotify( "#jb.notify.shock-collar.broken", NOTIFY_ERROR, 10 )
             ply\SetShockCollar( false )
+            ShockCollarEffect( ply )
 
         attacker = damageInfo\GetAttacker!
         attackerIsPlayer = attacker\IsValid! and attacker\IsPlayer!

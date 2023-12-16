@@ -39,6 +39,7 @@ do
     AccessorFunc( PANEL, "m_bHangOpen", "HangOpen" )
 
     PANEL.Init = =>
+        @SetWorldClicker( true )
         @m_bHangOpen = false
         @Dock( FILL )
 

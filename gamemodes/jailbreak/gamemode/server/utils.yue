@@ -25,6 +25,7 @@ Jailbreak.TF2Team = ( teamID ) ->
 do
 
     CHAN_STATIC = CHAN_STATIC
+    EffectData = EffectData
     :random = math
     :Effect = util
 
@@ -35,7 +36,6 @@ do
             if matrix
                 origin = matrix\GetTranslation!
 
-        -- TODO: Check later
         fx = EffectData!
         fx\SetScale( 0.5 )
         fx\SetOrigin( origin or @EyePos! )

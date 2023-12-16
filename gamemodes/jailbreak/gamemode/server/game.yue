@@ -115,7 +115,6 @@ do
     :Explode = string
 
     GM.PlayerSpawn = ( ply, transiton ) =>
-        ply\DisableWorldClicking( true )
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
         ply\SetWarden( false )
