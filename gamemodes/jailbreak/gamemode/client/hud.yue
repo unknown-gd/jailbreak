@@ -2,11 +2,13 @@ Jailbreak = Jailbreak
 hook_Run = hook.Run
 GM = GM
 
-:Colors = Jailbreak
-:white = Colors
+:Colors, :VMin = Jailbreak
+:white, :black = Colors
 
+:SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos = surface
 :GetPhrase = language
-:format = string
+IsValid = IsValid
+:sub, :format = string
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -24,7 +26,9 @@ GM.HUDShouldDraw = ( name ) =>
 do
 
     :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams = Jailbreak
-    :DrawText = draw
+
+    Jailbreak.Font( "Jailbreak::Winners", "Roboto Mono Bold Italic", 4 )
+    Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
 
     GM.HUDPaint = =>
         if @TargetID\GetBool!
@@ -39,23 +43,57 @@ do
         if state == ROUND_RUNNING
             return
 
-        str = GetPhrase( "jb.round." .. state )
+        text = GetPhrase( "jb.round." .. state )
         if state ~= ROUND_WAITING_PLAYERS
             remainingTime = GetRemainingTime!
             if remainingTime == 0
                 return
 
-            str = format( str, remainingTime )
+            text = format( text, remainingTime )
+
+        SetFont( "Jailbreak::RoundState" )
 
         screenCenterX = Jailbreak.ScreenCenterX
-        DrawText( str, "DermaLarge", screenCenterX, 32, white, TEXT_ALIGN_CENTER )
+        textWidth, textHeight = GetTextSize( text )
+        x, y = screenCenterX - textWidth / 2, VMin( 1 )
+
+        SetTextPos( x - 1, y - 1 )
+        SetTextColor( black.r, black.g, black.b, 50 )
+        DrawText( text )
+
+        SetTextPos( x + 3, y + 3 )
+        SetTextColor( black.r, black.g, black.b, 120 )
+        DrawText( text )
+
+        SetTextColor( white )
+        SetTextPos( x, y )
+        DrawText( text )
 
         if state == ROUND_ENDED
-            teamID = GetWinningTeam!
+            teamID, color = GetWinningTeam!, nil
             if Teams[ teamID ]
-                DrawText( format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) ), "DermaLarge", screenCenterX, 64, GetColor( teamID ), TEXT_ALIGN_CENTER )
+                text = format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) )
+                color = GetColor( teamID )
             else
-                DrawText( GetPhrase( "#jb.draw" ), "DermaLarge", screenCenterX, 64, Colors.light_grey, TEXT_ALIGN_CENTER )
+                text = GetPhrase( "#jb.draw" )
+                color = Colors.light_grey
+
+            text = "[" .. text .. "]"
+
+            textWidth2, textHeight2 = GetTextSize( text )
+            x, y = screenCenterX - textWidth2 / 2, y + ( textHeight + textHeight2 ) / 2
+
+            SetTextPos( x - 1, y - 1 )
+            SetTextColor( black.r, black.g, black.b, 50 )
+            DrawText( text )
+
+            SetTextPos( x + 3, y + 3 )
+            SetTextColor( black.r, black.g, black.b, 120 )
+            DrawText( text )
+
+            SetTextColor( color )
+            SetTextPos( x, y )
+            DrawText( text )
 
 do
 
@@ -73,8 +111,8 @@ do
 do
 
     :Translate, :VoiceChatMinDistance = Jailbreak
-    :SetFont, :GetTextSize = surface
-    black = Color( 0, 0, 0, 120 )
+    :CursorVisible = vgui
+    :GetCursorPos = input
     EyeAngles = EyeAngles
     MASK_SHOT = MASK_SHOT
     :SimpleText = draw
@@ -88,24 +126,34 @@ do
         mask: MASK_SHOT
     }
 
+    Jailbreak.Font( "Jailbreak::TargetID", "Roboto Mono Bold", 2.6 )
+    Jailbreak.Font( "Jailbreak::TargetIDSmall", "Roboto Mono SemiBold Italic", 2.6 )
+
     GM.HUDDrawTargetID = =>
         ply = Jailbreak.Player
         unless ply\IsValid!
             return
 
-        trace.filter = nil
+        start = EyePos!
+        trace.start = start
 
-        if ply\Alive! and not Jailbreak.PlayingTaunt
-            trace.filter = ply
-        elseif ply\GetObserverMode! == OBS_MODE_IN_EYE
+        endpos, filter = nil, nil
+        if ply\GetObserverMode! == OBS_MODE_IN_EYE
             target = Jailbreak.ViewEntity
-            if IsValid( target )
-                trace.filter = target
+            if target\IsValid!
+                filter = target
 
-        eyePos, eyeAngles = EyePos!, EyeAngles!
+                if target\IsPlayer! and target\Alive!
+                    endpos = start + target\GetAimVector! * VoiceChatMinDistance\GetInt!
 
-        trace.start = eyePos
-        trace.endpos = eyePos + eyeAngles\Forward! * VoiceChatMinDistance\GetInt!
+        elseif ply\Alive! and not Jailbreak.PlayingTaunt
+            endpos = start + ply\GetAimVector! * VoiceChatMinDistance\GetInt!
+            filter = ply
+
+        unless endpos
+            endpos = start + EyeAngles!\Forward! * VoiceChatMinDistance\GetInt!
+
+        trace.endpos, trace.filter = endpos, filter
 
         traceResult = TraceLine( trace )
         unless traceResult.Hit
@@ -120,9 +168,9 @@ do
 
         isPlayerRagdoll = entity\IsPlayerRagdoll!
         isPlayer = entity\IsPlayer!
-        text = "Unknown"
         color = white
 
+        text = nil
         if isPlayer
             unless entity\Alive!
                 return
@@ -167,48 +215,56 @@ do
 
             text = Translate( "#jb." .. className )
 
-        font = "TargetID"
-        SetFont( font )
-        width, height = GetTextSize( text )
+        mouseX, mouseY = GetCursorPos!
+        if mouseX == 0 and mouseY == 0 or not CursorVisible!
+            mouseX, mouseY = Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY
 
-        x = Jailbreak.ScreenCenterX - width / 2
-        y = Jailbreak.ScreenCenterY + 30
+        offset = VMin( 2 )
 
-        black.a = 120
-        SimpleText( text, font, x + 1, y + 1, black )
+        SetFont( "Jailbreak::TargetID" )
+        textWidth, textHeight = GetTextSize( text )
 
-        black.a = 50
-        SimpleText( text, font, x + 2, y + 2, black )
-        SimpleText( text, font, x, y, color )
+        x = mouseX - textWidth / 2
+        y = mouseY + offset
 
-        y += height + 5
+        SetTextPos( x - 1, y - 1 )
+        SetTextColor( black.r, black.g, black.b, 50 )
+        DrawText( text )
 
-        unless isPlayer or isPlayerRagdoll
-            return
+        SetTextPos( x + 3, y + 3 )
+        SetTextColor( black.r, black.g, black.b, 120 )
+        DrawText( text )
 
-        font = "TargetIDSmall"
-        SetFont( font )
+        SetTextColor( color )
+        SetTextPos( x, y )
+        DrawText( text )
 
-        teamID = nil
+        color = nil
         if isPlayer
             teamID = entity\Team!
             text = GetName( teamID )
+            color = GetColor( teamID )
         elseif isPlayerRagdoll
-            text = "#jb.team.dead"
+            text = "#jb.player.corpse"
+            color = Colors.light_grey
+        else
+            return
 
-        width, height = GetTextSize( text )
-        x = Jailbreak.ScreenCenterX - width / 2
+        SetFont( "Jailbreak::TargetIDSmall" )
+        textWidth2, textHeight2 = GetTextSize( text )
+        x, y = mouseX - textWidth2 / 2, y + ( textHeight + textHeight2 ) / 2
 
-        black.a = 120
-        SimpleText( text, font, x + 1, y + 1, black )
+        SetTextPos( x - 1, y - 1 )
+        SetTextColor( black.r, black.g, black.b, 50 )
+        DrawText( text )
 
-        black.a = 50
-        SimpleText( text, font, x + 2, y + 2, black )
+        SetTextPos( x + 3, y + 3 )
+        SetTextColor( black.r, black.g, black.b, 120 )
+        DrawText( text )
 
-        if isPlayer
-            SimpleText( text, font, x, y, GetColor( teamID ) )
-        elseif isPlayerRagdoll
-            SimpleText( text, font, x, y, Colors.light_grey )
+        SetTextColor( color )
+        SetTextPos( x, y )
+        DrawText( text )
 
 do
 
