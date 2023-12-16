@@ -1,12 +1,14 @@
-:ceil, :random, :max = math
 Jailbreak = Jailbreak
+
+:ceil, :random, :max, :Rand = math
+:ShockCollarEffect = Jailbreak
+DMG_SHOCK = DMG_SHOCK
 GM = GM
 
 do
 
-    :ShockCollarVictimDamage, :ShockCollarAttackerDamage, :IsShockCollarsActive, :ShockCollarEffect = Jailbreak
+    :ShockCollarVictimDamage, :ShockCollarAttackerDamage, :IsShockCollarsActive = Jailbreak
     NOTIFY_ERROR = NOTIFY_ERROR
-    DMG_SHOCK = DMG_SHOCK
     DMG_SONIC = DMG_SONIC
     :band = bit
 
@@ -35,18 +37,20 @@ do
             damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
 
         inflictor = damageInfo\GetInflictor!
-        if inflictor\IsValid! and inflictor\IsScripted!
-            velocity = damageInfo\GetDamageForce!
-            if velocity\Length! < 1
-                return
+        if inflictor\IsValid! and inflictor\IsWeapon! and not inflictor\IsScripted!
+            return
 
-            if Jailbreak.PowerfulPlayers and attackerIsPlayer and isCloseRangeDamage
-                velocity *= 3
+        velocity = damageInfo\GetDamageForce!
+        if velocity\Length! < 1
+            return
 
-            velocity[ 1 ] /= 10
-            velocity[ 2 ] /= 10
-            velocity[ 3 ] /= 8
-            ply\SetVelocity( velocity )
+        if Jailbreak.PowerfulPlayers and attackerIsPlayer and isCloseRangeDamage
+            velocity *= 3
+
+        velocity[ 1 ] /= 10
+        velocity[ 2 ] /= 10
+        velocity[ 3 ] /= 8
+        ply\SetVelocity( velocity )
 
 GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
     if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and ( not entity\IsInGame! or entity\GetVelocity!\Length! > 800 ) ) )
@@ -157,14 +161,19 @@ do
                 attacker = damageInfo\GetAttacker!
                 if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
                     entity\Use( attacker, attacker )
-                    entity\EmitSound( "Jailbreak.Shock" )
+                    ShockCollarEffect( entity, damageOrigin, 150 )
 
-                    fx = EffectData!
-                    fx\SetScale( 0.5 )
-                    fx\SetOrigin( entity\WorldSpaceCenter! )
-                    fx\SetMagnitude( random( 3, 5 ) )
-                    fx\SetRadius( random( 1, 5 ) )
-                    Effect( "ElectricSpark", fx )
+                    if damageInfo\IsCloseRangeDamage!
+                        damageOrigin = damageInfo\GetDamagePosition!
+                        dir = attacker\WorldSpaceCenter! - damageOrigin
+                        dir[ 3 ] = 1
+
+                        damageInfo\SetDamage( attacker\GetMaxHealth! / Rand( 2, 3 ) )
+                        damageInfo\SetDamagePosition( damageOrigin )
+                        damageInfo\SetDamageForce( dir * 100 )
+                        damageInfo\SetDamageType( DMG_SHOCK )
+                        damageInfo\SetAttacker( entity )
+                        attacker\TakeDamageInfo( damageInfo )
 
                 return true
 
