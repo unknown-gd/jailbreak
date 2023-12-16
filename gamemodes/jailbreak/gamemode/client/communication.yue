@@ -40,7 +40,7 @@ do
             result[] = Translate( "[#jb.chat.dead] " )
 
         if ply and ply\IsValid!
-            result[] = ply\GetPlayerColor!\ToColor!
+            result[] = ply\GetModelColor!
             result[] = ply\Nick!
             text = FilterText( text, ( band( Number( "cl_chatfilters", 0 ), 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, ply )
         else

@@ -22,6 +22,36 @@ global NOTIFY_CLEANUP = 4
 Jailbreak.TF2Team = ( teamID ) ->
     return teamID % 2 + 1
 
+-- Change player team
+do
+
+    :Teams, :TeamIsJoinable = Jailbreak
+    NOTIFY_ERROR = NOTIFY_ERROR
+    :Joinable = team
+
+    Jailbreak.ChangeTeam = ( teamID ) =>
+        print @, teamID
+
+        unless Joinable( teamID )
+            return
+
+        oldTeamID = @Team!
+        if oldTeamID == teamID
+            @SendNotify( "#jb.error.already-on-team", NOTIFY_ERROR, 3 )
+            return
+
+        unless TeamIsJoinable( teamID )
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return
+
+        if @Alive!
+            if Teams[ oldTeamID ]
+                @Kill!
+            else
+                @KillSilent!
+
+        @SetTeam( teamID )
+
 -- Shock collar effect
 do
 
@@ -91,40 +121,14 @@ do
         unless silent
             hook_Run( "WardenCoins", oldValue, value )
 
--- Spectate targets
-do
-
-    targets = Jailbreak.SpectateTargets
-    unless targets
-        targets = {}
-        Jailbreak.SpectateTargets = targets
-
-    removeSpectateTarget = nil
-    do
-
-        :remove = table
-
-        removeSpectateTarget = =>
-            for index = 1, #targets
-                if targets[ index ] == @
-                    remove( targets, index )
-                    break
-
-    Jailbreak.RemoveSpectateTarget = removeSpectateTarget
-
-    Jailbreak.AddSpectateTarget = =>
-        if IsValid( @ )
-            removeSpectateTarget( @ )
-            targets[] = @
-
 -- Entity metatable
 do
 
     ENTITY = FindMetaTable( "Entity" )
     :GetClass = ENTITY
 
-    -- Check if the entity is a available spectate target
-    ENTITY.IsSpectateTarget = =>
+    -- Returns true if the entity is valid observe target
+    ENTITY.IsValidObserveTarget = =>
         if @IsPlayer! and @IsInGame!
             return true
 
@@ -132,6 +136,25 @@ do
             return true
 
         return GetClass( @ ) == "info_observer_point"
+
+    do
+
+        :ObserveTargets = Jailbreak
+        :remove = table
+
+        -- Remove the entity from the list of observe targets
+        removeAsObserveTarget = =>
+            for index = 1, #ObserveTargets
+                if ObserveTargets[ index ] == @
+                    remove( ObserveTargets, index )
+                    break
+
+        ENTITY.RemoveFromObserveTargets = removeAsObserveTarget
+
+        -- Add the entity to the list of observe targets
+        ENTITY.AddToObserveTargets = =>
+            removeAsObserveTarget( @ )
+            ObserveTargets[] = @
 
     -- Check if the entity is a prop
     do

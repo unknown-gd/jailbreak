@@ -86,7 +86,7 @@ do
 
 -- Out of Character ( OOC )
 ooc = ( text ) =>
-    sendChatText( false, colors.turquoise, "[#jb.chat.ooc] ", @GetPlayerColor!\ToColor!, @Nick!, white, ": " .. text )
+    sendChatText( false, Colors.turquoise, "[#jb.chat.ooc] ", @GetModelColor!, @Nick!, white, ": " .. text )
 
 Jailbreak.OOC = ooc
 
@@ -108,7 +108,7 @@ do
 whisperDistance = CreateConVar( "jb_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
 
 whisper = ( text ) =>
-    sendChatText( @GetNearPlayers( whisperDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
+    sendChatText( @GetNearPlayers( whisperDistance\GetInt!, false ), @GetModelColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
 
 Jailbreak.Whisper = Whisper
 
@@ -138,7 +138,7 @@ GM.PlayerSay = ( ply, text, isTeam ) =>
             if pl\HasSecurityRadio!
                 players[] = pl
 
-        sendChatText( players, "[#jb.walkie-talkie] ", ply\GetPlayerColor!\ToColor!, ply\Nick!, white, " #jb.chat.says: \"" .. text .. "\"" )
+        sendChatText( players, "[#jb.walkie-talkie] ", ply\GetModelColor!, ply\Nick!, white, " #jb.chat.says: \"" .. text .. "\"" )
         whisper( ply, text )
         return ""
 
@@ -167,7 +167,7 @@ GM.PlayerCanSeePlayersChat = ( _, isTeam, listener, speaker ) =>
 
 -- New warden notification
 GM.WardenChanged = ( ply, state ) =>
-    sendChatText( false, ply\GetPlayerColor!\ToColor!, ply\Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
+    sendChatText( false, ply\GetModelColor!, ply\Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
 
 -- Other
 setChatCommand "warden", =>

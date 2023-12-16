@@ -107,7 +107,7 @@ do
                 return
 
             text = entity\Nick!
-            color = entity\GetPlayerColor!\ToColor!
+            color = entity\GetModelColor!
             frac = Clamp( entity\Health! / entity\GetMaxHealth!, 0, 1 )
 
             if ( color.r + color.g + color.b ) < 125
@@ -118,9 +118,11 @@ do
                 color.r = Lerp( frac, 0, color.r )
                 color.g = Lerp( frac, 0, color.g )
                 color.b = Lerp( frac, 0, color.b )
+
         elseif isPlayerRagdoll
             text = entity\GetNW2String( "owner-nickname", "unknown" )
-            color = entity\GetPlayerColor!\ToColor!
+            color = entity\GetModelColor!
+
         elseif entity\IsWeapon!
             printName = nil
             if entity\IsScripted!

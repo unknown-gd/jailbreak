@@ -385,22 +385,22 @@ do
                     phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
             timer_Simple 0, ->
-                unless ply\IsValid! and ragdoll\IsValid!
-                    return
+                if ply\IsValid! and not ply\Alive! and ragdoll\IsValid!
+                    ply\ObserveEntity( ragdoll )
 
-                ply\Spectate( OBS_MODE_CHASE )
-                ply\SpectateEntity( ragdoll )
-
+-- https://wiki.facepunch.com/gmod/GM:PlayerDeath
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
         hook_Run( "TeamPlayerDeath", ply, teamID )
 
+-- https://wiki.facepunch.com/gmod/GM:PlayerSilentDeath
 GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
         hook_Run( "TeamPlayerDeath", ply, teamID )
 
+-- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
 
     movementKeys = bit.bor( IN_FORWARD, IN_BACK, IN_MOVELEFT, IN_MOVERIGHT, IN_JUMP )
@@ -615,7 +615,6 @@ do
 do
 
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
-    :AddSpectateTarget = Jailbreak
     :FindInSphere = ents
 
     GM.OnEntityCreated = ( entity ) =>
@@ -627,8 +626,8 @@ do
             entity\Remove!
             return
 
-        if entity\IsSpectateTarget!
-            AddSpectateTarget( entity )
+        if entity\IsValidObserveTarget!
+            entity\AddToObserveTargets!
             return
 
         unless entity\IsWeapon!
@@ -660,16 +659,12 @@ do
                         return
 
 -- https://wiki.facepunch.com/gmod/GM:EntityRemoved
-do
+GM.EntityRemoved = ( entity, fullUpdate ) =>
+    if fullUpdate
+        return
 
-    :RemoveSpectateTarget = Jailbreak
-
-    GM.EntityRemoved = ( entity, fullUpdate ) =>
-        if fullUpdate
-            return
-
-        if entity\IsSpectateTarget!
-            RemoveSpectateTarget( entity )
+    if entity\IsValidObserveTarget!
+        entity\RemoveFromObserveTargets!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDroppedWeapon
 do

@@ -47,7 +47,7 @@ do
 -- Perform a round state change
 do
 
-    :RunEvents, :SetShockCollars, :SpectateTargets, :TeamIsJoinable, :GuardsDiff, :GetWarden = Jailbreak
+    :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GuardsDiff, :GetWarden = Jailbreak
     timer_Simple = timer.Simple
     :ceil, :random = math
     :CleanUpMap = game
@@ -61,8 +61,8 @@ do
             when ROUND_WAITING_PLAYERS
                 SetShockCollars( false )
 
-                for key in pairs( SpectateTargets )
-                    SpectateTargets[ key ] = nil
+                for key in pairs( ObserveTargets )
+                    ObserveTargets[ key ] = nil
 
                 for ply in *GetAll!
                     if ply\IsInGame!
@@ -190,10 +190,9 @@ do
     :Create, :Remove = timer
 
     GM.TeamPlayerDeath = ( ply, teamID ) =>
-        ply.NextRespawnTime = CurTime! + PlayerRespawnTime\GetFloat!
+        ply\RemoveFromObserveTargets!
         ply\UnSpectate!
 
-        RemoveSpectateTarget( ply )
         ply\AllowSecurityAccess( false )
         ply\AllowSecurityRadio( false )
         ply\AllowFlashlight( false )
@@ -223,7 +222,7 @@ do
         unless ply\Alive!
             return
 
-        RemoveSpectateTarget( ply )
+        ply\RemoveFromObserveTargets!
         ply\CreateRagdoll!
 
         if ply\IsWarden!
@@ -240,11 +239,11 @@ do
 
 do
 
-    :AddSpectateTarget, :IsWaitingPlayers = Jailbreak
+    :IsWaitingPlayers = Jailbreak
 
     GM.TeamPlayerSpawn = ( ply, teamID ) =>
         ply\SetNoCollideWithTeammates( teamID == TEAM_GUARD or Jailbreak.GameName == "tf" )
-        AddSpectateTarget( ply )
+        ply\AddToObserveTargets!
 
         if IsWaitingPlayers!
             teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )

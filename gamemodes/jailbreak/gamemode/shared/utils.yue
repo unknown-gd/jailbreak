@@ -193,162 +193,174 @@ Jailbreak.GetWardenCoins = ->
 Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
--- Entity metatable functions
-ENTITY = FindMetaTable( "Entity" )
+ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity = ENTITY
 
+-- Returns true if entity is player ragdoll
+ENTITY.IsPlayerRagdoll = =>
+    return GetNW2Bool( @, "is-player-ragdoll" )
+
+-- Returns ragdoll owner
+ENTITY.GetRagdollOwner = =>
+    return GetNW2Entity( @, "ragdoll-owner" )
+
+
+-- Returns true if entity is under water
 do
 
-    -- Returns true if entity is player ragdoll
-    ENTITY.IsPlayerRagdoll = =>
-        return GetNW2Bool( @, "is-player-ragdoll" )
+    :WaterLevel = ENTITY
 
-    -- Returns ragdoll owner
-    ENTITY.GetRagdollOwner = =>
-        return GetNW2Entity( @, "ragdoll-owner" )
+    ENTITY.IsUnderwater = =>
+        return WaterLevel( @ ) == 3
 
-
-    -- Returns true if entity is under water
-    do
-
-        :WaterLevel = ENTITY
-
-        ENTITY.IsUnderwater = =>
-            return WaterLevel( @ ) == 3
-
-    -- Returns player color as vector
-    do
-
-        defaultColor = Vector( 0.25, 0.35, 0.4 )
-        :GetNW2Vector = ENTITY
-
-        ENTITY.GetPlayerColor = =>
-            return GetNW2Vector( @, "player-color", defaultColor )
-
-    -- Sets player color
-    do
-
-        :SetNW2Var = ENTITY
-
-        ENTITY.SetPlayerColor = ( vector ) =>
-            SetNW2Var( @, "player-color", vector )
-
+-- Returns player color as vector
 do
 
-    PLAYER = FindMetaTable( "Player" )
+    defaultColor = Vector( 0.25, 0.35, 0.4 )
+    :GetNW2Vector = ENTITY
 
-    -- Returns true if player is fully connected
-    PLAYER.IsFullyConnected = =>
-        return GetNW2Bool( @, "fully-connected" )
+    ENTITY.GetPlayerColor = =>
+        return GetNW2Vector( @, "player-color", defaultColor )
 
-    -- Returns weapons in slot as table
-    PLAYER.GetWeaponsInSlot = ( slot ) =>
-        weapons = {}
-        for weapon in *@GetWeapons!
-            if weapon\GetSlot! == slot
-                weapons[] = weapon
+-- Sets player color
+do
 
-        return weapons
+    :SetNW2Var = ENTITY
 
-    -- Returns true if player has weapons in slot
-    PLAYER.HasWeaponsInSlot = ( slot ) =>
-        for weapon in *@GetWeapons!
-            if weapon\GetSlot! == slot
-                return true
+    ENTITY.SetPlayerColor = ( vector ) =>
+        SetNW2Var( @, "player-color", vector )
 
-        return false
+-- Returns entity custom color
+do
 
-    -- Returns count of weapons in slot
-    PLAYER.GetCountWeaponsInSlot = ( slot ) =>
-        count = 0
-        for weapon in *@GetWeapons!
-            if weapon\GetSlot! == slot
-                count += 1
+    PLAYER_GetPlayerColor = PLAYER.GetPlayerColor
+    ENTITY_GetPlayerColor = ENTITY.GetPlayerColor
+    :ToColor = FindMetaTable( "Vector" )
+    :IsPlayer = PLAYER
 
-        return count
+    ENTITY.GetModelColor = =>
+        return ToColor( IsPlayer( @ ) and PLAYER_GetPlayerColor( @ ) or ENTITY_GetPlayerColor( @ ) )
 
-    -- Returns player ragdoll as entity
-    do
+-- Returns player team color
+do
 
-        :FindByClass = ents
+    :GetColor = team
 
-        PLAYER.GetRagdollEntity = =>
-            value = GetNW2Entity( @, "player-ragdoll" )
-            if value\IsValid!
-                return value
+    PLAYER.GetTeamColor = =>
+        return GetColor( @Team! )
 
-            isBot = @IsBot!
-            sid64 = isBot and @Nick! or @SteamID64!
+-- Returns true if player is fully connected
+PLAYER.IsFullyConnected = =>
+    return GetNW2Bool( @, "fully-connected" )
 
-            for entity in *FindByClass( "prop_ragdoll" )
-                if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
-                    @SetNW2Entity( "player-ragdoll", entity )
-                    return entity
+-- Returns weapons in slot as table
+PLAYER.GetWeaponsInSlot = ( slot ) =>
+    weapons = {}
+    for weapon in *@GetWeapons!
+        if weapon\GetSlot! == slot
+            weapons[] = weapon
 
-            for entity in *FindByClass( "prop_physics" )
-                if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
-                    @SetNW2Entity( "player-ragdoll", entity )
-                    return entity
+    return weapons
 
-            return NULL
+-- Returns true if player has weapons in slot
+PLAYER.HasWeaponsInSlot = ( slot ) =>
+    for weapon in *@GetWeapons!
+        if weapon\GetSlot! == slot
+            return true
 
-    -- Returns true if player is in game
-    do
+    return false
 
-        teams = Jailbreak.Teams
+-- Returns count of weapons in slot
+PLAYER.GetCountWeaponsInSlot = ( slot ) =>
+    count = 0
+    for weapon in *@GetWeapons!
+        if weapon\GetSlot! == slot
+            count += 1
 
-        PLAYER.IsInGame = =>
-            return teams[ @Team! ] and @Alive!
+    return count
 
-    -- Returns true if player is guard
-    PLAYER.IsGuard = =>
-        return @Team! == TEAM_GUARD
+-- Returns player ragdoll as entity
+do
 
-    -- Returns true if player is prisoner
-    PLAYER.IsPrisoner = =>
-        return @Team! == TEAM_PRISONER
+    :FindByClass = ents
 
-    -- Returns true if player is warden
-    PLAYER.IsWarden = =>
-        return GetNW2Bool( @, "is-warden" )
+    PLAYER.GetRagdollEntity = =>
+        value = GetNW2Entity( @, "player-ragdoll" )
+        if value\IsValid!
+            return value
 
-    -- Returns true if player is muted by warden
-    PLAYER.IsMutedByWarden = =>
-        return GetNW2Bool( @, "warden-mute" )
+        isBot = @IsBot!
+        sid64 = isBot and @Nick! or @SteamID64!
 
-    -- Returns true if player has shock collar
-    PLAYER.HasShockCollar = =>
-        return GetNW2Bool( @, "shock-collar" )
+        for entity in *FindByClass( "prop_ragdoll" )
+            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                @SetNW2Entity( "player-ragdoll", entity )
+                return entity
 
-    -- Returns true if player has security access
-    PLAYER.HasSecurityAccess = =>
-        return GetNW2Bool( @, "security-access" )
+        for entity in *FindByClass( "prop_physics" )
+            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                @SetNW2Entity( "player-ragdoll", entity )
+                return entity
 
-    -- Returns true if player has security radio
-    PLAYER.HasSecurityRadio = =>
-        return GetNW2Bool( @, "security-radio" )
+        return NULL
 
-    -- Returns table of players near player by distance
-    do
+-- Returns true if player is in game
+do
 
-        :FindInSphere = ents
+    teams = Jailbreak.Teams
 
-        PLAYER.GetNearPlayers = ( distance, isTeam ) =>
-            teamID = false
-            if isTeam
-                teamID = @Team!
+    PLAYER.IsInGame = =>
+        return teams[ @Team! ] and @Alive!
 
-            players = {}
-            for ply in *FindInSphere( @EyePos!, distance )
-                unless ply\IsPlayer!
-                    continue
+-- Returns true if player is guard
+PLAYER.IsGuard = =>
+    return @Team! == TEAM_GUARD
 
-                if isTeam and ply\Team! ~= teamID
-                    continue
+-- Returns true if player is prisoner
+PLAYER.IsPrisoner = =>
+    return @Team! == TEAM_PRISONER
 
-                players[] = ply
+-- Returns true if player is warden
+PLAYER.IsWarden = =>
+    return GetNW2Bool( @, "is-warden" )
 
-            return players
+-- Returns true if player is muted by warden
+PLAYER.IsMutedByWarden = =>
+    return GetNW2Bool( @, "warden-mute" )
+
+-- Returns true if player has shock collar
+PLAYER.HasShockCollar = =>
+    return GetNW2Bool( @, "shock-collar" )
+
+-- Returns true if player has security access
+PLAYER.HasSecurityAccess = =>
+    return GetNW2Bool( @, "security-access" )
+
+-- Returns true if player has security radio
+PLAYER.HasSecurityRadio = =>
+    return GetNW2Bool( @, "security-radio" )
+
+-- Returns table of players near player by distance
+do
+
+    :FindInSphere = ents
+
+    PLAYER.GetNearPlayers = ( distance, isTeam ) =>
+        teamID = false
+        if isTeam
+            teamID = @Team!
+
+        players = {}
+        for ply in *FindInSphere( @EyePos!, distance )
+            unless ply\IsPlayer!
+                continue
+
+            if isTeam and ply\Team! ~= teamID
+                continue
+
+            players[] = ply
+
+        return players
 
 -- Silly spark sounds
 do

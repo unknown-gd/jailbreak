@@ -4,6 +4,7 @@ hook_Run = hook.Run
 NULL = NULL
 
 PLAYER = FindMetaTable( "Player" )
+PLAYER.ChangeTeam = Jailbreak.ChangeTeam
 
 do
 
@@ -48,37 +49,51 @@ PLAYER.AllowSecurityRadio = ( bool ) =>
 
 do
 
-    :SpectateTargets = Jailbreak
+    OBS_MODE_ROAMING = OBS_MODE_ROAMING
+    OBS_MODE_CHASE = OBS_MODE_CHASE
 
-    PLAYER.MoveSpectateID = ( move, players ) =>
-        if #SpectateTargets == 0
-            return
-
-        index, length = ( @LastSpectatedEntity or 0 ) + move, #SpectateTargets
-        if index > length
-            index = 1
-        elseif index < 1
-            index = length
-
-        entity = SpectateTargets[ index ]
-        if entity\IsPlayer! or entity\IsRagdoll!
-            @SpectateEntity( entity )
-
-            if @GetObserverMode! ~= OBS_MODE_CHASE
-                @Spectate( OBS_MODE_CHASE )
-
-        else
-
+    PLAYER.ObserveEntity = ( entity ) =>
+        unless entity and entity\IsValid!
             if @GetObserverMode! ~= OBS_MODE_ROAMING
                 @Spectate( OBS_MODE_ROAMING )
 
-            @SetPos( entity\GetPos! )
+            return
 
-            angles = entity\GetAngles!
-            angles[ 3 ] = 0
-            @SetEyeAngles( angles )
+        if @GetObserverTarget! ~= entity
+            @SpectateEntity( entity )
 
-        @LastSpectatedEntity = index
+        if @GetObserverMode! ~= OBS_MODE_CHASE
+            @Spectate( OBS_MODE_CHASE )
+
+    do
+
+        :ObserveTargets = Jailbreak
+
+        PLAYER.MoveObserveIndex = ( move, players ) =>
+            if #ObserveTargets == 0
+                return
+
+            index, length = ( @LastSpectatedIndex or 0 ) + move, #ObserveTargets
+            if index > length
+                index = 1
+            elseif index < 1
+                index = length
+
+            entity = ObserveTargets[ index ]
+            if entity\IsPlayer! or entity\IsRagdoll!
+                @ObserveEntity( entity )
+            else
+
+                if @GetObserverMode! ~= OBS_MODE_ROAMING
+                    @Spectate( OBS_MODE_ROAMING )
+
+                angles = entity\GetAngles!
+                angles[ 3 ] = 0
+
+                @SetEyeAngles( angles )
+                @SetPos( entity\GetPos! )
+
+            @LastSpectatedIndex = index
 
 PLAYER.UsingSecurityRadio = =>
     return @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
@@ -135,8 +150,8 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
-    :FixModelPath, :AddSpectateTarget = Jailbreak
     :IsInWorld, :IsValidModel = util
+    :FixModelPath = Jailbreak
 
     PLAYER.CreateRagdoll = =>
         @RemoveRagdoll!
@@ -257,5 +272,5 @@ do
         ragdoll.Weapons = weapons
         ragdoll.Ammo = @GetAmmo!
 
-        AddSpectateTarget( ragdoll )
+        ragdoll\AddToObserveTargets!
         return ragdoll

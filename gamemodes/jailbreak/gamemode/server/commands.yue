@@ -8,8 +8,7 @@ CurTime = CurTime
 
 do
 
-    :Teams, :TeamIsJoinable = Jailbreak
-    :Joinable = team
+    :ChangeTeam = Jailbreak
 
     Add "changeteam", ( _, args ) =>
         teamID = args[ 1 ]
@@ -18,24 +17,7 @@ do
         else
             teamID = 0
 
-        unless Joinable( teamID )
-            return
-
-        oldTeamID = @Team!
-        if oldTeamID == teamID
-            return
-
-        unless TeamIsJoinable( teamID )
-            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
-            return
-
-        if @Alive!
-            if Teams[ oldTeamID ]
-                @Kill!
-            else
-                @KillSilent!
-
-        @SetTeam( teamID )
+        ChangeTeam( @, teamID )
 
 do
 
@@ -214,9 +196,9 @@ do
 
         if entity\IsValid!
             if entity\IsPlayer!
-                Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\Nick!, white, "." )
+                Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\Nick!, white, "." )
             elseif entity\IsPlayerRagdoll!
-                Emotion( @, "#jb.chat.pointed-at ", entity\GetPlayerColor!\ToColor!, entity\GetNW2String( "owner-nickname", "unknown" ), white, "." )
+                Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\GetNW2String( "owner-nickname", "unknown" ), white, "." )
             elseif entity\IsWeapon!
                 printName = nil
                 if entity\IsScripted!
