@@ -426,7 +426,7 @@ do
     }
 
     GM.KeyPress = ( ply, key ) =>
-        if ply\IsInGame!
+        if ply\IsInGame! or ply\GetInfo( "jb_spectator_controls" ) == "0"
             return
 
         if MovementKeys[ key ]
