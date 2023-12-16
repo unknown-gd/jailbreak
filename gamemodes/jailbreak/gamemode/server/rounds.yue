@@ -186,11 +186,11 @@ do
 -- Called when a in game player dies
 do
 
-    :RemoveSpectateTarget, :IsRoundRunning = Jailbreak
+    :RemoveSpectateTarget, :IsRoundRunning, :PlayerRespawnTime = Jailbreak
     :Create, :Remove = timer
 
     GM.TeamPlayerDeath = ( ply, teamID ) =>
-        ply.NextRespawnTime = CurTime! + @PlayerRespawnTime\GetFloat!
+        ply.NextRespawnTime = CurTime! + PlayerRespawnTime\GetFloat!
         ply\UnSpectate!
 
         RemoveSpectateTarget( ply )

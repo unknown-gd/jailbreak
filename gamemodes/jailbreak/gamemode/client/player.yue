@@ -197,11 +197,13 @@ GM.PostDrawViewModel = ( vm, ply, weapon ) =>
 
 do
 
-    handsTransparency = CreateClientConVar( "jb_hands_transparency", "0", true, false, "Hands transparency value.", 0, 1 )
-    handsAlpha = 1 - handsTransparency\GetFloat!
+    :HandsTransparency = Jailbreak
+
+    handsAlpha = 1 - HandsTransparency\GetFloat!
+    tonumber = tonumber
     :SetBlend = render
 
-    cvars.AddChangeCallback( handsTransparency\GetName!, ( _, __, value ) ->
+    cvars.AddChangeCallback( HandsTransparency\GetName!, ( _, __, value ) ->
         handsAlpha = 1 - ( tonumber( value ) or 0 )
     "Jailbreak::HandsTransparency" )
 

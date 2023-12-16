@@ -110,7 +110,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress = Jailbreak
+    :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor = Jailbreak
     tonumber = tonumber
     :Explode = string
 
@@ -153,7 +153,7 @@ do
             return
 
         if teamID == TEAM_GUARD
-            ply\SetArmor( @GuardsArmor\GetInt! )
+            ply\SetArmor( GuardsArmor\GetInt! )
             ply\AllowSecurityAccess( true )
             ply\AllowSecurityRadio( true )
             ply\AllowFlashlight( true )
@@ -481,11 +481,17 @@ do
 
 do
 
-    -- TODO: Make convar here
-    -- allowSprayEveryone = CreateConVar( "jailbreak_allow_spray_everyone", "0", FCVAR_ARCHIVE )
+    :AllowSprayEveryone = Jailbreak
 
     GM.PlayerSpray = ( ply ) =>
-        return not ( ply\IsInGame! and ply\IsPrisoner! )
+        unless ply\IsInGame!
+            return true
+
+        if AllowSprayEveryone\GetBool! or ply\IsPrisoner!
+            return false
+
+        ply\SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 2 )
+        return true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerShouldTaunt
 GM.PlayerShouldTaunt = ( ply ) =>
@@ -713,11 +719,13 @@ do
 
     GM.PlayerLoadout = ( ply, teamID ) =>
         if teamID == TEAM_GUARD
+            -- Giving all ammo
             do
                 mult = @GuardsAmmoMult\GetFloat!
                 for index = 1, #GetAmmoTypes!
                     ply\GiveAmmo( min( 250, GetAmmoMax( index ) * mult ), index, true )
 
+            -- Giving weapons if not cstrike
             if Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
                 avaliableWeapons = @AvaliableWeapons
                 count = #avaliableWeapons / 4
@@ -731,11 +739,8 @@ do
                     gived[ className ] = true
                     ply\Give( className )
                     count -= 1
-        elseif teamID == TEAM_PRISONER
-            -- TODO: Move to events
-            if not ply\HasWeapon( "weapon_knife" ) and random( 1, 100 ) <= @PrisonerKnifeChance\GetInt!
-                ply\Give( "weapon_knife" )
 
+        -- Giving hands
         ply\Give( "jb_hands" )
         ply\SelectWeapon( "jb_hands" )
 
