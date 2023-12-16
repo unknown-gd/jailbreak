@@ -21,8 +21,6 @@ GM.ShowTeam = ( ply ) =>
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
 GM.PlayerInitialSpawn = ( ply, transiton ) =>
-    ply.NextRespawnTime = 0
-
     ragdoll = ply\GetRagdollEntity!
     if ragdoll\IsValid!
         ragdoll\SetNW2Entity( "ragdoll-owner", ply )
@@ -110,11 +108,12 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor = Jailbreak
+    :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor, :DefaultTeamColors = Jailbreak
     tonumber = tonumber
     :Explode = string
 
     GM.PlayerSpawn = ( ply, transiton ) =>
+        ply\RemoveFromObserveTargets!
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
         ply\SetWarden( false )
@@ -191,14 +190,14 @@ do
 
         -- Player color setup
         unless AllowCustomPlayerColors\GetBool!
-            ply\SetPlayerColor( @DefaultTeamColors[ teamID ] )
+            ply\SetPlayerColor( DefaultTeamColors[ teamID ] )
         elseif isBot
             ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
         else
             ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
 
         unless AllowCustomWeaponColors\GetBool!
-            ply\SetWeaponColor( @DefaultTeamColors[ teamID ] )
+            ply\SetWeaponColor( DefaultTeamColors[ teamID ] )
         elseif isBot
             ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
         else

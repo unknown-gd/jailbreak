@@ -1,13 +1,12 @@
-GM = GM
 Jailbreak = Jailbreak
 hook_Run = hook.Run
+GM = GM
 
-colors = Jailbreak.Colors
-:white = colors
+:Colors = Jailbreak
+:white = Colors
 
 :GetPhrase = language
 :format = string
-:Clamp = math
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -55,7 +54,7 @@ GM.HUDPaint = =>
 
 do
 
-
+    :Translate, :VoiceChatMinDistance = Jailbreak
     :SetFont, :GetTextSize = surface
     black = Color( 0, 0, 0, 120 )
     EyeAngles = EyeAngles
@@ -63,9 +62,9 @@ do
     :SimpleText = draw
     :TraceLine = util
     EyePos = EyePos
+    :Clamp = math
+    :red = Colors
     Lerp = Lerp
-
-    red = colors.red
 
     trace = {
         mask: MASK_SHOT
@@ -84,7 +83,7 @@ do
         eyePos, eyeAngles = EyePos!, EyeAngles!
 
         trace.start = eyePos
-        trace.endpos = eyePos + eyeAngles\Forward! * Jailbreak.VoiceChatMinDistance\GetInt!
+        trace.endpos = eyePos + eyeAngles\Forward! * VoiceChatMinDistance\GetInt!
 
         traceResult = TraceLine( trace )
         unless traceResult.Hit
@@ -136,13 +135,15 @@ do
             if printName == "Scripted Weapon"
                 printName = "#" .. entity\GetClass!
 
-            text = Jailbreak.Translate( printName )
+            text = Translate( printName )
+
         else
+
             className = entity\GetClass!
             if className == "class C_BaseEntity"
                 className = "func_button"
 
-            text = Jailbreak.Translate( "#jb." .. className )
+            text = Translate( "#jb." .. className )
 
         font = "TargetID"
         SetFont( font )
@@ -185,7 +186,7 @@ do
         if isPlayer
             SimpleText( text, font, x, y, GetColor( teamID ) )
         elseif isPlayerRagdoll
-            SimpleText( text, font, x, y, colors.light_grey )
+            SimpleText( text, font, x, y, Colors.light_grey )
 
 do
 

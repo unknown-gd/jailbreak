@@ -1,6 +1,3 @@
-include( "shared.lua" )
-Jailbreak = Jailbreak
-
 do
 
     AddCSLuaFile = AddCSLuaFile
@@ -12,9 +9,12 @@ do
     for fileName in *file.Find( "jailbreak/gamemode/client/*.lua", "lsv" )
         AddCSLuaFile( "client/" .. fileName )
 
-Jailbreak.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
+include( "shared.lua" )
+Jailbreak = Jailbreak
 
-GM.DefaultTeamColors = {
+Jailbreak.ObserveTargets = Jailbreak.ObserveTargets or {}
+Jailbreak.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
+Jailbreak.DefaultTeamColors = {
     [ TEAM_PRISONER ]: Vector( 0.62, 0.35, 0.07 )
     [ TEAM_GUARD ]: Vector( 0, 0, 0 )
 }
@@ -30,7 +30,6 @@ do
     Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "Guards armor amount on spawn.", 0, 1000 )
     Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "The value is responsible for the health of the door.", 50, 10000 )
 
-    Jailbreak.PlayerRespawnTime = CreateConVar( "jb_player_respawn_time", "2", ConVarFlags, "Time to respawn players after death during preparation.", 0, 300 )
     Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
     Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", ConVarFlags, "The speed of the player while running.", 0, 3000 )
 
@@ -61,6 +60,7 @@ include( "server/game.lua" )
 
 do
 
+    :LoadLocalization = Jailbreak
     :FindByClass = ents
 
     GM.InitPostEntity = =>
@@ -68,14 +68,13 @@ do
         Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
         -- Localization loading
-        Jailbreak.LoadLocalization "resource/localization"
-        Jailbreak.LoadLocalization "gamemodes/jailbreak/content/resource/localization"
+        LoadLocalization "resource/localization"
+        LoadLocalization "gamemodes/jailbreak/content/resource/localization"
 
         -- Correcting silly convar values
         RunConsoleCommand( "sv_defaultdeployspeed", "1" )
         RunConsoleCommand( "mp_show_voice_icons", "0" )
 
-        -- TODO: Make better
         if #FindByClass( "info_player_teamspawn" ) ~= 0
             @TF2Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
             xpcall( SoundHandler, ErrorNoHaltWithStack, "tf" )
@@ -85,6 +84,6 @@ do
             xpcall( SoundHandler, ErrorNoHaltWithStack, "cstrike" )
             Jailbreak.GameName = "cstrike"
 
--- Console commands
+-- Console commands and extra stuff
 include( "server/commands.lua" )
 include( "server/extra.lua" )

@@ -2,13 +2,13 @@ Jailbreak = Jailbreak
 net = net
 GM = GM
 
-colors = Jailbreak.Colors
-:white = colors
+:Colors, :VoiceChatMinDistance, :VoiceChatMaxDistance, :GameInProgress = Jailbreak
+:white = Colors
 
 :sub, :lower, :find, :match, :Trim = string
 :min, :random = math
 :GetHumans = player
-:GetColor = team
+tonumber = tonumber
 
 -- Custom Chat Messages
 sendChatText = nil
@@ -30,7 +30,7 @@ Jailbreak.SendChatText = sendChatText
 
 -- Chat Commands
 chatCommands = Jailbreak.ChatCommands
-unless chatCommands
+unless istable( chatCommands )
     chatCommands = {}
     Jailbreak.ChatCommands = chatCommands
 
@@ -43,7 +43,7 @@ Jailbreak.SetChatCommand = setChatCommand
 do
 
     looc = ( text ) =>
-        sendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance\GetInt!, false ), colors.blue, "[#jb.chat.looc] ", GetColor( @Team! ), @Nick!, white, ": " .. text )
+        sendChatText( @GetNearPlayers( VoiceChatMinDistance\GetInt!, false ), Colors.blue, "[#jb.chat.looc] ", @GetModelColor!, @Nick!, white, ": " .. text )
 
     setChatCommand "looc", looc
     setChatCommand "", looc
@@ -52,7 +52,7 @@ do
 do
 
     customEmotion = ( ... ) =>
-        sendChatText( @GetNearPlayers( Jailbreak.VoiceChatMinDistance\GetInt!, false ), @GetPlayerColor!\ToColor!, @Nick!, white, " ", ... )
+        sendChatText( @GetNearPlayers( VoiceChatMinDistance\GetInt!, false ), @GetModelColor!, @Nick!, white, " ", ... )
 
     Jailbreak.Emotion = customEmotion
 
@@ -73,16 +73,12 @@ do
         setChatCommand "flip", coinFlip
 
     -- Roll Dice ( /roll <from> <to> )
-    do
+    setChatCommand "roll", ( text ) =>
+        int1, int2 = match( text, "(-?%d+)%s+(-?%d+)" )
+        unless int1 and int2
+            int1, int2 = 0, 100
 
-        tonumber = tonumber
-
-        setChatCommand "roll", ( text ) =>
-            int1, int2 = match( text, "(-?%d+)%s+(-?%d+)" )
-            unless int1 and int2
-                int1, int2 = 0, 100
-
-            emotion( @, "#jb.chat.rolled " .. random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
+        emotion( @, "#jb.chat.rolled " .. random( tonumber( int1 ) or 0, tonumber( int2 ) or 0 ) )
 
 -- Out of Character ( OOC )
 ooc = ( text ) =>
@@ -93,9 +89,10 @@ Jailbreak.OOC = ooc
 do
 
     jb_ooc = CreateConVar( "jb_ooc", "0", ConVarFlags, "Allows non-game global chat to be used by everyone.", 0, 1 )
+    NOTIFY_ERROR = NOTIFY_ERROR
 
     func = ( text ) =>
-        if Jailbreak.GameInProgress! and not ( jb_ooc\GetBool! or @IsAdmin! )
+        if GameInProgress! and not ( jb_ooc\GetBool! or @IsAdmin! )
             @SendNotify( "#jb.chat.fail", NOTIFY_ERROR, 5 )
             return
 
@@ -142,7 +139,7 @@ GM.PlayerSay = ( ply, text, isTeam ) =>
         whisper( ply, text )
         return ""
 
-    unless Jailbreak.GameInProgress!
+    unless GameInProgress!
         ooc( ply, text )
         return ""
 
@@ -227,7 +224,7 @@ do
     "Jailbreak" )
 
     timer.Create "JB::Communication", 1 / voiceChatSpeed\GetInt!, 0, ->
-        minDistance, maxDistance = Jailbreak.VoiceChatMinDistance\GetInt!, Jailbreak.VoiceChatMaxDistance\GetInt!
+        minDistance, maxDistance = VoiceChatMinDistance\GetInt!, VoiceChatMaxDistance\GetInt!
         players = player_GetHumans!
 
         for listener in *players
@@ -287,4 +284,3 @@ do
                     speakers[ speaker ] = false
 
             sendVolumes( listener, volumes )
-

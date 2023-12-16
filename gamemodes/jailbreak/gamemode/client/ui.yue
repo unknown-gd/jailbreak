@@ -271,6 +271,7 @@ do
 
         unless contextMenu\IsVisible!
             contextMenu\Open!
+
         hook_Run( "ContextMenuOpened" )
 
     GM.OnContextMenuClose = =>
@@ -280,20 +281,27 @@ do
                 contextMenu\Remove!
             else
                 contextMenu\Close!
+
         hook_Run( "ContextMenuClosed" )
 
-Jailbreak.ShowTeam = ->
-    panel = g_TeamSelect
-	if IsValid( panel )
-        panel\Remove!
-        return
+do
 
-    if input.IsKeyDown( 70 )
-        return
+    :IsKeyDown = input
+    :Create = vgui
 
-    global g_TeamSelect = vgui.Create( "JB.TeamSelect" )
+    showTeam = ->
+        panel = g_TeamSelect
+        if IsValid( panel )
+            panel\Remove!
+            return
 
-concommand.Add "jb_showteam", Jailbreak.ShowTeam
+        if IsKeyDown( 70 )
+            return
+
+        global g_TeamSelect = Create( "JB.TeamSelect" )
+
+    Jailbreak.ShowTeam = showTeam
+    concommand.Add "jb_showteam", showTeam
 
 -- Button
 do
