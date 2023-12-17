@@ -13,9 +13,12 @@ do
     "Jailbreak::LanguageChanged" )
 
 GM.InitPostEntity = =>
-    Jailbreak.Player = LocalPlayer!
     Jailbreak.PlayingTaunt = false
-    chat.Open( 1 )
+
+    do
+        ply = LocalPlayer!
+        Jailbreak.Player = ply
+        Jailbreak.PlayerIndex = ply\EntIndex!
 
     timer.Simple 0.5, ->
         RunConsoleCommand( "r_flushlod" )

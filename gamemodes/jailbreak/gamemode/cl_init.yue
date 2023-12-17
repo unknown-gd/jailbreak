@@ -37,12 +37,15 @@ do
             RunConsoleCommand( "cl_playerskin", "0" )
         "Jailbreak::PlayerModel" )
 
+-- Utils
 include( "client/utils.lua" )
-include( "client/player.lua" )
 
+-- Game logic
+include( "client/player.lua" )
 include( "client/communication.lua" )
 include( "client/game.lua" )
 
+-- User interface
 include( "client/desktop-windows.lua" )
 include( "client/ui.lua" )
 include( "client/hud.lua" )

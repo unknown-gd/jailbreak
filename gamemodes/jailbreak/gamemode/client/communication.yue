@@ -146,35 +146,15 @@ do
 
             cache[ ply\GetModel! ] = flexes
 
-        voiceVolume = ply\IsSpeaking! and ply\VoiceVolume! or 0
-
-        lastVoiceVolume = ply.LastVoiceVolume
-        if lastVoiceVolume == nil
-            lastVoiceVolume = voiceVolume
-
-        if lastVoiceVolume > 0
-            voiceVolume = lastVoiceVolume + ( voiceVolume - lastVoiceVolume ) / 4
-            if voiceVolume < 0.01
-                voiceVolume = 0
-
-        ply.LastVoiceVolume = voiceVolume
-
-        maxVoiceVolume = ply.MaxVoiceVolume
-        if maxVoiceVolume == nil or maxVoiceVolume < voiceVolume
-            maxVoiceVolume = voiceVolume
-            ply.MaxVoiceVolume = maxVoiceVolume
-
-        frac = 0
-        if maxVoiceVolume > 0 and voiceVolume > 0
-            frac = voiceVolume / maxVoiceVolume
+        fraction = ply\VoiceFraction!
 
         if flexes
             ply\SetFlexScale( 2 )
 
             for data in *flexes
                 flex = data[ 1 ]
-                if frac > 0
-                    nextVolume = abs( sin( flex * ( 1 / #flexes ) + CurTime! ) ) * frac + frac
+                if fraction > 0
+                    nextVolume = abs( sin( flex * ( 1 / #flexes ) + CurTime! ) ) * fraction + fraction
                     ply\SetFlexWeight( flex, Clamp( nextVolume, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) )
                 else
                     ply\SetFlexWeight( flex, 0 )
@@ -186,7 +166,7 @@ do
             return
 
         angles = Angle!
-        if frac > 0
+        if fraction > 0
             if value <= 2
                 angles[ 1 ] = Rand( -90, 90 )
                 angles[ 2 ] = Rand( -180, 180 )
@@ -204,7 +184,7 @@ do
                 angles[ 2 ] = Rand( -angle, angle )
                 angles[ 3 ] = Rand( -angle, angle )
 
-            angles = ( angles / 2 ) * frac
+            angles = ( angles / 2 ) * fraction
 
         angles = LerpAngle( 0.25, ply.MouthLessAngles or angle_zero, angles )
         ply.MouthLessAngles = angles

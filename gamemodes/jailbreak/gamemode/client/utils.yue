@@ -100,3 +100,47 @@ do
         for data in *fonts
             fontData.font, fontData.size = data.font, VMin( data.size )
             CreateFont data.fontName, fontData
+
+GM.PerformPlayerVoice = ( ply ) =>
+    voiceVolume = ply\VoiceVolume!
+
+    lastVoiceVolume = ply.m_LastVoiceVolume
+    unless lastVoiceVolume
+        lastVoiceVolume = voiceVolume
+
+    if lastVoiceVolume > 0
+        voiceVolume = lastVoiceVolume + ( voiceVolume - lastVoiceVolume ) / 4
+        if voiceVolume < 0.01
+            voiceVolume = 0
+
+    ply.m_LastVoiceVolume = voiceVolume
+
+    maxVoiceVolume = ply.m_MaxVoiceVolume
+    if not maxVoiceVolume or maxVoiceVolume < voiceVolume
+        maxVoiceVolume = voiceVolume
+        ply.m_MaxVoiceVolume = maxVoiceVolume
+
+    if maxVoiceVolume > 0 and voiceVolume > 0
+        ply.m_VoiceFraction = voiceVolume / maxVoiceVolume
+        return
+
+    ply.m_VoiceFraction = 0
+
+do
+
+    PLAYER = FindMetaTable( "Player" )
+
+    PLAYER.VoiceFraction = =>
+        return @m_VoiceFraction or 0
+
+do
+
+    ENTITY = FindMetaTable( "Entity" )
+    :EntIndex = ENTITY
+
+    ENTITY.IsLocalPlayer = =>
+        index = Jailbreak.PlayerIndex
+        unless index
+            return true
+
+        return EntIndex( @ ) == index

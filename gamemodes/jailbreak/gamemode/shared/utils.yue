@@ -248,9 +248,10 @@ do
 do
 
     :GetColor = team
+    :Team = PLAYER
 
     PLAYER.GetTeamColor = =>
-        return GetColor( @Team! )
+        return GetColor( Team( @ ) )
 
 -- Returns true if player is fully connected
 PLAYER.IsFullyConnected = =>
