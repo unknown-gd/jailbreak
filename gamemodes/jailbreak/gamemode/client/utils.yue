@@ -26,7 +26,7 @@ do
 
     ScrW, ScrH = ScrW, ScrH
     hook_Run = hook.Run
-    :min, :max = math
+    :min, :max, :ceil = math
 
     width, height = ScrW!, ScrH!
     vmin, vmax = min( width, height ) / 100, max( width, height ) / 100
@@ -44,13 +44,13 @@ do
 
     Jailbreak.VMin = ( number ) ->
         if number ~= nil
-            return vmin * number
+            return ceil( vmin * number )
 
         return vmin
 
     Jailbreak.VMax = ( number ) ->
         if number ~= nil
-            return vmax * number
+            return ceil( vmax * number )
 
         return vmax
 
