@@ -143,7 +143,7 @@ do
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 200 )
         DrawRect( 0, 0, width, height )
 
-    vgui.Register( "Jailbreak::VoiceNotify", PANEL, "EditablePanel" )
+    vgui.Register( "Jailbreak::VoiceNotify", PANEL, "Panel" )
 
 -- Voice Chat Panel
 do
@@ -187,7 +187,7 @@ do
         margin = VMin( 1 )
         @DockMargin( 0, margin, margin, margin )
 
-    vgui.Register( "Jailbreak::VoiceChat", PANEL, "EditablePanel" )
+    vgui.Register( "Jailbreak::VoiceChat", PANEL, "Panel" )
 
 GM.PlayerStartVoice = ( ply ) =>
     if ply\IsLocalPlayer!

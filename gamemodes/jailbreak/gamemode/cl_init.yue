@@ -2,11 +2,11 @@ include( "shared.lua" )
 Jailbreak = Jailbreak
 
 Jailbreak.SourceHUD = {
-    "CHudSecondaryAmmo"
-    "CHudSuitPower"
-    "CHudBattery"
-    "CHudHealth"
-    "CHudAmmo"
+    -- "CHudSecondaryAmmo"
+    -- "CHudSuitPower"
+    -- "CHudBattery"
+    -- "CHudHealth"
+    -- "CHudAmmo"
 }
 
 do
