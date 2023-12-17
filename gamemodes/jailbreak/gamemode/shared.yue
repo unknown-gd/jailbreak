@@ -53,28 +53,28 @@ Jailbreak.Teams = {
 
 do
 
-    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+    FCVAR_SHARED = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
     CreateConVar = CreateConVar
 
-    Jailbreak.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "110", ConVarFlags, "The speed of the player while slow walking.", 0, 3000 )
+    Jailbreak.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "110", FCVAR_SHARED, "The speed of the player while slow walking.", 0, 3000 )
 
-    Jailbreak.AllowCustomPlayerModels = CreateConVar( "jb_allow_custom_player_models", "0", ConVarFlags, "Allow custom player models.", 0, 1 )
-    Jailbreak.MouthLessAnimations = CreateConVar( "jb_mouth_less_animations", "1", ConVarFlags, "Funny mouth less animations.", 0, 10 )
+    Jailbreak.AllowCustomPlayerModels = CreateConVar( "jb_allow_custom_player_models", "0", FCVAR_SHARED, "Allow custom player models.", 0, 1 )
+    Jailbreak.MouthLessAnimations = CreateConVar( "jb_mouth_less_animations", "1", FCVAR_SHARED, "Funny mouth less animations.", 0, 10 )
 
-    Jailbreak.StatusIcons = CreateConVar( "jb_status_icons", "1", ConVarFlags, "Show voice/chat icons on players.", 0, 1 )
-    Jailbreak.VoiceChatNotifications = CreateConVar( "jb_voice_chat_notifications", "1", ConVarFlags, "Show voice chat notifications.", 0, 1 )
+    Jailbreak.StatusIcons = CreateConVar( "jb_status_icons", "1", FCVAR_SHARED, "Show voice/chat icons on players.", 0, 1 )
+    Jailbreak.VoiceChatNotifications = CreateConVar( "jb_voice_chat_notifications", "1", FCVAR_SHARED, "Show voice chat notifications.", 0, 1 )
 
-    Jailbreak.Markers = CreateConVar( "jb_markers", "1", ConVarFlags, "Allow players use markers.", 0, 1 )
-    Jailbreak.MarkersCount = CreateConVar( "jb_markers_count", "5", ConVarFlags, "Marker counts from marker lifetime.", 0, 100 )
-    Jailbreak.MarkersLifetime = CreateConVar( "jb_markers_lifetime", "10", ConVarFlags, "Marker lifetime in seconds.", 0, 300 )
+    Jailbreak.Markers = CreateConVar( "jb_markers", "1", FCVAR_SHARED, "Allow players use markers.", 0, 1 )
+    Jailbreak.MarkersCount = CreateConVar( "jb_markers_count", "5", FCVAR_SHARED, "Marker counts from marker lifetime.", 0, 100 )
+    Jailbreak.MarkersLifetime = CreateConVar( "jb_markers_lifetime", "10", FCVAR_SHARED, "Marker lifetime in seconds.", 0, 300 )
 
-    Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", ConVarFlags, "The minimum value at which the player can be heard.", 32, 16384 )
-    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", ConVarFlags, "The maximum value at which a player can be heard.", 128, 65536 )
+    Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", FCVAR_SHARED, "The minimum value at which the player can be heard.", 32, 16384 )
+    Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", FCVAR_SHARED, "The maximum value at which a player can be heard.", 128, 65536 )
 
-    Jailbreak.GuardsDiff = CreateConVar( "jb_guards_diff", "4", ConVarFlags, "Number of prisoners per guard.", 0, 1000 )
+    Jailbreak.GuardsDiff = CreateConVar( "jb_guards_diff", "4", FCVAR_SHARED, "Number of prisoners per guard.", 0, 1000 )
 
-    GM.DeathNotice = CreateConVar( "jb_death_notice", "0", ConVarFlags, "Draw death notice.", 0, 1 )
-    GM.TargetID = CreateConVar( "jb_targetid", "1", ConVarFlags, "Draw target id.", 0, 1 )
+    GM.DeathNotice = CreateConVar( "jb_death_notice", "0", FCVAR_SHARED, "Draw death notice.", 0, 1 )
+    GM.TargetID = CreateConVar( "jb_targetid", "1", FCVAR_SHARED, "Draw target id.", 0, 1 )
 
 GuardMaleModels = {
     "models/player/gasmask.mdl"
