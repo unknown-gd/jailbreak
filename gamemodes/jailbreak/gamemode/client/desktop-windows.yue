@@ -2,7 +2,6 @@ Jailbreak = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
 :find, :Explode = string
-tonumber = tonumber
 list_Set = list.Set
 :Colors = Jailbreak
 IsValid = IsValid
@@ -16,7 +15,7 @@ do
         icon: "icon16/phone.png"
         order: 500
         think: =>
-            if LocalPlayer!\HasSecurityRadio!
+            if Jailbreak.Player\HasSecurityRadio!
                 state = securityRadio\GetBool!
 
                 image = state and "icon16/phone_sound.png" or "icon16/phone.png"
@@ -44,7 +43,7 @@ do
         icon: "icon16/sound_mute.png"
         order: 500
         think: =>
-            if LocalPlayer!\IsWarden!
+            if Jailbreak.Player\IsWarden!
                 state = Megaphone\GetBool!
 
                 image = state and "icon16/sound.png" or "icon16/sound_mute.png"
@@ -71,7 +70,7 @@ list_Set "DesktopWindows", "warden-request", {
     order: 1000
     think: =>
         if Jailbreak.IsRoundRunning!
-            ply = LocalPlayer!
+            ply = Jailbreak.Player
             if ply\Alive!
                 if Jailbreak.HasWarden!
                     if ply\IsWarden!
@@ -118,7 +117,7 @@ list_Set "DesktopWindows", "shock-collars", {
     order: 500
     think: =>
         if Jailbreak.GameInProgress!
-            ply = LocalPlayer!
+            ply = Jailbreak.Player
             if ply\IsWarden! and ply\Alive!
                 state = Jailbreak.IsShockCollarsActive!
 

@@ -2,7 +2,6 @@ include( "shared.lua" )
 Jailbreak = Jailbreak
 
 Jailbreak.SourceHUD = {
-    "CHudWeaponSelection"
     "CHudSecondaryAmmo"
     "CHudSuitPower"
     "CHudBattery"
@@ -49,3 +48,6 @@ include( "client/game.lua" )
 include( "client/desktop-windows.lua" )
 include( "client/ui.lua" )
 include( "client/hud.lua" )
+include( "client/chat.lua" )
+include( "client/voice-chat.lua" )
+include( "client/markers.lua" )

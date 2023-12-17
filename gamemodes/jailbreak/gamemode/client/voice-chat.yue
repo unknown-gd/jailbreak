@@ -1,0 +1,218 @@
+Jailbreak = Jailbreak
+:Colors, :VMin, :VoiceChatNotifications = Jailbreak
+
+:ceil, :floor, :log, :max, :min, :Clamp = math
+:dark_grey, :black, :white = Colors
+:DrawRect, :SetDrawColor = surface
+hook_Run = hook.Run
+IsValid = IsValid
+select = select
+NULL = NULL
+
+Jailbreak.Font( "Jailbreak::Voice Chat", "Roboto Mono Medium", 2 )
+
+-- Voice Chat Notify
+do
+
+    LEFT, BOTTOM, FILL = LEFT, BOTTOM, FILL
+    FrameTime = FrameTime
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        @SetAlpha( 0 )
+        @Dock( BOTTOM )
+        @Player = NULL
+
+        @Avatar = @Add( "AvatarImage" )
+
+        label = @Add( "DLabel" )
+        @Label = label
+
+        label\SetFont( "Jailbreak::Voice Chat" )
+        label\SetContentAlignment( 4 )
+        label\SetTextColor( white )
+
+        @VoiceData = {}
+        @NextVoiceData = 0
+
+    PANEL.PerformLayout = ( width ) =>
+        if @GetDock! ~= BOTTOM
+            @Dock( BOTTOM )
+
+        height, padding = VMin( 4 ), VMin( 0.5 )
+        @VoiceDataLength = ceil( max( width, 4 ) / padding )
+        @DockPadding( padding, padding, padding, padding )
+        @DockMargin( 0, padding, 0, 0 )
+
+        label = @Label
+        if IsValid( label )
+            if label\GetDock! ~= FILL
+                label\Dock( FILL )
+
+            label\DockMargin( padding, 0, 0, 0 )
+            height = max( height, select( 2, label\GetTextSize! ) + padding * 2 )
+
+        avatar = @Avatar
+        if IsValid( avatar )
+            if avatar\GetDock! ~= LEFT
+                avatar\Dock( LEFT )
+
+            avatar\SetWide( avatar\GetTall! )
+
+            ply = @Player
+            if IsValid( ply )
+                avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( height - padding * 2, 2 ) ), 16, 512 ) )
+
+        @SetTall( height )
+
+    PANEL.Setup = ( ply ) =>
+        @Player = ply
+
+        label = @Label
+        if IsValid( label )
+            label\SetTextColor( ply\GetModelColor! )
+            label\SetText( ply\Nick! )
+
+        @InvalidateLayout!
+
+    PANEL.Think = =>
+        if @NextVoiceData < CurTime!
+            ply = @Player
+            if ply\IsValid!
+                voiceData = @VoiceData
+                length = #voiceData
+
+                if length > @VoiceDataLength
+                    table.remove( voiceData, 1 )
+
+                voiceData[ length + 1 ] = max( 0.05, ply\VoiceFraction! )
+                @NextVoiceData = CurTime! + 0.025
+
+        animationType = @AnimationType
+        if animationType ~= nil
+            if animationType
+                alpha = @GetAlpha!
+                if alpha > 0
+                    @SetAlpha( max( 0, @GetAlpha! - 255 * FrameTime! * 2 ) )
+                else
+                    @AnimationType = nil
+                    if @IsVisible!
+                        @Hide!
+
+            else
+
+                alpha = @GetAlpha!
+                if alpha < 255
+                    @SetAlpha( min( @GetAlpha! + 255 * FrameTime! * 2, 255 ) )
+                else
+                    @AnimationType = nil
+
+    PANEL.FadeIn = =>
+        @AnimationType = true
+
+    PANEL.FadeOut = =>
+        @AnimationType = false
+        unless @IsVisible!
+            @Show!
+
+    PANEL.IsInAnimation = =>
+        return @AnimationType ~= nil
+
+    PANEL.Paint = ( width, height ) =>
+        for index = 1, @VoiceDataLength
+            volume = @VoiceData[ index ]
+            if volume ~= nil
+                teamColor = white
+                ply = @Player
+                if ply\IsValid! and ply\IsInGame!
+                    teamColor = ply\GetTeamColor!
+
+                SetDrawColor( teamColor.r, teamColor.g, teamColor.b, floor( volume * 255 ) )
+
+                leftPadding, topPadding = @GetDockPadding!
+                voiceDataHeight = ceil( ( height - topPadding ) * volume )
+                DrawRect( ( index - 1 ) * leftPadding, height - voiceDataHeight, leftPadding, voiceDataHeight )
+
+        SetDrawColor( black.r, black.g, black.b, 50 )
+        DrawRect( 0, 0, width - 1, height - 1 )
+
+        SetDrawColor( black.r, black.g, black.b, 120 )
+        DrawRect( 0, 0, width + 2, height + 2 )
+
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 200 )
+        DrawRect( 0, 0, width, height )
+
+    vgui.Register( "Jailbreak::VoiceNotify", PANEL, "EditablePanel" )
+
+-- Voice Chat Panel
+do
+
+    PANEL = {}
+
+    PANEL.GetVoicePanel = ( ply ) =>
+        for panel in *@GetChildren!
+            if panel.Player == ply
+                return panel
+
+    PANEL.StartVoice = ( ply ) =>
+        panel = @GetVoicePanel( ply )
+        unless IsValid( panel )
+            panel = @Add( "Jailbreak::VoiceNotify" )
+
+        panel\Setup( ply )
+        panel\FadeOut!
+
+        @InvalidateLayout!
+
+    PANEL.EndVoice = ( ply ) =>
+        panel = @GetVoicePanel( ply )
+        if IsValid( panel )
+            panel\FadeIn!
+
+    PANEL.Think = =>
+        for panel in *@GetChildren!
+            unless panel.Player\IsValid!
+                if panel\GetAlpha! == 0
+                    panel\Remove!
+                elseif not panel\IsInAnimation!
+                    panel\FadeIn!
+
+    PANEL.PerformLayout = =>
+        @SetWide( Jailbreak.ScreenWidth / 6 )
+
+        if @GetDock! ~= RIGHT
+            @Dock( RIGHT )
+
+        margin = VMin( 1 )
+        @DockMargin( 0, margin, margin, margin )
+
+    vgui.Register( "Jailbreak::VoiceChat", PANEL, "EditablePanel" )
+
+GM.PlayerStartVoice = ( ply ) =>
+    if ply\IsLocalPlayer!
+        hook_Run( "LocalPlayerVoice", ply, true )
+        return true
+
+    voiceChat = Jailbreak.VoiceChat
+    unless VoiceChatNotifications\GetBool!
+        if IsValid( voiceChat )
+            voiceChat\Remove!
+
+        return
+
+    unless IsValid( voiceChat )
+        voiceChat = vgui.Create( "Jailbreak::VoiceChat", GetHUDPanel! )
+        Jailbreak.VoiceChat = voiceChat
+
+    voiceChat\StartVoice( ply )
+    return true
+
+GM.PlayerEndVoice = ( ply ) =>
+    if ply\IsLocalPlayer!
+        hook_Run( "LocalPlayerVoice", ply, false )
+        return
+
+    voiceChat = Jailbreak.VoiceChat
+    if IsValid( voiceChat )
+        voiceChat\EndVoice( ply )

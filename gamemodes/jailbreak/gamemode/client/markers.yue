@@ -1,0 +1,139 @@
+Jailbreak = Jailbreak
+
+:Markers, :MarkersLifetime = Jailbreak
+:SetMaterial, :DrawSprite = render
+:max, :sin, :Rand = math
+Material = Material
+CurTime = CurTime
+:remove = table
+EyePos = EyePos
+:find = string
+:IgnoreZ = cam
+
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
+UserOrangeIcon = Material( "icon16/user_orange.png", "mips" )
+UserSuitIcon = Material( "icon16/user_suit.png", "mips" )
+UserIcon = Material( "icon16/user.png", "mips" )
+BricksIcon = Material( "icon16/bricks.png", "mips" )
+WorldIcon = Material( "icon16/world.png", "mips" )
+DoorIcon = Material( "icon16/door.png", "mips" )
+ImageIcon = Material( "icon16/image.png", "mips" )
+PhotoIcon = Material( "icon16/photo.png", "mips" )
+GunIcon = Material( "icon16/gun.png", "mips" )
+ErrorIcon = Material( "icon16/error.png", "mips" )
+
+markers = {}
+
+classNames = {
+    ["class C_BaseEntity"]: Material( "icon16/keyboard.png", "mips" )
+    sent_soccerball: Material( "icon16/sport_basketball.png", "mips" )
+    prop_ragdoll: Material( "icon16/user_delete.png", "mips" )
+    prop_combine_ball: ErrorIcon
+    npc_grenade_frag: ErrorIcon
+    npc_satchel: ErrorIcon
+    crossbow_bolt: ErrorIcon
+    grenade_ar2: ErrorIcon
+    npc_tripmine: ErrorIcon
+}
+
+
+do
+
+    :ReadEntity, :ReadBool, :ReadVector = net
+
+    net.Receive "Jailbreak::Markers", ->
+        owner = ReadEntity!
+        unless owner\IsValid! and owner\Alive!
+            return
+
+        material = WorldIcon
+        entity = nil
+
+        if ReadBool!
+            entity = ReadEntity!
+            if entity and entity\IsValid!
+                if entity\IsWeapon!
+                    if entity\GetOwner!\IsValid!
+                        return
+
+                    material = GunIcon
+                elseif entity\IsPlayer!
+                    unless entity\IsInGame!
+                        return
+
+                    switch entity\Team!
+                        when TEAM_GUARD
+                            material = UserSuitIcon
+                        when TEAM_PRISONER
+                            material = UserOrangeIcon
+                        else
+                            material = UserIcon
+
+                else
+
+                    className = entity\GetClass!
+
+                    classIcon = classNames[ className ]
+                    if classIcon
+                        material = classIcon
+                    elseif find( className, "^func_breakable", 1, false )
+                        material = ImageIcon
+                    elseif find( className, "^%w+_door", 1, false )
+                        material = DoorIcon
+                    elseif find( className, "^prop_physics.*", 1, false )
+                        material = PhotoIcon
+                    else
+                        material = BricksIcon
+
+        markers[ #markers + 1 ] = {
+            deathtime: CurTime! + MarkersLifetime\GetInt!
+            amplitude: Rand( 0.5, 1.5 )
+            origin: ReadVector!
+            :material
+            :entity
+            :owner
+        }
+
+hook.Add "PostDrawTranslucentRenderables", "Jailbreak::Markers", ( drawingDepth, drawingSkybox ) ->
+    if drawingDepth or drawingSkybox or not Markers\GetBool!
+        return
+
+    eyePos = EyePos!
+    for index = 1, #markers
+        data = markers[ index ]
+        unless data
+            continue
+
+        owner = data.owner
+        unless owner\IsValid!
+            remove( markers, index )
+            continue
+
+        fraction = max( 0, ( data.deathtime - CurTime! ) / MarkersLifetime\GetInt! )
+        if fraction == 0
+            remove( markers, index )
+            continue
+
+        origin = data.origin
+
+        entity = data.entity
+        if entity
+            if entity\IsValid!
+                if ( entity\IsPlayer! and not entity\IsInGame! ) or ( entity\IsWeapon! and entity\GetOwner!\IsValid! )
+                    remove( markers, index )
+                    continue
+
+                origin = entity\LocalToWorld( origin )
+            else
+                remove( markers, index )
+                continue
+
+        scale = max( 4, ( origin\Distance( eyePos ) / Jailbreak.ScreenWidth ) * 64 ) * fraction
+        amplitude = data.amplitude
+
+        IgnoreZ( true )
+        SetMaterial( data.material )
+        DrawSprite( origin + Vector( 0, 0, 1 + sin( CurTime! * ( 4 + amplitude ) ) * ( 1.5 + amplitude ) * fraction ), scale, scale, white )
+        IgnoreZ( false )

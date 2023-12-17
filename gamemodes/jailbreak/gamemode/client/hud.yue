@@ -3,22 +3,25 @@ hook_Run = hook.Run
 GM = GM
 
 :Colors, :VMin = Jailbreak
-:white, :black = Colors
+:white, :black, :dark_grey = Colors
 
 :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos = surface
-:GetPhrase = language
-IsValid = IsValid
 :sub, :format = string
+:GetPhrase = language
+EyePos = EyePos
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_ENDED = ROUND_ENDED
 
-TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
 :GetName, :GetColor = team
 
+:SourceHUD = Jailbreak
+for className in *SourceHUD
+    SourceHUD[ className ] = true
+
 GM.HUDShouldDraw = ( name ) =>
-    if Jailbreak.PlayingTaunt and name == "CHudWeaponSelection"
+    if SourceHUD[ name ] or ( Jailbreak.PlayingTaunt and name == "CHudWeaponSelection" )
         return false
 
     return true
@@ -31,6 +34,8 @@ do
     Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
 
     GM.HUDPaint = =>
+        hook_Run( "HUDDrawIcons", Jailbreak.Player )
+
         if @TargetID\GetBool!
             hook_Run( "HUDDrawTargetID" )
 
@@ -97,27 +102,12 @@ do
 
 do
 
-    :SourceHUD = Jailbreak
-
-    hook.Add "HUDPaint", "Jailbreak::Source HUD", ->
-        if Jailbreak.ViewEntity ~= Jailbreak.Player
-            return
-
-        for className in *SourceHUD
-            panel = Jailbreak[ className ]
-            if panel and panel\IsValid!
-                panel\PaintManual( true )
-
-do
-
     :Translate, :VoiceChatMinDistance = Jailbreak
     :CursorVisible = vgui
     :GetCursorPos = input
     EyeAngles = EyeAngles
     MASK_SHOT = MASK_SHOT
-    :SimpleText = draw
     :TraceLine = util
-    EyePos = EyePos
     :Clamp = math
     :red = Colors
     Lerp = Lerp
@@ -268,46 +258,112 @@ do
 
 do
 
-    hook_Add = hook.Add
+    SpeakingIcon = Material( "icon16/sound.png", "mips" )
+    FrameTime = FrameTime
+    CurTime = CurTime
+    :sin = math
 
-    :SourceHUD = Jailbreak
-    for className in *SourceHUD
-        SourceHUD[ className ] = true
+    do
 
-    GM.StartChat = ( isTeam ) =>
-        if @Reskined
-            return
+        :DrawTexturedRectRotated, :SetMaterial, :SetDrawColor, :SetAlphaMultiplier = surface
 
-        hook_Add "Think", "JB::CHudReskin", ->
-            viewport = vgui.GetKeyboardFocus!
-            unless IsValid( viewport )
+        Jailbreak.Font( "Jailbreak::VoiceChatIcon", "Roboto Mono Medium", 3 )
+
+        iconSize = VMin( 12 )
+        alpha = 0
+
+        hook.Add "ScreenResolutionChanged", "Jailbreak::VoiceChatIcon", ->
+            iconSize = VMin( 12 )
+
+        hook.Add "HUDDrawIcons", "Jailbreak::VoiceChatIcon", ( ply ) ->
+            if ply\IsSpeaking!
+                if alpha < 1
+                    alpha = math.min( 1, alpha + FrameTime! * 4 )
+            elseif alpha > 0
+                alpha = math.max( 0, alpha - FrameTime! * 4 )
+
+            if alpha == 0
                 return
 
-            hook.Remove "Think", "JB::CHudReskin"
-            @Reskined = true
-            chat.Close!
+            SetAlphaMultiplier( alpha )
 
-            for index = 1, 5
-                panel = viewport\GetParent!
-                unless IsValid( panel )
-                    break
+            x, y = Jailbreak.ScreenCenterX, Jailbreak.ScreenHeight - iconSize / 2
+            rotation = sin( CurTime! * 3 ) * 30
 
-                viewport = panel
+            SetMaterial( SpeakingIcon )
 
-            unless IsValid( viewport )
+            SetDrawColor( black.r, black.g, black.b, 50 )
+            DrawTexturedRectRotated( x - 1, y - 1, iconSize, iconSize, rotation )
+
+            SetDrawColor( black.r, black.g, black.b, 120 )
+            DrawTexturedRectRotated( x + 3, y + 3, iconSize, iconSize, rotation )
+
+            SetDrawColor( 255, 255, 255 )
+            DrawTexturedRectRotated( x, y, iconSize, iconSize, rotation )
+
+            text = GetPhrase( "jb.speaking" )
+            SetFont( "Jailbreak::VoiceChatIcon" )
+            textWidth, textHeight = GetTextSize( text )
+            x, y = ( Jailbreak.ScreenWidth - textWidth ) / 2, Jailbreak.ScreenHeight - iconSize - textHeight
+
+            SetTextPos( x - 1, y - 1 )
+            SetTextColor( black.r, black.g, black.b, 50 )
+            DrawText( text )
+
+            SetTextPos( x + 3, y + 3 )
+            SetTextColor( black.r, black.g, black.b, 120 )
+            DrawText( text )
+
+            SetTextColor( 255, 255, 255 )
+            SetTextPos( x, y )
+            DrawText( text )
+
+            SetAlphaMultiplier( 1 )
+
+    -- Player status icons
+    do
+
+        :StatusIcons, :VoiceChatMaxDistance = Jailbreak
+        :SetMaterial, :DrawSprite = render
+        LocalToWorld = LocalToWorld
+        :GetAll = player
+
+        TypingIcon = Material( "icon16/comment_edit.png", "mips" )
+
+        hook.Add "PostDrawTranslucentRenderables", "Jailbreak::StatusIcons", ( drawingDepth, drawingSkybox ) ->
+            if drawingDepth or drawingSkybox or not StatusIcons\GetBool!
                 return
 
-            for panel in *viewport\GetChildren!
-                className = panel\GetClassName!
-                unless SourceHUD[ className ]
+            eyePos = EyePos!
+            for ply in *GetAll!
+                if ply\IsLocalPlayer! or not ply\IsInGame!
                     continue
 
-                panel\SetPaintedManually( true )
-                Jailbreak[ className ] = panel
+                isSpeaking = ply\IsSpeaking!
+                unless isSpeaking or ply\IsTyping!
+                    continue
 
-                hook_Add "Think", panel, =>
-                    ply = Jailbreak.Player
-                    unless ply\IsValid!
-                        return
+                origin = nil
 
-                    @SetFGColorEx( ply\GetTeamColor!\Unpack! )
+                headBoneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
+                if headBoneID and headBoneID >= 0
+                    origin, angles = ply\GetBonePosition( headBoneID )
+
+                    hitboxset = ply\GetHitboxSet!
+                    for hitbox = 0, ply\GetHitBoxCount( hitboxset )
+                        if headBoneID == ply\GetHitBoxBone( hitbox, hitboxset )
+                            mins, maxs = ply\GetHitBoxBounds( hitbox, hitboxset )
+                            origin = LocalToWorld( ( maxs + mins ) / 2, angle_zero, origin, angles ) + angles\Forward! * ( maxs[ 3 ] - mins[ 3 ] ) * 1.5
+                            break
+
+                else
+                    origin = ply\EyePos!
+                    origin[ 3 ] += 14
+
+                distance = origin\Distance( eyePos )
+                if distance > VoiceChatMaxDistance\GetInt!
+                    continue
+
+                origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
+                SetMaterial( isSpeaking and SpeakingIcon or TypingIcon )
+                DrawSprite( origin, 12, 12, white )

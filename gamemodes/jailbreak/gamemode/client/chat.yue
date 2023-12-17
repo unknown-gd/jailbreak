@@ -1,0 +1,11 @@
+
+
+GM.StartChat = ( isTeam ) =>
+    -- chat.Close!
+
+GM.FinishChat = =>
+    -- chat.Close!
+
+GM.ChatText = ( userid, nickname, text, filter ) =>
+
+    return true

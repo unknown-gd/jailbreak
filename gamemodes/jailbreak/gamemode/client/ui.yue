@@ -3,9 +3,8 @@ GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
 :ceil, :min, :max, :sin, :floor, :random, :Rand, :Round = math
+:TeamIsJoinable, :ChangeTeam, :Colors, :VMin = Jailbreak
 :format, :upper, :find, :Explode = string
-:TeamIsJoinable, :ChangeTeam = Jailbreak
-LocalPlayer = LocalPlayer
 :GetPhrase = language
 list_Set = list.Set
 hook_Add = hook.Add
@@ -21,11 +20,9 @@ ROUND_RUNNING = ROUND_RUNNING
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
-:Colors, :VMin = Jailbreak
-:dark_grey, :black, :white = Colors
-
 Jailbreak.Font( "Jailbreak::TeamSelect", "Roboto Mono Bold", 4 )
 Jailbreak.Font( "Jailbreak::TeamButtons", "Roboto Mono Medium", 4 )
+:dark_grey, :black, :white = Colors
 
 PANEL_META = FindMetaTable( "Panel" )
 
@@ -125,6 +122,27 @@ do
         PANEL.Init = =>
             @SetText( "" )
 
+            label = @Add( "DLabel" )
+            @Label = label
+
+            label\Dock( BOTTOM )
+            label\SetContentAlignment( 5 )
+            label\SetTextColor( white )
+            label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
+
+            image = @Add( "DImage" )
+            @Image = image
+
+            image\SetSize( 64, 64 )
+            image\Dock( TOP )
+            image\DockMargin( 8, 0, 8, 0 )
+
+        PANEL.Setup = ( title, icon ) =>
+            @Image\SetImage( icon )
+            @Label\SetText( title )
+            @SetTooltip( title )
+            @InvalidateLayout!
+
         PANEL.GetImage = =>
             image = @m_Image
             if image and image\IsValid!
@@ -150,7 +168,10 @@ do
             image\SizeToContents!
             @InvalidateLayout!
 
-        PANEL.PerformLayout = ( width, height ) =>
+        PANEL.PerformLayout = =>
+            size = VMin( 8 )
+            width, height = size, size + VMin( 0.5 )
+            @SetSize( width, height )
 
             image = @m_Image
             if IsValid( image )
@@ -231,27 +252,7 @@ do
 
         for desktopWindow in *desktopWindows
             icon = iconLayout\Add( "JB.ContextMenu.Button" )
-            icon\SetSize( 80, 82 )
-
-            title = desktopWindow.title
-            icon\SetTooltip( title )
-
-            image = icon\Add( "DImage" )
-            icon.Image = image
-
-            image\SetImage( desktopWindow.icon )
-            image\SetSize( 64, 64 )
-            image\Dock( TOP )
-            image\DockMargin( 8, 0, 8, 0 )
-
-            label = icon\Add( "DLabel" )
-            icon.Label = label
-
-            label\Dock( BOTTOM )
-            label\SetText( title )
-            label\SetContentAlignment( 5 )
-            label\SetTextColor( white )
-            label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
+            icon\Setup( desktopWindow.title, desktopWindow.icon )
 
             created = desktopWindow.created
             if isfunction( created )
@@ -277,7 +278,7 @@ do
                     icon.Window = window
 
                     window\SetSize( desktopwindow.width, desktopwindow.height )
-                    window\SetTitle( desktopwindow.title )
+                    window\SetTitle( title )
                     window\Center!
 
                     init( icon, window )
@@ -394,8 +395,10 @@ do
                     enabled = true
                     break
 
-            @SetCursor( enabled and "hand" or "no" )
-            @SetEnabled( enabled )
+            if enabled ~= @IsEnabled!
+                @SetEnabled( enabled )
+                @SetCursor( enabled and "hand" or "no" )
+
             return
 
         unless @Color
@@ -423,7 +426,6 @@ do
     PANEL = {}
 
     PANEL.OnRemove = =>
-        hook.Remove "ScreenResolutionChanged", @
         hook.Remove "PlayerButtonDown", @
 
     PANEL.CloseKeys = {
@@ -435,7 +437,6 @@ do
     PANEL.Init = =>
         @DockPadding( 16, 16, 16, 16 )
 
-        hook_Add "ScreenResolutionChanged", @, @Remove
         hook_Add "PlayerButtonDown", @, ( ply, key ) =>
             if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
                 @Remove!
@@ -564,187 +565,6 @@ do
         DrawRect( 0, 0, width, height )
 
     vgui.Register( "JB.TeamSelect", PANEL, "EditablePanel" )
-
-do
-
-    Distance = FindMetaTable( "Vector" ).Distance
-    :SetMaterial, :DrawSprite = render
-    LocalToWorld = LocalToWorld
-    angle_zero = angle_zero
-    Material = Material
-    CurTime = CurTime
-    :remove = table
-    :IgnoreZ = cam
-    net = net
-
-    TypingIcon = Material( "icon16/comment_edit.png", "mips" )
-    SpeakingIcon = Material( "icon16/sound.png", "mips" )
-    UserOrangeIcon = Material( "icon16/user_orange.png", "mips" )
-    UserSuitIcon = Material( "icon16/user_suit.png", "mips" )
-    UserIcon = Material( "icon16/user.png", "mips" )
-    BricksIcon = Material( "icon16/bricks.png", "mips" )
-    WorldIcon = Material( "icon16/world.png", "mips" )
-    DoorIcon = Material( "icon16/door.png", "mips" )
-    ImageIcon = Material( "icon16/image.png", "mips" )
-    PhotoIcon = Material( "icon16/photo.png", "mips" )
-    GunIcon = Material( "icon16/gun.png", "mips" )
-    ErrorIcon = Material( "icon16/error.png", "mips" )
-
-    markers = {}
-
-    classNames = {
-        ["class C_BaseEntity"]: Material( "icon16/keyboard.png", "mips" )
-        sent_soccerball: Material( "icon16/sport_basketball.png", "mips" )
-        prop_ragdoll: Material( "icon16/user_delete.png", "mips" )
-        prop_combine_ball: ErrorIcon
-        npc_grenade_frag: ErrorIcon
-        npc_satchel: ErrorIcon
-        crossbow_bolt: ErrorIcon
-        grenade_ar2: ErrorIcon
-        npc_tripmine: ErrorIcon
-    }
-
-    net.Receive "Jailbreak::Markers", ->
-        owner = net.ReadEntity!
-        unless owner\IsValid! and owner\Alive!
-            return
-
-        material = WorldIcon
-
-        entity = nil
-        if net.ReadBool!
-            entity = net.ReadEntity!
-            if IsValid( entity )
-                if entity\IsWeapon!
-                    if entity\GetOwner!\IsValid!
-                        return
-
-                    material = GunIcon
-                elseif entity\IsPlayer!
-                    unless entity\IsInGame!
-                        return
-
-                    switch entity\Team!
-                        when TEAM_GUARD
-                            material = UserSuitIcon
-                        when TEAM_PRISONER
-                            material = UserOrangeIcon
-                        else
-                            material = UserIcon
-
-                else
-
-                    className = entity\GetClass!
-
-                    classIcon = classNames[ className ]
-                    if classIcon
-                        material = classIcon
-                    elseif find( className, "^func_breakable", 1, false )
-                        material = ImageIcon
-                    elseif find( className, "^%w+_door", 1, false )
-                        material = DoorIcon
-                    elseif find( className, "^prop_physics.*", 1, false )
-                        material = PhotoIcon
-                    else
-                        material = BricksIcon
-
-        origin = net.ReadVector!
-
-        index = #markers + 1
-        markers[ index ] = {
-            deathtime: CurTime! + Jailbreak.MarkersLifetime\GetInt!
-            amplitude: Rand( 0.5, 1.5 )
-            :material
-            :entity
-            :origin
-            :owner
-            :index
-        }
-
-    GM.PostDrawTranslucentRenderables = ( drawingDepth, drawingSkybox ) =>
-        if drawingDepth or drawingSkybox or not Jailbreak.VoiceIcons\GetBool!
-            return
-
-        eyePos = EyePos!
-
-        for ply in *GetAll!
-            unless ply\IsInGame!
-                continue
-
-            isSpeaking, isTyping = ply\IsSpeaking!, ply\IsTyping!
-            unless isSpeaking or isTyping
-                continue
-
-            origin = nil
-
-            headBoneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
-            if headBoneID and headBoneID >= 0
-                origin, angles = ply\GetBonePosition( headBoneID )
-
-                hitboxset = ply\GetHitboxSet!
-                for hitbox = 0, ply\GetHitBoxCount( hitboxset )
-                    if headBoneID == ply\GetHitBoxBone( hitbox, hitboxset )
-                        mins, maxs = ply\GetHitBoxBounds( hitbox, hitboxset )
-                        origin = LocalToWorld( ( maxs + mins ) / 2, angle_zero, origin, angles ) + angles\Forward! * ( maxs[ 3 ] - mins[ 3 ] ) * 1.5
-                        break
-
-            else
-                origin = ply\EyePos!
-                origin[ 3 ] += 14
-
-            distance = Distance( origin, eyePos )
-            if distance > Jailbreak.VoiceChatMaxDistance\GetInt!
-                continue
-
-            if isSpeaking
-                SetMaterial( SpeakingIcon )
-            elseif isTyping
-                SetMaterial( TypingIcon )
-            else
-                continue
-
-            origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
-            DrawSprite( origin, 12, 12, white )
-
-        unless Jailbreak.Markers\GetBool!
-            return
-
-        for index = 1, #markers
-            data = markers[ index ]
-            unless data
-                continue
-
-            owner = data.owner
-            unless owner\IsValid!
-                remove( markers, index )
-                continue
-
-            fraction = max( 0, ( data.deathtime - CurTime! ) / Jailbreak.MarkersLifetime\GetInt! )
-            if fraction == 0
-                remove( markers, index )
-                continue
-
-            origin = data.origin
-
-            entity = data.entity
-            if entity
-                if entity\IsValid!
-                    if ( entity\IsPlayer! and not entity\IsInGame! ) or ( entity\IsWeapon! and entity\GetOwner!\IsValid! )
-                        remove( markers, index )
-                        continue
-
-                    origin = entity\LocalToWorld( origin )
-                else
-                    remove( markers, index )
-                    continue
-
-            scale = max( 4, ( Distance( origin, eyePos ) / Jailbreak.ScreenWidth ) * 64 ) * fraction
-            amplitude = data.amplitude
-
-            IgnoreZ( true )
-            SetMaterial( data.material )
-            DrawSprite( origin + Vector( 0, 0, 1 + sin( CurTime! * ( 4 + amplitude ) ) * ( 1.5 + amplitude ) * fraction ), scale, scale, white )
-            IgnoreZ( false )
 
 -- PANEL_META = FindMetaTable( "Panel" )
 
