@@ -49,6 +49,7 @@ do
 
 do
 
+    :ShockCollarEffect, :SendChatText = Jailbreak
     :GetAll = player
 
     GM.ShockCollars = ( bool ) =>
@@ -58,9 +59,9 @@ do
                 unless ply\IsBot!
                     receivers[] = ply
 
-                Jailbreak.ShockCollarEffect( ply )
+                ShockCollarEffect( ply )
 
-        Jailbreak.SendChatText( receivers, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+        SendChatText( receivers, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
 
 do
 

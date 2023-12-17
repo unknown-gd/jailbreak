@@ -268,12 +268,7 @@ do
         :DrawTexturedRectRotated, :SetMaterial, :SetDrawColor, :SetAlphaMultiplier = surface
 
         Jailbreak.Font( "Jailbreak::VoiceChatIcon", "Roboto Mono Medium", 3 )
-
-        iconSize = VMin( 12 )
         alpha = 0
-
-        hook.Add "ScreenResolutionChanged", "Jailbreak::VoiceChatIcon", ->
-            iconSize = VMin( 12 )
 
         hook.Add "HUDDrawIcons", "Jailbreak::VoiceChatIcon", ( ply ) ->
             if ply\IsSpeaking!
@@ -287,6 +282,7 @@ do
 
             SetAlphaMultiplier( alpha )
 
+            iconSize = VMin( 12 )
             x, y = Jailbreak.ScreenCenterX, Jailbreak.ScreenHeight - iconSize / 2
             rotation = sin( CurTime! * 3 ) * 30
 
