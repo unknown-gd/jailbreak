@@ -1,7 +1,7 @@
 GM = GM
 Jailbreak = Jailbreak
 colors = Jailbreak.Colors
-:grey, :white = colors
+:dark_white, :light_grey, :white = colors
 :find = string
 :Clamp, :Rand, :abs, :sin, :min = math
 
@@ -18,7 +18,7 @@ do
             PlaySound!
 
         if chatTime\GetBool!
-            AddText( grey, date( "[%H:%M:%S] " ), white, ... )
+            AddText( light_grey, date( "[%H:%M:%S] " ), white, ... )
         else
             AddText( white, ... )
 
@@ -36,7 +36,7 @@ do
         result = {}
 
         if isDead
-            result[] = colors.light_grey
+            result[] = dark_white
             result[] = Translate( "[#jb.chat.dead] " )
 
         if ply and ply\IsValid!

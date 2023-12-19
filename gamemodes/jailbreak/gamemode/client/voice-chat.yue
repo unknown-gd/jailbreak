@@ -35,6 +35,7 @@ do
 
         @VoiceData = {}
         @NextVoiceData = 0
+        @VoiceDataLength = 0
 
     PANEL.PerformLayout = ( width ) =>
         if @GetDock! ~= BOTTOM
@@ -149,6 +150,9 @@ do
 do
 
     PANEL = {}
+
+    PANEL.Init = =>
+        @SetZPos( 1000 )
 
     PANEL.GetVoicePanel = ( ply ) =>
         for panel in *@GetChildren!

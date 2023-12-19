@@ -3,7 +3,7 @@ hook_Run = hook.Run
 GM = GM
 
 :Colors, :VMin = Jailbreak
-:white, :black, :dark_grey = Colors
+:white, :black, :dark_grey, :light_grey, :red = Colors
 
 :SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos = surface
 :sub, :format = string
@@ -81,7 +81,7 @@ do
                 color = GetColor( teamID )
             else
                 text = GetPhrase( "#jb.draw" )
-                color = Colors.light_grey
+                color = Colors.dark_white
 
             text = "[" .. text .. "]"
 
@@ -109,7 +109,6 @@ do
     MASK_SHOT = MASK_SHOT
     :TraceLine = util
     :Clamp = math
-    :red = Colors
     Lerp = Lerp
 
     trace = {
@@ -236,7 +235,7 @@ do
             color = GetColor( teamID )
         elseif isPlayerRagdoll
             text = "#jb.player.corpse"
-            color = Colors.light_grey
+            color = Colors.dark_white
         else
             return
 
@@ -297,7 +296,7 @@ do
             SetDrawColor( 255, 255, 255, 255 )
             DrawTexturedRectRotated( x, y, iconSize, iconSize, rotation )
 
-            text = GetPhrase( "jb.speaking" )
+            text = GetPhrase( "jb.hud.speaking" )
             SetFont( "Jailbreak::VoiceChatIcon" )
             textWidth, textHeight = GetTextSize( text )
             x, y = ( Jailbreak.ScreenWidth - textWidth ) / 2, Jailbreak.ScreenHeight - iconSize - textHeight

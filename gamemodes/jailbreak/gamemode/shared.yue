@@ -30,16 +30,17 @@ do
 
     Jailbreak.Colors = {
         spectators: Color( 220, 220, 220 )
-        light_grey: Color( 200, 200, 200 )
+        dark_white: Color( 200, 200, 200 )
+        light_grey: Color( 180, 180, 180 )
         turquoise: Color( 75, 200, 200 )
         asparagus: Color( 128, 154, 86 )
         prisoners: Color( 255, 89, 50 )
         dark_grey: Color( 33, 33, 33 )
         console: Color( 30, 130, 255 )
         guards: Color( 50, 185, 255 )
-        grey: Color( 180, 180, 180 )
         pink: Color( 225, 50, 100 )
         blue: Color( 0, 190, 255 )
+        grey: Color( 50, 50, 50 )
         red: Color( 255, 50, 50 )
         black: Color( 0, 0, 0 )
         white: color_white
