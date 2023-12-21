@@ -3,7 +3,7 @@ hook_Run = hook.Run
 GM = GM
 
 :Colors, :VMin = Jailbreak
-:white, :black, :dark_grey, :light_grey, :red, :dark_white = Colors
+:asparagus, :white, :black, :dark_grey, :light_grey, :red, :dark_white, :turquoise = Colors
 
 :SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos, :SetAlphaMultiplier, :DrawTexturedRectRotated = surface
 :Clamp, :min, :max, :sin, :floor = math
@@ -108,6 +108,7 @@ do
 do
 
     :Translate, :VoiceChatMinDistance = Jailbreak
+    :ScreenToVector = gui
     :CursorVisible = vgui
     :GetCursorPos = input
     EyeAngles = EyeAngles
@@ -129,23 +130,23 @@ do
         start = EyePos!
         trace.start = start
 
-        endpos, filter = nil, nil
+        filter = nil
         if ply\GetObserverMode! == OBS_MODE_IN_EYE
             target = Jailbreak.ViewEntity
             if target\IsValid!
                 filter = target
 
-                if target\IsPlayer! and target\Alive!
-                    endpos = start + target\GetAimVector! * VoiceChatMinDistance\GetInt!
-
         elseif ply\Alive! and not Jailbreak.PlayingTaunt
-            endpos = start + ply\GetAimVector! * VoiceChatMinDistance\GetInt!
             filter = ply
 
-        unless endpos
-            endpos = start + EyeAngles!\Forward! * VoiceChatMinDistance\GetInt!
+        screenCenterX = Jailbreak.ScreenCenterX
 
-        trace.endpos, trace.filter = endpos, filter
+        mouseX, mouseY = GetCursorPos!
+        if mouseX == 0 and mouseY == 0 or not CursorVisible!
+            mouseX, mouseY = screenCenterX, Jailbreak.ScreenCenterY
+
+        trace.endpos = start + ScreenToVector( mouseX, mouseY ) * 1024
+        trace.filter = filter
 
         traceResult = TraceLine( trace )
         unless traceResult.Hit
@@ -206,10 +207,6 @@ do
                 className = "func_button"
 
             text = Translate( "#jb." .. className )
-
-        mouseX, mouseY = GetCursorPos!
-        if mouseX == 0 and mouseY == 0 or not CursorVisible!
-            mouseX, mouseY = Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY
 
         offset = VMin( 2 )
 
@@ -280,7 +277,7 @@ do
             SetAlphaMultiplier( alpha )
 
             iconSize = VMin( 12 )
-            x, y = Jailbreak.ScreenCenterX, Jailbreak.ScreenHeight - iconSize / 2
+            x, y = screenCenterX, Jailbreak.ScreenHeight - iconSize / 2
             rotation = sin( CurTime! * 3 ) * 30
 
             SetMaterial( speakingIcon )
@@ -410,12 +407,15 @@ do
                     time\Dock( RIGHT )
 
         PANEL.Think = =>
+            changed = false
+
             time = @Time
             if IsValid( time )
                 text = date( "%H:%M" )
                 if time\GetText! ~= text
                     time\SetText( text )
                     time\SizeToContentsX!
+                    changed = true
 
             entity = Jailbreak.ViewEntity
             unless entity\IsValid!
@@ -424,28 +424,31 @@ do
                     text = "unknown"
                     if name\GetText! ~= text
                         name\SetText( text )
+                        changed = true
 
                 return
 
             if entity\IsPlayer!
                 if @ViewClass ~= nil
                     @ViewClass = nil
+                    changed = true
 
                 teamID = entity\Team!
                 if @TeamID ~= teamID
                     @TeamID = teamID
-                    @Color = entity\GetTeamColor!
+                    changed = true
 
                 name = @Name
                 if IsValid( name )
                     nickname = entity\Nick!
                     if name\GetText! ~= nickname
                         name\SetText( nickname )
+                        changed = true
+
+                if changed
+                    @Color = entity\GetTeamColor!
 
             else
-
-                if @Color ~= light_grey
-                    @Color = light_grey
 
                 name = @Name
                 if IsValid( name )
@@ -453,12 +456,22 @@ do
                         nickname = entity\GetNW2String( "owner-nickname", "unknown" )
                         if name\GetText! ~= nickname
                             name\SetText( nickname )
+                            changed = true
 
                     else
                         className = entity\GetClass!
                         if @ViewClass ~= className
                             @ViewClass = className
                             name\SetText( "#jb." .. className )
+                            changed = true
+
+                if changed
+                   @Color = light_grey
+
+            if changed
+                parent = @GetParent!
+                if parent and parent\IsValid!
+                    parent\InvalidateLayout!
 
         PANEL.Paint = ( width, height ) =>
             color = @Color
@@ -480,6 +493,7 @@ do
             @Alive = false
 
             @InvalidateLayout( true )
+            hook.Add "LanguageChanged", @, @InvalidateLayout
 
         PANEL.CreateTexture = ( width, height ) =>
             texture = GetRenderTarget( "Jailbreak_HUD_Texture" .. width .. "x" .. height, width, height )
@@ -531,13 +545,25 @@ do
 
         PANEL.Think = =>
             entity = Jailbreak.ViewEntity
-            unless entity\IsValid! and entity\IsPlayer!
+            unless entity\IsValid!
+                return
+
+            isPlayer = entity\IsPlayer!
+            if @IsPlayer ~= isPlayer
+                @IsPlayer = isPlayer
+
+                unless isPlayer
+                    @Alive = alive
+                    @Health = 0
+
+                @InvalidateLayout!
+
+            unless isPlayer
                 return
 
             alive, health = entity\Alive!, entity\Health!
             if health <= 0
                 alive = false
-                @Health = 0
 
             if @Alive ~= alive
                 @Alive = alive
@@ -581,70 +607,68 @@ do
 
                 size = floor( ( width - offset * 2 ) / 10 )
 
-                if @Alive
+                alive = @Alive
+                if alive
                     height += size
                     if @Armor > 0
-                        height += offset
-                        height += size
+                        height += offset + size
+
                 else
-                    height += VMin( 2 )
+                    SetFont( "Jailbreak::HUD" )
+                    textWidth, textHeight = GetTextSize( GetPhrase( "jb.team.dead" ) )
+                    width = max( width, textWidth + 2 * offset )
+                    height += textHeight
 
                 @CreateTexture( width, height )
 
                 @UpdateTexture ( width, height ) ->
                     SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
                     DrawRect( 0, 0, width, height )
-                    color = nil
 
-                    entity = Jailbreak.ViewEntity
-                    if entity\IsValid!
-                        color = entity\GetModelColor!
-                        color.r += dark_grey.r + 25
-                        color.g += dark_grey.g + 25
-                        color.b += dark_grey.b + 25
-                    else
-                        color = Color( 255, 255, 255 )
+                    unless alive
+                        SetFont( "Jailbreak::HUD" )
+                        text = GetPhrase( "jb.team.dead" )
+                        SetTextPos( ( width - GetTextSize( text ) ) / 2, offset )
+                        SetTextColor( dark_white )
+                        DrawText( text )
+                        return
 
                     SetMaterial( bullet_white )
 
                     do
 
-                        float = 10 * Clamp( @Health / @MaxHealth, 0, 1 )
-                        count = ceil( float )
+                        health = 10 * Clamp( @Health / @MaxHealth, 0, 1 )
+                        healthCount = ceil( health )
 
-                        for i = 1, count
-                            if i == count and count ~= float
-                                frac = float % 1
-                                SetDrawColor( Lerp( frac, red.r, color.r ), Lerp( frac, red.g, color.g ), Lerp( frac, red.b, color.b ), floor( frac * 255 ) )
+                        for i = 1, healthCount
+                            if i == healthCount and healthCount ~= health
+                                frac = health % 1
+                                SetDrawColor( Lerp( frac, red.r, asparagus.r ), Lerp( frac, red.g, asparagus.g ), Lerp( frac, red.b, asparagus.b ), floor( frac * 255 ) )
                             else
-                                SetDrawColor( color.r, color.g, color.b )
+                                SetDrawColor( asparagus.r, asparagus.g, asparagus.b )
 
                             DrawTexturedRect( offset + ( size * ( i - 1 ) ), offset, size, size )
 
                     do
 
-                        color.r = 255 - color.r
-                        color.g = 255 - color.g
-                        color.b = 255 - color.b
+                        armor = 10 * Clamp( @Armor / @MaxArmor, 0, 1 )
+                        armorCount = ceil( armor )
 
-                        float = 10 * Clamp( @Armor / @MaxArmor, 0, 1 )
-                        count = ceil( float )
-
-                        for i = 1, count
-                            if i == count and count ~= float
-                                frac = float % 1
-                                SetDrawColor( Lerp( frac, red.r, color.r ), Lerp( frac, red.g, color.g ), Lerp( frac, red.b, color.b ), floor( frac * 255 ) )
+                        for i = 1, armorCount
+                            if i == armorCount and armorCount ~= armor
+                                frac = armor % 1
+                                SetDrawColor( Lerp( frac, red.r, turquoise.r ), Lerp( frac, red.g, turquoise.g ), Lerp( frac, red.b, turquoise.b ), floor( frac * 255 ) )
                             else
-                                SetDrawColor( color.r, color.g, color.b )
+                                SetDrawColor( turquoise.r, turquoise.g, turquoise.b )
 
                             DrawTexturedRect( offset + ( size * ( i - 1 ) ), offset * 2 + size, size, size )
 
-                    @SetSize( width, height + headerTall )
-                    @SetPos( 0, 0 )
+                @SetSize( width, height + headerTall )
+                @SetPos( 0, 0 )
 
-                    parent = @GetParent!
-                    if parent and parent\IsValid!
-                        parent\InvalidateLayout!
+                parent = @GetParent!
+                if parent and parent\IsValid!
+                    parent\InvalidateLayout!
 
         PANEL.Paint = ( width, height ) =>
             SetDrawColor( white )
@@ -666,11 +690,18 @@ do
             @SuitPowerFraction = 1
             @Color = dark_grey
             @Direction = true
+            @SetAlpha( 0 )
             @Value = 100
 
         PANEL.Think = =>
             entity = Jailbreak.ViewEntity
             unless entity\IsValid! and entity\IsPlayer!
+                return
+
+            unless entity\Alive!
+                if @GetAlpha! ~= 0
+                    @SetAlpha( 0 )
+
                 return
 
             teamID = entity\Team!
@@ -682,20 +713,11 @@ do
             fraction = value / 100
 
             if oldValue ~= value
-                color = entity\GetModelColor!
-                color.r += dark_grey.r + 25
-                color.g += dark_grey.g + 25
-                color.b += dark_grey.b + 25
-
+                @LineColor = Color( Lerp( fraction, red.r, asparagus.r ), Lerp( fraction, red.g, asparagus.g ), Lerp( fraction, red.b, asparagus.b ) )
                 @SuitPowerFraction = fraction
-                @LineColor = color
 
                 if fraction % 1 == 0
                     @InvalidateLayout!
-
-                color.r = Lerp( fraction, red.r, color.r )
-                color.g = Lerp( fraction, red.g, color.g )
-                color.b = Lerp( fraction, red.b, color.b )
 
                 @Direction = value > oldValue
                 @Value = value
@@ -789,6 +811,12 @@ do
                 power\InvalidateLayout!
 
         vgui.Register( "Jailbreak::HUD", PANEL, "Panel" )
+
+if IsValid( Jailbreak.HUD )
+    Jailbreak.HUD\Remove!
+
+Jailbreak.HUD = vgui.Create( "Jailbreak::HUD", GetHUDPanel! )
+
 hook.Add "InitPostEntity", "Jailbreak::HUD", ->
     if IsValid( Jailbreak.HUD )
         return
