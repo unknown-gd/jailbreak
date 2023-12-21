@@ -2,9 +2,10 @@ Jailbreak = Jailbreak
 GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
-:ceil, :min, :max, :sin, :floor, :random, :Rand, :Round = math
+:ceil, :min, :max, :sin, :floor, :random, :log, :Rand, :Round, :Clamp = math
 :TeamIsJoinable, :ChangeTeam, :Colors, :VMin = Jailbreak
 :format, :upper, :find, :Explode = string
+:GetColor, :GetName, :GetScore = team
 :GetPhrase = language
 list_Set = list.Set
 hook_Add = hook.Add
@@ -20,9 +21,9 @@ ROUND_RUNNING = ROUND_RUNNING
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
+Jailbreak.Font( "Jailbreak::TeamSelect - Button", "Roboto Mono Medium", 4 )
 Jailbreak.Font( "Jailbreak::TeamSelect", "Roboto Mono Bold", 4 )
-Jailbreak.Font( "Jailbreak::TeamButtons", "Roboto Mono Medium", 4 )
-:dark_grey, :black, :white = Colors
+:dark_grey, :black, :white, :light_grey = Colors
 
 PANEL_META = FindMetaTable( "Panel" )
 
@@ -113,7 +114,7 @@ do
         SetTextPos( x, y )
         DrawText( text )
 
-    vgui.Register( "ContextMenu", PANEL, "EditablePanel" )
+    vgui.Register( "Jailbreak::ContextMenu", PANEL, "EditablePanel" )
 
     do
 
@@ -199,7 +200,7 @@ do
 
         PANEL.Paint = ( width, height ) =>
 
-        vgui.Register( "JB.ContextMenu.Button", PANEL, "DButton" )
+        vgui.Register( "Jailbreak::ContextMenu - Button", PANEL, "DButton" )
 
     CreateContextMenu = ->
         unless hook_Run( "ContextMenuEnabled" )
@@ -209,7 +210,7 @@ do
         if IsValid( contextMenu )
             contextMenu\Remove!
 
-        contextMenu = vgui.Create( "ContextMenu" )
+        contextMenu = vgui.Create( "Jailbreak::ContextMenu" )
         unless IsValid( contextMenu )
             return
 
@@ -251,7 +252,7 @@ do
             return a.title < b.title
 
         for desktopWindow in *desktopWindows
-            icon = iconLayout\Add( "JB.ContextMenu.Button" )
+            icon = iconLayout\Add( "Jailbreak::ContextMenu - Button" )
             icon\Setup( desktopWindow.title, desktopWindow.icon )
 
             created = desktopWindow.created
@@ -322,7 +323,7 @@ do
         if IsKeyDown( 70 )
             return
 
-        global g_TeamSelect = Create( "JB.TeamSelect" )
+        global g_TeamSelect = Create( "Jailbreak::TeamSelect" )
 
     Jailbreak.ShowTeam = showTeam
     concommand.Add "jb_showteam", showTeam
@@ -335,7 +336,7 @@ do
 
     PANEL.Init = =>
         @SetTextColor( white )
-        @SetFont( "Jailbreak::TeamButtons" )
+        @SetFont( "Jailbreak::TeamSelect - Button" )
 
     PANEL.OnCursorEntered = =>
         unless @IsEnabled!
@@ -402,11 +403,11 @@ do
             return
 
         unless @Color
-            @Color = team.GetColor( teamID )
+            @Color = GetColor( teamID )
 
         count = team.NumPlayers( teamID )
         if count ~= @Count
-            @SetText( team.GetName( teamID ) .. " x" .. count )
+            @SetText( GetName( teamID ) .. " x" .. count )
             @Count = count
 
         ply = Jailbreak.Player
@@ -418,7 +419,7 @@ do
             @SetEnabled( enabled )
             @SetCursor( enabled and "hand" or "no" )
 
-    vgui.Register( "JB.TeamButton", PANEL, "DButton" )
+    vgui.Register( "Jailbreak::TeamSelect - Button", PANEL, "DButton" )
 
 -- Main Panel
 do
@@ -467,7 +468,7 @@ do
         -- TEAM_GUARD
         do
 
-            button = subPanel\Add( "JB.TeamButton" )
+            button = subPanel\Add( "Jailbreak::TeamSelect - Button" )
             button.Team = TEAM_GUARD
             button.MainPanel = @
             button\Dock( LEFT )
@@ -478,7 +479,7 @@ do
         -- TEAM_PRISONER
         do
 
-            button = subPanel\Add( "JB.TeamButton" )
+            button = subPanel\Add( "Jailbreak::TeamSelect - Button" )
             button.Team = TEAM_PRISONER
             button.MainPanel = @
             button\Dock( RIGHT )
@@ -489,7 +490,7 @@ do
         -- TEAM_SPECTATOR
         do
 
-            button = @Add( "JB.TeamButton" )
+            button = @Add( "Jailbreak::TeamSelect - Button" )
             button\SetText( "#jb.team.spectate" )
             button.Team = TEAM_SPECTATOR
             button.MainPanel = @
@@ -506,7 +507,7 @@ do
         -- Random Team
         do
 
-            button = @Add( "JB.TeamButton" )
+            button = @Add( "Jailbreak::TeamSelect - Button" )
             button\SetText( "#jb.team.random" )
             button.Color = Colors.asparagus
             button.MainPanel = @
@@ -564,139 +565,421 @@ do
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
         DrawRect( 0, 0, width, height )
 
-    vgui.Register( "JB.TeamSelect", PANEL, "EditablePanel" )
+    vgui.Register( "Jailbreak::TeamSelect", PANEL, "EditablePanel" )
 
--- PANEL_META = FindMetaTable( "Panel" )
+PANEL_META = FindMetaTable( "Panel" )
 
--- do
---     PANEL = {}
+do
 
---     PANEL.Init = =>
---         avatar = vgui.Create("AvatarImage", @ )
---         if IsValid(avatar)
---             @Avatar = avatar
+    Jailbreak.Font( "Jailbreak::Scoreboard - Player", "Roboto Mono Bold", 2 )
 
---     PANEL.SetPlayer = ( ply ) =>
---         unless IsValid( ply ) and ply\IsPlayer!
---             return
+    PANEL = {}
 
---         @Player = ply
---         @Nick = ply\Nick!
---         @Ping = ply\Ping!
---         @Frags = ply\Frags!
---         @Deaths = ply\Deaths!
---         @Avatar\SetPlayer( ply, 32 )
+    PANEL.Init = =>
+        avatar = @Add( "AvatarImage" )
+        avatar\Dock( LEFT )
+        @Avatar = avatar
 
---     PANEL.PerformLayout = =>
---         tall = ScreenScaleH( 16 )
---         @SetTall( tall )
+        avatar.OnMousePressed = ( _, keyCode ) ->
+            ply = @Player
+            unless IsValid( ply ) and ply\IsPlayer!
+                return
 
---         marginBottom = ScreenScale( 3 )
---         @DockMargin( 0, 0, 0, marginBottom )
+            if ply\IsBot!
+                return
 
---         avatar = @Avatar
---         if IsValid( avatar )
---             wide, tall = @GetSize!
---             avatarSize = tall - ScreenScale( 2 )
---             marginLeft = ScreenScale( 6 )
+            steamid64 = ply\SteamID64!
 
---             avatar\SetPos( marginLeft, tall / 2 - avatarSize / 2 )
---             avatar\SetSize( avatarSize, avatarSize )
+            switch keyCode
+                when MOUSE_LEFT
+                    gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
+                when MOUSE_RIGHT
+                    menu = DermaMenu!
 
---     PANEL.Paint = ( w, h ) =>
---         draw.RoundedBox( 20, 0, 0, w, h, color_bacground )
+                    menu\AddOption "#jb.user.profile", ->
+                        gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
 
---         unless IsValid( @Player )
---             return
+                    menu\AddOption "#jb.user.steamid64", ->
+                        notification.AddLegacy( "#jb.notify.steamid64", NOTIFY_GENERIC, 3 )
+                        PlaySound( "buttons/button18.wav" )
+                        SetClipboardText( steamid64 )
 
---         avatar = @Avatar
---         unless IsValid( avatar )
---             return
+                    do
 
---         marginLeft, marginTop = ScreenScale( 5 ), ScreenScaleH( 0.4 )
---         draw.DrawText( @Nick, "DermaLarge", marginLeft * 2 + avatar\GetWide!, marginTop, white, TEXT_ALIGN_LEFT )
+                        isMuted = ply\IsMuted!
+                        option = menu\AddOption "#jb.user.mute", ->
+                            if ply\IsValid!
+                                ply\SetMuted( not isMuted )
+
+                        option\SetChecked( isMuted )
+
+                    menu\Open!
+
+        nickname = @Add( "DLabel" )
+        nickname\Dock( FILL )
+        @Nickname = nickname
+
+        nickname\SetFont( "Jailbreak::Scoreboard - Player" )
+        nickname\SetTextColor( dark_grey )
+        nickname\SetContentAlignment( 4 )
+
+        ping = @Add( "DLabel" )
+        ping\Dock( RIGHT )
+        @Ping = ping
+
+        ping\SetFont( "Jailbreak::Scoreboard - Player" )
+        ping\SetTextColor( dark_grey )
+        ping\SetContentAlignment( 5 )
+        ping\SetZPos( 1000 )
+        ping\SetText( "0" )
+
+        ratio = @Add( "DLabel" )
+        ratio\Dock( RIGHT )
+        @Ratio = ratio
+
+        ratio\SetFont( "Jailbreak::Scoreboard - Player" )
+        ratio\SetContentAlignment( 5 )
+        ratio\SetTextColor( dark_grey )
+        ratio\SetZPos( 2000 )
+        ratio\SetText( "0" )
+
+        @Color = light_grey
+        @Text = "unknown"
+
+    PANEL.Setup = ( ply ) =>
+        unless IsValid( ply ) and ply\IsPlayer!
+            return
+
+        @Player = ply
+        @InvalidateLayout!
+
+    PANEL.Think = =>
+        ply = @Player
+        unless ply
+            return
+
+        unless ply\IsValid!
+            @Remove!
+            return
+
+        pingPanel, pingStr = @Ping, tostring( ply\Ping! ) .. "ms"
+        if IsValid( pingPanel ) and pingPanel\GetText! ~= pingStr
+            pingPanel\SetTooltip( pingStr )
+            pingPanel\SetText( pingStr )
+
+        ratioPanel, ratioStr = @Ratio, "#{ply\Frags!}:#{ply\Deaths!}"
+        if IsValid( ratioPanel ) and ratioPanel\GetText! ~= ratioStr
+            ratioPanel\SetTooltip( ratioStr )
+            ratioPanel\SetText( ratioStr )
 
 
---     vgui.Register("JB.Scoreboard.Player", PANEL)
+    PANEL.PerformLayout = =>
+        if @GetDock! ~= TOP
+            @Dock( TOP )
 
+        offset = VMin( 0.5 )
+        @DockMargin( 0, 0, 0, offset )
+        @DockPadding( offset, offset, offset, offset )
 
--- ---
--- --- MAIN PANEL
--- ---
+        height = VMin( 2.5 ) + offset * 2
 
--- do
+        ply = @Player
+        if IsValid( ply )
+            @Color = ply\Alive! and ply\GetTeamColor! or light_grey
 
---     PANEL = {}
+            text = ply\Nick!
+            @SetTooltip( text )
 
---     PANEL.Init = =>
+            SetFont( "Jailbreak::Scoreboard - Player" )
+            textWidth, textHeight = GetTextSize( text )
+            height = max( height, textHeight + offset * 2 )
 
+            nickname = @Nickname
+            if IsValid( nickname )
+                nickname\DockMargin( offset, 0, 0, 0 )
+                nickname\SetTooltip( text )
 
---     PANEL.PerformLayout = ( w, h ) =>
---         wide, tall = ScreenScale( 300 ), ScreenScaleH( 380 )
---         @SetSize( wide, tall )
---         @Center!
+                if nickname\GetText! ~= text
+                    nickname\SetText( text )
 
---         paddingTop, paddingHorizontal = ScreenScaleH( 20 ), ScreenScale( 10 )
---         @DockPadding( paddingHorizontal, paddingTop, paddingHorizontal, 0 )
+            avatar = @Avatar
+            if IsValid( avatar )
+                if avatar\GetDock! ~= LEFT
+                    avatar\Dock( LEFT )
 
---     PANEL.DeletePlayers = =>
---         unless istable( @Players )
---             @Players = {}
---             return
+                avatarHeight = avatar\GetTall!
+                avatar\SetWide( avatarHeight )
+                avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( ceil( avatarHeight ), 2 ) ), 16, 512 ) )
 
---         for ply in *@Players
---             unless IsValid( ply )
---                 continue
---             ply\Remove!
+        @SetTall( height )
+        CloseDermaMenus!
 
---         @Players = {}
+    PANEL.Paint = ( width, height ) =>
+        SetDrawColor( @Color )
+        DrawRect( 0, 0, width, height )
 
---     PANEL.CreatePlayers = =>
---         @DeletePlayers!
+    vgui.Register( "Jailbreak::Scoreboard - Player", PANEL, "EditablePanel" )
 
---         for ply in *GetAll!
---             unless IsValid( ply )
---                 continue
+do
 
---             playerPanel = vgui.Create( "JB.Scoreboard.Player", @ )
---             unless IsValid( playerPanel )
---                 continue
+    Jailbreak.Font( "Jailbreak::Scoreboard - Header", "Roboto Mono Bold", 4 )
 
---             table.insert( @Players, playerPanel )
---             playerPanel\SetPlayer( ply )
---             playerPanel\Dock( TOP )
+    PANEL = {}
 
---     PANEL.Show = =>
---         @CreatePlayers!
---         PANEL_META.Show( @ )
+    PANEL.Init = =>
+        @Team = TEAM_SPECTATOR
+        @InvalidateLayout( true )
 
---     PANEL.Hide = =>
---         @DeletePlayers!
---         PANEL_META.Hide( @ )
+    PANEL.PerformLayout = =>
+        if @GetDock! ~= TOP
+            @Dock( TOP )
 
---     PANEL.Paint = ( w, h ) =>
---         surface.SetDrawColor( color_red )
---         surface.DrawRect( 0, 0, w, h )
+        teamID = @Team
+        @Color = GetColor( teamID )
+        text = GetName( teamID )
+        @SetTooltip( text )
 
---         draw.DrawText( "Your mom's gamemode", "DermaLarge", w / 2, 0, white, TEXT_ALIGN_CENTER )
+        SetFont( "Jailbreak::Scoreboard - Header" )
+        textWidth, textHeight = GetTextSize( text )
+        width = @GetWide!
+        @Text = text
 
---     vgui.Register( "JB.Scoreboard", PANEL )
+        offset = VMin( 0.5 )
+        height = textHeight + offset * 2
+        @SetTall( height )
 
--- scoreboard = GM.ScoreBoard or GAMEMODE and GAMEMODE.ScoreBoard
--- if IsValid( scoreboard )
---     scoreboard\Remove!
+        if @Team == TEAM_SPECTATOR
+            @TextPosX, @TextPosY = ( width - textWidth ) / 2, ( height - textHeight ) / 2
+            @RectX, @RectWidth = 0, width
+            return
 
--- GM.ScoreboardShow = =>
---     scoreboard = @ScoreBoard
---     unless IsValid( scoreboard )
---         scoreboard = vgui.Create( "JB.Scoreboard", GetHUDPanel! )
---         @ScoreBoard = scoreboard
---         -- print("Created")
+        score = tostring( GetScore( teamID ) )
+        scoreWidth, scoreHeight = GetTextSize( score )
+        scoreSize = max( scoreWidth + offset, VMin( 5 ) )
+        @ScoreX, @ScoreY = ( scoreSize - scoreWidth ) / 2, ( height - scoreHeight ) / 2
+        @ScoreSize = scoreSize
+        @Score = score
 
---     scoreboard\Show!
---     return false
+        scoreX = scoreSize + offset
+        @RectX, @RectWidth = scoreX, width - scoreX
+        @TextPosX, @TextPosY = scoreX + ( width - scoreX - textWidth ) / 2, ( height - textHeight ) / 2
 
--- GM.ScoreboardHide = =>
---     scoreboard = @ScoreBoard
---     if IsValid( scoreboard )
---         scoreboard\Hide!
+    PANEL.Paint = ( width, height ) =>
+        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+        SetFont( "Jailbreak::Scoreboard - Header" )
+        SetDrawColor( @Color )
+
+        if @Team ~= TEAM_SPECTATOR
+            DrawRect( 0, 0, @ScoreSize, height )
+            SetTextPos( @ScoreX, @ScoreY )
+            DrawText( @Score )
+
+        DrawRect( @RectX, 0, @RectWidth, height )
+
+        SetTextPos( @TextPosX, @TextPosY )
+        DrawText( @Text )
+
+    vgui.Register( "Jailbreak::Scoreboard - Header", PANEL, "Panel" )
+
+do
+
+    Jailbreak.Font( "Jailbreak::Scoreboard - Small", "Roboto Mono Medium Italic", 2 )
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        header = @Add( "DLabel" )
+        @Header = header
+        header\Dock( TOP )
+        header\SetTextColor( white )
+        header\SetContentAlignment( 5 )
+        header\SetFont( "Jailbreak::Scoreboard - Header" )
+
+        prisoners = @Add( "EditablePanel" )
+        @Prisoners = prisoners
+
+        label = prisoners\Add( "Jailbreak::Scoreboard - Header" )
+        prisoners.Label = label
+
+        label.Team = TEAM_PRISONER
+        label\InvalidateLayout!
+
+        scrollPanel = prisoners\Add( "DScrollPanel" )
+        prisoners.ScrollPanel = scrollPanel
+        scrollPanel\Dock( FILL )
+
+        guards = @Add( "EditablePanel" )
+        @Guards = guards
+
+        label = guards\Add( "Jailbreak::Scoreboard - Header" )
+        guards.Label = label
+
+        label.Team = TEAM_GUARD
+        label\InvalidateLayout!
+
+        scrollPanel = guards\Add( "DScrollPanel" )
+        guards.ScrollPanel = scrollPanel
+        scrollPanel\Dock( FILL )
+
+        spectators = @Add( "EditablePanel" )
+        @Spectators = spectators
+        spectators\SetZPos( -1000 )
+
+        label = spectators\Add( "Jailbreak::Scoreboard - Header" )
+        spectators.Label = label
+
+        label.Team = TEAM_SPECTATOR
+        label\InvalidateLayout!
+
+        scrollPanel = spectators\Add( "DScrollPanel" )
+        spectators.ScrollPanel = scrollPanel
+        scrollPanel\Dock( FILL )
+
+        playerCount = @Add( "DLabel" )
+        @PlayerCount = playerCount
+
+        playerCount\SetZPos( -5000 )
+        playerCount\SetTextColor( white )
+        playerCount\SetContentAlignment( 5 )
+        playerCount\SetFont( "Jailbreak::Scoreboard - Small" )
+
+    PANEL.PerformLayout = =>
+        size = VMin( 80 )
+        @SetSize( size, size )
+        @Center!
+
+        padding = VMin( 1 )
+        margin = VMin( 0.5 )
+
+        header = @Header
+        if IsValid( header )
+            header\SetText( GetHostName! )
+            header\DockMargin( 0, 0, 0, margin )
+            header\SizeToContentsY!
+
+        prisoners = @Prisoners
+        if IsValid( prisoners )
+            if prisoners\GetDock! ~= LEFT
+                prisoners\Dock( LEFT )
+
+            label = prisoners.Label
+            if IsValid( label )
+                label\DockMargin( 0, 0, 0, margin )
+
+            scrollPanel = prisoners.ScrollPanel
+            if IsValid( scrollPanel )
+                vbar = scrollPanel.VBar
+                if IsValid( vbar )
+                    vbar\SetWide( 0 )
+
+            prisoners\SetWide( size / 2 - padding - margin / 2 )
+
+        guards = @Guards
+        if IsValid( guards )
+            if guards\GetDock! ~= RIGHT
+                guards\Dock( RIGHT )
+
+            label = guards.Label
+            if IsValid( label )
+                label\DockMargin( 0, 0, 0, margin )
+
+            scrollPanel = guards.ScrollPanel
+            if IsValid( scrollPanel )
+                vbar = scrollPanel.VBar
+                if IsValid( vbar )
+                    vbar\SetWide( 0 )
+
+            guards\SetWide( size / 2 - padding - margin / 2 )
+
+        spectators = @Spectators
+        if IsValid( spectators )
+            if spectators\GetDock! ~= BOTTOM
+                spectators\Dock( BOTTOM )
+
+            spectators\DockMargin( 0, margin, 0, 0 )
+
+            label = spectators.Label
+            if IsValid( label )
+                label\DockMargin( 0, 0, 0, margin )
+
+            scrollPanel = spectators.ScrollPanel
+            if IsValid( scrollPanel )
+                vbar = scrollPanel.VBar
+                if IsValid( vbar )
+                    vbar\SetWide( 0 )
+
+            spectators\SetTall( size / 4 )
+
+        playerCount = @PlayerCount
+        if IsValid( playerCount )
+            if playerCount\GetDock! ~= BOTTOM
+                playerCount\Dock( BOTTOM )
+
+            teams = Jailbreak.GetTeamPlayersCount( nil, TEAM_PRISONER, TEAM_GUARD )
+            playerCount\SetText( format( GetPhrase( "jb.scoreboard.players-online" ), player.GetCount!, teams[ 1 ], teams[ 2 ] ) )
+            playerCount\SizeToContentsY!
+
+        @DockPadding( padding, padding, padding, padding )
+
+    PANEL.ClearPlayers = =>
+        scrollPanel = @Prisoners.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Clear!
+
+        scrollPanel = @Guards.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Clear!
+
+        scrollPanel = @Spectators.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Clear!
+
+    PANEL.AddPlayers = =>
+        prisoners, guards, spectators = @Prisoners.ScrollPanel, @Guards.ScrollPanel, @Spectators.ScrollPanel
+        for ply in *GetAll!
+            panel = vgui.Create( "Jailbreak::Scoreboard - Player" )
+            panel\Setup( ply )
+
+            switch ply\Team!
+                when TEAM_PRISONER
+                    prisoners\AddItem( panel )
+                when TEAM_GUARD
+                    guards\AddItem( panel )
+                when TEAM_SPECTATOR
+                    spectators\AddItem( panel )
+
+    PANEL.Show = =>
+        PANEL_META.Show( @ )
+        CloseDermaMenus!
+        @AddPlayers!
+        @MakePopup!
+        @InvalidateLayout!
+
+    PANEL.Hide = =>
+        @ClearPlayers!
+        CloseDermaMenus!
+        PANEL_META.Hide( @ )
+
+    PANEL.Paint = ( width, height ) =>
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+        DrawRect( 0, 0, width, height )
+
+    vgui.Register( "Jailbreak::Scoreboard", PANEL )
+
+GM.ScoreboardShow = =>
+    scoreboard = @ScoreBoard
+
+    if cvars.Number( "developer", 0 ) > 2 and IsValid( scoreboard )
+        scoreboard\Remove!
+
+    unless IsValid( scoreboard )
+        scoreboard = vgui.Create( "Jailbreak::Scoreboard" )
+        @ScoreBoard = scoreboard
+
+    scoreboard\Show!
+    return false
+
+GM.ScoreboardHide = =>
+    scoreboard = @ScoreBoard
+    if IsValid( scoreboard )
+        scoreboard\Hide!
