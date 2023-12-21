@@ -1,4 +1,14 @@
 Jailbreak = Jailbreak
+hook_Run = hook.Run
+
+do
+
+    :String = cvars
+
+    cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
+        timer.Create "Jailbreak::LanguageChanged", 0.025, 1, ->
+            hook_Run( "LanguageChanged", String( "gmod_language", "en" ), value )
+    "Jailbreak::LanguageChanged" )
 
 do
 
@@ -25,7 +35,6 @@ do
 do
 
     ScrW, ScrH = ScrW, ScrH
-    hook_Run = hook.Run
     :min, :max, :ceil = math
 
     width, height = ScrW!, ScrH!

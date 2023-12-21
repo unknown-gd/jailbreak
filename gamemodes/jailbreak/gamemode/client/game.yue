@@ -4,14 +4,6 @@ hook_Run = hook.Run
 :format = string
 GM = GM
 
-do
-
-    :String = cvars
-
-    cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
-        hook_Run( "LanguageChanged", String( "gmod_language", "en" ), value )
-    "Jailbreak::LanguageChanged" )
-
 GM.InitPostEntity = =>
     Jailbreak.PlayingTaunt = false
 

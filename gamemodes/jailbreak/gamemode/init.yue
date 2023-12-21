@@ -21,27 +21,27 @@ Jailbreak.DefaultTeamColors = {
 
 do
 
-    ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
+    FCVAR_SERVER = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
     CreateConVar = CreateConVar
 
-    Jailbreak.PrepareTime = CreateConVar( "jb_prepare_time", "10", ConVarFlags, "The time before the start of the round that is given for preparation.", 5, 2 * 60 * 60 )
-    Jailbreak.RoundTime = CreateConVar( "jb_round_time", "0", ConVarFlags, "Round time in seconds.", 0, 12 * 60 * 60 )
+    Jailbreak.PrepareTime = CreateConVar( "jb_prepare_time", "10", FCVAR_SERVER, "The time before the start of the round that is given for preparation.", 5, 2 * 60 * 60 )
+    Jailbreak.RoundTime = CreateConVar( "jb_round_time", "0", FCVAR_SERVER, "Round time in seconds.", 0, 12 * 60 * 60 )
 
-    Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", ConVarFlags, "Guards armor amount on spawn.", 0, 1000 )
-    Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "500", ConVarFlags, "The value is responsible for the health of the door.", 50, 10000 )
+    Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", FCVAR_SERVER, "Guards armor amount on spawn.", 0, 1000 )
+    Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "500", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
 
-    Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", ConVarFlags, "The speed of the player while walking.", 0, 3000 )
-    Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", ConVarFlags, "The speed of the player while running.", 0, 3000 )
+    Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", FCVAR_SERVER, "The speed of the player while walking.", 0, 3000 )
+    Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", FCVAR_SERVER, "The speed of the player while running.", 0, 3000 )
 
-    Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "0.5", ConVarFlags, "Time to eat food in seconds.", 0, 300 )
-    Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "1", ConVarFlags, "Time to looting a ragdoll in seconds.", 0, 300 )
+    Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "0.5", FCVAR_SERVER, "Time to eat food in seconds.", 0, 300 )
+    Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "1", FCVAR_SERVER, "Time to looting a ragdoll in seconds.", 0, 300 )
 
-    Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", ConVarFlags, "Allow custom player colors.", 0, 1 )
-    Jailbreak.AllowCustomWeaponColors = CreateConVar( "jb_allow_custom_weapon_colors", "1", ConVarFlags, "Allow custom weapon colors.", 0, 1 )
-    Jailbreak.AllowSprayEveryone = CreateConVar( "jb_allow_spray_everyone", "0", ConVarFlags, "Allow use spray to everyone.", 0, 1 )
+    Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", FCVAR_SERVER, "Allow custom player colors.", 0, 1 )
+    Jailbreak.AllowCustomWeaponColors = CreateConVar( "jb_allow_custom_weapon_colors", "1", FCVAR_SERVER, "Allow custom weapon colors.", 0, 1 )
+    Jailbreak.AllowSprayEveryone = CreateConVar( "jb_allow_spray_everyone", "0", FCVAR_SERVER, "Allow use spray to everyone.", 0, 1 )
 
-    Jailbreak.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", ConVarFlags, "Damage to the victim from the electric collar.", 0, 1000 )
-    Jailbreak.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", ConVarFlags, "Damage to the attacker from the electric collar.", 0, 1000 )
+    Jailbreak.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", FCVAR_SERVER, "Damage to the victim from the electric collar.", 0, 1000 )
+    Jailbreak.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", FCVAR_SERVER, "Damage to the attacker from the electric collar.", 0, 1000 )
 
 
 -- Utils

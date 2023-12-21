@@ -446,12 +446,14 @@ do
         elseif key == IN_ATTACK2
             ply\MoveObserveIndex( -1 )
 
-        elseif key == IN_JUMP and IsValid( ply\GetObserverTarget! )
-            switch ply\GetObserverMode!
-                when OBS_MODE_CHASE
-                    ply\Spectate( OBS_MODE_IN_EYE )
-                when OBS_MODE_IN_EYE
-                    ply\Spectate( OBS_MODE_CHASE )
+        elseif key == IN_JUMP
+            target = ply\GetObserverTarget!
+            if IsValid( target ) and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
+                switch ply\GetObserverMode!
+                    when OBS_MODE_CHASE
+                        ply\Spectate( OBS_MODE_IN_EYE )
+                    when OBS_MODE_IN_EYE
+                        ply\Spectate( OBS_MODE_CHASE )
 
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
