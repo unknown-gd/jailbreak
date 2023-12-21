@@ -1,9 +1,11 @@
-GM = GM
 Jailbreak = Jailbreak
-colors = Jailbreak.Colors
-:dark_white, :light_grey, :white = colors
+:Colors = Jailbreak
+GM = GM
+
+:Clamp, :Rand, :abs, :sin, :min, :random = math
+:dark_white, :light_grey, :white = Colors
+:GetPhrase = language
 :find = string
-:Clamp, :Rand, :abs, :sin, :min = math
 
 do
 
@@ -26,7 +28,7 @@ do
 
     TEXT_FILTER_GAME_CONTENT = TEXT_FILTER_GAME_CONTENT
     TEXT_FILTER_CHAT = TEXT_FILTER_CHAT
-    :ChatText, :Translate = Jailbreak
+    :ChatText = Jailbreak
     :FilterText = util
     :Number = cvars
     unpack = unpack
@@ -37,18 +39,24 @@ do
 
         if isDead
             result[] = dark_white
-            result[] = Translate( "[#jb.chat.dead] " )
+            result[] = "[" .. GetPhrase( "jb.chat.dead" ) .. "] "
 
         if ply and ply\IsValid!
             result[] = ply\GetModelColor!
             result[] = ply\Nick!
-            text = FilterText( text, ( band( Number( "cl_chatfilters", 0 ), 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, ply )
+
+            unless ply\IsLocalPlayer!
+                if ply\IsMuted!
+                    text = GetPhrase( "jb.chat.muted." .. random( 0, 2 ) )
+                else
+                    text = FilterText( text, ( band( Number( "cl_chatfilters", 0 ), 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, ply )
+
         else
-            result[] = colors.console
-            result[] = Translate( "#jb.chat.console" )
+            result[] = Colors.console
+            result[] = GetPhrase( "jb.chat.console" )
 
         result[] = white
-        result[] = Translate( " #jb.chat.says: \"" .. text .. "\"" )
+        result[] = " " .. GetPhrase( "jb.chat.says" ) .. ": \"" .. text .. "\""
 
         ChatText( unpack( result ) )
         return true

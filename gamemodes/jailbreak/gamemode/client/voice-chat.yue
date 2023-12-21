@@ -59,11 +59,12 @@ do
             if avatar\GetDock! ~= LEFT
                 avatar\Dock( LEFT )
 
-            avatar\SetWide( avatar\GetTall! )
+            avatarHeight = avatar\GetTall!
+            avatar\SetWide( avatarHeight )
 
             ply = @Player
             if IsValid( ply )
-                avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( height - padding * 2, 2 ) ), 16, 512 ) )
+                avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( ceil( avatarHeight ), 2 ) ), 16, 512 ) )
 
         @SetTall( height )
 
