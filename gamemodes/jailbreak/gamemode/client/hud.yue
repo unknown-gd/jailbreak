@@ -140,12 +140,13 @@ do
             filter = ply
 
         screenCenterX = Jailbreak.ScreenCenterX
+        mouseX, mouseY = screenCenterX, Jailbreak.ScreenCenterY
 
-        mouseX, mouseY = GetCursorPos!
-        if mouseX == 0 and mouseY == 0 or not CursorVisible!
-            mouseX, mouseY = screenCenterX, Jailbreak.ScreenCenterY
+        isWorldClicking = ply\IsWorldClicking!
+        if isWorldClicking and CursorVisible!
+            mouseX, mouseY = GetCursorPos!
 
-        trace.endpos = start + ScreenToVector( mouseX, mouseY ) * 1024
+        trace.endpos = start + ScreenToVector( mouseX, mouseY ) * ( isWorldClicking and 1024 or VoiceChatMinDistance\GetInt! )
         trace.filter = filter
 
         traceResult = TraceLine( trace )
@@ -277,7 +278,7 @@ do
             SetAlphaMultiplier( alpha )
 
             iconSize = VMin( 12 )
-            x, y = screenCenterX, Jailbreak.ScreenHeight - iconSize / 2
+            x, y = Jailbreak.ScreenCenterX, Jailbreak.ScreenHeight - iconSize / 2
             rotation = sin( CurTime! * 3 ) * 30
 
             SetMaterial( speakingIcon )

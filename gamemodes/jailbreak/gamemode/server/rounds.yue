@@ -47,7 +47,7 @@ do
 -- Perform a round state change
 do
 
-    :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GuardsDiff, :GetWarden = Jailbreak
+    :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GuardsDiff, :GetWarden, :PermanentGuards = Jailbreak
     timer_Simple = timer.Simple
     :ceil, :random = math
     :CleanUpMap = game
@@ -68,7 +68,7 @@ do
                     if ply\IsInGame!
                         ply\KillSilent!
 
-                    if ply\IsBot! or ply\IsGuard!
+                    if ply\IsBot! or ( ply\IsGuard! and not PermanentGuards\GetBool! )
                         ply\SetTeam( TEAM_PRISONER )
 
                 timer_Simple( 0, CleanUpMap )
