@@ -783,6 +783,16 @@ do
 
 do
 
+    PANEL = {}
+
+    PANEL.Paint = ( width, height ) =>
+        SetDrawColor( black.r, black.g, black.b, 100 )
+        DrawRect( 0, 0, width, height )
+
+    vgui.Register( "Jailbreak::Scoreboard - ScrollPanel", PANEL, "DScrollPanel" )
+
+do
+
     Jailbreak.Font( "Jailbreak::Scoreboard - Small", "Roboto Mono Medium Italic", 2 )
 
     PANEL = {}
@@ -805,7 +815,7 @@ do
         label.Team = TEAM_PRISONER
         label\InvalidateLayout!
 
-        scrollPanel = prisoners\Add( "DScrollPanel" )
+        scrollPanel = prisoners\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         prisoners.ScrollPanel = scrollPanel
         scrollPanel\Dock( FILL )
 
@@ -818,7 +828,7 @@ do
         label.Team = TEAM_GUARD
         label\InvalidateLayout!
 
-        scrollPanel = guards\Add( "DScrollPanel" )
+        scrollPanel = guards\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         guards.ScrollPanel = scrollPanel
         scrollPanel\Dock( FILL )
 
@@ -832,7 +842,7 @@ do
         label.Team = TEAM_SPECTATOR
         label\InvalidateLayout!
 
-        scrollPanel = spectators\Add( "DScrollPanel" )
+        scrollPanel = spectators\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         spectators.ScrollPanel = scrollPanel
         scrollPanel\Dock( FILL )
 
@@ -897,7 +907,7 @@ do
             if spectators\GetDock! ~= BOTTOM
                 spectators\Dock( BOTTOM )
 
-            spectators\DockMargin( 0, margin, 0, 0 )
+            spectators\DockMargin( 0, margin, 0, margin )
 
             label = spectators.Label
             if IsValid( label )
