@@ -158,19 +158,19 @@ SWEP.DealDamage = =>
 SWEP.Show = =>
     @GetViewModel!\SetNoDraw( false )
     @SetHoldType( "fist" )
+
+    @PrintName = "#jb.fists"
     @Pulls = true
 
     @SetNextIdle( @PlaySequence( "fists_draw", ->
         @Pulls = false
     ) )
 
-SWEP.GetPrintName = =>
-    return @GetHoldType! == "fist" and "#jb.fists" or "#jb.hands"
-
 SWEP.Hide = =>
     @Pulls = true
     @SetNextIdle( 0 )
     @SetHoldType( "normal" )
+    @PrintName = "#jb.hands"
     @PlaySequence( "fists_holster", ( _, vm ) ->
         vm\SetNoDraw( true )
         @Pulls = false
