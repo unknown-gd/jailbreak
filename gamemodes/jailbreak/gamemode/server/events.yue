@@ -217,7 +217,7 @@ do
 
                 if traceResult.MatType == MAT_GRASS
                     @SetColor( colors.black )
-                    @Ignite( 3, 32 )
+                    @Ignite( 0.25, 32 )
 
                     damageInfo = DamageInfo!
                     damageInfo\SetDamageType( DMG_BURN )

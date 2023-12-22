@@ -164,7 +164,7 @@ do
                     ShockCollarEffect( entity, damageOrigin, 150 )
 
                     if damageInfo\IsCloseRangeDamage!
-                        attacker\Ignite( 0.5, 16 )
+                        attacker\Ignite( 0.25, 16 )
 
                         damageOrigin = damageInfo\GetDamagePosition!
                         dir = attacker\WorldSpaceCenter! - damageOrigin
