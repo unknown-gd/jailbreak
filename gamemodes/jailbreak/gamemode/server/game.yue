@@ -495,7 +495,7 @@ do
             return
 
         Start( "Jailbreak::Networking" )
-        WriteUInt( 0, 2 )
+        WriteUInt( 0, 3 )
         WriteString( gameName )
         Send( ply )
 

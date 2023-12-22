@@ -50,6 +50,7 @@ do
     :ReadString, :ReadUInt, :ReadTable = net
     :ChatText, :Translate = Jailbreak
     :AddLegacy = notification
+    :PlaySound = surface
     isstring = isstring
     unpack = unpack
 
@@ -70,10 +71,12 @@ do
                     data[ index ] = Translate( value )
 
             ChatText( unpack( data ) )
+        [ 4 ]: ->
+            PlaySound( ReadString! )
     }
 
     net.Receive "Jailbreak::Networking", ( len ) ->
-        func = Networking[ ReadUInt( 2 ) ]
+        func = Networking[ ReadUInt( 3 ) ]
         unless func
             return
 

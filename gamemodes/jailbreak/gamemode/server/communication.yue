@@ -18,7 +18,7 @@ do
 
     sendChatText = ( target, ... ) ->
         Start( "Jailbreak::Networking" )
-        WriteUInt( 3, 2 )
+        WriteUInt( 3, 3 )
         WriteTable( { ... }, true )
 
         if target
@@ -163,8 +163,17 @@ GM.PlayerCanSeePlayersChat = ( _, isTeam, listener, speaker ) =>
     return listener.AvailableSpeakers[ speaker ] ~= nil
 
 -- New warden notification
-GM.WardenChanged = ( ply, state ) =>
-    sendChatText( false, ply\GetModelColor!, ply\Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
+do
+
+    RecipientFilter = RecipientFilter
+    CHAN_STATIC = CHAN_STATIC
+
+    GM.WardenChanged = ( ply, state ) =>
+        sendChatText( false, ply\GetModelColor!, ply\Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
+
+        rf = RecipientFilter!
+        rf\AddPAS( ply\EyePos! )
+        ply\EmitSound( state and "ui/buttonclick.wav" or "ui/buttonclickrelease.wav", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1, rf )
 
 -- Other
 setChatCommand "warden", =>

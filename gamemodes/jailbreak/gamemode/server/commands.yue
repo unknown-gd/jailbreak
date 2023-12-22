@@ -120,7 +120,10 @@ do
 
     :Markers, :VoiceChatMinDistance, :MarkersLifetime, :MarkersCount, :Emotion = Jailbreak
     :Start, :WriteEntity, :WriteBool, :WriteVector, :Send, :Broadcast = net
+    CHAN_STATIC = CHAN_STATIC
+    EmitSound = EmitSound
     :TraceLine = util
+    :random = math
 
     trace = {
         mask: MASK_SHOT
@@ -174,25 +177,45 @@ do
         WriteEntity( @ )
         WriteBool( isValid )
 
+        origin = nil
         if isValid
             WriteEntity( entity )
-            WriteVector( entity\WorldToLocal( traceResult.HitPos ) )
+            origin = entity\WorldToLocal( traceResult.HitPos )
         else
-            WriteVector( traceResult.HitPos )
+            origin = traceResult.HitPos
+
+        WriteVector( origin )
 
         if isWarden
             Broadcast!
+
+            rf = RecipientFilter!
+            rf\AddPAS( origin )
+
+            if isValid
+                entity\EmitSound( "buttons/button" .. random( 14, 19 ) .. ".wav", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1, rf )
+            else
+                EmitSound( "buttons/button" .. random( 14, 19 ) .. ".wav", origin, 0, CHAN_STATIC, 1, 75, 0, random( 80, 120 ), 1, rf )
+
         elseif isPrisoner
-            players, hasSender = @GetNearPlayers( distance, true ), false
-            for ply in *players
+            rf = RecipientFilter!
+
+            hasSender = false
+            for ply in *@GetNearPlayers( distance, true )
                 if ply == @
                     hasSender = true
-                    break
+
+                rf\AddPlayer( ply )
 
             unless hasSender
-                players[] = @
+                rf\AddPlayer( @ )
 
-            Send( players )
+            Send( rf )
+
+            if isValid
+                entity\EmitSound( "buttons/button" .. random( 14, 19 ) .. ".wav", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1, rf )
+            else
+                EmitSound( "buttons/button" .. random( 14, 19 ) .. ".wav", origin, 0, CHAN_STATIC, 1, 75, 0, random( 80, 120 ), 1, rf )
 
         if entity\IsValid!
             if entity\IsPlayer!

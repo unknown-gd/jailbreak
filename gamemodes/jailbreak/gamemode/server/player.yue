@@ -10,20 +10,40 @@ do
 
     :Start, :WriteUInt, :WriteTable, :WriteString, :Send = net
 
+    PLAYER.PlaySound = ( soundPath ) =>
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 4, 3 )
+        WriteString( soundPath )
+        Send( @ )
+
     PLAYER.SendPickupNotify = ( itemName ) =>
         Start( "Jailbreak::Networking" )
-        WriteUInt( 1, 2 )
+        WriteUInt( 1, 3 )
         WriteString( itemName )
         Send( @ )
 
-    PLAYER.SendNotify = ( text, typeID, length, ... ) =>
-        Start( "Jailbreak::Networking" )
-        WriteUInt( 2, 2 )
-        WriteString( text )
-        WriteTable( { ... }, true )
-        WriteUInt( typeID, 3 )
-        WriteUInt( length, 16 )
-        Send( @ )
+    do
+
+        sounds = {
+            [ NOTIFY_GENERIC ]: "buttons/button9.wav"
+            [ NOTIFY_ERROR ]: "player/suit_denydevice.wav"
+            [ NOTIFY_HINT ]: "buttons/button24.wav"
+            [ NOTIFY_CLEANUP ]: "buttons/button6.wav"
+            [ NOTIFY_UNDO ]: "buttons/button8.wav"
+        }
+
+        PLAYER.SendNotify = ( text, typeID, length, ... ) =>
+            Start( "Jailbreak::Networking" )
+            WriteUInt( 2, 3 )
+            WriteString( text )
+            WriteTable( { ... }, true )
+            WriteUInt( typeID, 3 )
+            WriteUInt( length, 16 )
+            Send( @ )
+
+            soundPath = sounds[ typeID ]
+            if soundPath ~= nil
+                @PlaySound( soundPath )
 
 PLAYER.SetWarden = ( bool, silent ) =>
     if bool == @IsWarden!

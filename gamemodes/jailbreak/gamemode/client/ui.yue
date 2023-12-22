@@ -790,6 +790,7 @@ do
     PANEL.Init = =>
         header = @Add( "DLabel" )
         @Header = header
+
         header\Dock( TOP )
         header\SetTextColor( white )
         header\SetContentAlignment( 5 )

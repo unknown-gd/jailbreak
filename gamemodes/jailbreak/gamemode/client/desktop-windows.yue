@@ -2,6 +2,7 @@ Jailbreak = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
 :find, :Explode = string
+:PlaySound = surface
 list_Set = list.Set
 :Colors = Jailbreak
 IsValid = IsValid
@@ -9,6 +10,9 @@ IsValid = IsValid
 do
 
     securityRadio = CreateConVar( "jb_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
+    cvars.AddChangeCallback( securityRadio\GetName!, ( _, __, value ) ->
+        PlaySound( value == "1" and "npc/overwatch/radiovoice/on3.wav" or "npc/overwatch/radiovoice/off2.wav" )
+    "Jailbreak::SecurityRadio" )
 
     list_Set "DesktopWindows", "walkie-talkie", {
         title: "#jb.walkie-talkie"

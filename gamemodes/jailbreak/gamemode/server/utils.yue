@@ -22,6 +22,16 @@ global NOTIFY_CLEANUP = 4
 Jailbreak.TF2Team = ( teamID ) ->
     return teamID % 2 + 1
 
+do
+
+    :Start, :WriteUInt, :WriteString, :Broadcast = net
+
+    Jailbreak.PlaySound = ( soundPath ) ->
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 4, 3 )
+        WriteString( soundPath )
+        Broadcast!
+
 -- Change player team
 do
 

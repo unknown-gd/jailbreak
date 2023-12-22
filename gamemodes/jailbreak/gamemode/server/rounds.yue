@@ -1,8 +1,9 @@
 Jailbreak = Jailbreak
-:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime = Jailbreak
+GM = GM
+
+:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime, :PlaySound = Jailbreak
 hook_Run = hook.Run
 CurTime = CurTime
-GM = GM
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -86,6 +87,7 @@ do
                 timer_Simple( 0, CleanUpMap )
 
             when ROUND_RUNNING
+                PlaySound( "ambient/alarms/warningbell1.wav" )
                 players = GetAll!
 
                 for ply in *players
@@ -173,6 +175,7 @@ do
                     warden\SetWarden( false, true )
 
                 setRoundTime( PrepareTime\GetInt! )
+                PlaySound( "ambient/alarms/warningbell1.wav" )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerChangedTeam
 do
@@ -217,6 +220,8 @@ do
                 setRoundState( ROUND_ENDED )
             elseif isWarden and ply\IsValid!
                 hook_Run( "WardenChanged", ply, false )
+            elseif teams[ 2 ] == 1
+                PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
 
     GM.TeamPlayerDisconnected = ( ply, teamID ) =>
         unless ply\Alive!
