@@ -60,7 +60,9 @@ do
     Jailbreak.PlayerSlowWalkSpeed = CreateConVar( "jb_player_slow_walk_speed", "110", FCVAR_SHARED, "The speed of the player while slow walking.", 0, 3000 )
 
     Jailbreak.AllowCustomPlayerModels = CreateConVar( "jb_allow_custom_player_models", "0", FCVAR_SHARED, "Allow custom player models.", 0, 1 )
-    Jailbreak.MouthLessAnimations = CreateConVar( "jb_mouth_less_animations", "1", FCVAR_SHARED, "Funny mouth less animations.", 0, 10 )
+
+    Jailbreak.VoiceFlexLess = CreateConVar( "jb_voice_flex_less", "1", FCVAR_SHARED, "Flex less animations mode.", 0, 10 )
+    Jailbreak.VoiceForceFlexLess = CreateConVar( "jb_voice_force_flex_less", "0", FCVAR_SHARED, "Forces flex less animations for all playermodels.", 0, 1 )
 
     Jailbreak.StatusIcons = CreateConVar( "jb_status_icons", "1", FCVAR_SHARED, "Show voice/chat icons on players.", 0, 1 )
     Jailbreak.VoiceChatNotifications = CreateConVar( "jb_voice_chat_notifications", "1", FCVAR_SHARED, "Show voice chat notifications.", 0, 1 )

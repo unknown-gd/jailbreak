@@ -328,7 +328,7 @@ do
 
             eyePos = EyePos!
             for ply in *GetAll!
-                if ply\IsLocalPlayer! or not ply\IsInGame!
+                if ( ply\IsLocalPlayer! and not ply\ShouldDrawLocalPlayer! ) or not ply\IsInGame!
                     continue
 
                 isSpeaking = ply\IsSpeaking!
