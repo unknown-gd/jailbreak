@@ -164,6 +164,9 @@ SWEP.Show = =>
         @Pulls = false
     ) )
 
+SWEP.GetPrintName = =>
+    return @GetHoldType! == "fist" and "#jb.fists" or "#jb.hands"
+
 SWEP.Hide = =>
     @Pulls = true
     @SetNextIdle( 0 )
