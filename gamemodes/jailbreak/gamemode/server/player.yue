@@ -200,11 +200,11 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
-    :RemoveRagdollOnSpawn, :FixModelPath = Jailbreak
+    :RagdollRemove, :FixModelPath = Jailbreak
     :IsInWorld, :IsValidModel = util
 
     PLAYER.CreateRagdoll = =>
-        if RemoveRagdollOnSpawn\GetBool!
+        if RagdollRemove\GetBool!
             @RemoveRagdoll!
 
         spawnOrigin = @WorldSpaceCenter!
@@ -299,7 +299,7 @@ do
                 phys\Wake!
 
         if @IsOnFire!
-            ragdoll\Ignite( 16, 64 )
+            ragdoll\Ignite( 5, 64 )
             @Extinguish!
 
         hook_Run( "PlayerRagdollCreated", @, ragdoll )

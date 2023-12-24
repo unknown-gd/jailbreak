@@ -60,8 +60,8 @@ GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
 do
 
     :IsValidModel, :IsInWorld, :Effect, :ScreenShake = util
+    :Teams, :DoorsHealth, :GameInProgress = Jailbreak
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
-    :Teams, :DoorsHealth = Jailbreak
     DMG_NEVERGIB = DMG_NEVERGIB
     CHAN_STATIC = CHAN_STATIC
     EffectData = EffectData
@@ -95,6 +95,9 @@ do
                     return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
 
             return true
+
+        unless GameInProgress!
+            return
 
         if band( damageType, DMG_NEVERGIB ) == DMG_NEVERGIB
             return

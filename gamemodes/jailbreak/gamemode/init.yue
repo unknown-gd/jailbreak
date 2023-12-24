@@ -35,7 +35,7 @@ do
 
     Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "0.5", FCVAR_SERVER, "Time to eat food in seconds.", 0, 300 )
     Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "1", FCVAR_SERVER, "Time to looting a ragdoll in seconds.", 0, 300 )
-    Jailbreak.RemoveRagdollOnSpawn = CreateConVar( "jb_remove_ragdoll_on_spawn", "0", FCVAR_SERVER, "If enabled, player ragdoll will be removed on player spawn.", 0, 1 )
+    Jailbreak.RagdollRemove = CreateConVar( "jb_ragdoll_remove", "0", FCVAR_SERVER, "If enabled, player ragdoll will be removed on player spawn.", 0, 1 )
 
     Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", FCVAR_SERVER, "Allow custom player colors.", 0, 1 )
     Jailbreak.AllowCustomWeaponColors = CreateConVar( "jb_allow_custom_weapon_colors", "1", FCVAR_SERVER, "Allow custom weapon colors.", 0, 1 )

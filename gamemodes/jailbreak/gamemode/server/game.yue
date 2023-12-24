@@ -71,7 +71,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
             ply\SetSubMaterial( index, materialPath )
 
     if ragdoll\IsOnFire!
-        ply\Ignite( 16, 16 )
+        ply\Ignite( 5, 16 )
         ragdoll\Extinguish!
 
     for boneID = 0, ply\GetBoneCount!
@@ -108,7 +108,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :RemoveRagdollOnSpawn, :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor, :DefaultTeamColors = Jailbreak
+    :RagdollRemove, :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor, :DefaultTeamColors = Jailbreak
     tonumber = tonumber
     :Explode = string
 
@@ -165,7 +165,7 @@ do
         ply\SetMaxArmor( max( 100, ply\Armor! ) )
         ply\SetHealth( 100 )
 
-        if RemoveRagdollOnSpawn\GetBool!
+        if RagdollRemove\GetBool!
             ply\RemoveRagdoll!
 
         unless transiton

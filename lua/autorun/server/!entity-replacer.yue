@@ -106,10 +106,6 @@ global class EntityReplacer
                 else
                     phys\Wake!
 
-        if entity\IsOnFire!
-            newEntity\Ignite( 16, 64 )
-            entity\Extinguish!
-
         entity\Remove!
 
     PerformAll: =>
