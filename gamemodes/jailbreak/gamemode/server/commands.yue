@@ -86,20 +86,30 @@ do
             SetRoundState( 0 )
             SetRoundTime( 0 )
 
+Add "jb_respawn", ( _, args ) =>
+    unless IsValid( @ ) and @IsAdmin!
+        return
+
+    @Spawn!
+
 do
 
     :IsValidModel = util
 
     Add "drop", =>
-        dropWeapon = @GetActiveWeapon!
-        unless IsValid( dropWeapon )
+        unless @Alive!
             return
 
-        model = dropWeapon\GetWeaponWorldModel!
-        unless model and IsValidModel( model )
+        droppedWeapon = @GetActiveWeapon!
+        unless IsValid( droppedWeapon )
             return
 
-        @DropWeapon( dropWeapon )
+        model = droppedWeapon\GetWeaponWorldModel!
+        unless model and #model ~= 0 and IsValidModel( model )
+            return
+
+        @AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_ITEM_DROP, true )
+        @DropWeapon( droppedWeapon )
 
         maxWeight, nextWeapon = nil, nil
         for weapon in *@GetWeapons!
@@ -130,10 +140,7 @@ do
     }
 
     Add "marker", =>
-        unless Markers\GetBool!
-            return
-
-        unless IsValid( @ ) and @IsInGame!
+        unless Markers\GetBool! and IsValid( @ ) and @IsInGame!
             return
 
         if @NextMarker and CurTime! < @NextMarker
