@@ -10,7 +10,7 @@ TEAM_GUARD = TEAM_GUARD
 -- Allowing players to take damage
 do
 
-    :IsRoundPreparing = Jailbreak
+    :IsRoundPreparing, :GuardsFriendlyFire = Jailbreak
 
     GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
         if IsRoundPreparing!
@@ -23,7 +23,7 @@ do
         if attacker == ply
             return true
 
-        if teamID == TEAM_GUARD and teamID == attacker\Team!
+        if not GuardsFriendlyFire\GetBool! and teamID == TEAM_GUARD and teamID == attacker\Team!
             return false
 
         return true
