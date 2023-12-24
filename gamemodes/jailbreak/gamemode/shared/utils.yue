@@ -204,6 +204,14 @@ ENTITY.IsPlayerRagdoll = =>
 ENTITY.GetRagdollOwner = =>
     return GetNW2Entity( @, "ragdoll-owner" )
 
+:GetNW2Var = ENTITY
+
+ENTITY.GetRagdollOwnerNickname = =>
+    value = GetNW2Var( @, "owner-nickname" )
+    unless value
+        return "#jb.player.unknown"
+
+    return value
 
 -- Returns true if entity is under water
 do

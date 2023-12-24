@@ -228,7 +228,7 @@ do
             if entity\IsPlayer!
                 Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\Nick!, white, "." )
             elseif entity\IsPlayerRagdoll!
-                Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\GetNW2String( "owner-nickname", "unknown" ), white, "." )
+                Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\GetRagdollOwnerNickname!, white, "." )
             elseif entity\IsWeapon!
                 printName = nil
                 if entity\IsScripted!
