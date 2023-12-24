@@ -142,6 +142,23 @@ do
     PLAYER.VoiceFraction = =>
         return @m_VoiceFraction or 0
 
+    do
+
+        isfunction = isfunction
+        :Simple = timer
+
+        PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished ) =>
+            sequenceID = @SelectWeightedSequence( activity )
+            if sequenceID < 0
+                return
+
+            if isfunction( finished )
+                Simple @SequenceDuration( sequenceID ), ->
+                    if @IsValid!
+                        finished( @ )
+
+            @AnimRestartGesture( slot, activity, autokill )
+
 do
 
     ENTITY = FindMetaTable( "Entity" )

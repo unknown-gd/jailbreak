@@ -47,7 +47,7 @@ do
 
 do
 
-    :ReadString, :ReadUInt, :ReadTable = net
+    :ReadString, :ReadUInt, :ReadTable, :ReadEntity, :ReadBool = net
     :ChatText, :Translate = Jailbreak
     :AddLegacy = notification
     :PlaySound = surface
@@ -73,6 +73,10 @@ do
             ChatText( unpack( data ) )
         [ 4 ]: ->
             PlaySound( ReadString! )
+        [ 5 ]: ->
+            entity = ReadEntity!
+            if entity and entity\IsValid and entity\IsPlayer!
+                entity\AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool! )
     }
 
     net.Receive "Jailbreak::Networking", ( len ) ->

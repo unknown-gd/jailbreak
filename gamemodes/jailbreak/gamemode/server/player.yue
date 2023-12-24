@@ -8,7 +8,7 @@ PLAYER.ChangeTeam = Jailbreak.ChangeTeam
 
 do
 
-    :Start, :WriteUInt, :WriteTable, :WriteString, :Send = net
+    :Start, :WriteUInt, :WriteTable, :WriteString, :WriteBool, :WriteEntity, :Send = net
 
     PLAYER.PlaySound = ( soundPath ) =>
         Start( "Jailbreak::Networking" )
@@ -21,6 +21,36 @@ do
         WriteUInt( 1, 3 )
         WriteString( itemName )
         Send( @ )
+
+    do
+
+        RecipientFilter = RecipientFilter
+        isfunction = isfunction
+        :Simple = timer
+
+        PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished ) =>
+            sequenceID = @SelectWeightedSequence( activity )
+            if sequenceID < 0
+                return
+
+            rf = RecipientFilter!
+            rf\AddPVS( @WorldSpaceCenter! )
+            if rf\GetCount! > 0
+                Start( "Jailbreak::Networking" )
+                WriteUInt( 5, 3 )
+                WriteEntity( @ )
+                WriteUInt( slot, 3 )
+                WriteUInt( activity, 11 )
+                WriteBool( autokill or false )
+                Send( rf )
+
+            if isfunction( finished )
+                duration = @SequenceDuration( sequenceID )
+                Simple duration - duration * 0.1, ->
+                    if @IsValid!
+                        finished( @ )
+
+            @AnimRestartGesture( slot, activity, autokill )
 
     do
 
