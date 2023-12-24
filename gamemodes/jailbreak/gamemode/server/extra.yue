@@ -299,11 +299,11 @@ do
     whitelist = { DMG_BULLET, DMG_CLUB, DMG_SHOCK, DMG_POISON, DMG_PARALYZE, DMG_NERVEGAS, DMG_BUCKSHOT, DMG_SNIPER }
     :DeathAnimations = Jailbreak
 
-    hook_Add "CanPlayerTakeDamage", "Jailbreak::DeathAnimations", =>
+    hook_Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
         if @GetNW2Int( "death-animation" ) == 2
             return false
 
-    hook_Add "PlayerTakeDamage", "Jailbreak::DeathAnimations", ( damageInfo, teamID ) =>
+    hook_Add "PlayerTakeDamage", "Jailbreak::Death Animations", ( damageInfo, teamID ) =>
         if not DeathAnimations\GetBool! or @GetNW2Int( "death-animation" ) == 1
             return
 
@@ -359,5 +359,5 @@ do
 
         return true
 
-    hook_Add "PlayerSpawn", "Jailbreak::DeathAnimations", =>
+    hook_Add "PlayerSpawn", "Jailbreak::Death Animations", =>
         @SetNW2Int( "death-animation", 0 )

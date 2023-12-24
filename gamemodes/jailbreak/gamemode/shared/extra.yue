@@ -30,10 +30,14 @@ do
 
         if velocity\Length! >= @GetRunSpeed! * 0.95
             weapon = @GetActiveWeapon!
-            if weapon and weapon\IsValid! and not singleHandHoldTypes[ weapon\GetHoldType! ]
-                return
+            if weapon and weapon\IsValid!
+                holdType = weapon\GetHoldType!
+                if holdType == "normal" and @IsPrisoner!
+                    return ACT_HL2MP_RUN_PANICKED, -1
 
-            return ACT_HL2MP_RUN_FAST, -1
+                if singleHandHoldTypes[ weapon\GetHoldType! ]
+                    return ACT_HL2MP_RUN_FAST, -1
+
         elseif @Crouching! and velocity\Length2DSqr! < 1
             weapon = @GetActiveWeapon!
             if weapon and weapon\IsValid! and weapon\GetHoldType! ~= "normal"
@@ -42,10 +46,10 @@ do
             return ACT_MP_JUMP, @LookupSequence( "pose_ducking_01" )
 
 -- Silly death animations
-hook_Add "FinishMove", "Jailbreak::DeathAnimations", ( mv ) =>
+hook_Add "FinishMove", "Jailbreak::Death Animations", ( mv ) =>
     if @GetNW2Int( "death-animation" ) > 0
         return true
 
-hook_Add "PlayerEmitSound", "Jailbreak::DeathAnimations", ( data ) =>
+hook_Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
     if @GetNW2Int( "death-animation" ) > 0
         return false
