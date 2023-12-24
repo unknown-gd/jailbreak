@@ -136,6 +136,37 @@ do
     ENTITY = FindMetaTable( "Entity" )
     :GetClass = ENTITY
 
+    -- Entity dissolve method
+    do
+
+        :Simple = timer
+
+        ENTITY.Dissolve = =>
+            dissolver = ENTITY.Dissolver
+            unless IsValid( dissolver )
+                dissolver = ents.Create( "env_entity_dissolver" )
+                ENTITY.Dissolver = dissolver
+
+                dissolver\SetKeyValue( "dissolvetype", 0 )
+                dissolver\SetKeyValue( "magnitude", 0 )
+                dissolver\Spawn!
+
+            unless IsValid( dissolver )
+                return false
+
+            dissolver\SetPos( @WorldSpaceCenter! )
+
+            temporaryName = "dissolver" .. dissolver\EntIndex! .. "_request" .. @EntIndex!
+            @SetName( temporaryName )
+
+            dissolver\Fire( "dissolve", temporaryName, 0 )
+
+            Simple 0, ->
+                if @IsValid!
+                    @SetName( "" )
+
+            return true
+
     -- Returns true if the entity is valid observe target
     ENTITY.IsValidObserveTarget = =>
         if @IsPlayer! and @IsInGame!
@@ -184,17 +215,29 @@ do
 do
 
     CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
-    :CloseRangeDamageTypes = Jailbreak
+    :GetDamageType = CTakeDamageInfo
     :band = bit
 
     -- Returns true if the damage type is close range
-    CTakeDamageInfo.IsCloseRangeDamage = =>
-        damageType = @GetDamageType!
-        for int in *CloseRangeDamageTypes
-            if band( damageType, int ) == int
-                return true
+    do
 
-        return false
+        :CloseRangeDamageTypes = Jailbreak
+
+        CTakeDamageInfo.IsCloseRangeDamage = =>
+            damageType = GetDamageType( @ )
+            for int in *CloseRangeDamageTypes
+                if band( damageType, int ) == int
+                    return true
+
+            return false
+
+    -- Returns true if the damage type is dissolve
+    do
+
+        DMG_DISSOLVE = DMG_DISSOLVE
+
+        CTakeDamageInfo.IsDissolveDamage = =>
+            return band( GetDamageType( @ ), DMG_DISSOLVE ) == DMG_DISSOLVE
 
 do
 

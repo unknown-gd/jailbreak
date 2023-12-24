@@ -371,7 +371,6 @@ do
 
         ragdoll = ply\CreateRagdoll!
         if ragdoll\IsValid!
-
             damageOrigin = damageInfo\GetDamagePosition!
             if ragdoll\IsRagdoll!
                 velocity = damageInfo\GetDamageForce!
@@ -381,13 +380,17 @@ do
                         phys\ApplyForceOffset( velocity / phys\GetMass!, damageOrigin )
 
             else
+
                 phys = ragdoll\GetPhysicsObject!
                 if IsValid( phys )
                     phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
             timer_Simple 0, ->
-                if ply\IsValid! and not ply\Alive! and ragdoll\IsValid!
+                if ragdoll\IsValid! and ply\IsValid! and not ply\Alive!
                     ply\ObserveEntity( ragdoll )
+
+            if damageInfo\IsDissolveDamage!
+                ragdoll\Dissolve!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeath
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>

@@ -2,6 +2,7 @@
 - Магазин для вардена в котором тот может обменивать очки на спавн разных энтити.
 - анимации при установке метки
 - Custom take damage for ragdolls
+- ragdoll destroy and weapons drop
 - TF2 Freezecam
 - обновить hud
 - https://wiki.facepunch.com/gmod/GM:HandlePlayerArmorReduction

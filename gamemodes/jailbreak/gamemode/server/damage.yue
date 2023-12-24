@@ -74,6 +74,10 @@ do
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
         if entity\IsPlayerRagdoll!
+            inflictor = damageInfo\GetInflictor!
+            if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
+                entity\Dissolve!
+
             return true
 
         unless entity\IsSolid!
