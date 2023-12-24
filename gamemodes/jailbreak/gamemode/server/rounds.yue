@@ -92,51 +92,15 @@ do
 
                 for ply in *players
                     if ply\IsBot!
-                        for i = 1, 2
-                            if TeamIsJoinable( i )
-                                if ply\Team! ~= i
-                                    ply\SetTeam( i )
-                                    ply\KillSilent!
-
+                        teamID = ply\Team!
+                        for index = 1, 2
+                            if index ~= teamID and TeamIsJoinable( index )
+                                ply\SetTeam( index )
+                                ply\KillSilent!
                                 break
 
-                guardCount, prisonerCount = 0, 0
-                for ply in *players
-                    teamID = ply\Team!
-                    if teamID == TEAM_GUARD
-                        guardCount += 1
-                    elseif teamID == TEAM_PRISONER
-                        prisonerCount += 1
-
-                prisonersPerGuard = GuardsDiff\GetInt!
-                desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
-
-                while ( ( guardCount + prisonerCount ) - desiredGuardCount ) > prisonersPerGuard and guardCount > desiredGuardCount
-                    guards = {}
-                    for ply in *players
-                        if ply\IsGuard!
-                            guards[] = ply
-
-                    length = #guards
-                    if length == 0
-                        guardCount = 0
-                        break
-
-                    guard = guards[ random( 1, length ) ]
-                    guard\SetTeam( TEAM_PRISONER )
-                    guard\Spawn!
-
-                    guardCount, prisonerCount = 0, 0
-                    for ply in *players
-                        teamID = ply\Team!
-                        if teamID == TEAM_GUARD
-                            guardCount += 1
-                        elseif teamID == TEAM_PRISONER
-                            prisonerCount += 1
-
-                    desiredGuardCount = ceil( prisonerCount / prisonersPerGuard )
-
-                if guardCount == 0 or prisonerCount == 0
+                teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+                if teams[ 1 ] == 0 or teams[ 2 ] == 0
                     setRoundState( ROUND_WAITING_PLAYERS )
                     return
 
