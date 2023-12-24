@@ -200,11 +200,12 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
+    :RemoveRagdollOnSpawn, :FixModelPath = Jailbreak
     :IsInWorld, :IsValidModel = util
-    :FixModelPath = Jailbreak
 
     PLAYER.CreateRagdoll = =>
-        @RemoveRagdoll!
+        if RemoveRagdollOnSpawn\GetBool!
+            @RemoveRagdoll!
 
         spawnOrigin = @WorldSpaceCenter!
         unless IsInWorld( spawnOrigin )

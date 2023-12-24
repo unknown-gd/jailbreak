@@ -108,7 +108,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor, :DefaultTeamColors = Jailbreak
+    :RemoveRagdollOnSpawn, :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor, :DefaultTeamColors = Jailbreak
     tonumber = tonumber
     :Explode = string
 
@@ -164,7 +164,9 @@ do
         ply\SetShockCollar( teamID == TEAM_PRISONER )
         ply\SetMaxArmor( max( 100, ply\Armor! ) )
         ply\SetHealth( 100 )
-        ply\RemoveRagdoll!
+
+        if RemoveRagdollOnSpawn\GetBool!
+            ply\RemoveRagdoll!
 
         unless transiton
             hook_Run( "PlayerLoadout", ply, teamID )
