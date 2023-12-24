@@ -28,7 +28,7 @@ do
 
     TEXT_FILTER_GAME_CONTENT = TEXT_FILTER_GAME_CONTENT
     TEXT_FILTER_CHAT = TEXT_FILTER_CHAT
-    :ChatText = Jailbreak
+    :ChatText, :Translate = Jailbreak
     :FilterText = util
     :Number = cvars
     unpack = unpack
@@ -56,7 +56,7 @@ do
             result[] = GetPhrase( "jb.chat.console" )
 
         result[] = white
-        result[] = " " .. GetPhrase( "jb.chat.says" ) .. ": \"" .. text .. "\""
+        result[] = Translate( " #jb.chat.says: \"" .. text .. "\"" )
 
         ChatText( unpack( result ) )
         return true
