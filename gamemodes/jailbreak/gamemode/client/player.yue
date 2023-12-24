@@ -66,6 +66,18 @@ do
         unless entity\IsPlayer! and entity\Alive!
             return view
 
+        if entity\Health! < 1
+            attachmentID = entity\LookupAttachment( "eyes" )
+            if attachmentID >= 0
+                attachment = entity\GetAttachment( attachmentID )
+                if attachment
+                    view.origin = attachment.Pos
+                    view.angles = attachment.Ang
+
+            view.drawviewer = true
+
+            return view
+
         isPlayingTaunt = Jailbreak.PlayingTaunt
 
         tauntFraction = entity.TauntFraction

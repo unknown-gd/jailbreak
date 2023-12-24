@@ -28,7 +28,7 @@ do
         isfunction = isfunction
         :Simple = timer
 
-        PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished ) =>
+        PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished, frac ) =>
             sequenceID = @SelectWeightedSequence( activity )
             if sequenceID < 0
                 return
@@ -46,7 +46,7 @@ do
 
             if isfunction( finished )
                 duration = @SequenceDuration( sequenceID )
-                Simple duration - duration * 0.1, ->
+                Simple duration - duration * ( frac or 0 ), ->
                     if @IsValid!
                         finished( @ )
 

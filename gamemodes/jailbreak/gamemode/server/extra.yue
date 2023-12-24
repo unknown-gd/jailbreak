@@ -329,6 +329,7 @@ do
         origin = damageInfo\GetDamagePosition!
 
         @SetNW2Int( "death-animation", 2 )
+        @SetNotSolid( true )
         @SetHealth( 0 )
 
         @AnimRestartNetworkedGesture GESTURE_SLOT_CUSTOM, ACT_GMOD_DEATH, true, =>
@@ -336,6 +337,7 @@ do
                 return
 
             @SetNW2Int( "death-animation", 1 )
+            @SetNotSolid( false )
 
             if @Alive!
                 damageInfo = DamageInfo!
@@ -352,7 +354,8 @@ do
 
                 @TakeDamageInfo( damageInfo )
 
-            @SetNW2Int( "death-animation", 0 )
+            @SetNW2Int( "death-animation", 0 ),
+            Rand( 0.1, 0.25 )
 
         return true
 

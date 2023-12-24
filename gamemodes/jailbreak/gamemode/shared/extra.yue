@@ -1,10 +1,12 @@
+hook_Add = hook.Add
+
 -- Disallow player shoot on marker setup
 do
 
     IN_ATTACK = IN_ATTACK
     IN_WALK = IN_WALK
 
-    hook.Add "StartCommand", "Jailbreak::Markers", ( cmd ) =>
+    hook_Add "StartCommand", "Jailbreak::Markers", ( cmd ) =>
         if @IsInGame! and cmd\KeyDown( IN_WALK ) and cmd\KeyDown( IN_ATTACK )
             cmd\RemoveKey( IN_ATTACK )
 
@@ -22,7 +24,7 @@ do
 
     MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 
-    hook.Add "CalcMainActivity", "Jailbreak::Additional Animations", ( velocity ) =>
+    hook_Add "CalcMainActivity", "Jailbreak::Additional Animations", ( velocity ) =>
         if not @IsOnGround! or @GetMoveType! == MOVETYPE_NOCLIP
             return
 
@@ -40,6 +42,10 @@ do
             return ACT_MP_JUMP, @LookupSequence( "pose_ducking_01" )
 
 -- Silly death animations
-hook.Add "FinishMove", "Jailbreak::DeathAnimations", ( mv ) =>
+hook_Add "FinishMove", "Jailbreak::DeathAnimations", ( mv ) =>
     if @GetNW2Int( "death-animation" ) > 0
         return true
+
+hook_Add "PlayerEmitSound", "Jailbreak::DeathAnimations", ( data ) =>
+    if @GetNW2Int( "death-animation" ) > 0
+        return false
