@@ -76,7 +76,11 @@ do
         if entity\IsPlayerRagdoll!
             return true
 
-        if band( damageInfo\GetDamageType!, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
+        unless entity\IsSolid!
+            return
+
+        damageType = damageInfo\GetDamageType!
+        if band( damageType, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
             return true
 
         if Jailbreak.PowerfulPlayers
@@ -85,14 +89,14 @@ do
                 damageInfo\ScaleDamage( 2 )
 
         if entity\IsPlayer!
-            if entity\Alive!
+            if entity\Alive! and not entity\HasGodMode!
                 teamID = entity\Team!
                 if Teams[ teamID ] and hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
                     return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
 
             return true
 
-        if not entity\IsSolid! or band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
+        if band( damageType, DMG_NEVERGIB ) == DMG_NEVERGIB
             return
 
         switch entity\GetClass!
@@ -155,7 +159,7 @@ do
 
                 return true
             when "func_button"
-                if band( damageInfo\GetDamageType!, DMG_BLAST ) == DMG_BLAST
+                if band( damageType, DMG_BLAST ) == DMG_BLAST
                     return true
 
                 attacker = damageInfo\GetAttacker!
