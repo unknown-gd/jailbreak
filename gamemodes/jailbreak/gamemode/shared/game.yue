@@ -1,8 +1,9 @@
 Jailbreak = Jailbreak
-hook_Run = hook.Run
-:min, :max = math
-CLIENT = CLIENT
 GM = GM
+
+:min, :max, :Clamp = math
+hook_Run = hook.Run
+CLIENT = CLIENT
 
 TEAM_GUARD = TEAM_GUARD
 
@@ -130,4 +131,51 @@ do
                 damageInfo\ScaleDamage( damageScale )
 
             if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
+                return true
+
+-- https://wiki.facepunch.com/gmod/GM:EntityEmitSound
+do
+
+    sv_cheats, host_timescale = GetConVar( "sv_cheats" ), GetConVar( "host_timescale" )
+    :GetDemoPlaybackTimeScale = engine
+    :GetTimeScale = game
+
+    GM.EntityEmitSound = ( data ) =>
+        pitch = data.Pitch
+
+        timeScale = GetTimeScale!
+        if timeScale ~= 1
+		    pitch *= timeScale
+
+        timeScale = sv_cheats\GetBool! and host_timescale\GetFloat! or 1
+        if timeScale ~= 1
+		    pitch *= timeScale
+
+        entity = data.Entity
+        if entity\IsValid!
+            if entity\IsPlayer!
+                result = hook_Run( "PlayerEmitSound", entity, data )
+                if result ~= nil
+                    return result
+
+            else
+
+                result = hook_Run( "ValidEntityEmitSound", entity, data )
+                if result ~= nil
+                    return result
+
+        elseif entity\IsWorld!
+
+            result = hook_Run( "WorldEmitSound", entity, data )
+            if result ~= nil
+                return result
+
+        if pitch ~= data.Pitch
+            data.Pitch = Clamp( pitch, 0, 255 )
+            return true
+
+        if CLIENT
+            timeScale = GetDemoPlaybackTimeScale!
+            if timeScale ~= 1
+                data.Pitch = Clamp( data.Pitch * timeScale, 0, 255 )
                 return true
