@@ -20,8 +20,10 @@ do
         slam: true
     }
 
+    MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
+
     hook.Add "CalcMainActivity", "Jailbreak::Additional Animations", ( velocity ) =>
-        unless @IsOnGround!
+        if not @IsOnGround! or @GetMoveType! == MOVETYPE_NOCLIP
             return
 
         if velocity\Length! >= @GetRunSpeed! * 0.95
@@ -36,3 +38,8 @@ do
                 return
 
             return ACT_MP_JUMP, @LookupSequence( "pose_ducking_01" )
+
+-- Silly death animations
+hook.Add "FinishMove", "Jailbreak::DeathAnimations", ( mv ) =>
+    if @GetNW2Int( "death-animation" ) > 0
+        return true

@@ -1,6 +1,7 @@
 Jailbreak = Jailbreak
 :FixModelPath = Jailbreak
 :random, :max, :Rand = math
+hook_Add = hook.Add
 CurTime = CurTime
 GM = GM
 
@@ -210,7 +211,7 @@ Jailbreak.FoodModels = Jailbreak.FoodModels or {
 
 }
 
-hook.Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
+hook_Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
     foodModels = Jailbreak.FoodModels
     for index = 1, #foodModels
         foodModels[ index ] = FixModelPath( foodModels[ index ] )
@@ -251,7 +252,7 @@ do
     foodEatingSound = Sound( "player/eating.wav" )
     cache = {}
 
-    hook.Add "PlayerHoldUse", "Jailbreak::FoodEating", ( entity, useTime ) =>
+    hook_Add "PlayerHoldUse", "Jailbreak::FoodEating", ( entity, useTime ) =>
         if useTime < foodEatingTime\GetFloat! or not entity\IsProp!
             return
 
@@ -277,7 +278,7 @@ do
     ragdollLootingTime = Jailbreak.RagdollLootingTime
     lootSound = Sound( "npc/footsteps/softshoe_generic6.wav" )
 
-    hook.Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
+    hook_Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
         if useTime < ragdollLootingTime\GetFloat!
             return
 
@@ -287,3 +288,73 @@ do
         entity\EmitSound( lootSound, 60, random( 80, 120 ), Rand( 0.7, 1 ), CHAN_STATIC, 0, 1 )
         Jailbreak.LootRagdoll( @, entity )
         return true
+
+-- Silly death animations
+do
+
+    GESTURE_SLOT_CUSTOM = GESTURE_SLOT_CUSTOM
+    ACT_GMOD_DEATH = ACT_GMOD_DEATH
+    :band = bit
+
+    whitelist = { DMG_BULLET, DMG_CLUB, DMG_SHOCK, DMG_POISON, DMG_PARALYZE, DMG_NERVEGAS, DMG_BUCKSHOT, DMG_SNIPER }
+    :DeathAnimations = Jailbreak
+
+    hook_Add "CanPlayerTakeDamage", "Jailbreak::DeathAnimations", =>
+        if @GetNW2Int( "death-animation" ) == 2
+            return false
+
+    hook_Add "PlayerTakeDamage", "Jailbreak::DeathAnimations", ( damageInfo, teamID ) =>
+        if not DeathAnimations\GetBool! or @GetNW2Int( "death-animation" ) == 1
+            return
+
+        damage = damageInfo\GetDamage!
+        if max( 0, @Health! - damage ) > 0
+            return
+
+        supported, damageType = false, damageInfo\GetDamageType!
+        for whitelistType in *whitelist
+            if band( damageType, whitelistType ) == whitelistType
+                supported = true
+                break
+
+        unless supported
+            return
+
+        inflictor = damageInfo\GetInflictor!
+        attacker = damageInfo\GetAttacker!
+
+        ammoType = damageInfo\GetAmmoType!
+
+        reportedOrigin = damageInfo\GetReportedPosition!
+        origin = damageInfo\GetDamagePosition!
+
+        @SetNW2Int( "death-animation", 2 )
+        @SetHealth( 0 )
+
+        @AnimRestartNetworkedGesture GESTURE_SLOT_CUSTOM, ACT_GMOD_DEATH, true, =>
+            if @GetNW2Int( "death-animation" ) ~= 2
+                return
+
+            @SetNW2Int( "death-animation", 1 )
+
+            if @Alive!
+                damageInfo = DamageInfo!
+                damageInfo\SetDamage( damage )
+
+                damageInfo\SetInflictor( inflictor )
+                damageInfo\SetAttacker( attacker )
+
+                damageInfo\SetDamageType( damageType )
+                damageInfo\SetAmmoType( ammoType )
+
+                damageInfo\SetReportedPosition( reportedOrigin )
+                damageInfo\SetDamagePosition( origin )
+
+                @TakeDamageInfo( damageInfo )
+
+            @SetNW2Int( "death-animation", 0 )
+
+        return true
+
+    hook_Add "PlayerSpawn", "Jailbreak::DeathAnimations", =>
+        @SetNW2Int( "death-animation", 0 )

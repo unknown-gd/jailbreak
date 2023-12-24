@@ -44,6 +44,7 @@ do
     Jailbreak.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", FCVAR_SERVER, "Damage to the attacker from the electric collar.", 0, 1000 )
 
     Jailbreak.PermanentGuards = CreateConVar( "jb_permanent_guards", "0", FCVAR_SERVER, "If enabled, disables guard rotation.", 0, 1 )
+    Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "1", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
 
 -- Utils
 include( "server/language.lua" )
