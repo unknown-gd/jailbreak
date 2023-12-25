@@ -331,7 +331,6 @@ do
 -- Button
 do
 
-    -- TODO: Rewrite this
     PANEL = {}
 
     PANEL.Init = =>

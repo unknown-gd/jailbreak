@@ -376,19 +376,28 @@ do
         PANEL.Init = =>
             placeholder = GetPhrase( "jb.unknown" )
             @PlaceholderName = placeholder
+            @HeaderColor = dark_white
             @EntityName = placeholder
+
+            @TimeX, @TimeY = 0, 0
             @Time = "00:00"
 
             @Health, @MaxHealth = 0, 0
             @Armor, @MaxArmor = 0, 0
 
             @HealthRectX, @HealthRectY = 0, 0
-            @HealthRectWidth, @HealthRectHeight = 0, 0
+            @ArmorRectX, @ArmorRectY = 0, 0
+            @BarsWidth, @BarsHeight = 0, 0
+
+            @HealthTextX, @HealthTextY = 0, 0
+            @HealthText, @ArmorText = "", ""
+            @ArmorTextX, @ArmorTextY = 0, 0
 
             @HealthRects = {}
             @ArmorRects = {}
 
             hook.Add "LanguageChanged", @, @InvalidateLayout
+            @InvalidateLayout( true )
 
         PANEL.Think = =>
             time = date( "%H:%M" )
@@ -509,10 +518,6 @@ do
             if alive
                 @HeaderColor = GetColor( @TeamID )
 
-                rectHeight = VMin( 1.5 )
-                backgroundHeight = offset + rectHeight
-                @HealthRectWidth, @HealthRectHeight = width - offset * 2 + margin * 2, rectHeight + margin * 2
-
                 healthRects = @HealthRects
                 for index = 1, #healthRects
                     healthRects[ index ] = nil
@@ -529,6 +534,22 @@ do
 
                 x, y = offset, height + offset
                 @HealthRectX, @HealthRectY = x - margin, y - margin
+
+                SetFont( "Jailbreak::HUD" )
+                healthText, armorText = format( GetPhrase( "jb.hud.health" ), @Health, @MaxHealth ), format( GetPhrase( "jb.hud.armor" ), @Armor, @MaxArmor )
+                @HealthText, @ArmorText = healthText, armorText
+
+                healthTextWidth, healthTextHeight = GetTextSize( healthText )
+                armorTextWidth, armorTextHeight = GetTextSize( armorText )
+
+                rectHeight = margin + max( healthTextHeight, armorTextHeight ) + margin
+
+                barsWidth, barsHeight = width - offset * 2 + margin * 2, rectHeight + margin * 2
+                @BarsWidth, @BarsHeight = barsWidth, barsHeight
+
+                @HealthTextX, @HealthTextY = x + ( barsWidth - healthTextWidth ) / 2, y + ( rectHeight - healthTextHeight ) / 2
+
+                backgroundHeight = offset + rectHeight
 
                 for index = 1, healthCount
                     rect = { x, y, offset, rectHeight, asparagus }
@@ -567,6 +588,8 @@ do
 
                     x, y = offset, y + offset + rectHeight + margin
                     @ArmorRectX, @ArmorRectY = x - margin, y - margin
+
+                    @ArmorTextX, @ArmorTextY = x + ( barsWidth - armorTextWidth ) / 2, y + ( rectHeight - armorTextHeight ) / 2
 
                     for index = 1, armorCount
                         rect = { x, y, offset, rectHeight, horizon }
@@ -631,7 +654,7 @@ do
             if @Alive
 
                 SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
-                DrawRect( @HealthRectX, @HealthRectY, @HealthRectWidth, @HealthRectHeight )
+                DrawRect( @HealthRectX, @HealthRectY, @BarsWidth, @BarsHeight )
 
                 color = nil
                 for rect in *@HealthRects
@@ -639,15 +662,47 @@ do
                     SetDrawColor( color.r, color.g, color.b, color.a )
                     DrawRect( rect[ 1 ], rect[ 2 ], rect[ 3 ], rect[ 4 ] )
 
+                SetFont( "Jailbreak::HUD" )
+
+                x, y = @HealthTextX, @HealthTextY
+                text = @HealthText
+
+                SetTextPos( x - 1, y - 1 )
+                SetTextColor( black.r, black.g, black.b, 120 )
+                DrawText( text )
+
+                SetTextPos( x + 2, y + 2 )
+                SetTextColor( black.r, black.g, black.b, 200 )
+                DrawText( text )
+
+                SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+                SetTextPos( x, y )
+                DrawText( text )
+
                 if @Armor > 0
 
                     SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
-                    DrawRect( @ArmorRectX, @ArmorRectY, @HealthRectWidth, @HealthRectHeight )
+                    DrawRect( @ArmorRectX, @ArmorRectY, @BarsWidth, @BarsHeight )
 
                     for rect in *@ArmorRects
                         color = rect[ 5 ]
                         SetDrawColor( color.r, color.g, color.b, color.a )
                         DrawRect( rect[ 1 ], rect[ 2 ], rect[ 3 ], rect[ 4 ] )
+
+                    x, y = @ArmorTextX, @ArmorTextY
+                    text = @ArmorText
+
+                    SetTextPos( x - 1, y - 1 )
+                    SetTextColor( black.r, black.g, black.b, 120 )
+                    DrawText( text )
+
+                    SetTextPos( x + 2, y + 2 )
+                    SetTextColor( black.r, black.g, black.b, 200 )
+                    DrawText( text )
+
+                    SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+                    SetTextPos( x, y )
+                    DrawText( text )
 
             else
 
@@ -677,6 +732,8 @@ do
 
             @RotateOffset = 0
             @IconRotate = 0
+
+            @InvalidateLayout( true )
 
         PANEL.Think = =>
             entity = Jailbreak.ViewEntity
@@ -783,6 +840,9 @@ do
             @WeaponNameX, @WeaponNameY = 0, 0
             @AmmoTextX, @AmmoTextY = 0, 0
             @RectHeight = 0
+
+            hook.Add "LanguageChanged", @, @InvalidateLayout
+            @InvalidateLayout( true )
 
         PANEL.Think = =>
             entity = Jailbreak.ViewEntity
@@ -922,6 +982,7 @@ do
             @Info = @Add( "Jailbreak::HUDInfo" )
             @Power = @Add( "Jailbreak::HUDPower" )
             @Ammo = @Add( "Jailbreak::HUDAmmo" )
+            @InvalidateLayout( true )
 
         PANEL.PerformLayout = =>
             if @GetDock! ~= BOTTOM
@@ -947,6 +1008,11 @@ do
             @SetSize( width, infoHeight )
 
         vgui.Register( "Jailbreak::HUD", PANEL, "Panel" )
+
+if IsValid( Jailbreak.HUD )
+    Jailbreak.HUD\Remove!
+
+Jailbreak.HUD = vgui.Create( "Jailbreak::HUD", GetHUDPanel! )
 
 hook.Add "InitPostEntity", "Jailbreak::HUD", ->
     if IsValid( Jailbreak.HUD )
