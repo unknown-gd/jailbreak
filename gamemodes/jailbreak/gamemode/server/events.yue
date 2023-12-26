@@ -257,6 +257,11 @@ do
 
     event = Jailbreak.RegisterEvent "powerful-players", ->
             Jailbreak.PowerfulPlayers = true
+
+            for ply in *player.GetAll!
+                if ply\IsInGame!
+                    ply\AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_TAUNT_ZOMBIE, true )
+
             return true, false,
         ->
             Jailbreak.PowerfulPlayers = false
