@@ -234,6 +234,15 @@ do
         CTakeDamageInfo.IsDissolveDamage = =>
             return band( GetDamageType( @ ), DMG_DISSOLVE ) == DMG_DISSOLVE
 
+
+    -- Returns true if the damage type is non physical
+    do
+
+        DMG_NON_PHYSICAL = bor( DMG_DROWN, DMG_POISON, DMG_RADIATION, DMG_NERVEGAS, DMG_PARALYZE, DMG_SHOCK, DMG_SONIC, DMG_BURN )
+
+        CTakeDamageInfo.IsNonPhysicalDamage = =>
+            return band( GetDamageType( @ ), DMG_NON_PHYSICAL ) ~= 0
+
 do
 
     istable = istable
