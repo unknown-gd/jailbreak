@@ -145,9 +145,6 @@ do
 
             @LastSpectatedIndex = index
 
-PLAYER.UsingSecurityRadio = =>
-    return @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
-
 PLAYER.UsingMegaphone = =>
     return @IsWarden! and @GetInfo( "jb_megaphone" ) == "1"
 

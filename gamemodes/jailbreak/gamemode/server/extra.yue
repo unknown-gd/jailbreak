@@ -39,6 +39,10 @@ do
         if ply\IsBot!
             return
 
+        state = ply\HasSecurityRadio! and ply\GetInfo( "jb_security_radio" ) == "1"
+        if state ~= ply\GetNW2Bool( "using-security-radio" )
+            ply\SetNW2Bool( "using-security-radio", state )
+
         if ( ply.NextEyeTargetTime or 0 ) < CurTime!
             ply.NextEyeTargetTime = CurTime! + 0.1
 
@@ -361,3 +365,26 @@ do
 
     hook_Add "PlayerSpawn", "Jailbreak::Death Animations", =>
         @SetNW2Int( "death-animation", 0 )
+
+-- First blood
+do
+
+    :IsRoundRunning, :PlaySound = Jailbreak
+
+    hook.Add "PostPlayerDeath", "Jailbreak::First Blood", =>
+        if Jailbreak.FirstBlood
+            return
+
+        unless IsRoundRunning! and @IsGuard!
+            return
+
+        Jailbreak.FirstBlood = true
+        PlaySound( "ambient/alarms/klaxon1.wav" )
+
+do
+
+    ROUND_RUNNING = ROUND_RUNNING
+
+    hook.Add "RoundStateChanged", "Jailbreak::First Blood", ( _, state ) ->
+        if state ~= ROUND_RUNNING
+            Jailbreak.FirstBlood = false

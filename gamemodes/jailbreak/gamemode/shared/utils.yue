@@ -196,6 +196,9 @@ Jailbreak.IsFemalePrison = ->
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity = ENTITY
 
+PLAYER.UsingSecurityRadio = =>
+    return GetNW2Bool( @, "using-security-radio" )
+
 -- Returns true if entity is player ragdoll
 ENTITY.IsPlayerRagdoll = =>
     return GetNW2Bool( @, "is-player-ragdoll" )

@@ -86,7 +86,7 @@ do
 
         weight = ply.ChatGestureWeight or 0
 
-        if ply\IsTyping!
+        if ply\IsTyping! or ( ply\IsSpeaking! and ply\UsingSecurityRadio! )
             weight = Approach( weight, 1, FrameTime! * 5 )
         else
             weight = Approach( weight, 0, FrameTime! * 5 )
