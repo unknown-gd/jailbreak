@@ -667,13 +667,12 @@ do
                 x, y = @HealthTextX, @HealthTextY
                 text = @HealthText
 
-                SetTextPos( x - 1, y - 1 )
-                SetTextColor( black.r, black.g, black.b, 120 )
-                DrawText( text )
+                SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
 
-                SetTextPos( x + 2, y + 2 )
-                SetTextColor( black.r, black.g, black.b, 200 )
-                DrawText( text )
+                for sx = -2, 2
+            		for sy = -2, 2
+                        SetTextPos( x + sx, y + sy )
+                        DrawText( text )
 
                 SetTextColor( dark_white.r, dark_white.g, dark_white.b )
                 SetTextPos( x, y )
@@ -692,13 +691,12 @@ do
                     x, y = @ArmorTextX, @ArmorTextY
                     text = @ArmorText
 
-                    SetTextPos( x - 1, y - 1 )
-                    SetTextColor( black.r, black.g, black.b, 120 )
-                    DrawText( text )
+                    SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
 
-                    SetTextPos( x + 2, y + 2 )
-                    SetTextColor( black.r, black.g, black.b, 200 )
-                    DrawText( text )
+                    for sx = -2, 2
+                        for sy = -2, 2
+                            SetTextPos( x + sx, y + sy )
+                            DrawText( text )
 
                     SetTextColor( dark_white.r, dark_white.g, dark_white.b )
                     SetTextPos( x, y )
@@ -906,12 +904,13 @@ do
                 @InvalidateLayout!
 
         PANEL.PerformLayout = =>
-            width, height = VMin( 4 ), @GetTall!
+            width, height = VMin( 4 ), 0
             margin1, margin2 = VMin( 0.25 ), VMin( 1 )
 
             SetFont( "Jailbreak::HUD" )
             weaponNameWidth, weaponNameHeight = GetTextSize( @WeaponName )
             width = max( width, margin2 + weaponNameWidth + margin2 )
+            height += margin1 + weaponNameHeight + margin1
 
             text = ""
 
@@ -941,6 +940,8 @@ do
             @AmmoText = text
 
             ammoTextWidth, ammoTextHeight = GetTextSize( text )
+            height += margin1 + ammoTextHeight + margin1
+
             width = max( width, margin2 + ammoTextWidth + margin2 )
 
             headerHeight = margin1 + weaponNameHeight + margin1
@@ -952,7 +953,7 @@ do
             @WeaponNameX, @WeaponNameY = ( width - weaponNameWidth ) / 2, ( headerHeight - weaponNameHeight ) / 2
             @AmmoTextX, @AmmoTextY = ( width - ammoTextWidth ) / 2, headerHeight + ( rectHeight - ammoTextHeight ) / 2
 
-            @SetWide( width )
+            @SetSize( width, height )
 
         PANEL.Paint = ( width, height ) =>
             SetDrawColor( @HeaderColor )
@@ -1003,16 +1004,10 @@ do
 
             ammoWidth, ammoHeight = ammo\GetSize!
             ammo\SetPos( width - ammoWidth, infoHeight - ammoHeight )
-            ammo\SetTall( infoHeight )
 
             @SetSize( width, infoHeight )
 
         vgui.Register( "Jailbreak::HUD", PANEL, "Panel" )
-
-if IsValid( Jailbreak.HUD )
-    Jailbreak.HUD\Remove!
-
-Jailbreak.HUD = vgui.Create( "Jailbreak::HUD", GetHUDPanel! )
 
 hook.Add "InitPostEntity", "Jailbreak::HUD", ->
     if IsValid( Jailbreak.HUD )
