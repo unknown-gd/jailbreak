@@ -1,4 +1,5 @@
 :char, :sub, :gsub, :gmatch, :find = string
+IsValid = IsValid
 select = select
 
 global language = language or {}
@@ -96,7 +97,7 @@ do
         loadLocalization "gamemodes/jailbreak/content/resource/localization"
 
 Jailbreak.Translate = ( str ) =>
-    unless @IsValid! and @IsPlayer!
+    unless IsValid( @ ) and @IsPlayer!
         return str
 
     languageCode = @GetInfo( "gmod_language" )

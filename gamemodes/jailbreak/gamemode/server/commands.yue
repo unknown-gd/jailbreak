@@ -230,15 +230,7 @@ do
             elseif entity\IsPlayerRagdoll!
                 Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\GetRagdollOwnerNickname!, white, "." )
             elseif entity\IsWeapon!
-                printName = nil
-                if entity\IsScripted!
-                    printName = entity.PrintName
-
-                if printName
-                    printName = "#" .. printName
-                else
-                    printName = entity\GetPrintName!
-
+                printName = entity\GetPrintName!
                 if printName == "Scripted Weapon"
                     printName = "#" .. entity\GetClass!
 

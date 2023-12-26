@@ -186,15 +186,7 @@ do
             color = entity\GetModelColor!
 
         elseif entity\IsWeapon!
-            printName = nil
-            if entity\IsScripted!
-                printName = entity.PrintName
-
-            if printName
-                printName = "#" .. printName
-            else
-                printName = entity\GetPrintName!
-
+            printName = entity\GetPrintName!
             if printName == "Scripted Weapon"
                 printName = "#" .. entity\GetClass!
 
