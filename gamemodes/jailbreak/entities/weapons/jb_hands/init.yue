@@ -28,15 +28,18 @@ SWEP.UseDoor = ( open ) =>
     if className == "prop_door_rotating"
         if owner\Team! ~= TEAM_GUARD
             entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
+            owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true )
             return
 
-        owner\EmitSound( "npc/metropolice/gear" .. math.random( 1, 6 ) .. ".wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
         timer.Simple 0.8, ->
             unless entity\IsValid!
                 return
             entity\EmitSound( "doors/door_latch3.wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+
+        owner\EmitSound( "npc/metropolice/gear" .. math.random( 1, 6 ) .. ".wav", 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_GMOD_GESTURE_ITEM_PLACE, true )
         entity\Fire( open and "unlock" or "lock", "", 0 )
-        owner\AnimRestartGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_GMOD_GESTURE_ITEM_PLACE, true )
+
     elseif className == "func_button"
         entity\EmitSound( "buttons/blip1.wav", 70, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
         entity\Use( owner, owner )

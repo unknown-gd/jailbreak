@@ -108,7 +108,17 @@ do
         unless model and #model ~= 0 and IsValidModel( model )
             return
 
-        @AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_ITEM_DROP, true )
+        traceResult, isPlayer = @GetEyeTrace!, false
+        if traceResult.Hit
+            entity = traceResult.Entity
+            if entity\IsValid! and entity\IsPlayer! and entity\IsInGame!
+                isPlayer = true
+
+        if isPlayer
+            @DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_GIVE )
+        else
+            @DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
+
         @DropWeapon( droppedWeapon )
 
         maxWeight, nextWeapon = nil, nil
@@ -158,7 +168,7 @@ do
         if isWarden
             distance = 32768
         elseif isPrisoner
-            distance = VoiceChatMinDistance\GetInt!
+            distance = 4096
 
         @LagCompensation( true )
 
@@ -223,6 +233,11 @@ do
                 entity\EmitSound( "buttons/button" .. random( 14, 19 ) .. ".wav", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1, rf )
             else
                 EmitSound( "buttons/button" .. random( 14, 19 ) .. ".wav", origin, 0, CHAN_STATIC, 1, 75, 0, random( 80, 120 ), 1, rf )
+
+        if isValid
+            @AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_SIGNAL_GROUP, true )
+        else
+            @AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_SIGNAL_FORWARD, true )
 
         if entity\IsValid!
             if entity\IsPlayer!
