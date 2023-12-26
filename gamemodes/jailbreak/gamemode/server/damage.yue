@@ -37,8 +37,17 @@ do
             damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
 
         inflictor = damageInfo\GetInflictor!
-        if inflictor\IsValid! and inflictor\IsWeapon! and not inflictor\IsScripted!
-            return
+        if inflictor\IsValid! and inflictor\IsWeapon!
+            unless inflictor\IsScripted!
+                return
+
+            if isCloseRangeDamage and inflictor\GetClass! ~= "jb_hands"
+                force = damageInfo\GetDamageForce!
+                if force\Length! > 1000
+                    force[ 1 ], force[ 2 ], force[ 3 ] = 0, 0, 0
+                    damageInfo\SetDamageForce( force )
+
+                return
 
         velocity = damageInfo\GetDamageForce!
         if velocity\Length! < 1
@@ -100,13 +109,17 @@ do
 
             return true
 
+        className = entity\GetClass!
         unless GameInProgress!
-            return
+            if className == "func_button"
+                return
+
+            return true
 
         if band( damageType, DMG_NEVERGIB ) == DMG_NEVERGIB
             return
 
-        switch entity\GetClass!
+        switch className
             when "prop_door_rotating"
                 model = entity\GetModel!
                 unless model and #model ~= 0 and IsValidModel( model )
