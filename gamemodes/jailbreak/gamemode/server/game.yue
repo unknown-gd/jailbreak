@@ -621,6 +621,7 @@ do
                         weapon = weapons[ length ]
                         if IsValid( weapon )
                             ply\DropWeapon( weapon )
+
                 else
                     for i = 1, 2
                         weapons = ply\GetWeaponsInSlot( i + 1 )

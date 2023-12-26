@@ -243,6 +243,10 @@ do
         else
             ragdoll.Alive = false
 
+            health = @GetMaxHealth!
+            ragdoll\SetMaxHealth( health )
+            ragdoll\SetHealth( health )
+
         for bodygroup in *@GetBodyGroups!
             ragdoll\SetBodygroup( bodygroup.id, @GetBodygroup( bodygroup.id ) )
 

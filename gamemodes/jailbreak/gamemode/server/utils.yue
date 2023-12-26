@@ -216,20 +216,15 @@ do
 
     CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
     :GetDamageType = CTakeDamageInfo
-    :band = bit
+    :band, :bor = bit
 
     -- Returns true if the damage type is close range
     do
 
-        :CloseRangeDamageTypes = Jailbreak
+        DMG_CLOSE_RANGE = bor( DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH )
 
         CTakeDamageInfo.IsCloseRangeDamage = =>
-            damageType = GetDamageType( @ )
-            for int in *CloseRangeDamageTypes
-                if band( damageType, int ) == int
-                    return true
-
-            return false
+            return band( GetDamageType( @ ), DMG_CLOSE_RANGE ) ~= 0
 
     -- Returns true if the damage type is dissolve
     do

@@ -33,7 +33,7 @@ do
         spectators: Color( 220, 220, 220 )
         dark_white: Color( 200, 200, 200 )
         light_grey: Color( 180, 180, 180 )
-        turquoise: Color( 75, 200, 200 )
+        turquoise: Color( 64, 224, 208 )
         asparagus: Color( 128, 154, 86 )
         prisoners: Color( 255, 89, 50 )
         au_chico: Color( 154, 98, 86 )

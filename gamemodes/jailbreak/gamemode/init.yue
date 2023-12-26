@@ -13,7 +13,6 @@ include( "shared.lua" )
 Jailbreak = Jailbreak
 
 Jailbreak.ObserveTargets = Jailbreak.ObserveTargets or {}
-Jailbreak.CloseRangeDamageTypes = { DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH }
 Jailbreak.DefaultTeamColors = {
     [ TEAM_PRISONER ]: Vector( 0.62, 0.35, 0.07 )
     [ TEAM_GUARD ]: Vector( 0, 0, 0 )

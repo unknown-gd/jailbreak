@@ -1,22 +1,22 @@
 "jailbreak"
 {
-	"base"		    "base"
-	"title"		    "Jailbreak"
-	"category"	    "other"
-	"maps"		    "^jail_|^jb_|^ba_jail"
-	"menusystem"	"1"
+    "base"          "base"
+    "title"         "Jailbreak"
+    "category"      "other"
+    "maps"          "^jail_|^jb_|^ba_jail"
+    "menusystem"    "1"
 
     "settings"
-	{
+    {
         1
         {
-			"name"  		"gmod_suit"
-			"text"		    "gmod_suit"
-			"help"		    "Set to non zero to enable Half-Life 2 aux suit power stuff."
-			"type"		    "CheckBox"
-			"default"	    "1"
-			"singleplayer"	"1"
-			"dontcreate"	"1"
-		}
+            "name"  		"gmod_suit"
+            "text"		    "gmod_suit"
+            "help"		    "Set to non zero to enable Half-Life 2 aux suit power stuff."
+            "type"		    "CheckBox"
+            "default"	    "1"
+            "singleplayer"	"1"
+            "dontcreate"	"1"
+        }
     }
 }

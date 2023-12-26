@@ -836,7 +836,7 @@ do
 
         PANEL.Think = =>
             entity = Jailbreak.ViewEntity
-            unless entity\IsValid! and entity\IsPlayer! and entity\Alive!
+            unless entity\IsValid! and entity\IsPlayer!
                 return
 
             alive = entity\Alive!
@@ -852,6 +852,11 @@ do
 
             weapon = entity\GetActiveWeapon!
             unless IsValid( weapon )
+                weaponName = GetPhrase( "jb.nothing" )
+                if @WeaponName ~= weaponName
+                    @WeaponName = weaponName
+                    @InvalidateLayout!
+
                 return
 
             weaponName = weapon\GetPrintName!
