@@ -366,25 +366,13 @@ do
     hook_Add "PlayerSpawn", "Jailbreak::Death Animations", =>
         @SetNW2Int( "death-animation", 0 )
 
--- First blood
+-- Guard Death
 do
 
-    :IsRoundRunning, :PlaySound = Jailbreak
+    :IsRoundRunning, :PlaySound, :GetTeamPlayersCount = Jailbreak
 
-    hook.Add "PostPlayerDeath", "Jailbreak::First Blood", =>
-        if Jailbreak.FirstBlood
+    hook.Add "PlayerDeath", "Jailbreak::First Blood", =>
+        unless IsRoundRunning! and @IsGuard! and GetTeamPlayersCount( true, TEAM_GUARD )[ 1 ] ~= 0
             return
 
-        unless IsRoundRunning! and @IsGuard!
-            return
-
-        Jailbreak.FirstBlood = true
         PlaySound( "ambient/alarms/klaxon1.wav" )
-
-do
-
-    ROUND_RUNNING = ROUND_RUNNING
-
-    hook.Add "RoundStateChanged", "Jailbreak::First Blood", ( _, state ) ->
-        if state ~= ROUND_RUNNING
-            Jailbreak.FirstBlood = false
