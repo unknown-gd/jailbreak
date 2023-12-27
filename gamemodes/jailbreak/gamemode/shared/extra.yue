@@ -1,3 +1,4 @@
+Jailbreak = Jailbreak
 hook_Add = hook.Add
 
 -- Disallow player shoot on marker setup
@@ -53,3 +54,17 @@ hook_Add "FinishMove", "Jailbreak::Death Animations", ( mv ) =>
 hook_Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
     if @GetNW2Int( "death-animation" ) > 0
         return false
+
+-- TF2 Double Jump
+hook_Add "Move", "Jailbreak::TF2 Double Jump", ( mv ) =>
+    if Jailbreak.GameName ~= "tf" or @WaterLevel! > 1
+        return
+
+    if @IsOnGround!
+        @HasDoubleJump = true
+    elseif @HasDoubleJump and mv\KeyPressed( IN_JUMP )
+        @HasDoubleJump = false
+
+        velocity = mv\GetVelocity!
+        velocity[ 3 ] = @GetJumpPower! * 2
+        mv\SetVelocity( velocity )
