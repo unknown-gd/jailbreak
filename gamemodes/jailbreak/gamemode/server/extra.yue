@@ -369,10 +369,10 @@ do
 -- Guard Death
 do
 
-    :IsRoundRunning, :PlaySound, :GetTeamPlayersCount = Jailbreak
+    :IsRoundRunning, :PlaySound, :GetTeamPlayersCount, :GuardsDeathSound = Jailbreak
 
     hook.Add "PlayerDeath", "Jailbreak::First Blood", =>
-        unless IsRoundRunning! and @IsGuard! and GetTeamPlayersCount( true, TEAM_GUARD )[ 1 ] ~= 0
+        unless GuardsDeathSound\GetBool! and IsRoundRunning! and @IsGuard! and GetTeamPlayersCount( true, TEAM_GUARD )[ 1 ] ~= 0
             return
 
         PlaySound( "ambient/alarms/klaxon1.wav" )

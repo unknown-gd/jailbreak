@@ -261,8 +261,14 @@ do
         damageInfo\SetDamage( flNew )
         return armor
 
+do
+
+    BLOOD_COLOR_MECH = BLOOD_COLOR_MECH
+    BLOOD_COLOR_RED = BLOOD_COLOR_RED
+
     GM.HandlePlayerArmorReduction = ( ply, damageInfo ) =>
         ply\SetArmor( @PerformArmorDamage( ply, ply\Armor!, damageInfo ) )
+        ply\SetBloodColor( ply\Armor! > 0 and BLOOD_COLOR_MECH or BLOOD_COLOR_RED )
 
 GM.GetFallDamage = ( ply, speed ) =>
     return max( 0, ceil( 0.2418 * speed - 141.75 ) )
