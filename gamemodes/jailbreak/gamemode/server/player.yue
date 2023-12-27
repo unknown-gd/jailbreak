@@ -22,6 +22,11 @@ do
         WriteString( itemName )
         Send( @ )
 
+    PLAYER.ResetToggles = =>
+        Start( "Jailbreak::Networking" )
+        WriteUInt( 6, 3 )
+        Send( @ )
+
     do
 
         RecipientFilter = RecipientFilter
