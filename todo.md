@@ -25,3 +25,5 @@ vo/Streetwar/rubble/ba_tellbreen.wav
 # Дополнительное
 - конвары в меню
 - Меню с клиентскими настройками
+- custom kill feed
+
