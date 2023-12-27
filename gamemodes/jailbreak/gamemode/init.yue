@@ -27,6 +27,9 @@ do
     Jailbreak.RoundTime = CreateConVar( "jb_round_time", "0", FCVAR_SERVER, "Round time in seconds.", 0, 12 * 60 * 60 )
 
     Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", FCVAR_SERVER, "Guards armor amount on spawn.", 0, 1000 )
+    Jailbreak.PermanentGuards = CreateConVar( "jb_permanent_guards", "0", FCVAR_SERVER, "If enabled, disables guard rotation.", 0, 1 )
+    Jailbreak.GuardsDeathSound = CreateConVar( "jb_guards_death_sound", "0", FCVAR_SHARED, "If enabled, an alarm will sound when the guard dies.", 0, 1 )
+
     Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "500", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
 
     Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", FCVAR_SERVER, "The speed of the player while walking.", 0, 3000 )
@@ -43,8 +46,8 @@ do
     Jailbreak.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", FCVAR_SERVER, "Damage to the victim from the electric collar.", 0, 1000 )
     Jailbreak.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", FCVAR_SERVER, "Damage to the attacker from the electric collar.", 0, 1000 )
 
-    Jailbreak.PermanentGuards = CreateConVar( "jb_permanent_guards", "0", FCVAR_SERVER, "If enabled, disables guard rotation.", 0, 1 )
     Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "1", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
+    Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 freezecam on death.", 0, 1 )
 
 -- Utils
 include( "server/language.lua" )

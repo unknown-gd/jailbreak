@@ -13,15 +13,15 @@ do
     :IsRoundPreparing, :GuardsFriendlyFire = Jailbreak
 
     GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
-        if IsRoundPreparing!
-            return false
-
         attacker = damageInfo\GetAttacker!
         unless attacker\IsValid! and attacker\IsPlayer!
             return true
 
         if attacker == ply
             return true
+
+        if IsRoundPreparing!
+            return false
 
         if not GuardsFriendlyFire\GetBool! and teamID == TEAM_GUARD and teamID == attacker\Team!
             return false

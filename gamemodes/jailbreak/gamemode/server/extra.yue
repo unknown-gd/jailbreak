@@ -1,6 +1,7 @@
 Jailbreak = Jailbreak
 :FixModelPath = Jailbreak
 :random, :max, :Rand = math
+timer_Simple = timer.Simple
 hook_Add = hook.Add
 CurTime = CurTime
 GM = GM
@@ -74,7 +75,6 @@ do
 
     if EntityReplacer ~= nil
 
-        timer_Simple = timer.Simple
         :lower, :find = string
         :IsValidModel = util
 
@@ -376,3 +376,36 @@ do
             return
 
         PlaySound( "ambient/alarms/klaxon1.wav" )
+
+do
+
+    OBS_MODE_FREEZECAM = OBS_MODE_FREEZECAM
+    OBS_MODE_CHASE = OBS_MODE_CHASE
+    :TF2Freezecam = Jailbreak
+
+    hook.Add "PlayerDeath", "Jailbreak::TF2 Freezecam", ( _, attacker ) =>
+        unless TF2Freezecam\GetBool!
+            return
+
+        timer_Simple 0, ->
+            unless @IsValid!
+                return
+
+            unless IsValid( attacker )
+                return
+
+            if attacker\IsPlayer!
+                if not attacker\IsInGame! or attacker == @
+                    return
+
+            elseif attacker\IsSolid! or attacker\GetNoDraw!
+                return
+
+            @Spectate( OBS_MODE_FREEZECAM )
+            @SpectateEntity( attacker )
+
+            timer_Simple 1.5, ->
+                unless @IsValid!
+                    return
+
+                @Spectate( OBS_MODE_CHASE )

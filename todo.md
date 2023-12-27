@@ -1,8 +1,8 @@
 # Основное
 - Магазин для вардена в котором тот может обменивать очки на спавн разных энтити.
-- TF2 Freezecam
 - добавить в targetid состояние здоровья из TTT ( invinsible and other memes )
 - Custom chat
+- HUDDrawPickupHistory
 
 # Звуки
 Покупка радио/мяча: ambient\levels\labs\coinslot1.wav ; Проигрывается рядом с игроком
