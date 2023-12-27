@@ -2,6 +2,7 @@ Jailbreak = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
 :find, :Explode = string
+:GetPhrase = language
 :PlaySound = surface
 list_Set = list.Set
 :Colors = Jailbreak
@@ -23,16 +24,14 @@ do
                 state = securityRadio\GetBool!
 
                 image = state and "icon16/phone_sound.png" or "icon16/phone.png"
-                if @Image\GetImage! ~= image
-                    @Image\SetImage( image )
+                if @GetImage! ~= image
+                    @SetImage( image )
 
                 if @IsVisible!
                     return
                 @Show!
             elseif @IsVisible!
                 @Hide!
-
-            @GetParent!\Layout!
 
         click: =>
             securityRadio\SetBool( not securityRadio\GetBool! )
@@ -51,8 +50,8 @@ do
                 state = Megaphone\GetBool!
 
                 image = state and "icon16/sound.png" or "icon16/sound_mute.png"
-                if @Image\GetImage! ~= image
-                    @Image\SetImage( image )
+                if @GetImage! ~= image
+                    @SetImage( image )
 
                 if @IsVisible!
                     return
@@ -61,8 +60,6 @@ do
 
             if @IsVisible!
                 @Hide!
-
-            @GetParent!\Layout!
 
         click: =>
             Megaphone\SetBool( not Megaphone\GetBool! )
@@ -79,37 +76,36 @@ list_Set "DesktopWindows", "warden-request", {
                 if Jailbreak.HasWarden!
                     if ply\IsWarden!
                         image = "icon16/user.png"
-                        if @Image\GetImage! ~= image
-                            @Image\SetImage( image )
+                        if @GetImage! ~= image
+                            @SetImage( image )
 
-                        text = "#jb.warden.leave"
+                        text = GetPhrase( "jb.warden.leave" )
                         if @Label\GetText! ~= text
                             @Label\SetText( text )
                             @SetTooltip( text )
 
                         unless @IsVisible!
                             @Show!
-                            @GetParent!\Layout!
 
                         return
+
                 elseif ply\IsGuard!
                     image = "icon16/user_suit.png"
-                    if @Image\GetImage! ~= image
-                        @Image\SetImage( image )
+                    if @GetImage! ~= image
+                        @SetImage( image )
 
-                    text = "#jb.warden.join"
+                    text = GetPhrase( "jb.warden.join" )
                     if @Label\GetText! ~= text
                         @Label\SetText( text )
                         @SetTooltip( text )
 
                     unless @IsVisible!
                         @Show!
-                        @GetParent!\Layout!
+
                     return
 
         if @IsVisible!
             @Hide!
-            @GetParent!\Layout!
 
     click: =>
         RunConsoleCommand( "jb_warden" )
@@ -125,18 +121,17 @@ list_Set "DesktopWindows", "shock-collars", {
             if ply\IsWarden! and ply\Alive!
                 state = Jailbreak.IsShockCollarsActive!
 
-                image = state and "icon16/accept.png" or "icon16/cancel.png"
+                image = state and "icon16/lightning.png" or "icon16/lightning_delete.png"
                 if @GetImage! ~= image
                     @SetImage( image )
 
                 unless @IsVisible!
                     @Show!
-                    @GetParent!\Layout!
+
                 return
 
         if @IsVisible!
             @Hide!
-            @GetParent!\Layout!
 
     click: =>
         RunConsoleCommand( "jb_shock_collars" )
@@ -393,7 +388,7 @@ do
                     if skinCount > 0
                         skins = vgui.Create( "DNumSlider" )
                         skins\Dock( TOP )
-                        skins\SetText( "Skin" )
+                        skins\SetText( "#jb.skin" )
                         skins\SetDark( true )
                         skins\SetTall( 50 )
                         skins\SetDecimals( 0 )

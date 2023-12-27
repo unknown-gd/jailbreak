@@ -2,17 +2,16 @@ Jailbreak = Jailbreak
 GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
-:ceil, :min, :max, :sin, :floor, :random, :log, :Rand, :Round, :Clamp = math
+:ceil, :max, :floor, :log, :Clamp = math
 :TeamIsJoinable, :ChangeTeam, :Colors, :VMin = Jailbreak
-:format, :upper, :find, :Explode = string
+:format = string
 :GetColor, :GetName, :GetScore = team
 :GetPhrase = language
-list_Set = list.Set
 hook_Add = hook.Add
 hook_Run = hook.Run
 IsValid = IsValid
 :GetAll = player
-Vector = Vector
+select = select
 pairs = pairs
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -21,8 +20,6 @@ ROUND_RUNNING = ROUND_RUNNING
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
-Jailbreak.Font( "Jailbreak::TeamSelect - Button", "Roboto Mono Medium", 4 )
-Jailbreak.Font( "Jailbreak::TeamSelect", "Roboto Mono Bold", 4 )
 :dark_grey, :black, :white, :light_grey = Colors
 
 PANEL_META = FindMetaTable( "Panel" )
@@ -36,7 +33,6 @@ GM.ContextMenuOpen = ->
 do
 
     :GetRoundState, :GetRemainingTime = Jailbreak
-    TEXT_ALIGN_CENTER = TEXT_ALIGN_CENTER
     :GetCursorPos, :SetCursorPos = input
     CloseDermaMenus = CloseDermaMenus
 
@@ -49,6 +45,77 @@ do
         @SetWorldClicker( true )
         @m_bHangOpen = false
         @Dock( FILL )
+
+        scrollPanel = @Add( "DScrollPanel" )
+        @ScrollPanel = scrollPanel
+
+        scrollPanel.VBar\SetWide( 0 )
+        scrollPanel\Dock( LEFT )
+
+        scrollPanel.OnMousePressed = ( _, ... ) ->
+            @OnMousePressed( ... )
+
+        hook_Add "LanguageChanged", @, ->
+            @InvalidateChildren( true )
+
+    PANEL.PerformLayout = =>
+        scrollPanel = @ScrollPanel
+        width = 0
+
+        for child in *scrollPanel\GetCanvas!\GetChildren!
+            if child\GetName! ~= "Jailbreak::ContextMenu - Button"
+                continue
+
+            paddingLeft, paddingRight = child\GetDockPadding!
+            width = max( width, paddingLeft + child.Label\GetTextSize! + paddingRight )
+
+        scrollPanel\SetWide( width )
+
+    PANEL.AddItem = ( data ) =>
+        scrollPanel = @ScrollPanel
+        unless scrollPanel\IsValid!
+            return
+
+        title = data.title
+
+        button = scrollPanel\Add( "Jailbreak::ContextMenu - Button" )
+
+        button.Image\SetImage( data.icon )
+        button.Label\SetText( title )
+
+        @SetTooltip( title )
+        @InvalidateLayout!
+
+        created = data.created
+        if isfunction( created )
+            created( button )
+
+        think = data.think
+        if isfunction( think )
+            hook_Add "Think", button, think
+
+        click = data.click
+        if isfunction( click )
+            button.DoClick = click
+
+        init = data.init
+        if isfunction( init )
+            button.DoClick = ->
+                window = button.Window
+                if desktopwindow.onewindow and IsValid( window )
+                    window\Center!
+                    return
+
+                window = g_ContextMenu\Add( "DFrame" )
+                button.Window = window
+
+                window\SetSize( desktopwindow.width, desktopwindow.height )
+                window\SetTitle( title )
+                window\Center!
+
+                init( button, window )
+
+        return button
 
     PANEL.Open = =>
         @SetHangOpen( false )
@@ -90,6 +157,16 @@ do
     PANEL.EndKeyFocus = ( pPanel ) =>
         @SetKeyboardInputEnabled( false )
 
+    do
+
+        :ScreenToVector = gui
+
+        PANEL.OnMousePressed = ( _, code ) ->
+            hook_Run( "GUIMousePressed", code, ScreenToVector( GetCursorPos! ) )
+
+        PANEL.OnMouseReleased = ( _, code ) ->
+            hook_Run( "GUIMouseReleased", code, ScreenToVector( GetCursorPos! ) )
+
     PANEL.Paint = ( width, height ) =>
         if GetRoundState! ~= ROUND_RUNNING
             return
@@ -118,87 +195,103 @@ do
 
     do
 
+        Jailbreak.Font( "Jailbreak::ContextMenu - Button", "Roboto Mono Bold", 1.25 )
+
         PANEL = {}
 
         PANEL.Init = =>
             @SetText( "" )
+            @Dock( TOP )
 
             label = @Add( "DLabel" )
             @Label = label
 
-            label\Dock( BOTTOM )
-            label\SetContentAlignment( 5 )
             label\SetTextColor( white )
+            label\SetContentAlignment( 5 )
+            label\SetFont( "Jailbreak::ContextMenu - Button" )
             label\SetExpensiveShadow( 1, Color( 0, 0, 0, 200 ) )
+            label\Dock( BOTTOM )
 
             image = @Add( "DImage" )
             @Image = image
 
-            image\SetSize( 64, 64 )
-            image\Dock( TOP )
-            image\DockMargin( 8, 0, 8, 0 )
+            image\SetMouseInputEnabled( false )
+            image\Dock( FILL )
 
-        PANEL.Setup = ( title, icon ) =>
-            @Image\SetImage( icon )
-            @Label\SetText( title )
-            @SetTooltip( title )
-            @InvalidateLayout!
+        PANEL.DoClick = ->
 
         PANEL.GetImage = =>
-            image = @m_Image
-            if image and image\IsValid!
-                return image\GetImage!
+            return @Image\GetImage!
 
-            return ""
-
-        PANEL.SetImage = ( imagePath ) =>
-            image = @m_Image
-
-            unless imagePath
-                if IsValid( image )
-                    image\Remove!
-
-                return
-
-            unless IsValid( image )
-                image = @Add "DImage"
-                @m_Image = image
-
-            image\SetMouseInputEnabled( false )
-            image\SetImage( imagePath )
-            image\SizeToContents!
+        PANEL.SetImage = ( materialPath ) =>
+            @Image\SetImage( materialPath )
             @InvalidateLayout!
 
+        PANEL.OnCursorEntered = =>
+            unless @IsEnabled!
+                return
+
+            PlaySound( "garrysmod/ui_hover.wav" )
+
+        PANEL.OnMouseReleased = ( mousecode ) =>
+            @MouseCapture( false )
+
+            unless @IsEnabled!
+                return
+
+            if not @Depressed and dragndrop.m_DraggingMain ~= @
+                return
+
+            if @Depressed
+                @Depressed = nil
+                @OnReleased!
+                @InvalidateLayout( true )
+
+            if @DragMouseRelease( mousecode )
+                return
+
+            if @IsSelectable! and mousecode == MOUSE_LEFT
+                canvas = @GetSelectionCanvas!
+                if canvas
+                    canvas\UnselectAll!
+
+            unless @Hovered
+                return
+
+            @Depressed = true
+
+            PlaySound( "garrysmod/ui_click.wav" )
+
+            if mousecode == MOUSE_RIGHT
+                @DoRightClick!
+
+            if mousecode == MOUSE_LEFT
+                @DoClickInternal!
+                @DoClick!
+
+            if mousecode == MOUSE_MIDDLE
+                @DoMiddleClick!
+
+            @Depressed = nil
+
         PANEL.PerformLayout = =>
-            size = VMin( 8 )
-            width, height = size, size + VMin( 0.5 )
-            @SetSize( width, height )
+            margin = VMin( 0.5 )
+            margin2 = margin * 2
+            @Image\DockMargin( margin2, margin2, margin2, 0 )
+            @DockPadding( margin, margin, margin, 0 )
 
-            image = @m_Image
-            if IsValid( image )
+            width = @GetWide!
+            height = width
 
-                imageWidth, imageHeight = image\GetSize!
+            label = @Label
+            if IsValid( label )
+                height += select( 2, label\GetTextSize! )
 
-                targetSize = min( width - 4, height - 4 )
-                zoom = min( targetSize / imageWidth, targetSize / imageHeight, 1 )
-                newSizeX = ceil( imageWidth * zoom )
-                newSizeY = ceil( imageHeight * zoom )
-
-                image\SetWide( newSizeX )
-                image\SetTall( newSizeY )
-
-                x, y = width - imageWidth, height - imageHeight
-
-                for panel in *@GetChildren!
-                    if panel\IsVisible! and panel\GetDock! == BOTTOM
-                        y -= panel\GetTall!
-
-                image\SetPos( 0, y )
-                @SetTextInset( imageWidth + 16, 0 )
+            @SetTall( height )
 
             DLabel.PerformLayout( @, width, height )
 
-        PANEL.Paint = ( width, height ) =>
+        PANEL.Paint = ( width, height ) ->
 
         vgui.Register( "Jailbreak::ContextMenu - Button", PANEL, "DButton" )
 
@@ -215,35 +308,19 @@ do
             return
 
         global g_ContextMenu = contextMenu
-        contextMenu\SetVisible( false )
-
-        hook_Add "LanguageChanged", contextMenu, =>
-            hook.Remove "LanguageChanged", @
-            @Remove!
-
-        contextMenu.OnMousePressed = ( _, code ) ->
-            hook_Run( "GUIMousePressed", code, gui.ScreenToVector( input.GetCursorPos! ) )
-
-        contextMenu.OnMouseReleased = ( _, code ) ->
-            hook_Run( "GUIMouseReleased", code, gui.ScreenToVector( input.GetCursorPos! ) )
 
         hook_Run( "ContextMenuCreated", contextMenu )
-
-        iconLayout = contextMenu\Add( "DIconLayout" )
-        iconLayout\SetBorder( 8 )
-        iconLayout\SetSpaceX( 8 )
-        iconLayout\SetSpaceY( 8 )
-        iconLayout\SetLayoutDir( LEFT )
-        iconLayout\SetStretchWidth( true )
-        iconLayout\SetStretchHeight( false )
-        iconLayout\Dock( LEFT )
-
-        iconLayout.OnMousePressed = ( ... ) =>
-            @GetParent!\OnMousePressed( ... )
+        contextMenu\SetVisible( false )
 
         desktopWindows = {}
-        for _, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
-            desktopWindows[] = desktopWindow
+
+        do
+
+            index = 1
+
+            for _, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
+                desktopWindows[ index ] = desktopWindow
+                index += 1
 
         table.sort desktopWindows, ( a, b ) ->
             if a.order and b.order
@@ -251,38 +328,8 @@ do
 
             return a.title < b.title
 
-        for desktopWindow in *desktopWindows
-            icon = iconLayout\Add( "Jailbreak::ContextMenu - Button" )
-            icon\Setup( desktopWindow.title, desktopWindow.icon )
-
-            created = desktopWindow.created
-            if isfunction( created )
-                created( icon )
-
-            think = desktopWindow.think
-            if isfunction( think )
-                hook_Add "Think", icon, think
-
-            click = desktopWindow.click
-            if isfunction( click )
-                icon.DoClick = click
-
-            init = desktopWindow.init
-            if isfunction( init )
-                icon.DoClick = ->
-                    window = icon.Window
-                    if desktopwindow.onewindow and IsValid( window )
-                        window\Center!
-                        return
-
-                    window = g_ContextMenu\Add( "DFrame" )
-                    icon.Window = window
-
-                    window\SetSize( desktopwindow.width, desktopwindow.height )
-                    window\SetTitle( title )
-                    window\Center!
-
-                    init( icon, window )
+        for data in *desktopWindows
+            contextMenu\AddItem( data )
 
         return contextMenu
 
@@ -330,6 +377,8 @@ do
 
 -- Button
 do
+
+    Jailbreak.Font( "Jailbreak::TeamSelect - Button", "Roboto Mono Medium", 4 )
 
     PANEL = {}
 
@@ -423,6 +472,8 @@ do
 -- Main Panel
 do
 
+    Jailbreak.Font( "Jailbreak::TeamSelect", "Roboto Mono Bold", 4 )
+
     PANEL = {}
 
     PANEL.OnRemove = =>
@@ -435,8 +486,6 @@ do
     }
 
     PANEL.Init = =>
-        @DockPadding( 16, 16, 16, 16 )
-
         hook_Add "PlayerButtonDown", @, ( ply, key ) =>
             if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
                 @Remove!
@@ -448,12 +497,13 @@ do
         do
 
             title = @Add( "DLabel" )
+            @Title = title
+
             title\SetText( "#jb.team-select" )
             title\SetTextColor( white )
             title\SetContentAlignment( 5 )
             title\SetFont( "Jailbreak::TeamSelect" )
 
-            title\DockMargin( 0, 0, 0, 16 )
             title\Dock( TOP )
 
             title.PerformLayout = =>
@@ -468,6 +518,8 @@ do
         do
 
             button = subPanel\Add( "Jailbreak::TeamSelect - Button" )
+            @Guards = button
+
             button.Team = TEAM_GUARD
             button.MainPanel = @
             button\Dock( LEFT )
@@ -475,10 +527,14 @@ do
             button.PerformLayout = =>
                 @SetWide( subPanel\GetWide! * 0.5 - 8 )
 
+            button\InvalidateLayout( true )
+
         -- TEAM_PRISONER
         do
 
             button = subPanel\Add( "Jailbreak::TeamSelect - Button" )
+            @Prisoners = button
+
             button.Team = TEAM_PRISONER
             button.MainPanel = @
             button\Dock( RIGHT )
@@ -486,38 +542,46 @@ do
             button.PerformLayout = =>
                 @SetWide( subPanel\GetWide! * 0.5 - 8 )
 
+            button\InvalidateLayout( true )
+
         -- TEAM_SPECTATOR
         do
 
             button = @Add( "Jailbreak::TeamSelect - Button" )
+            @Spectators = button
+
             button\SetText( "#jb.team.spectate" )
             button.Team = TEAM_SPECTATOR
             button.MainPanel = @
 
             button\SetTextColor( dark_grey )
-            button\DockMargin( 0, 16, 0, 0 )
             button\Dock( BOTTOM )
 
             button.PerformLayout = =>
                 parent = @GetParent!
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
+
+            button\InvalidateLayout( true )
 
         -- Random Team
         do
 
             button = @Add( "Jailbreak::TeamSelect - Button" )
+            @Random = button
+
             button\SetText( "#jb.team.random" )
             button.Color = Colors.asparagus
             button.MainPanel = @
 
-            button\DockMargin( 0, 16, 0, 0 )
             button\Dock( BOTTOM )
 
             button.PerformLayout = =>
                 parent = @GetParent!
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
+
+            button\InvalidateLayout( true )
 
         @InvalidateLayout( true )
 
@@ -557,6 +621,21 @@ do
                 HideGameUI!
 
     PANEL.PerformLayout = ( width, height ) =>
+        padding = VMin( 1.5 )
+        @DockPadding( padding, padding, padding, padding )
+
+        title = @Title
+        if IsValid( title )
+            title\DockMargin( 0, 0, 0, padding )
+
+        spectators = @Spectators
+        if IsValid( spectators )
+            spectators\DockMargin( 0, padding, 0, 0 )
+
+        random = @Random
+        if IsValid( random )
+            random\DockMargin( 0, padding, 0, 0 )
+
         @SetSize( Jailbreak.ScreenWidth * 0.5, Jailbreak.ScreenHeight * 0.5 )
         @Center!
 
@@ -574,45 +653,52 @@ do
 
     PANEL = {}
 
+    PANEL.ToggleMenu = =>
+        menu = @Menu
+        if IsValid( menu )
+            menu\Remove!
+            return
+
+        ply = @Player
+        unless IsValid( ply ) and ply\IsPlayer!
+            return
+
+        if ply\IsBot!
+            return
+
+        menu = DermaMenu!
+        @Menu = menu
+
+        steamid64 = ply\SteamID64!
+
+        menu\AddOption "#jb.user.profile", ->
+            gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
+
+        menu\AddOption "#jb.user.steamid64", ->
+            notification.AddLegacy( "#jb.notify.steamid64", NOTIFY_GENERIC, 3 )
+            PlaySound( "buttons/button18.wav" )
+            SetClipboardText( steamid64 )
+
+        do
+
+            isMuted = ply\IsMuted!
+            option = menu\AddOption "#jb.user.mute", ->
+                if ply\IsValid!
+                    ply\SetMuted( not isMuted )
+
+            option\SetChecked( isMuted )
+
+        menu\Open!
+
     PANEL.Init = =>
+        @Dock( TOP )
+
         avatar = @Add( "AvatarImage" )
-        avatar\Dock( LEFT )
         @Avatar = avatar
 
-        avatar.OnMousePressed = ( _, keyCode ) ->
-            ply = @Player
-            unless IsValid( ply ) and ply\IsPlayer!
-                return
-
-            if ply\IsBot!
-                return
-
-            steamid64 = ply\SteamID64!
-
-            switch keyCode
-                when MOUSE_LEFT
-                    gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
-                when MOUSE_RIGHT
-                    menu = DermaMenu!
-
-                    menu\AddOption "#jb.user.profile", ->
-                        gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
-
-                    menu\AddOption "#jb.user.steamid64", ->
-                        notification.AddLegacy( "#jb.notify.steamid64", NOTIFY_GENERIC, 3 )
-                        PlaySound( "buttons/button18.wav" )
-                        SetClipboardText( steamid64 )
-
-                    do
-
-                        isMuted = ply\IsMuted!
-                        option = menu\AddOption "#jb.user.mute", ->
-                            if ply\IsValid!
-                                ply\SetMuted( not isMuted )
-
-                        option\SetChecked( isMuted )
-
-                    menu\Open!
+        avatar\Dock( LEFT )
+        avatar.OnMousePressed = ->
+            @ToggleMenu!
 
         nickname = @Add( "DLabel" )
         nickname\Dock( FILL )
@@ -645,13 +731,6 @@ do
         @Color = light_grey
         @Text = "unknown"
 
-    PANEL.Setup = ( ply ) =>
-        unless IsValid( ply ) and ply\IsPlayer!
-            return
-
-        @Player = ply
-        @InvalidateLayout!
-
     PANEL.Think = =>
         ply = @Player
         unless ply
@@ -673,14 +752,11 @@ do
 
 
     PANEL.PerformLayout = =>
-        if @GetDock! ~= TOP
-            @Dock( TOP )
+        margin = VMin( 0.5 )
+        @DockMargin( 0, 0, 0, margin )
+        @DockPadding( margin, margin, margin, margin )
 
-        offset = VMin( 0.5 )
-        @DockMargin( 0, 0, 0, offset )
-        @DockPadding( offset, offset, offset, offset )
-
-        height = VMin( 2.5 ) + offset * 2
+        height = VMin( 2.5 ) + margin * 2
 
         ply = @Player
         if IsValid( ply )
@@ -690,12 +766,11 @@ do
             @SetTooltip( text )
 
             SetFont( "Jailbreak::Scoreboard - Player" )
-            textWidth, textHeight = GetTextSize( text )
-            height = max( height, textHeight + offset * 2 )
+            height = max( height, margin + select( 2, GetTextSize( text ) ) + margin )
 
             nickname = @Nickname
             if IsValid( nickname )
-                nickname\DockMargin( offset, 0, 0, 0 )
+                nickname\DockMargin( margin, 0, 0, 0 )
                 nickname\SetTooltip( text )
 
                 if nickname\GetText! ~= text
@@ -703,9 +778,6 @@ do
 
             avatar = @Avatar
             if IsValid( avatar )
-                if avatar\GetDock! ~= LEFT
-                    avatar\Dock( LEFT )
-
                 avatarHeight = avatar\GetTall!
                 avatar\SetWide( avatarHeight )
                 avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( ceil( avatarHeight ), 2 ) ), 16, 512 ) )
@@ -727,12 +799,10 @@ do
 
     PANEL.Init = =>
         @Team = TEAM_SPECTATOR
+        @Dock( TOP )
         @InvalidateLayout( true )
 
     PANEL.PerformLayout = =>
-        if @GetDock! ~= TOP
-            @Dock( TOP )
-
         teamID = @Team
         @Color = GetColor( teamID )
         text = GetName( teamID )
@@ -743,8 +813,8 @@ do
         width = @GetWide!
         @Text = text
 
-        offset = VMin( 0.5 )
-        height = textHeight + offset * 2
+        margin = VMin( 0.5 )
+        height = textHeight + margin * 2
         @SetTall( height )
 
         if @Team == TEAM_SPECTATOR
@@ -754,12 +824,12 @@ do
 
         score = tostring( GetScore( teamID ) )
         scoreWidth, scoreHeight = GetTextSize( score )
-        scoreSize = max( scoreWidth + offset, VMin( 5 ) )
+        scoreSize = max( scoreWidth + margin, VMin( 5 ) )
         @ScoreX, @ScoreY = ( scoreSize - scoreWidth ) / 2, ( height - scoreHeight ) / 2
         @ScoreSize = scoreSize
         @Score = score
 
-        scoreX = scoreSize + offset
+        scoreX = scoreSize + margin
         @RectX, @RectWidth = scoreX, width - scoreX
         @TextPosX, @TextPosY = scoreX + ( width - scoreX - textWidth ) / 2, ( height - textHeight ) / 2
 
@@ -808,6 +878,8 @@ do
         prisoners = @Add( "EditablePanel" )
         @Prisoners = prisoners
 
+        prisoners\Dock( LEFT )
+
         label = prisoners\Add( "Jailbreak::Scoreboard - Header" )
         prisoners.Label = label
 
@@ -821,6 +893,8 @@ do
         guards = @Add( "EditablePanel" )
         @Guards = guards
 
+        guards\Dock( RIGHT )
+
         label = guards\Add( "Jailbreak::Scoreboard - Header" )
         guards.Label = label
 
@@ -833,7 +907,9 @@ do
 
         spectators = @Add( "EditablePanel" )
         @Spectators = spectators
+
         spectators\SetZPos( -1000 )
+        spectators\Dock( BOTTOM )
 
         label = spectators\Add( "Jailbreak::Scoreboard - Header" )
         spectators.Label = label
@@ -852,6 +928,7 @@ do
         playerCount\SetTextColor( white )
         playerCount\SetContentAlignment( 5 )
         playerCount\SetFont( "Jailbreak::Scoreboard - Small" )
+        playerCount\Dock( BOTTOM )
 
     PANEL.PerformLayout = =>
         size = VMin( 80 )
@@ -869,9 +946,6 @@ do
 
         prisoners = @Prisoners
         if IsValid( prisoners )
-            if prisoners\GetDock! ~= LEFT
-                prisoners\Dock( LEFT )
-
             label = prisoners.Label
             if IsValid( label )
                 label\DockMargin( 0, 0, 0, margin )
@@ -886,9 +960,6 @@ do
 
         guards = @Guards
         if IsValid( guards )
-            if guards\GetDock! ~= RIGHT
-                guards\Dock( RIGHT )
-
             label = guards.Label
             if IsValid( label )
                 label\DockMargin( 0, 0, 0, margin )
@@ -903,9 +974,6 @@ do
 
         spectators = @Spectators
         if IsValid( spectators )
-            if spectators\GetDock! ~= BOTTOM
-                spectators\Dock( BOTTOM )
-
             spectators\DockMargin( 0, margin, 0, margin )
 
             label = spectators.Label
@@ -922,9 +990,6 @@ do
 
         playerCount = @PlayerCount
         if IsValid( playerCount )
-            if playerCount\GetDock! ~= BOTTOM
-                playerCount\Dock( BOTTOM )
-
             teams = Jailbreak.GetTeamPlayersCount( nil, TEAM_PRISONER, TEAM_GUARD )
             playerCount\SetText( format( GetPhrase( "jb.scoreboard.players-online" ), player.GetCount!, teams[ 1 ], teams[ 2 ] ) )
             playerCount\SizeToContentsY!
@@ -948,7 +1013,7 @@ do
         prisoners, guards, spectators = @Prisoners.ScrollPanel, @Guards.ScrollPanel, @Spectators.ScrollPanel
         for ply in *GetAll!
             panel = vgui.Create( "Jailbreak::Scoreboard - Player" )
-            panel\Setup( ply )
+            panel.Player = ply
 
             switch ply\Team!
                 when TEAM_PRISONER
@@ -957,6 +1022,8 @@ do
                     guards\AddItem( panel )
                 when TEAM_SPECTATOR
                     spectators\AddItem( panel )
+
+            panel\InvalidateLayout( true )
 
     PANEL.Show = =>
         PANEL_META.Show( @ )

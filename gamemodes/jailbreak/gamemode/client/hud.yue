@@ -200,13 +200,11 @@ do
 
             text = Translate( "#jb." .. className )
 
-        offset = VMin( 2 )
-
         SetFont( "Jailbreak::TargetID" )
         textWidth, textHeight = GetTextSize( text )
 
         x = mouseX - textWidth / 2
-        y = mouseY + offset
+        y = mouseY + VMin( 2 )
 
         SetTextPos( x - 1, y - 1 )
         SetTextColor( black.r, black.g, black.b, 50 )
@@ -980,12 +978,11 @@ do
             @Info = @Add( "Jailbreak::HUDInfo" )
             @Power = @Add( "Jailbreak::HUDPower" )
             @Ammo = @Add( "Jailbreak::HUDAmmo" )
+            @Dock( BOTTOM )
+
             @InvalidateLayout( true )
 
         PANEL.PerformLayout = =>
-            if @GetDock! ~= BOTTOM
-                @Dock( BOTTOM )
-
             margin = VMin( 1 )
             @DockMargin( margin, 0, margin, margin )
             @SetZPos( -1000 )

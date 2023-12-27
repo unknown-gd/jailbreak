@@ -24,57 +24,48 @@ do
         @Dock( BOTTOM )
         @Player = NULL
 
-        @Avatar = @Add( "AvatarImage" )
+        avatar = @Add( "AvatarImage" )
+        @Avatar = avatar
+
+        avatar\Dock( LEFT )
 
         label = @Add( "DLabel" )
         @Label = label
 
+        label\SetExpensiveShadow( 1, dark_grey )
         label\SetFont( "Jailbreak::Voice Chat" )
         label\SetContentAlignment( 4 )
         label\SetTextColor( white )
+        label\Dock( FILL )
 
         @VoiceData = {}
         @NextVoiceData = 0
         @VoiceDataLength = 0
 
     PANEL.PerformLayout = ( width ) =>
-        if @GetDock! ~= BOTTOM
-            @Dock( BOTTOM )
-
         height, padding = VMin( 4 ), VMin( 0.5 )
         @VoiceDataLength = ceil( max( width, 4 ) / padding )
         @DockPadding( padding, padding, padding, padding )
         @DockMargin( 0, padding, 0, 0 )
 
-        label = @Label
-        if IsValid( label )
-            if label\GetDock! ~= FILL
-                label\Dock( FILL )
-
-            label\DockMargin( padding, 0, 0, 0 )
-            height = max( height, select( 2, label\GetTextSize! ) + padding * 2 )
+        @Label\DockMargin( padding, 0, 0, 0 )
+        height = max( height, select( 2, @Label\GetTextSize! ) + padding * 2 )
 
         avatar = @Avatar
-        if IsValid( avatar )
-            if avatar\GetDock! ~= LEFT
-                avatar\Dock( LEFT )
+        avatarHeight = avatar\GetTall!
+        avatar\SetWide( avatarHeight )
 
-            avatarHeight = avatar\GetTall!
-            avatar\SetWide( avatarHeight )
-
-            ply = @Player
-            if IsValid( ply )
-                avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( ceil( avatarHeight ), 2 ) ), 16, 512 ) )
+        ply = @Player
+        if IsValid( ply )
+            avatar\SetPlayer( ply, Clamp( 2 ^ floor( log( ceil( avatarHeight ), 2 ) ), 16, 512 ) )
 
         @SetTall( height )
 
     PANEL.Setup = ( ply ) =>
-        @Player = ply
-
         label = @Label
-        if IsValid( label )
-            label\SetTextColor( ply\GetModelColor! )
-            label\SetText( ply\Nick! )
+        label\SetTextColor( ply\GetModelColor! )
+        label\SetText( ply\Nick! )
+        @Player = ply
 
         @InvalidateLayout!
 
@@ -154,6 +145,7 @@ do
 
     PANEL.Init = =>
         @SetZPos( 1000 )
+        @Dock( RIGHT )
 
     PANEL.GetVoicePanel = ( ply ) =>
         for panel in *@GetChildren!
@@ -184,13 +176,9 @@ do
                     panel\FadeIn!
 
     PANEL.PerformLayout = =>
-        @SetWide( Jailbreak.ScreenWidth / 6 )
-
-        if @GetDock! ~= RIGHT
-            @Dock( RIGHT )
-
         margin = VMin( 1 )
         @DockMargin( 0, margin, margin, margin )
+        @SetWide( Jailbreak.ScreenWidth / 6 )
 
     vgui.Register( "Jailbreak::VoiceChat", PANEL, "Panel" )
 
