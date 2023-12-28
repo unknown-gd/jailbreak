@@ -194,7 +194,41 @@ Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
-:GetNW2Bool, :GetNW2Entity = ENTITY
+:GetNW2Bool, :GetNW2Entity, :GetNW2Var = ENTITY
+
+-- Returns entity health
+CHealth = ENTITY.CHealth
+unless CHealth
+    CHealth = ENTITY.Health
+    ENTITY.CHealth = CHealth
+
+PLAYER.Health = PLAYER.Health or CHealth
+
+do
+
+    :GetNW2Int = ENTITY
+
+    ENTITY.Health = =>
+        return GetNW2Int( @, "health", CHealth( @ ) )
+
+SetCHealth = ENTITY.SetCHealth
+unless SetCHealth
+    SetCHealth = ENTITY.SetHealth
+    ENTITY.SetCHealth = SetCHealth
+
+PLAYER.SetHealth = PLAYER.SetHealth or SetCHealth
+
+-- Sets entity health
+do
+
+    :SetNW2Int = ENTITY
+
+    ENTITY.SetHealth = ( int ) =>
+        SetCHealth( @, int )
+        if @IsPlayer!
+            return
+
+        SetNW2Int( @, "health", int )
 
 PLAYER.UsingSecurityRadio = =>
     return GetNW2Bool( @, "using-security-radio" )
@@ -206,8 +240,6 @@ ENTITY.IsPlayerRagdoll = =>
 -- Returns ragdoll owner
 ENTITY.GetRagdollOwner = =>
     return GetNW2Entity( @, "ragdoll-owner" )
-
-:GetNW2Var = ENTITY
 
 ENTITY.GetRagdollOwnerNickname = =>
     value = GetNW2Var( @, "owner-nickname" )

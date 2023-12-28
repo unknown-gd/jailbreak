@@ -6,10 +6,6 @@
 # Звуки
 Покупка радио/мяча: ambient\levels\labs\coinslot1.wav ; Проигрывается рядом с игроком
 
-vo/k_lab/ba_whoops.wav
-vo/k_lab/ba_whatthehell.wav
-vo/Streetwar/rubble/ba_tellbreen.wav
-
 # Баги лаги кирпичи
 - спектаторы могут использовать shift
 - хулбоксы при анимации смерти нужно проверять то где находится регдолл
