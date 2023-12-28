@@ -43,6 +43,12 @@ do
 
             return true
 
+Jailbreak.GetWeaponName = =>
+    printName = @GetPrintName!
+    if printName == "Scripted Weapon"
+        printName = "#" .. @GetClass!
+
+    return printName
 
 -- Returns fixed model path
 do

@@ -5,13 +5,15 @@ GM = GM
 :Colors, :VMin = Jailbreak
 :asparagus, :white, :black, :dark_grey, :light_grey, :red, :dark_white, :horizon, :butterfly_bush, :au_chico = Colors
 
-:SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos, :SetAlphaMultiplier, :DrawTexturedRectRotated = surface
+:DrawRect, :DrawTexturedRect, :SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos, :SetAlphaMultiplier, :DrawTexturedRectRotated = surface
 :Clamp, :min, :max, :sin, :floor, :ceil = math
-:sub, :format = string
+:sub, :format, :match = string
+:Create, :Register = vgui
 :GetPhrase = language
 FrameTime = FrameTime
 Material = Material
 CurTime = CurTime
+IsValid = IsValid
 EyePos = EyePos
 Lerp = Lerp
 
@@ -43,8 +45,6 @@ do
 
         if @TargetID\GetBool!
             hook_Run( "HUDDrawTargetID" )
-
-        hook_Run( "HUDDrawPickupHistory" )
 
         if @DeathNotice\GetBool!
             hook_Run( "DrawDeathNotice", 0.85, 0.04 )
@@ -107,7 +107,7 @@ do
 
 do
 
-    :Translate, :VoiceChatMinDistance = Jailbreak
+    :Translate, :VoiceChatMinDistance, :GetWeaponName = Jailbreak
     :ScreenToVector = gui
     :CursorVisible = vgui
     :GetCursorPos = input
@@ -176,9 +176,7 @@ do
             color = entity\GetModelColor!
 
         elseif entity\IsWeapon!
-            text = entity\GetPrintName!
-            if text == "Scripted Weapon"
-                text = "#" .. entity\GetClass!
+            text = GetWeaponName( entity )
 
         else
 
@@ -413,318 +411,337 @@ do
                 render_SetMaterial( isSpeaking and speakingIcon or typingIcon )
                 render_DrawSprite( origin, 12, 12, white )
 
+Jailbreak.Font( "Jailbreak::HUD", "Roboto Mono SemiBold Italic", 2 )
+
 do
 
-    Jailbreak.Font( "Jailbreak::HUD", "Roboto Mono SemiBold Italic", 2 )
+    Color = Color
+    :date = os
 
-    gradient = Material( "gui/gradient", "smooth" )
-    :DrawRect, :DrawTexturedRect = surface
+    PANEL = {}
 
-    do
+    PANEL.Init = =>
+        placeholder = GetPhrase( "jb.unknown" )
+        @PlaceholderName = placeholder
+        @HeaderColor = dark_white
+        @EntityName = placeholder
 
-        Color = Color
-        :date = os
+        @TimeX, @TimeY = 0, 0
+        @Time = "00:00"
 
-        PANEL = {}
+        @Health, @MaxHealth = 0, 0
+        @Armor, @MaxArmor = 0, 0
 
-        PANEL.Init = =>
-            placeholder = GetPhrase( "jb.unknown" )
-            @PlaceholderName = placeholder
-            @HeaderColor = dark_white
-            @EntityName = placeholder
+        @HealthRectX, @HealthRectY = 0, 0
+        @ArmorRectX, @ArmorRectY = 0, 0
+        @BarsWidth, @BarsHeight = 0, 0
 
-            @TimeX, @TimeY = 0, 0
-            @Time = "00:00"
+        @HealthTextX, @HealthTextY = 0, 0
+        @HealthText, @ArmorText = "", ""
+        @ArmorTextX, @ArmorTextY = 0, 0
 
-            @Health, @MaxHealth = 0, 0
-            @Armor, @MaxArmor = 0, 0
+        @HealthRects = {}
+        @ArmorRects = {}
 
-            @HealthRectX, @HealthRectY = 0, 0
-            @ArmorRectX, @ArmorRectY = 0, 0
-            @BarsWidth, @BarsHeight = 0, 0
+        hook.Add "LanguageChanged", @, @InvalidateLayout
+        @InvalidateLayout( true )
 
-            @HealthTextX, @HealthTextY = 0, 0
-            @HealthText, @ArmorText = "", ""
-            @ArmorTextX, @ArmorTextY = 0, 0
+    PANEL.Think = =>
+        time = date( "%H:%M" )
+        if @Time ~= time
+            @Time = time
+            @InvalidateLayout!
 
-            @HealthRects = {}
-            @ArmorRects = {}
-
-            hook.Add "LanguageChanged", @, @InvalidateLayout
-            @InvalidateLayout( true )
-
-        PANEL.Think = =>
-            time = date( "%H:%M" )
-            if @Time ~= time
-                @Time = time
+        entity = Jailbreak.ViewEntity
+        unless entity\IsValid!
+            if @EntityName ~= @PlaceholderName
+                @EntityName = @PlaceholderName
                 @InvalidateLayout!
 
-            entity = Jailbreak.ViewEntity
-            unless entity\IsValid!
-                if @EntityName ~= @PlaceholderName
-                    @EntityName = @PlaceholderName
-                    @InvalidateLayout!
+            return
 
-                return
-
-            isPlayer = entity\IsPlayer!
-            if @IsPlayer ~= isPlayer
-                @IsPlayer = isPlayer
-
-                unless isPlayer
-                    @Alive = alive
-                    @Health = 0
-
-                @InvalidateLayout!
+        isPlayer = entity\IsPlayer!
+        if @IsPlayer ~= isPlayer
+            @IsPlayer = isPlayer
 
             unless isPlayer
-                if @Color ~= light_grey
-                    @Color = light_grey
-
-                if entity\IsPlayerRagdoll!
-                    nickname = GetPhrase( entity\GetRagdollOwnerNickname! )
-                    if @EntityName ~= nickname
-                        @EntityName = nickname
-                        @InvalidateLayout!
-
-                else
-
-                    className = "#jb." .. entity\GetClass!
-                    if @EntityName ~= className
-                        @EntityName = className
-                        @InvalidateLayout!
-
-                return
-
-            teamID = entity\Team!
-            if @TeamID ~= teamID
-                @TeamID = teamID
-                @InvalidateLayout!
-
-            nickname = entity\Nick!
-            if @EntityName ~= nickname
-                @EntityName = nickname
-                @InvalidateLayout!
-
-            alive, health = entity\Alive!, entity\Health!
-            if health <= 0
-                alive = false
-
-            if @Alive ~= alive
                 @Alive = alive
-                unless alive
-                    @Health = 0
-                    @Armor = 0
+                @Health = 0
 
-                @InvalidateLayout!
+            @InvalidateLayout!
 
-            unless alive
-                return
+        unless isPlayer
+            if @Color ~= light_grey
+                @Color = light_grey
 
-            if @Health ~= health
-                @Health = health
-                @InvalidateLayout!
-
-            if @MaxHealth ~= entity\GetMaxHealth!
-                @MaxHealth = entity\GetMaxHealth!
-                @InvalidateLayout!
-
-            if @Armor ~= entity\Armor!
-                @Armor = entity\Armor!
-                @InvalidateLayout!
-
-            if @MaxArmor ~= entity\GetMaxArmor!
-                @MaxArmor = entity\GetMaxArmor!
-                @InvalidateLayout!
-
-        PANEL.PerformLayout = =>
-            @PlaceholderName = GetPhrase( "jb.unknown" )
-
-            margin, offset = VMin( 0.25 ), VMin( 1 )
-            width = Jailbreak.ScreenWidth / 6
-
-            SetFont( "Jailbreak::HUD" )
-
-            headerText = @EntityName
-            if #headerText > 48
-                headerText = sub( headerText, 1, 48 ) .. "..."
-
-            headerTextWidth, headerTextHeight = GetTextSize( headerText )
-            headerHeight = margin + headerTextHeight + margin
-            headerTextX = offset
-
-            width = max( width, headerTextX + headerTextWidth )
-
-            @HeaderTextX, @HeaderTextY = headerTextX, ( headerHeight - headerTextHeight ) / 2
-            @HeaderText = headerText
-            @HeaderHeight = headerHeight
-            @BackgroundY = headerHeight
-
-            timeWidth, timeHeight = GetTextSize( @Time )
-            width, height = max( width, headerTextX + headerTextWidth + margin + timeWidth + offset ), headerHeight
-
-            rectCount = ceil( ( width - offset ) / ( offset + margin ) )
-            width = offset + rectCount * ( offset + margin ) + offset - margin
-
-            @TimeX, @TimeY = width - timeWidth - offset, ( headerHeight - timeHeight ) / 2
-
-            alive = @Alive
-            if alive
-                @HeaderColor = GetColor( @TeamID )
-
-                healthRects = @HealthRects
-                for index = 1, #healthRects
-                    healthRects[ index ] = nil
-
-                healthFrac = @Health / @MaxHealth
-                health = rectCount * Clamp( healthFrac, 0, 1 )
-                healthCount = ceil( health )
-
-                isOverhealth, overhealth, overhealthCount = false, nil, nil
-                if healthFrac > 1
-                    isOverhealth = true
-                    overhealth = rectCount * Clamp( healthFrac - 1, 0, 1 )
-                    overhealthCount = ceil( overhealth )
-
-                x, y = offset, height + offset
-                @HealthRectX, @HealthRectY = x - margin, y - margin
-
-                SetFont( "Jailbreak::HUD" )
-                healthText, armorText = format( GetPhrase( "jb.hud.health" ), @Health, @MaxHealth ), format( GetPhrase( "jb.hud.armor" ), @Armor, @MaxArmor )
-                @HealthText, @ArmorText = healthText, armorText
-
-                healthTextWidth, healthTextHeight = GetTextSize( healthText )
-                armorTextWidth, armorTextHeight = GetTextSize( armorText )
-
-                rectHeight = margin + max( healthTextHeight, armorTextHeight ) + margin
-
-                barsWidth, barsHeight = width - offset * 2 + margin * 2, rectHeight + margin * 2
-                @BarsWidth, @BarsHeight = barsWidth, barsHeight
-
-                @HealthTextX, @HealthTextY = x + ( barsWidth - healthTextWidth ) / 2, y + ( rectHeight - healthTextHeight ) / 2
-
-                backgroundHeight = offset + rectHeight
-
-                for index = 1, healthCount
-                    rect = { x, y, offset, rectHeight, asparagus }
-                    if isOverhealth
-                        if index <= overhealthCount
-                            if index == overhealthCount and overhealthCount ~= overhealth
-                                frac = overhealth % 1
-                                rect[ 5 ] = Color( Lerp( frac, asparagus.r, butterfly_bush.r ), Lerp( frac, asparagus.g, butterfly_bush.g ), Lerp( frac, asparagus.b, butterfly_bush.b ) )
-                            else
-                                rect[ 5 ] = butterfly_bush
-
-                    elseif index == healthCount
-                        if healthCount ~= health
-                            frac = health % 1
-                            rect[ 5 ] = Color( Lerp( frac, red.r, asparagus.r ), Lerp( frac, red.g, asparagus.g ), Lerp( frac, red.b, asparagus.b ), floor( frac * 255 ) )
-                            rect[ 3 ] *= frac
-
-                    healthRects[ index ] = rect
-                    x += offset + margin
-
-                armor = @Armor
-                if armor > 0
-                    armorRects = @ArmorRects
-                    for index = 1, #armorRects
-                        armorRects[ index ] = nil
-
-                    armorFrac = armor / @MaxArmor
-                    armor = rectCount * Clamp( armorFrac, 0, 1 )
-                    armorCount = ceil( armor )
-
-                    isOverarmor, overarmor, overarmorCount = false, nil, nil
-                    if armorFrac > 1
-                        isOverarmor = true
-                        overarmor = rectCount * Clamp( armorFrac - 1, 0, 1 )
-                        overarmorCount = ceil( overarmor )
-
-                    x, y = offset, y + offset + rectHeight + margin
-                    @ArmorRectX, @ArmorRectY = x - margin, y - margin
-
-                    @ArmorTextX, @ArmorTextY = x + ( barsWidth - armorTextWidth ) / 2, y + ( rectHeight - armorTextHeight ) / 2
-
-                    for index = 1, armorCount
-                        rect = { x, y, offset, rectHeight, horizon }
-                        if isOverarmor
-                            if index <= overarmorCount
-                                if index == overarmorCount and overarmorCount ~= overarmor
-                                    frac = overarmor % 1
-                                    rect[ 5 ] = Color( Lerp( frac, horizon.r, au_chico.r ), Lerp( frac, horizon.g, au_chico.g ), Lerp( frac, horizon.b, au_chico.b ) )
-                                else
-                                    rect[ 5 ] = au_chico
-
-                        elseif index == armorCount and armorCount ~= armor
-                            frac = armor % 1
-                            rect[ 5 ] = Color( Lerp( frac, red.r, horizon.r ), Lerp( frac, red.g, horizon.g ), Lerp( frac, red.b, horizon.b ), floor( frac * 255 ) )
-                            rect[ 3 ] *= frac
-
-                        armorRects[ index ] = rect
-                        x += offset + margin
-
-                    backgroundHeight += offset + margin + rectHeight
-
-                backgroundHeight += offset
-
-                @BackgroundHeight = backgroundHeight
-                height += backgroundHeight
+            if entity\IsPlayerRagdoll!
+                nickname = GetPhrase( entity\GetRagdollOwnerNickname! )
+                if @EntityName ~= nickname
+                    @EntityName = nickname
+                    @InvalidateLayout!
 
             else
-                @HeaderColor = dark_white
 
-                text = GetPhrase( "jb.player.dead" )
-                @RectText = text
+                className = "#jb." .. entity\GetClass!
+                if @EntityName ~= className
+                    @EntityName = className
+                    @InvalidateLayout!
 
-                rectTextWidth, rectTextHeight = GetTextSize( text )
+            return
 
-                backgroundHeight = margin + rectTextHeight + margin
-                @RectTextY = headerHeight + ( backgroundHeight - rectTextHeight ) / 2
-                @BackgroundHeight = backgroundHeight
-                height += backgroundHeight
+        teamID = entity\Team!
+        if @TeamID ~= teamID
+            @TeamID = teamID
+            @InvalidateLayout!
 
-                @RectTextX = ( max( 1, width - rectTextWidth ) ) / 2
+        nickname = entity\Nick!
+        if @EntityName ~= nickname
+            @EntityName = nickname
+            @InvalidateLayout!
 
-            @SetSize( width, height )
-            @InvalidateParent!
+        alive, health = entity\Alive!, entity\Health!
+        if health <= 0
+            alive = false
 
-        PANEL.Paint = ( width, height ) =>
-            headerColor = @HeaderColor
-            SetDrawColor( headerColor.r, headerColor.g, headerColor.b, 240 )
-            DrawRect( 0, 0, width, @HeaderHeight )
+        if @Alive ~= alive
+            @Alive = alive
+            unless alive
+                @Health = 0
+                @Armor = 0
 
-            SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-            DrawRect( 0, @BackgroundY, width, @BackgroundHeight )
+            @InvalidateLayout!
+
+        unless alive
+            return
+
+        if @Health ~= health
+            @Health = health
+            @InvalidateLayout!
+
+        if @MaxHealth ~= entity\GetMaxHealth!
+            @MaxHealth = entity\GetMaxHealth!
+            @InvalidateLayout!
+
+        if @Armor ~= entity\Armor!
+            @Armor = entity\Armor!
+            @InvalidateLayout!
+
+        if @MaxArmor ~= entity\GetMaxArmor!
+            @MaxArmor = entity\GetMaxArmor!
+            @InvalidateLayout!
+
+    PANEL.PerformLayout = =>
+        @PlaceholderName = GetPhrase( "jb.unknown" )
+
+        margin, offset = VMin( 0.25 ), VMin( 1 )
+        width = Jailbreak.ScreenWidth / 6
+
+        SetFont( "Jailbreak::HUD" )
+
+        headerText = @EntityName
+        if #headerText > 48
+            headerText = sub( headerText, 1, 48 ) .. "..."
+
+        headerTextWidth, headerTextHeight = GetTextSize( headerText )
+        headerHeight = margin + headerTextHeight + margin
+        headerTextX = offset
+
+        width = max( width, headerTextX + headerTextWidth )
+
+        @HeaderTextX, @HeaderTextY = headerTextX, ( headerHeight - headerTextHeight ) / 2
+        @HeaderText = headerText
+        @HeaderHeight = headerHeight
+        @BackgroundY = headerHeight
+
+        timeWidth, timeHeight = GetTextSize( @Time )
+        width, height = max( width, headerTextX + headerTextWidth + margin + timeWidth + offset ), headerHeight
+
+        rectCount = ceil( ( width - offset ) / ( offset + margin ) )
+        width = offset + rectCount * ( offset + margin ) + offset - margin
+
+        @TimeX, @TimeY = width - timeWidth - offset, ( headerHeight - timeHeight ) / 2
+
+        alive = @Alive
+        if alive
+            @HeaderColor = GetColor( @TeamID )
+
+            healthRects = @HealthRects
+            for index = 1, #healthRects
+                healthRects[ index ] = nil
+
+            healthFrac = @Health / @MaxHealth
+            health = rectCount * Clamp( healthFrac, 0, 1 )
+            healthCount = ceil( health )
+
+            isOverhealth, overhealth, overhealthCount = false, nil, nil
+            if healthFrac > 1
+                isOverhealth = true
+                overhealth = rectCount * Clamp( healthFrac - 1, 0, 1 )
+                overhealthCount = ceil( overhealth )
+
+            x, y = offset, height + offset
+            @HealthRectX, @HealthRectY = x - margin, y - margin
+
+            SetFont( "Jailbreak::HUD" )
+            healthText, armorText = format( GetPhrase( "jb.hud.health" ), @Health, @MaxHealth ), format( GetPhrase( "jb.hud.armor" ), @Armor, @MaxArmor )
+            @HealthText, @ArmorText = healthText, armorText
+
+            healthTextWidth, healthTextHeight = GetTextSize( healthText )
+            armorTextWidth, armorTextHeight = GetTextSize( armorText )
+
+            rectHeight = margin + max( healthTextHeight, armorTextHeight ) + margin
+
+            barsWidth, barsHeight = width - offset * 2 + margin * 2, margin + rectHeight + margin
+            @BarsWidth, @BarsHeight = barsWidth, barsHeight
+
+            @HealthTextX, @HealthTextY = x + ( barsWidth - healthTextWidth ) / 2, y + ( rectHeight - healthTextHeight ) / 2
+
+            backgroundHeight = offset + rectHeight
+
+            for index = 1, healthCount
+                rect = { x, y, offset, rectHeight, asparagus }
+                if isOverhealth
+                    if index <= overhealthCount
+                        if index == overhealthCount and overhealthCount ~= overhealth
+                            frac = overhealth % 1
+                            rect[ 5 ] = Color( Lerp( frac, asparagus.r, butterfly_bush.r ), Lerp( frac, asparagus.g, butterfly_bush.g ), Lerp( frac, asparagus.b, butterfly_bush.b ) )
+                        else
+                            rect[ 5 ] = butterfly_bush
+
+                elseif index == healthCount
+                    if healthCount ~= health
+                        frac = health % 1
+                        rect[ 5 ] = Color( Lerp( frac, red.r, asparagus.r ), Lerp( frac, red.g, asparagus.g ), Lerp( frac, red.b, asparagus.b ), floor( frac * 255 ) )
+                        rect[ 3 ] *= frac
+
+                healthRects[ index ] = rect
+                x += offset + margin
+
+            armor = @Armor
+            if armor > 0
+                armorRects = @ArmorRects
+                for index = 1, #armorRects
+                    armorRects[ index ] = nil
+
+                armorFrac = armor / @MaxArmor
+                armor = rectCount * Clamp( armorFrac, 0, 1 )
+                armorCount = ceil( armor )
+
+                isOverarmor, overarmor, overarmorCount = false, nil, nil
+                if armorFrac > 1
+                    isOverarmor = true
+                    overarmor = rectCount * Clamp( armorFrac - 1, 0, 1 )
+                    overarmorCount = ceil( overarmor )
+
+                x, y = offset, y + offset + rectHeight + margin
+                @ArmorRectX, @ArmorRectY = x - margin, y - margin
+
+                @ArmorTextX, @ArmorTextY = x + ( barsWidth - armorTextWidth ) / 2, y + ( rectHeight - armorTextHeight ) / 2
+
+                for index = 1, armorCount
+                    rect = { x, y, offset, rectHeight, horizon }
+                    if isOverarmor
+                        if index <= overarmorCount
+                            if index == overarmorCount and overarmorCount ~= overarmor
+                                frac = overarmor % 1
+                                rect[ 5 ] = Color( Lerp( frac, horizon.r, au_chico.r ), Lerp( frac, horizon.g, au_chico.g ), Lerp( frac, horizon.b, au_chico.b ) )
+                            else
+                                rect[ 5 ] = au_chico
+
+                    elseif index == armorCount and armorCount ~= armor
+                        frac = armor % 1
+                        rect[ 5 ] = Color( Lerp( frac, red.r, horizon.r ), Lerp( frac, red.g, horizon.g ), Lerp( frac, red.b, horizon.b ), floor( frac * 255 ) )
+                        rect[ 3 ] *= frac
+
+                    armorRects[ index ] = rect
+                    x += offset + margin
+
+                backgroundHeight += offset + margin + rectHeight
+
+            backgroundHeight += offset
+
+            @BackgroundHeight = backgroundHeight
+            height += backgroundHeight
+
+        else
+            @HeaderColor = dark_white
+
+            text = GetPhrase( "jb.player.dead" )
+            @RectText = text
+
+            rectTextWidth, rectTextHeight = GetTextSize( text )
+
+            backgroundHeight = margin + rectTextHeight + margin
+            @RectTextY = headerHeight + ( backgroundHeight - rectTextHeight ) / 2
+            @BackgroundHeight = backgroundHeight
+            height += backgroundHeight
+
+            @RectTextX = ( max( 1, width - rectTextWidth ) ) / 2
+
+        @SetSize( width, height )
+        @InvalidateParent!
+
+    PANEL.Paint = ( width, height ) =>
+        headerColor = @HeaderColor
+        SetDrawColor( headerColor.r, headerColor.g, headerColor.b, 240 )
+        DrawRect( 0, 0, width, @HeaderHeight )
+
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+        DrawRect( 0, @BackgroundY, width, @BackgroundHeight )
+
+        SetFont( "Jailbreak::HUD" )
+
+        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+        SetTextPos( @HeaderTextX, @HeaderTextY )
+        DrawText( @HeaderText )
+
+        SetTextPos( @TimeX, @TimeY )
+        DrawText( @Time )
+
+        if @Alive
+
+            SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
+            DrawRect( @HealthRectX, @HealthRectY, @BarsWidth, @BarsHeight )
+
+            color = nil
+            for rect in *@HealthRects
+                color = rect[ 5 ]
+                SetDrawColor( color.r, color.g, color.b, color.a )
+                DrawRect( rect[ 1 ], rect[ 2 ], rect[ 3 ], rect[ 4 ] )
 
             SetFont( "Jailbreak::HUD" )
 
-            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
-            SetTextPos( @HeaderTextX, @HeaderTextY )
-            DrawText( @HeaderText )
+            x, y = @HealthTextX, @HealthTextY
+            text = @HealthText
 
-            SetTextPos( @TimeX, @TimeY )
-            DrawText( @Time )
+            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
 
-            if @Alive
+            for sx = -2, 2
+                for sy = -2, 2
+                    SetTextPos( x + sx, y + sy )
+                    DrawText( text )
+
+            SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+            SetTextPos( x, y )
+            DrawText( text )
+
+            if @Armor > 0
 
                 SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
-                DrawRect( @HealthRectX, @HealthRectY, @BarsWidth, @BarsHeight )
+                DrawRect( @ArmorRectX, @ArmorRectY, @BarsWidth, @BarsHeight )
 
-                color = nil
-                for rect in *@HealthRects
+                for rect in *@ArmorRects
                     color = rect[ 5 ]
                     SetDrawColor( color.r, color.g, color.b, color.a )
                     DrawRect( rect[ 1 ], rect[ 2 ], rect[ 3 ], rect[ 4 ] )
 
-                SetFont( "Jailbreak::HUD" )
-
-                x, y = @HealthTextX, @HealthTextY
-                text = @HealthText
+                x, y = @ArmorTextX, @ArmorTextY
+                text = @ArmorText
 
                 SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
 
                 for sx = -2, 2
-            		for sy = -2, 2
+                    for sy = -2, 2
                         SetTextPos( x + sx, y + sy )
                         DrawText( text )
 
@@ -732,343 +749,478 @@ do
                 SetTextPos( x, y )
                 DrawText( text )
 
-                if @Armor > 0
+        else
 
-                    SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
-                    DrawRect( @ArmorRectX, @ArmorRectY, @BarsWidth, @BarsHeight )
+            SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+            SetTextPos( @RectTextX, @RectTextY )
+            DrawText( @RectText )
 
-                    for rect in *@ArmorRects
-                        color = rect[ 5 ]
-                        SetDrawColor( color.r, color.g, color.b, color.a )
-                        DrawRect( rect[ 1 ], rect[ 2 ], rect[ 3 ], rect[ 4 ] )
+    Register( "Jailbreak::HUDInfo", PANEL, "Panel" )
 
-                    x, y = @ArmorTextX, @ArmorTextY
-                    text = @ArmorText
+do
 
-                    SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
+    lightning_delete = Material( "icon16/lightning_delete.png", "mips" )
+    lightning_add = Material( "icon16/lightning_add.png", "mips" )
+    lightning = Material( "icon16/lightning.png", "mips" )
+    :Rand = math
 
-                    for sx = -2, 2
-                        for sy = -2, 2
-                            SetTextPos( x + sx, y + sy )
-                            DrawText( text )
+    PANEL = {}
 
-                    SetTextColor( dark_white.r, dark_white.g, dark_white.b )
-                    SetTextPos( x, y )
-                    DrawText( text )
+    PANEL.Init = =>
+        @LineColor = dark_white
+        @Color = dark_grey
+        @SetAlpha( 0 )
 
-            else
+        @SuitPowerFraction = 1
+        @Direction = true
+        @Value = 100
 
-                SetTextColor( dark_white.r, dark_white.g, dark_white.b )
-                SetTextPos( @RectTextX, @RectTextY )
-                DrawText( @RectText )
+        @RotateOffset = 0
+        @IconRotate = 0
 
-        vgui.Register( "Jailbreak::HUDInfo", PANEL, "Panel" )
+        @InvalidateLayout( true )
 
-    do
+    PANEL.Think = =>
+        entity = Jailbreak.ViewEntity
+        unless entity\IsValid! and entity\IsPlayer!
+            return
 
-        lightning_delete = Material( "icon16/lightning_delete.png", "mips" )
-        lightning_add = Material( "icon16/lightning_add.png", "mips" )
-        lightning = Material( "icon16/lightning.png", "mips" )
-        :Rand = math
+        unless entity\Alive!
+            if @GetAlpha! ~= 0
+                @SetAlpha( 0 )
 
-        PANEL = {}
+            return
 
-        PANEL.Init = =>
-            @LineColor = dark_white
-            @Color = dark_grey
-            @SetAlpha( 0 )
+        @IconRotate = @RotateOffset + sin( CurTime! * 2 ) * 15
 
-            @SuitPowerFraction = 1
-            @Direction = true
-            @Value = 100
+        teamID = entity\Team!
+        if @TeamID ~= teamID
+            @TeamID = teamID
+            @Color = entity\GetTeamColor!
 
-            @RotateOffset = 0
-            @IconRotate = 0
+        value, oldValue = entity\GetSuitPower!, @Value
+        fraction = value / 100
 
-            @InvalidateLayout( true )
+        if oldValue ~= value
+            color = @Color
+            @LineColor = Color( Lerp( fraction, red.r, color.r ), Lerp( fraction, red.g, color.g ), Lerp( fraction, red.b, color.b ) )
+            @SuitPowerFraction = fraction
 
-        PANEL.Think = =>
-            entity = Jailbreak.ViewEntity
-            unless entity\IsValid! and entity\IsPlayer!
-                return
+            if fraction % 1 == 0
+                @InvalidateLayout!
 
-            unless entity\Alive!
-                if @GetAlpha! ~= 0
-                    @SetAlpha( 0 )
+            @Direction = value > oldValue
+            @Value = value
 
-                return
+        alpha = @GetAlpha!
+        if fraction == 1
+            if alpha > 0
+                alpha = max( 0, alpha - FrameTime! * 255 * 2 )
+                @SetAlpha( alpha )
+        elseif alpha < 255
+            alpha = min( 255, alpha + FrameTime! * 255 * 4 )
+            @SetAlpha( alpha )
 
-            @IconRotate = @RotateOffset + sin( CurTime! * 2 ) * 15
+    PANEL.PerformLayout = =>
+        width, height = VMin( 4 ), @GetTall!
+        margin = VMin( 0.25 )
 
+        lineHeight = VMin( 1.5 )
+        lineBackgroundWidth, lineBackgroundHeight = width - margin * 2, lineHeight - margin
+        lineBackgroundX, lineBackgroundY = margin, height - ( lineHeight + margin )
+
+        @LineBackgroundWidth, @LineBackgroundHeight = lineBackgroundWidth, lineBackgroundHeight
+        @LineBackgroundX, @LineBackgroundY = lineBackgroundX, lineBackgroundY
+
+        @LineWidth, @LineHeight = lineBackgroundWidth - margin * 2, lineBackgroundHeight - margin * 2
+        @LineX, @LineY = lineBackgroundX + margin, lineBackgroundY + margin
+
+        iconSize = floor( min( width, height - lineHeight ) / 2 )
+        @IconX, @IconY = width / 2, ( height - lineHeight ) / 2
+        @IconSize = iconSize
+
+        @RotateOffset = Rand( 1, 10 )
+        @SetWide( width )
+
+    PANEL.Paint = ( width, height ) =>
+        fraction = @SuitPowerFraction
+        if fraction == 1 and @GetAlpha! == 0
+            return
+
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+        DrawRect( 0, 0, width, height )
+
+        if fraction == 1
+            SetMaterial( lightning )
+        elseif @Direction
+            SetMaterial( lightning_add )
+        else
+            SetMaterial( lightning_delete )
+
+        SetDrawColor( 255, 255, 255 )
+        DrawTexturedRectRotated( @IconX, @IconY, @IconSize, @IconSize, @IconRotate )
+
+        SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
+        DrawRect( @LineBackgroundX, @LineBackgroundY, @LineBackgroundWidth, @LineBackgroundHeight )
+
+        SetDrawColor( @LineColor )
+        DrawRect( @LineX, @LineY, @LineWidth * fraction, @LineHeight )
+
+    Register( "Jailbreak::HUDPower", PANEL, "Panel" )
+
+do
+
+    :GetWeaponName = Jailbreak
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        @HeaderColor = dark_white
+        @AmmoTextColor = white
+
+        @WeaponName = ""
+        @AmmoText = ""
+
+        @PrimaryCount, @SecondaryCount = -1, -1
+        @Clip1, @Clip2 = -1, -1
+
+        @WeaponNameX, @WeaponNameY = 0, 0
+        @AmmoTextX, @AmmoTextY = 0, 0
+        @RectHeight = 0
+
+        hook.Add "LanguageChanged", @, @InvalidateLayout
+        @InvalidateLayout( true )
+
+    PANEL.Think = =>
+        entity = Jailbreak.ViewEntity
+        unless entity\IsValid! and entity\IsPlayer!
+            return
+
+        alive = entity\Alive!
+        if alive
             teamID = entity\Team!
             if @TeamID ~= teamID
                 @TeamID = teamID
-                @Color = entity\GetTeamColor!
-
-            value, oldValue = entity\GetSuitPower!, @Value
-            fraction = value / 100
-
-            if oldValue ~= value
-                color = @Color
-                @LineColor = Color( Lerp( fraction, red.r, color.r ), Lerp( fraction, red.g, color.g ), Lerp( fraction, red.b, color.b ) )
-                @SuitPowerFraction = fraction
-
-                if fraction % 1 == 0
-                    @InvalidateLayout!
-
-                @Direction = value > oldValue
-                @Value = value
-
-            alpha = @GetAlpha!
-            if fraction == 1
-                if alpha > 0
-                    alpha = max( 0, alpha - FrameTime! * 255 * 2 )
-                    @SetAlpha( alpha )
-            elseif alpha < 255
-                alpha = min( 255, alpha + FrameTime! * 255 * 4 )
-                @SetAlpha( alpha )
-
-        PANEL.PerformLayout = =>
-            width, height = VMin( 4 ), @GetTall!
-            margin = VMin( 0.25 )
-
-            lineHeight = VMin( 1.5 )
-            lineBackgroundWidth, lineBackgroundHeight = width - margin * 2, lineHeight - margin
-            lineBackgroundX, lineBackgroundY = margin, height - ( lineHeight + margin )
-
-            @LineBackgroundWidth, @LineBackgroundHeight = lineBackgroundWidth, lineBackgroundHeight
-            @LineBackgroundX, @LineBackgroundY = lineBackgroundX, lineBackgroundY
-
-            @LineWidth, @LineHeight = lineBackgroundWidth - margin * 2, lineBackgroundHeight - margin * 2
-            @LineX, @LineY = lineBackgroundX + margin, lineBackgroundY + margin
-
-            iconSize = floor( min( width, height - lineHeight ) / 2 )
-            @IconX, @IconY = width / 2, ( height - lineHeight ) / 2
-            @IconSize = iconSize
-
-            @RotateOffset = Rand( 1, 10 )
-            @SetWide( width )
-
-        PANEL.Paint = ( width, height ) =>
-            fraction = @SuitPowerFraction
-            if fraction == 1 and @GetAlpha! == 0
-                return
-
-            SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-            DrawRect( 0, 0, width, height )
-
-            if fraction == 1
-                SetMaterial( lightning )
-            elseif @Direction
-                SetMaterial( lightning_add )
-            else
-                SetMaterial( lightning_delete )
-
-            SetDrawColor( 255, 255, 255 )
-            DrawTexturedRectRotated( @IconX, @IconY, @IconSize, @IconSize, @IconRotate )
-
-            SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 25 )
-            DrawRect( @LineBackgroundX, @LineBackgroundY, @LineBackgroundWidth, @LineBackgroundHeight )
-
-            SetDrawColor( @LineColor )
-            DrawRect( @LineX, @LineY, @LineWidth * fraction, @LineHeight )
-
-        vgui.Register( "Jailbreak::HUDPower", PANEL, "Panel" )
-
-    do
-
-        PANEL = {}
-
-        PANEL.Init = =>
-            @HeaderColor = dark_white
-            @AmmoTextColor = white
-
-            @WeaponName = ""
-            @AmmoText = ""
-
-            @PrimaryCount, @SecondaryCount = -1, -1
-            @Clip1, @Clip2 = -1, -1
-
-            @WeaponNameX, @WeaponNameY = 0, 0
-            @AmmoTextX, @AmmoTextY = 0, 0
-            @RectHeight = 0
-
-            hook.Add "LanguageChanged", @, @InvalidateLayout
-            @InvalidateLayout( true )
-
-        PANEL.Think = =>
-            entity = Jailbreak.ViewEntity
-            unless entity\IsValid! and entity\IsPlayer!
-                return
-
-            alive = entity\Alive!
-            if alive
-                teamID = entity\Team!
-                if @TeamID ~= teamID
-                    @TeamID = teamID
-                    @HeaderColor = GetColor( teamID )
-                    @InvalidateLayout!
-            elseif @HeaderColor ~= dark_white
-                @HeaderColor = dark_white
+                @HeaderColor = GetColor( teamID )
                 @InvalidateLayout!
+        elseif @HeaderColor ~= dark_white
+            @HeaderColor = dark_white
+            @InvalidateLayout!
 
-            weapon = entity\GetActiveWeapon!
-            unless IsValid( weapon )
-                weaponName = GetPhrase( "jb.nothing" )
-                if @WeaponName ~= weaponName
-                    @WeaponName = weaponName
-                    @InvalidateLayout!
-
-                return
-
-            weaponName = weapon\GetPrintName!
+        weapon = entity\GetActiveWeapon!
+        unless IsValid( weapon )
+            weaponName = GetPhrase( "jb.nothing" )
             if @WeaponName ~= weaponName
                 @WeaponName = weaponName
                 @InvalidateLayout!
 
-            primaryAmmoType = weapon\GetPrimaryAmmoType!
-            primaryAmmoCount = -1
-            clip1 = -1
+            return
 
-            if primaryAmmoType >= 0
-                primaryAmmoCount = entity\GetAmmoCount( primaryAmmoType )
-                clip1 = weapon\Clip1!
+        weaponName = GetWeaponName( weapon )
+        if @WeaponName ~= weaponName
+            @WeaponName = weaponName
+            @InvalidateLayout!
 
-            @PrimaryType = primaryAmmoType
+        primaryAmmoType = weapon\GetPrimaryAmmoType!
+        primaryAmmoCount = -1
+        clip1 = -1
 
-            if @Clip1 ~= clip1
-                @Clip1 = clip1
-                @InvalidateLayout!
+        if primaryAmmoType >= 0
+            primaryAmmoCount = entity\GetAmmoCount( primaryAmmoType )
+            clip1 = weapon\Clip1!
 
-            if @PrimaryCount ~= primaryAmmoCount
-                @PrimaryCount = primaryAmmoCount
-                @InvalidateLayout!
+        @PrimaryType = primaryAmmoType
 
-            secondaryAmmoType = weapon\GetSecondaryAmmoType!
-            secondaryAmmoCount = -1
-            clip2 = -1
+        if @Clip1 ~= clip1
+            @Clip1 = clip1
+            @InvalidateLayout!
 
-            if secondaryAmmoType >= 0
-                secondaryAmmoCount = entity\GetAmmoCount( secondaryAmmoType )
-                clip2 = weapon\Clip2!
+        if @PrimaryCount ~= primaryAmmoCount
+            @PrimaryCount = primaryAmmoCount
+            @InvalidateLayout!
 
-            @SecondaryType = secondaryAmmoType
+        secondaryAmmoType = weapon\GetSecondaryAmmoType!
+        secondaryAmmoCount = -1
+        clip2 = -1
 
-            if @Clip2 ~= clip2
-                @Clip2 = clip2
-                @InvalidateLayout!
+        if secondaryAmmoType >= 0
+            secondaryAmmoCount = entity\GetAmmoCount( secondaryAmmoType )
+            clip2 = weapon\Clip2!
 
-            if @SecondaryCount ~= secondaryAmmoCount
-                @SecondaryCount = secondaryAmmoCount
-                @InvalidateLayout!
+        @SecondaryType = secondaryAmmoType
 
-        PANEL.PerformLayout = =>
-            width, height = VMin( 4 ), 0
-            margin1, margin2 = VMin( 0.25 ), VMin( 1 )
+        if @Clip2 ~= clip2
+            @Clip2 = clip2
+            @InvalidateLayout!
 
-            SetFont( "Jailbreak::HUD" )
-            weaponNameWidth, weaponNameHeight = GetTextSize( @WeaponName )
-            width = max( width, margin2 + weaponNameWidth + margin2 )
-            height += margin1 + weaponNameHeight + margin1
+        if @SecondaryCount ~= secondaryAmmoCount
+            @SecondaryCount = secondaryAmmoCount
+            @InvalidateLayout!
 
-            text = ""
+    PANEL.PerformLayout = =>
+        width, height = VMin( 4 ), 0
+        margin1, margin2 = VMin( 0.25 ), VMin( 1 )
 
-            clip1, primaryCount = @Clip1, @PrimaryCount
-            if clip1 >= 0
-                text ..= clip1
-                if primaryCount >= 1
-                    text ..= " / " .. primaryCount
-            elseif primaryCount >= 0
-                text ..= primaryCount
+        SetFont( "Jailbreak::HUD" )
+        weaponNameWidth, weaponNameHeight = GetTextSize( @WeaponName )
+        width = max( width, margin2 + weaponNameWidth + margin2 )
+        height += margin1 + weaponNameHeight + margin1
 
-            clip2, secondaryCount = @Clip2, @SecondaryCount
-            if clip2 >= 1
-                text ..= " ( " .. clip2
-                if secondaryCount >= 1
-                    text ..= " / " .. secondaryCount
-                text ..= " )"
-            elseif secondaryCount >= 1
-                text ..= " ( " .. secondaryCount .. " )"
+        text = ""
 
-            if #text == 0
-                text = GetPhrase( "jb.unknown" )
-                @AmmoTextColor = dark_white
-            else
-                @AmmoTextColor = white
+        clip1, primaryCount = @Clip1, @PrimaryCount
+        if clip1 >= 0
+            text ..= clip1
+            if primaryCount >= 1
+                text ..= " / " .. primaryCount
+        elseif primaryCount >= 0
+            text ..= primaryCount
 
-            @AmmoText = text
+        clip2, secondaryCount = @Clip2, @SecondaryCount
+        if clip2 >= 1
+            text ..= " ( " .. clip2
+            if secondaryCount >= 1
+                text ..= " / " .. secondaryCount
+            text ..= " )"
+        elseif secondaryCount >= 1
+            text ..= " ( " .. secondaryCount .. " )"
 
-            ammoTextWidth, ammoTextHeight = GetTextSize( text )
-            height += margin1 + ammoTextHeight + margin1
+        if #text == 0
+            text = GetPhrase( "jb.unknown" )
+            @AmmoTextColor = dark_white
+        else
+            @AmmoTextColor = white
 
-            width = max( width, margin2 + ammoTextWidth + margin2 )
+        @AmmoText = text
 
-            headerHeight = margin1 + weaponNameHeight + margin1
-            @HeaderHeight = headerHeight
+        ammoTextWidth, ammoTextHeight = GetTextSize( text )
+        height += margin1 + ammoTextHeight + margin1
 
-            rectHeight = height - headerHeight
-            @RectHeight = rectHeight
+        width = max( width, margin2 + ammoTextWidth + margin2 )
 
-            @WeaponNameX, @WeaponNameY = ( width - weaponNameWidth ) / 2, ( headerHeight - weaponNameHeight ) / 2
-            @AmmoTextX, @AmmoTextY = ( width - ammoTextWidth ) / 2, headerHeight + ( rectHeight - ammoTextHeight ) / 2
+        headerHeight = margin1 + weaponNameHeight + margin1
+        @HeaderHeight = headerHeight
 
-            @SetSize( width, height )
+        rectHeight = height - headerHeight
+        @RectHeight = rectHeight
 
-        PANEL.Paint = ( width, height ) =>
-            SetDrawColor( @HeaderColor )
-            DrawRect( 0, 0, width, @HeaderHeight )
+        @WeaponNameX, @WeaponNameY = ( width - weaponNameWidth ) / 2, ( headerHeight - weaponNameHeight ) / 2
+        @AmmoTextX, @AmmoTextY = ( width - ammoTextWidth ) / 2, headerHeight + ( rectHeight - ammoTextHeight ) / 2
 
-            SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-            DrawRect( 0, @HeaderHeight, width, @RectHeight )
+        @SetSize( width, height )
 
-            SetFont( "Jailbreak::HUD" )
+    PANEL.Paint = ( width, height ) =>
+        SetDrawColor( @HeaderColor )
+        DrawRect( 0, 0, width, @HeaderHeight )
 
-            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
-            SetTextPos( @WeaponNameX, @WeaponNameY )
-            DrawText( @WeaponName )
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+        DrawRect( 0, @HeaderHeight, width, @RectHeight )
 
-            SetTextPos( @AmmoTextX, @AmmoTextY )
-            SetTextColor( @AmmoTextColor )
-            DrawText( @AmmoText )
+        SetFont( "Jailbreak::HUD" )
 
-        vgui.Register( "Jailbreak::HUDAmmo", PANEL, "Panel" )
+        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+        SetTextPos( @WeaponNameX, @WeaponNameY )
+        DrawText( @WeaponName )
 
-    do
+        SetTextPos( @AmmoTextX, @AmmoTextY )
+        SetTextColor( @AmmoTextColor )
+        DrawText( @AmmoText )
+
+    Register( "Jailbreak::HUDAmmo", PANEL, "Panel" )
+
+do
 
 
-        PANEL = {}
+    PANEL = {}
 
-        PANEL.Init = =>
-            @Info = @Add( "Jailbreak::HUDInfo" )
-            @Power = @Add( "Jailbreak::HUDPower" )
-            @Ammo = @Add( "Jailbreak::HUDAmmo" )
-            @Dock( BOTTOM )
+    PANEL.Init = =>
+        @Info = @Add( "Jailbreak::HUDInfo" )
+        @Power = @Add( "Jailbreak::HUDPower" )
+        @Ammo = @Add( "Jailbreak::HUDAmmo" )
+        @Dock( BOTTOM )
 
-            @InvalidateLayout( true )
+        @InvalidateLayout( true )
 
-        PANEL.PerformLayout = =>
-            margin = VMin( 1 )
-            @DockMargin( margin, 0, margin, margin )
-            @SetZPos( -1000 )
+    PANEL.PerformLayout = =>
+        margin = VMin( 1 )
+        @DockMargin( margin, 0, margin, margin )
+        @SetZPos( -1000 )
 
-            width = @GetWide!
+        width = @GetWide!
 
-            info, power, ammo = @Info, @Power, @Ammo
-            info\SetPos( 0, 0 )
+        info, power, ammo = @Info, @Power, @Ammo
+        info\SetPos( 0, 0 )
 
-            infoWidth, infoHeight = info\GetSize!
-            power\SetPos( infoWidth + margin / 2, infoHeight - power\GetTall! )
-            power\SetTall( infoHeight - ( info.HeaderHeight or 0 ) )
+        infoWidth, infoHeight = info\GetSize!
+        power\SetPos( infoWidth + margin / 2, infoHeight - power\GetTall! )
+        power\SetTall( infoHeight - ( info.HeaderHeight or 0 ) )
 
-            ammoWidth, ammoHeight = ammo\GetSize!
-            ammo\SetPos( width - ammoWidth, infoHeight - ammoHeight )
+        ammoWidth, ammoHeight = ammo\GetSize!
+        ammo\SetPos( width - ammoWidth, infoHeight - ammoHeight )
 
-            @SetSize( width, infoHeight )
+        @SetSize( width, infoHeight )
 
-        vgui.Register( "Jailbreak::HUD", PANEL, "Panel" )
+    Register( "Jailbreak::HUD", PANEL, "Panel" )
 
 hook.Add "InitPostEntity", "Jailbreak::HUD", ->
     if IsValid( Jailbreak.HUD )
         return
 
-    Jailbreak.HUD = vgui.Create( "Jailbreak::HUD", GetHUDPanel! )
+    Jailbreak.HUD = Create( "Jailbreak::HUD", GetHUDPanel! )
+
+do
+
+    Jailbreak.Font( "Jailbreak::PickupNotices", "Roboto Mono Bold", 1.5 )
+    :PickupNotifyLifetime = Jailbreak
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        @SetAlpha( 0 )
+        @Dock( BOTTOM )
+
+        icon = @Add( "DImage" )
+        @Icon = icon
+
+        icon\Dock( LEFT )
+
+        label = @Add( "DLabel" )
+        @Label = label
+
+        label\SetFont( "Jailbreak::PickupNotices" )
+        label\SetContentAlignment( 5 )
+        label\Dock( FILL )
+
+        @InvalidateLayout( true )
+
+    PANEL.Think = =>
+        time = @Time
+        unless time
+            return
+
+        alpha = @GetAlpha!
+        if ( CurTime! - time ) > PickupNotifyLifetime\GetInt!
+            if alpha > 0
+                @SetAlpha( alpha - FrameTime! * 255 )
+            else
+                @Remove!
+
+        elseif alpha < 255
+            @SetAlpha( alpha + FrameTime! * 512 )
+
+    PANEL.PerformLayout = =>
+        margin = VMin( 0.5 )
+        @DockPadding( margin, margin, margin, margin )
+
+        textHeight = select( 2, @Label\GetTextSize! )
+        height = margin + textHeight + margin
+        @SetTall( height )
+
+        @Label\DockMargin( margin, 0, 0, 0 )
+        @Icon\SetWide( textHeight )
+
+    do
+
+        tonumber = tonumber
+
+        PANEL.Setup = ( name, pickupType, item, amount ) =>
+            @Time = CurTime!
+
+            label = @Label
+            if IsValid( label )
+                label\SetText( format( GetPhrase( "jb.hud.pickup" ), GetPhrase( name ) ) .. " x" .. ( ( tonumber( match( label\GetText!, "x(%d+)$" ) ) or 0 ) + amount ) )
+
+            materialPath = "icon16/information.png"
+            switch pickupType
+                when 1
+                    materialPath = "icon16/gun.png"
+                when 2
+                    switch item
+                        when "jb.flashlight"
+                            materialPath = "icon16/lightbulb.png"
+                        when "jb.access-card"
+                            materialPath = "icon16/vcard.png"
+                        when "jb.walkie-talkie"
+                            materialPath = "icon16/phone.png"
+
+                when 3
+                    materialPath = "icon16/package_green.png"
+
+            result = hook_Run( "Jailbreak::GetPickupIcon", pickupType, item, amount )
+            if result ~= nil
+                materialPath = result
+
+            @Icon\SetImage( materialPath )
+
+            @InvalidateLayout( true )
+
+    PANEL.Paint = ( width, height ) =>
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+        DrawRect( 0, 0, width, height )
+
+    Register( "Jailbreak::PickupNotify", PANEL, "Panel" )
+
+do
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        @Notices = {}
+
+    PANEL.PerformLayout = =>
+        screenWidth = Jailbreak.ScreenWidth
+        width = ceil( screenWidth / 6 )
+
+        @SetSize( width, Jailbreak.ScreenHeight )
+        @SetPos( floor( ( screenWidth - width ) / 2 ), 0 )
+
+    PANEL.AddNotify = ( name, ... ) =>
+        notify = @Notices[ name ]
+        unless IsValid( notify )
+            notify = @Add( "Jailbreak::PickupNotify" )
+            @Notices[ name ] = notify
+
+        notify\Setup( name, ... )
+
+    Register( "Jailbreak::PickupNotices", PANEL, "Panel" )
+
+do
+
+    if IsValid( Jailbreak.PickupNotices )
+        Jailbreak.PickupNotices\Remove!
+
+    addPickupNotify = ( ... ) ->
+        pickupNotices = Jailbreak.PickupNotices
+        unless IsValid( pickupNotices )
+            pickupNotices = Create( "Jailbreak::PickupNotices" )
+            Jailbreak.PickupNotices = pickupNotices
+
+        unless IsValid( pickupNotices )
+            return
+
+        pickupNotices\AddNotify( ... )
+
+    Jailbreak.AddPickupNotify = addPickupNotify
+
+    do
+
+        :GetWeaponName = Jailbreak
+
+        GM.HUDWeaponPickedUp = ( weapon ) =>
+            unless IsValid( weapon ) and weapon\IsWeapon!
+                return
+
+            addPickupNotify( GetWeaponName( weapon ), 1, weapon, 1 )
+
+    GM.HUDItemPickedUp = ( itemName ) =>
+        addPickupNotify( "#" .. itemName, 2, itemName, 1 )
+
+    GM.HUDAmmoPickedUp = ( itemName, amount ) =>
+        addPickupNotify( "#" .. itemName .. "_ammo", 3, itemName, amount )
+
+GM.PickupHistory = nil
+GM.PickupHistoryLast = nil
+GM.PickupHistoryWide = nil
+GM.PickupHistoryTop = nil
+GM.PickupHistoryCorner = nil
+GM.HUDDrawPickupHistory = nil

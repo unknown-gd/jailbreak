@@ -711,7 +711,7 @@ do
 
     GM.PlayerDroppedWeapon = ( ply, weapon ) =>
         timerName = "Jailbreak:PlayerDroppedWeapon #" .. weapon\EntIndex!
-        Create timerName, 3, 1, ->
+        Create timerName, 5, 1, ->
             Remove( timerName )
 
             unless weapon\IsValid!

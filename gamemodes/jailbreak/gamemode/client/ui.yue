@@ -595,14 +595,23 @@ do
         @InvalidateLayout( true )
 
     PANEL.Think = =>
-        if IsGameUIVisible!
+        unless @IsVisible!
+            return
+
+        if IsKeyDown( 70 )
             @Hide!
 
-        elseif IsKeyDown( 2 ) and TeamIsJoinable( TEAM_GUARD )
+        elseif IsKeyDown( 2 )
+            unless TeamIsJoinable( TEAM_GUARD )
+                return
+
             ChangeTeam( TEAM_GUARD )
             @Hide!
 
-        elseif IsKeyDown( 3 ) and TeamIsJoinable( TEAM_PRISONER )
+        elseif IsKeyDown( 3 )
+            unless TeamIsJoinable( TEAM_PRISONER )
+                return
+
             ChangeTeam( TEAM_PRISONER )
             @Hide!
 
@@ -641,6 +650,9 @@ do
         @Center!
 
     PANEL.Hide = =>
+        unless @IsVisible!
+            return
+
         HideGameUI!
 
         if Jailbreak.Developer
@@ -650,6 +662,9 @@ do
         @SetVisible( false )
 
     PANEL.Show = =>
+        if @IsVisible!
+            return
+
         @SetVisible( true )
         @InvalidateLayout( true )
         @MakePopup!
@@ -828,7 +843,7 @@ do
         @Text = text
 
         margin = VMin( 0.5 )
-        height = textHeight + margin * 2
+        height = margin + textHeight + margin
         @SetTall( height )
 
         if @Team == TEAM_SPECTATOR
@@ -1173,7 +1188,7 @@ do
             textWidth, textHeight = @GetTextSize!
             margin = VMin( 0.25 )
 
-            @SetSize( textWidth + margin * 2, textHeight + margin * 2 )
+            @SetSize( margin + textWidth + margin, margin + textHeight + margin )
 
         Register( "Jailbreak::Tooltip", PANEL, "Label" )
 

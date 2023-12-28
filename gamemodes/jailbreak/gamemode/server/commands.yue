@@ -138,7 +138,7 @@ do
 
     util.AddNetworkString( "Jailbreak::Markers" )
 
-    :Markers, :VoiceChatMinDistance, :MarkersLifetime, :MarkersCount, :Emotion = Jailbreak
+    :Markers, :VoiceChatMinDistance, :MarkersLifetime, :MarkersCount, :Emotion, :GetWeaponName = Jailbreak
     :Start, :WriteEntity, :WriteBool, :WriteVector, :Send, :Broadcast = net
     CHAN_STATIC = CHAN_STATIC
     EmitSound = EmitSound
@@ -245,11 +245,7 @@ do
             elseif entity\IsPlayerRagdoll!
                 Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\GetRagdollOwnerNickname!, white, "." )
             elseif entity\IsWeapon!
-                printName = entity\GetPrintName!
-                if printName == "Scripted Weapon"
-                    printName = "#" .. entity\GetClass!
-
-                Emotion( @, "#jb.chat.pointed-at \"" .. printName .. "\"." )
+                Emotion( @, "#jb.chat.pointed-at \"" .. GetWeaponName( entity ) .. "\"." )
             else
                 Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
 

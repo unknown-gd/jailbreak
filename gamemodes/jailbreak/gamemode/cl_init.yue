@@ -21,6 +21,7 @@ do
     Jailbreak.PlayerSkin = CreateConVar( "cl_playerskin", "0", FCVAR_SHARED, "The skin to use, if the model has any" )
     Jailbreak.HandsTransparency = CreateConVar( "jb_hands_transparency", "0", FCVAR_CLIENT, "The firstperson hands transparency value 0-1", 0, 1 )
     Jailbreak.SpectatorControls = CreateConVar( "jb_spectator_controls", "1", FCVAR_SHARED, "Enable spectator controls, wasd and mouse." )
+    Jailbreak.PickupNotifyLifetime = CreateConVar( "jb_pickup_notify_lifetime", "5", FCVAR_CLIENT, "Pickup notification lifetime in seconds", 0, 60 )
 
 do
 
