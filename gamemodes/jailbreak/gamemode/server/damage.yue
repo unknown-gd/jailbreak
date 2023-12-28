@@ -284,6 +284,9 @@ do
         unless isPlayerRagdoll
             return
 
+        if damageInfo\IsCrushDamage!
+            return true
+
         armor = ragdoll.Armor
         if armor ~= nil and armor > 0
             ragdoll.Armor = @PerformArmorDamage( ragdoll, armor, damageInfo )

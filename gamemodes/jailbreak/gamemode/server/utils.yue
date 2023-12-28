@@ -243,6 +243,14 @@ do
         CTakeDamageInfo.IsNonPhysicalDamage = =>
             return band( GetDamageType( @ ), DMG_NON_PHYSICAL ) ~= 0
 
+    -- Returns true if the damage type is crush damage
+    do
+
+        DMG_CRUSH = DMG_CRUSH
+
+        CTakeDamageInfo.IsCrushDamage = =>
+            return band( GetDamageType( @ ), DMG_CRUSH ) == DMG_CRUSH
+
 do
 
     istable = istable
