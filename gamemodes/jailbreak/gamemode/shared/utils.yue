@@ -354,10 +354,11 @@ do
 -- Returns true if player is in game
 do
 
-    teams = Jailbreak.Teams
+    :Alive, :Team = PLAYER
+    :Teams = Jailbreak
 
     PLAYER.IsInGame = =>
-        return teams[ @Team! ] and @Alive!
+        return Alive( @ ) and Teams[ Team( @ ) ]
 
 -- Returns true if player is guard
 PLAYER.IsGuard = =>
