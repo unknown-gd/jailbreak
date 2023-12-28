@@ -118,8 +118,9 @@ do
         mask: MASK_SHOT
     }
 
-    Jailbreak.Font( "Jailbreak::TargetID", "Roboto Mono Bold", 2.6 )
-    Jailbreak.Font( "Jailbreak::TargetIDSmall", "Roboto Mono SemiBold Italic", 2.6 )
+    Jailbreak.Font( "Jailbreak::TargetID", "Roboto Mono Bold", 2.5 )
+    Jailbreak.Font( "Jailbreak::TargetID - Team", "Roboto Mono SemiBold Italic", 2.25 )
+    Jailbreak.Font( "Jailbreak::TargetID - Health", "Roboto Mono", 1.8 )
 
     GM.HUDDrawTargetID = =>
         ply = Jailbreak.Player
@@ -170,27 +171,14 @@ do
 
             text = entity\Nick!
             color = entity\GetModelColor!
-            frac = Clamp( entity\Health! / entity\GetMaxHealth!, 0, 1 )
-
-            if ( color.r + color.g + color.b ) < 125
-                color.r = Lerp( frac, red.r, color.r )
-                color.g = Lerp( frac, red.g, color.g )
-                color.b = Lerp( frac, red.b, color.b )
-            else
-                color.r = Lerp( frac, 0, color.r )
-                color.g = Lerp( frac, 0, color.g )
-                color.b = Lerp( frac, 0, color.b )
-
         elseif isPlayerRagdoll
             text = entity\GetRagdollOwnerNickname!
             color = entity\GetModelColor!
 
         elseif entity\IsWeapon!
-            printName = entity\GetPrintName!
-            if printName == "Scripted Weapon"
-                printName = "#" .. entity\GetClass!
-
-            text = Translate( printName )
+            text = entity\GetPrintName!
+            if text == "Scripted Weapon"
+                text = "#" .. entity\GetClass!
 
         else
 
@@ -214,34 +202,110 @@ do
         SetTextColor( black.r, black.g, black.b, 120 )
         DrawText( text )
 
-        SetTextColor( color )
+        SetTextColor( color.r, color.g, color.b )
         SetTextPos( x, y )
         DrawText( text )
 
-        color = nil
-        if isPlayer
-            teamID = entity\Team!
-            text = GetName( teamID )
-            color = GetColor( teamID )
-        elseif isPlayerRagdoll
-            text = "#jb.player.corpse"
-            color = dark_white
-        else
+        y += textHeight
+
+        if isPlayer or isPlayerRagdoll
+            if isPlayer
+                teamID = entity\Team!
+                color = GetColor( teamID )
+
+                if entity\IsWarden!
+                    text = "#jb.player.warden"
+                elseif teamID == TEAM_GUARD
+                    text = "#jb.player.guard"
+                elseif teamID == TEAM_PRISONER
+                    text = "#jb.player.prisoner"
+                else
+                    text = "#jb.unknown"
+
+            else
+                text = "#jb.player.corpse"
+                color = dark_white
+
+            SetFont( "Jailbreak::TargetID - Team" )
+            textWidth, textHeight = GetTextSize( text )
+            x = mouseX - textWidth / 2
+
+            SetTextPos( x - 1, y - 1 )
+            SetTextColor( black.r, black.g, black.b, 50 )
+            DrawText( text )
+
+            SetTextPos( x + 3, y + 3 )
+            SetTextColor( black.r, black.g, black.b, 120 )
+            DrawText( text )
+
+            SetTextColor( color.r, color.g, color.b )
+            SetTextPos( x, y )
+            DrawText( text )
+
+            y += textHeight
+
+        if isPlayer and entity\HasGodMode!
+            text = "#jb.player.health.invincible"
+
+            SetFont( "Jailbreak::TargetID - Health" )
+            textWidth, textHeight = GetTextSize( text )
+            x = mouseX - textWidth / 2
+
+            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
+
+            for sx = -2, 2
+                for sy = -2, 2
+                    SetTextPos( x + sx, y + sy )
+                    DrawText( text )
+
+            SetTextColor( 254, 242, 0 )
+            SetTextPos( x, y )
+            DrawText( text )
             return
 
-        SetFont( "Jailbreak::TargetIDSmall" )
-        textWidth2, textHeight2 = GetTextSize( text )
-        x, y = mouseX - textWidth2 / 2, y + ( textHeight + textHeight2 ) / 2
+        r, g, b = dark_white.r, dark_white.g, dark_white.b
 
-        SetTextPos( x - 1, y - 1 )
-        SetTextColor( black.r, black.g, black.b, 50 )
-        DrawText( text )
+        health = entity\Health!
+        if isPlayer
+            frac = health / ply\GetMaxHealth!
+            r, g, b = Lerp( frac, red.r, asparagus.r ), Lerp( frac, red.g, asparagus.g ), Lerp( frac, red.b, asparagus.b )
 
-        SetTextPos( x + 3, y + 3 )
-        SetTextColor( black.r, black.g, black.b, 120 )
-        DrawText( text )
+            if frac <= 0
+                text = "#jb.player.health.dead"
+            elseif frac < 0.25
+                text = "#jb.player.health.half-dead"
+            elseif frac < 0.5
+                text = "#jb.player.health.badly_wounded"
+            elseif frac < 0.75
+                text = "#jb.player.health.wounded"
+            elseif frac < 0.90
+                text = "#jb.player.health.hurt"
+            else
+                text = "#jb.player.health.healthy"
 
-        SetTextColor( color )
+        else
+
+            if health < 1
+                return
+
+            frac = math.Round( 1 - health / entity\GetMaxHealth!, 2 )
+            if frac == 0
+                return
+
+            text = GetPhrase( "#jb.entity.damaged" ) .. " " .. ( frac * 100 ) .. "%"
+
+        SetFont( "Jailbreak::TargetID - Health" )
+        textWidth, textHeight = GetTextSize( text )
+        x = mouseX - textWidth / 2
+
+        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
+
+        for sx = -2, 2
+            for sy = -2, 2
+                SetTextPos( x + sx, y + sy )
+                DrawText( text )
+
+        SetTextColor( r, g, b )
         SetTextPos( x, y )
         DrawText( text )
 

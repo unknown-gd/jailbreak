@@ -1,6 +1,5 @@
 # Основное
 - Магазин для вардена в котором тот может обменивать очки на спавн разных энтити.
-- добавить в targetid состояние здоровья из TTT ( invinsible and other memes )
 - Custom chat
 - HUDDrawPickupHistory
 
