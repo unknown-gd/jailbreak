@@ -722,16 +722,16 @@ do
         nickname\SetTextColor( dark_grey )
         nickname\SetContentAlignment( 4 )
 
-        pingPanel = @Add( "DLabel" )
-        pingPanel\Dock( RIGHT )
-        @Ping = pingPanel
+        ping = @Add( "DLabel" )
+        ping\Dock( RIGHT )
+        @Ping = ping
 
-        pingPanel\SetFont( "Jailbreak::Scoreboard - Player" )
-        pingPanel\SetMouseInputEnabled( true )
-        pingPanel\SetTextColor( dark_grey )
-        pingPanel\SetContentAlignment( 5 )
-        pingPanel\SetZPos( 1000 )
-        pingPanel\SetText( "0ms" )
+        ping\SetFont( "Jailbreak::Scoreboard - Player" )
+        ping\SetMouseInputEnabled( true )
+        ping\SetTextColor( dark_grey )
+        ping\SetContentAlignment( 5 )
+        ping\SetZPos( 1000 )
+        ping\SetText( "" )
 
         ratio = @Add( "DLabel" )
         ratio\Dock( RIGHT )
@@ -742,7 +742,7 @@ do
         ratio\SetContentAlignment( 5 )
         ratio\SetTextColor( dark_grey )
         ratio\SetZPos( 2000 )
-        ratio\SetText( "0" )
+        ratio\SetText( "" )
 
         @Color = light_grey
         @Text = "unknown"
@@ -756,15 +756,15 @@ do
             @Remove!
             return
 
-        pingPanel, pingStr = @Ping, tostring( ply\Ping! ) .. "ms"
-        if IsValid( pingPanel ) and pingPanel\GetText! ~= pingStr
-            pingPanel\SetTooltip( pingStr )
-            pingPanel\SetText( pingStr )
+        ping, pingStr = @Ping, tostring( ply\Ping! ) .. "ms"
+        if IsValid( ping ) and ping\GetText! ~= pingStr
+            ping\SetTooltip( pingStr )
+            ping\SetText( pingStr )
 
-        ratioPanel, ratioStr = @Ratio, "#{ply\Frags!}:#{ply\Deaths!}"
-        if IsValid( ratioPanel ) and ratioPanel\GetText! ~= ratioStr
-            ratioPanel\SetTooltip( ratioStr )
-            ratioPanel\SetText( ratioStr )
+        ratio, ratioStr = @Ratio, "#{ply\Frags!}:#{ply\Deaths!}"
+        if IsValid( ratio ) and ratio\GetText! ~= ratioStr
+            ratio\SetTooltip( ratioStr )
+            ratio\SetText( ratioStr )
 
     PANEL.PerformLayout = =>
         margin = VMin( 0.5 )

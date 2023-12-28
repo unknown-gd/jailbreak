@@ -292,7 +292,7 @@ do
             ragdoll.Armor = @PerformArmorDamage( ragdoll, armor, damageInfo )
 
         health = ragdoll\Health!
-        nextHealth = floor( health - ( damageInfo\GetDamage! * 0.05 ) )
+        nextHealth = floor( health - ( damageInfo\GetDamage! * 0.025 ) )
 
         if ragdoll.Alive
             startHealth = ragdoll.StartHealth
