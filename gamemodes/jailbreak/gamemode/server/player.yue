@@ -295,7 +295,10 @@ do
                 origin, angles = @GetBonePosition( boneID )
                 phys\SetVelocity( velocity )
                 phys\SetAngles( angles )
-                phys\SetPos( origin )
+
+                if IsInWorld( origin )
+                    phys\SetPos( origin )
+
                 phys\Wake!
 
         else
