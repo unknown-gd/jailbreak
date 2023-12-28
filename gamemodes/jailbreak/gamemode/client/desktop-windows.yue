@@ -157,15 +157,9 @@ do
     list_Set "DesktopWindows", "player-editor", {
         title: "#smwidget.playermodel"
         icon: "icon64/playermodel.png"
+        onewindow: true
         order: 200
-        click: =>
-            window = @Window
-            if IsValid( window )
-                return
-
-            window = g_ContextMenu\Add( "DFrame" )
-            @Window = window
-
+        init: ( window ) =>
             window\SetTitle( "#smwidget.playermodel_title" )
             window\SetSize( 960, 700 )
             window\Center!

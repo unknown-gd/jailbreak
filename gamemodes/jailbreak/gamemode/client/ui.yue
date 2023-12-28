@@ -2,10 +2,11 @@ Jailbreak = Jailbreak
 GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
-:TeamIsJoinable, :ChangeTeam, :Colors, :VMin = Jailbreak
+:TeamIsJoinable, :ChangeTeam, :Colors, :VMin, :Translate = Jailbreak
 :ceil, :max, :floor, :log, :Clamp = math
 :GetColor, :GetName, :GetScore = team
 :IsGameUIVisible, :HideGameUI = gui
+:Create, :Register = vgui
 :GetPhrase = language
 hook_Add = hook.Add
 hook_Run = hook.Run
@@ -14,7 +15,6 @@ IsValid = IsValid
 :format = string
 :GetAll = player
 select = select
-:Create = vgui
 pairs = pairs
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -61,6 +61,28 @@ do
         hook_Add "LanguageChanged", @, ->
             @InvalidateChildren( true )
 
+        hook_Run( "ContextMenuCreated", @ )
+        @SetVisible( false )
+
+        desktopWindows = {}
+
+        do
+
+            index = 1
+
+            for _, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
+                desktopWindows[ index ] = desktopWindow
+                index += 1
+
+        table.sort desktopWindows, ( a, b ) ->
+            if a.order and b.order
+                return a.order < b.order
+
+            return a.title < b.title
+
+        for data in *desktopWindows
+            @AddItem( data )
+
     PANEL.PerformLayout = =>
         scrollPanel = @ScrollPanel
         width = 0
@@ -85,8 +107,8 @@ do
 
         button.Image\SetImage( data.icon )
         button.Label\SetText( title )
+        button\SetTooltip( title )
 
-        @SetTooltip( title )
         @InvalidateLayout!
 
         created = data.created
@@ -105,9 +127,8 @@ do
         if isfunction( init )
             button.DoClick = ->
                 window = button.Window
-                if desktopwindow.onewindow and IsValid( window )
-                    window\Center!
-                    return
+                if data.onewindow and IsValid( window )
+                    window\Remove!
 
                 contextMenu = Jailbreak.ContextMenu
                 unless IsValid( contextMenu )
@@ -116,7 +137,7 @@ do
                 window = contextMenu\Add( "DFrame" )
                 button.Window = window
 
-                window\SetSize( desktopwindow.width, desktopwindow.height )
+                window\SetSize( data.width or 960, data.height or 700 )
                 window\SetTitle( title )
                 window\Center!
 
@@ -198,7 +219,7 @@ do
         SetTextPos( x, y )
         DrawText( text )
 
-    vgui.Register( "Jailbreak::ContextMenu", PANEL, "EditablePanel" )
+    Register( "Jailbreak::ContextMenu", PANEL, "EditablePanel" )
 
     do
 
@@ -300,84 +321,63 @@ do
 
         PANEL.Paint = ( width, height ) ->
 
-        vgui.Register( "Jailbreak::ContextMenu - Button", PANEL, "DButton" )
-
-    CreateContextMenu = ->
-        unless hook_Run( "ContextMenuEnabled" )
-            return
-
-        contextMenu = g_ContextMenu
-        if IsValid( contextMenu )
-            contextMenu\Remove!
-
-        contextMenu = Create( "Jailbreak::ContextMenu" )
-        unless IsValid( contextMenu )
-            return
-
-        global g_ContextMenu = contextMenu
-
-        hook_Run( "ContextMenuCreated", contextMenu )
-        contextMenu\SetVisible( false )
-
-        desktopWindows = {}
-
-        do
-
-            index = 1
-
-            for _, desktopWindow in pairs( list.Get( "DesktopWindows" ) )
-                desktopWindows[ index ] = desktopWindow
-                index += 1
-
-        table.sort desktopWindows, ( a, b ) ->
-            if a.order and b.order
-                return a.order < b.order
-
-            return a.title < b.title
-
-        for data in *desktopWindows
-            contextMenu\AddItem( data )
-
-        return contextMenu
+        Register( "Jailbreak::ContextMenu - Button", PANEL, "DButton" )
 
     GM.OnContextMenuOpen = =>
         unless hook_Run( "ContextMenuOpen" )
             return
 
-        contextMenu = g_ContextMenu
+        contextMenu = Jailbreak.ContextMenu
+        unless hook_Run( "ContextMenuEnabled" )
+            if IsValid( contextMenu )
+                contextMenu\Remove!
+
+            return
+
         unless IsValid( contextMenu )
-            contextMenu = CreateContextMenu!
+            contextMenu = Create( "Jailbreak::ContextMenu" )
+            Jailbreak.ContextMenu = contextMenu
+
+        unless IsValid( contextMenu )
+            return
 
         unless contextMenu\IsVisible!
             contextMenu\Open!
 
-        hook_Run( "ContextMenuOpened" )
+        hook_Run( "ContextMenuOpened", contextMenu )
 
     GM.OnContextMenuClose = =>
-        contextMenu = g_ContextMenu
-        if IsValid( contextMenu )
-            if cvars.Number( "developer", 0 ) > 2
-                contextMenu\Remove!
-            else
-                contextMenu\Close!
+        contextMenu = Jailbreak.ContextMenu
+        unless IsValid( contextMenu )
+            return
 
-        hook_Run( "ContextMenuClosed" )
+        if Jailbreak.Developer
+            contextMenu\Remove!
+        else
+            contextMenu\Close!
+
+        hook_Run( "ContextMenuClosed", contextMenu )
 
 do
 
-    :IsKeyDown = input
-    :Create = vgui
-
     showTeam = ->
-        panel = g_TeamSelect
-        if IsValid( panel )
-            panel\Remove!
+        menuIsVisible = IsGameUIVisible!
+
+        teamSelect = Jailbreak.TeamSelect
+        unless IsValid( teamSelect )
+            if menuIsVisible
+                return
+
+            teamSelect = Create( "Jailbreak::TeamSelect" )
+            Jailbreak.TeamSelect = teamSelect
+
+        unless IsValid( teamSelect )
             return
 
-        if IsKeyDown( 70 )
-            return
-
-        global g_TeamSelect = Create( "Jailbreak::TeamSelect" )
+        if teamSelect\IsVisible!
+            teamSelect\Hide!
+        elseif not menuIsVisible
+            teamSelect\Show!
 
     Jailbreak.ShowTeam = showTeam
     concommand.Add "jb_showteam", showTeam
@@ -440,7 +440,7 @@ do
             panel\Remove!
 
     PANEL.SetText = ( str ) =>
-        PANEL_META.SetText( @, Jailbreak.Translate( str ) )
+        PANEL_META.SetText( @, Translate( str ) )
 
     PANEL.Think = =>
         teamID = @Team
@@ -474,7 +474,7 @@ do
             @SetEnabled( enabled )
             @SetCursor( enabled and "hand" or "no" )
 
-    vgui.Register( "Jailbreak::TeamSelect - Button", PANEL, "DButton" )
+    Register( "Jailbreak::TeamSelect - Button", PANEL, "DButton" )
 
 -- Main Panel
 do
@@ -493,9 +493,11 @@ do
     }
 
     PANEL.Init = =>
+        @SetVisible( false )
+
         hook_Add "PlayerButtonDown", @, ( ply, key ) =>
             if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
-                @Remove!
+                @Hide!
 
     	@MakePopup!
 	    @SetKeyboardInputEnabled( false )
@@ -592,40 +594,32 @@ do
 
         @InvalidateLayout( true )
 
-    do
+    PANEL.Think = =>
+        if IsGameUIVisible!
+            @Hide!
 
-        :IsKeyDown = input
+        elseif IsKeyDown( 2 ) and TeamIsJoinable( TEAM_GUARD )
+            ChangeTeam( TEAM_GUARD )
+            @Hide!
 
-        PANEL.Think = =>
-            if IsKeyDown( 70 )
-                @Remove!
-            elseif IsKeyDown( 2 ) and TeamIsJoinable( TEAM_GUARD )
-                ChangeTeam( TEAM_GUARD )
-                @Remove!
-            elseif IsKeyDown( 3 ) and TeamIsJoinable( TEAM_PRISONER )
-                ChangeTeam( TEAM_PRISONER )
-                @Remove!
-            elseif IsKeyDown( 4 )
-                ply = Jailbreak.Player
-                unless IsValid( ply )
-                    return
+        elseif IsKeyDown( 3 ) and TeamIsJoinable( TEAM_PRISONER )
+            ChangeTeam( TEAM_PRISONER )
+            @Hide!
 
-                for teamID = 1, 2
-                    if teamID ~= ply\Team! and TeamIsJoinable( teamID )
-                        ChangeTeam( teamID )
-                        @Remove!
-                        break
-            elseif IsKeyDown( 5 )
-                ChangeTeam( TEAM_SPECTATOR )
-                @Remove!
+        elseif IsKeyDown( 4 )
+            ply = Jailbreak.Player
+            unless IsValid( ply )
+                return
 
-    do
+            for teamID = 1, 2
+                if teamID ~= ply\Team! and TeamIsJoinable( teamID )
+                    ChangeTeam( teamID )
+                    @Hide!
+                    break
 
-        :IsGameUIVisible, :HideGameUI = gui
-
-        PANEL.OnRemove = =>
-            if IsGameUIVisible!
-                HideGameUI!
+        elseif IsKeyDown( 5 )
+            ChangeTeam( TEAM_SPECTATOR )
+            @Hide!
 
     PANEL.PerformLayout = ( width, height ) =>
         padding = VMin( 1.5 )
@@ -646,13 +640,25 @@ do
         @SetSize( Jailbreak.ScreenWidth * 0.5, Jailbreak.ScreenHeight * 0.5 )
         @Center!
 
+    PANEL.Hide = =>
+        HideGameUI!
+
+        if Jailbreak.Developer
+            @Remove!
+            return
+
+        @SetVisible( false )
+
+    PANEL.Show = =>
+        @SetVisible( true )
+        @InvalidateLayout( true )
+        @MakePopup!
+
     PANEL.Paint = ( width, height ) =>
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
         DrawRect( 0, 0, width, height )
 
-    vgui.Register( "Jailbreak::TeamSelect", PANEL, "EditablePanel" )
-
-PANEL_META = FindMetaTable( "Panel" )
+    Register( "Jailbreak::TeamSelect", PANEL, "EditablePanel" )
 
 do
 
@@ -712,24 +718,27 @@ do
         @Nickname = nickname
 
         nickname\SetFont( "Jailbreak::Scoreboard - Player" )
+        nickname\SetMouseInputEnabled( true )
         nickname\SetTextColor( dark_grey )
         nickname\SetContentAlignment( 4 )
 
-        ping = @Add( "DLabel" )
-        ping\Dock( RIGHT )
-        @Ping = ping
+        pingPanel = @Add( "DLabel" )
+        pingPanel\Dock( RIGHT )
+        @Ping = pingPanel
 
-        ping\SetFont( "Jailbreak::Scoreboard - Player" )
-        ping\SetTextColor( dark_grey )
-        ping\SetContentAlignment( 5 )
-        ping\SetZPos( 1000 )
-        ping\SetText( "0" )
+        pingPanel\SetFont( "Jailbreak::Scoreboard - Player" )
+        pingPanel\SetMouseInputEnabled( true )
+        pingPanel\SetTextColor( dark_grey )
+        pingPanel\SetContentAlignment( 5 )
+        pingPanel\SetZPos( 1000 )
+        pingPanel\SetText( "0ms" )
 
         ratio = @Add( "DLabel" )
         ratio\Dock( RIGHT )
         @Ratio = ratio
 
         ratio\SetFont( "Jailbreak::Scoreboard - Player" )
+        ratio\SetMouseInputEnabled( true )
         ratio\SetContentAlignment( 5 )
         ratio\SetTextColor( dark_grey )
         ratio\SetZPos( 2000 )
@@ -757,7 +766,6 @@ do
             ratioPanel\SetTooltip( ratioStr )
             ratioPanel\SetText( ratioStr )
 
-
     PANEL.PerformLayout = =>
         margin = VMin( 0.5 )
         @DockMargin( 0, 0, 0, margin )
@@ -770,7 +778,6 @@ do
             @Color = ply\Alive! and ply\GetTeamColor! or light_grey
 
             text = ply\Nick!
-            @SetTooltip( text )
 
             SetFont( "Jailbreak::Scoreboard - Player" )
             height = max( height, margin + select( 2, GetTextSize( text ) ) + margin )
@@ -796,7 +803,7 @@ do
         SetDrawColor( @Color )
         DrawRect( 0, 0, width, height )
 
-    vgui.Register( "Jailbreak::Scoreboard - Player", PANEL, "EditablePanel" )
+    Register( "Jailbreak::Scoreboard - Player", PANEL, "EditablePanel" )
 
 do
 
@@ -855,7 +862,7 @@ do
         SetTextPos( @TextPosX, @TextPosY )
         DrawText( @Text )
 
-    vgui.Register( "Jailbreak::Scoreboard - Header", PANEL, "Panel" )
+    Register( "Jailbreak::Scoreboard - Header", PANEL, "Panel" )
 
 do
 
@@ -865,7 +872,7 @@ do
         SetDrawColor( black.r, black.g, black.b, 100 )
         DrawRect( 0, 0, width, height )
 
-    vgui.Register( "Jailbreak::Scoreboard - ScrollPanel", PANEL, "DScrollPanel" )
+    Register( "Jailbreak::Scoreboard - ScrollPanel", PANEL, "DScrollPanel" )
 
 do
 
@@ -880,6 +887,7 @@ do
         header\Dock( TOP )
         header\SetTextColor( white )
         header\SetContentAlignment( 5 )
+        header\SetMouseInputEnabled( true )
         header\SetFont( "Jailbreak::Scoreboard - Header" )
 
         prisoners = @Add( "EditablePanel" )
@@ -947,7 +955,9 @@ do
 
         header = @Header
         if IsValid( header )
-            header\SetText( GetHostName! )
+            hostName = GetHostName!
+            header\SetText( hostName )
+            header\SetTooltip( hostName )
             header\DockMargin( 0, 0, 0, margin )
             header\SizeToContentsY!
 
@@ -1040,15 +1050,20 @@ do
         @MakePopup!
 
     PANEL.Hide = =>
-        @ClearPlayers!
         CloseDermaMenus!
+
+        if Jailbreak.Developer
+            @Remove!
+            return
+
+        @ClearPlayers!
         @SetVisible( false )
 
     PANEL.Paint = ( width, height ) =>
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
         DrawRect( 0, 0, width, height )
 
-    vgui.Register( "Jailbreak::Scoreboard", PANEL )
+    Register( "Jailbreak::Scoreboard", PANEL )
 
 GM.ScoreboardShow = =>
     scoreboard = @ScoreBoard
@@ -1063,3 +1078,140 @@ GM.ScoreboardHide = =>
     scoreboard = @ScoreBoard
     if IsValid( scoreboard )
         scoreboard\Hide!
+
+-- do
+
+--     PANEL = {}
+
+--     PANEL.Init = =>
+--         print "INIT"
+
+--     PANEL.OnRemove = =>
+
+--     PANEL.Think = =>
+--         if IsKeyDown( 70 ) or IsGameUIVisible!
+--             @Hide!
+
+--     PANEL.Show = =>
+--         @InvalidateLayout( true )
+--         @SetVisible( true )
+--         @MakePopup!
+
+--     PANEL.Hide = =>
+--         HideGameUI!
+
+--         if Jailbreak.Developer
+--             @Remove!
+--         else
+--             @SetVisible( false )
+
+--         chat.Close!
+
+--     PANEL.PerformLayout = =>
+--         width, height = VMin( 25 ), VMin( 25 )
+--         @SetSize( width, height )
+
+--     PANEL.Paint = ( width, height ) =>
+--         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+--         DrawRect( 0, 0, width, height )
+
+--     Register( "Jailbreak::ChatBox", PANEL, "EditablePanel" )
+
+-- GM.StartChat = ( isTeam ) =>
+--     chatBox = Jailbreak.ChatBox
+--     if IsValid( chatBox )
+--         chatBox\Remove!
+
+--     unless IsValid( chatBox )
+--         chatBox = Create( "Jailbreak::ChatBox" )
+--         Jailbreak.ChatBox = chatBox
+
+--     if IsValid( chatBox )
+--         chatBox\Show!
+--         return true
+
+-- GM.FinishChat = =>
+--     chatBox = Jailbreak.ChatBox
+--     if IsValid( chatBox ) and chatBox\IsVisible!
+--         chatBox\Hide!
+
+do
+
+    Jailbreak.Font( "Jailbreak::Tooltip", "Roboto Mono", 1.8 )
+
+    tooltipDelay = GetConVar( "tooltip_delay" )
+
+    do
+
+        :CursorVisible = vgui
+        :GetCursorPos = input
+
+        PANEL = {}
+
+        PANEL.Init = =>
+            @SetFontInternal( "Jailbreak::Tooltip" )
+            @SetContentAlignment( 5 )
+
+            @SetPaintBackgroundEnabled( true )
+            @SetKeyboardInputEnabled( false )
+            @SetMouseInputEnabled( false )
+            @SetPaintedManually( true )
+
+            @InvalidateLayout( true )
+            hook.Add "DrawOverlay", @, @PaintManual
+
+        PANEL.Think = =>
+            unless CursorVisible!
+                @Hide!
+
+            x, y = GetCursorPos!
+            @SetPos( x, y - @GetTall! )
+
+        PANEL.PerformLayout = =>
+            @SetBGColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+
+            textWidth, textHeight = @GetTextSize!
+            margin = VMin( 0.25 )
+
+            @SetSize( textWidth + margin * 2, textHeight + margin * 2 )
+
+        Register( "Jailbreak::Tooltip", PANEL, "Label" )
+
+    removeTooltip = =>
+        tooltip = Jailbreak.Tooltip
+        if IsValid( tooltip )
+            tooltip\Hide!
+
+        return true
+
+    global RemoveTooltip = removeTooltip
+    global EndTooltip = removeTooltip
+
+    findTooltip = =>
+        while IsValid( @ )
+            if @IsVisible!
+                text = @strTooltipText
+                if text ~= nil
+                    return Translate( text )
+
+            @ = @GetParent!
+
+    global FindTooltip = findTooltip
+
+    global ChangeTooltip = =>
+        removeTooltip!
+
+        text = findTooltip( @ )
+        unless text
+            return
+
+        tooltip = Jailbreak.Tooltip
+        if Jailbreak.Developer and IsValid( tooltip )
+            tooltip\Remove!
+
+        unless IsValid( tooltip )
+            tooltip = Create( "Jailbreak::Tooltip" )
+            Jailbreak.Tooltip = tooltip
+
+        tooltip\SetText( text )
+        tooltip\Show!
