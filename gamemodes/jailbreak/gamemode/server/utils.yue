@@ -1,4 +1,5 @@
 Jailbreak = Jailbreak
+:min, :floor = math
 hook_Run = hook.Run
 IsValid = IsValid
 
@@ -253,11 +254,11 @@ do
 
 do
 
+    :GetAmmoMax = game
     istable = istable
     :Shuffle = table
     Vector = Vector
     pairs = pairs
-    :min = math
 
     Jailbreak.LootRagdoll = ( ragdoll ) =>
         velocity = Vector!
@@ -285,25 +286,46 @@ do
 
         weapons = ragdoll.Weapons
         if istable( weapons )
-            for weapon in *weapons
-                unless weapon\IsValid! and not IsValid( weapon\GetOwner! )
-                    continue
+            if next( weapons ) == nil
+                ragdoll.Weapons = nil
+            else
+                for key, weapon in pairs( weapons )
+                    unless weapon\IsValid!
+                        weapons[ key ] = nil
+                        continue
 
-                weapon\SetNotSolid( false )
-                weapon\SetNoDraw( false )
-                weapon\SetParent!
+                    if IsValid( weapon\GetOwner! )
+                        weapons[ key ] = nil
+                        continue
 
-                weapon.PickupForbidden = nil
-                @PickupWeapon( weapon )
-                velocity += direction * 200
-        ragdoll.Weapons = nil
+                    weapon\SetNotSolid( false )
+                    weapon\SetNoDraw( false )
+                    weapon\SetParent!
+
+                    weapon.PickupForbidden = nil
+                    @PickupWeapon( weapon )
+                    weapons[ key ] = nil
+
+                    velocity += direction * 200
 
         ammo = ragdoll.Ammo
         if istable( ammo )
-            for ammoType, ammoCount in pairs( ammo )
-                @GiveAmmo( ammoCount, ammoType )
-                velocity += direction * 100
-        ragdoll.Ammo = nil
+            if next( ammo ) == nil
+                ragdoll.Ammo = nil
+            else
+                for ammoType, ammoCount in pairs( ammo )
+                    pickupAmount = min( ammoCount, floor( GetAmmoMax( ammoType ) - @GetAmmoCount( ammoType ) ) )
+                    if pickupAmount < 1
+                        continue
+
+                    @GiveAmmo( pickupAmount, ammoType )
+                    velocity += direction * 100
+
+                    ammoCount -= pickupAmount
+                    if ammoCount > 0
+                        ammo[ ammoType ] = ammoCount
+                    else
+                        ammo[ ammoType ] = nil
 
         if velocity\Length! < 100
             return

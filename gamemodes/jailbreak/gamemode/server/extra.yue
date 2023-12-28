@@ -248,16 +248,16 @@ Jailbreak.IsFoodModel = isFoodModel
 
 do
 
-    RecipientFilter = RecipientFilter
-    :Clamp, :floor = math
-    CHAN_STATIC = CHAN_STATIC
-
-    foodEatingTime = Jailbreak.FoodEatingTime
     foodEatingSound = Sound( "player/eating.wav" )
+    RecipientFilter = RecipientFilter
+    :FoodEatingTime = Jailbreak
+    CHAN_STATIC = CHAN_STATIC
+    :Clamp, :floor = math
+
     cache = {}
 
     hook_Add "PlayerHoldUse", "Jailbreak::FoodEating", ( entity, useTime ) =>
-        if useTime < foodEatingTime\GetFloat! or not entity\IsProp!
+        if useTime < FoodEatingTime\GetFloat! or not entity\IsProp!
             return
 
         modelPath = entity\GetModel!
@@ -279,18 +279,18 @@ do
 
 do
 
-    ragdollLootingTime = Jailbreak.RagdollLootingTime
     lootSound = Sound( "npc/footsteps/softshoe_generic6.wav" )
+    :LootRagdoll, :RagdollLootingTime = Jailbreak
 
     hook_Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
-        if useTime < ragdollLootingTime\GetFloat!
+        if useTime < RagdollLootingTime\GetFloat!
             return
 
         unless entity\IsPlayerRagdoll! or entity\IsRagdoll!
             return
 
         entity\EmitSound( lootSound, 60, random( 80, 120 ), Rand( 0.7, 1 ), CHAN_STATIC, 0, 1 )
-        Jailbreak.LootRagdoll( @, entity )
+        LootRagdoll( @, entity )
         return true
 
 -- Silly death animations
@@ -298,10 +298,10 @@ do
 
     GESTURE_SLOT_CUSTOM = GESTURE_SLOT_CUSTOM
     ACT_GMOD_DEATH = ACT_GMOD_DEATH
-    :band = bit
 
     whitelist = { DMG_BULLET, DMG_CLUB, DMG_SHOCK, DMG_POISON, DMG_PARALYZE, DMG_NERVEGAS, DMG_BUCKSHOT, DMG_SNIPER }
     :DeathAnimations = Jailbreak
+    :band = bit
 
     hook_Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
         if @GetNW2Int( "death-animation" ) == 2

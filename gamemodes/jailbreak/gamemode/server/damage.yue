@@ -279,6 +279,7 @@ do
     CHAN_STATIC = CHAN_STATIC
     Vector = Vector
     Angle = Angle
+    pairs = pairs
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo, isPlayerRagdoll ) =>
         unless isPlayerRagdoll
@@ -318,7 +319,7 @@ do
             mins *= 0.5
             maxs *= 0.5
 
-            for weapon in *weapons
+            for _, weapon in pairs( weapons )
                 unless weapon\IsValid!
                     continue
 
@@ -330,8 +331,14 @@ do
                 weapon\SetAngles( ang )
                 weapon\SetPos( pos )
 
-                weapon\SetVelocity( velocity )
+                phys = weapon\GetPhysicsObject!
+                if IsValid( phys )
+                    phys\SetVelocity( velocity )
+                    phys\Wake!
+
                 weapon.PickupForbidden = nil
+
+            ragdoll.Weapons = nil
 
         if ragdoll\PrecacheGibs! > 0
             ragdoll\GibBreakClient( velocity )

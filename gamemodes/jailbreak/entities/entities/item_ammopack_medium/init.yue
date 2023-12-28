@@ -1,5 +1,6 @@
 AddCSLuaFile( "cl_init.lua" )
 :GetAmmoMax = game
+:floor = math
 
 ENT.Base = "item_base"
 ENT.Model = "models/items/ammopack_medium.mdl"
@@ -12,14 +13,14 @@ ENT.PlayerGotItem = ( ply ) =>
     for weapon in *ply\GetWeapons!
         clip1Type = weapon\GetPrimaryAmmoType!
         if clip1Type >= 0
-            amount = math.ceil( ( GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) ) * @Ammo )
+            amount = floor( ( GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) ) * @Ammo )
             if amount > 0
                 ply\GiveAmmo( amount, clip1Type, false )
                 gived = true
 
         clip2Type = weapon\GetSecondaryAmmoType!
         if clip2Type >= 0
-            amount = math.ceil( ( GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) ) * @Ammo )
+            amount = floor( ( GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) ) * @Ammo )
             if amount > 0
                 ply\GiveAmmo( amount, clip2Type, false )
                 gived = true
