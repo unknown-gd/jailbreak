@@ -2,16 +2,19 @@ Jailbreak = Jailbreak
 GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
-:ceil, :max, :floor, :log, :Clamp = math
 :TeamIsJoinable, :ChangeTeam, :Colors, :VMin = Jailbreak
-:format = string
+:ceil, :max, :floor, :log, :Clamp = math
 :GetColor, :GetName, :GetScore = team
+:IsGameUIVisible, :HideGameUI = gui
 :GetPhrase = language
 hook_Add = hook.Add
 hook_Run = hook.Run
+:IsKeyDown = input
 IsValid = IsValid
+:format = string
 :GetAll = player
 select = select
+:Create = vgui
 pairs = pairs
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -106,7 +109,11 @@ do
                     window\Center!
                     return
 
-                window = g_ContextMenu\Add( "DFrame" )
+                contextMenu = Jailbreak.ContextMenu
+                unless IsValid( contextMenu )
+                    return
+
+                window = contextMenu\Add( "DFrame" )
                 button.Window = window
 
                 window\SetSize( desktopwindow.width, desktopwindow.height )
@@ -303,7 +310,7 @@ do
         if IsValid( contextMenu )
             contextMenu\Remove!
 
-        contextMenu = vgui.Create( "Jailbreak::ContextMenu" )
+        contextMenu = Create( "Jailbreak::ContextMenu" )
         unless IsValid( contextMenu )
             return
 
@@ -1012,7 +1019,7 @@ do
     PANEL.AddPlayers = =>
         prisoners, guards, spectators = @Prisoners.ScrollPanel, @Guards.ScrollPanel, @Spectators.ScrollPanel
         for ply in *GetAll!
-            panel = vgui.Create( "Jailbreak::Scoreboard - Player" )
+            panel = Create( "Jailbreak::Scoreboard - Player" )
             panel.Player = ply
 
             switch ply\Team!
@@ -1026,16 +1033,16 @@ do
             panel\InvalidateLayout( true )
 
     PANEL.Show = =>
-        PANEL_META.Show( @ )
+        @InvalidateLayout( true )
+        @SetVisible( true )
         CloseDermaMenus!
         @AddPlayers!
         @MakePopup!
-        @InvalidateLayout!
 
     PANEL.Hide = =>
         @ClearPlayers!
         CloseDermaMenus!
-        PANEL_META.Hide( @ )
+        @SetVisible( false )
 
     PANEL.Paint = ( width, height ) =>
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
@@ -1045,12 +1052,8 @@ do
 
 GM.ScoreboardShow = =>
     scoreboard = @ScoreBoard
-
-    if cvars.Number( "developer", 0 ) > 2 and IsValid( scoreboard )
-        scoreboard\Remove!
-
     unless IsValid( scoreboard )
-        scoreboard = vgui.Create( "Jailbreak::Scoreboard" )
+        scoreboard = Create( "Jailbreak::Scoreboard" )
         @ScoreBoard = scoreboard
 
     scoreboard\Show!
