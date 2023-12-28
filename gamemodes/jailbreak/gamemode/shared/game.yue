@@ -46,8 +46,9 @@ GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
 	ply\SetPlaybackRate( rate )
 
 	if CLIENT
-        hook_Run( "GrabEarAnimation", ply )
-        hook_Run( "MouthMoveAnimation", ply )
+        hook_Run "PerformPlayerVoice", ply
+        hook_Run "MouthMoveAnimation", ply
+        hook_Run "GrabEarAnimation", ply
 
 -- https://wiki.facepunch.com/gmod/GM:ShouldCollide
 GM.ShouldCollide = ( entity, ply ) =>
@@ -78,9 +79,6 @@ do
     SERVER = SERVER
 
     GM.FinishMove = ( ply, mv ) =>
-        if CLIENT
-            hook_Run "PerformPlayerVoice", ply, mv
-
         unless ply\Alive!
             return
 
