@@ -105,7 +105,7 @@ do
 whisperDistance = CreateConVar( "jb_whisper_distance", "32", ConVarFlags, "", 16, 65536 )
 
 whisper = ( text ) =>
-    sendChatText( @GetNearPlayers( whisperDistance\GetInt!, false ), @GetModelColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
+    sendChatText( @GetNearPlayers( whisperDistance\GetInt!, false ), @GetModelColor!, @Nick!, white, " #jb.chat.whispers: \"" .. text .. "\"" )
 
 Jailbreak.Whisper = whisper
 
