@@ -47,18 +47,14 @@ do
         order: 500
         think: =>
             if Jailbreak.Player\IsWarden!
-                state = Megaphone\GetBool!
-
-                image = state and "icon16/sound.png" or "icon16/sound_mute.png"
+                image = Megaphone\GetBool! and "icon16/sound.png" or "icon16/sound_mute.png"
                 if @GetImage! ~= image
                     @SetImage( image )
 
-                if @IsVisible!
-                    return
+                unless @IsVisible!
+                    @Show!
 
-                @Show!
-
-            if @IsVisible!
+            elseif @IsVisible!
                 @Hide!
 
         click: =>
