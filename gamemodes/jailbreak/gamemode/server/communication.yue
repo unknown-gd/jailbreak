@@ -107,10 +107,10 @@ whisperDistance = CreateConVar( "jb_whisper_distance", "32", ConVarFlags, "", 16
 whisper = ( text ) =>
     sendChatText( @GetNearPlayers( whisperDistance\GetInt!, false ), @GetModelColor!, @Nick!, white, " #jb.chat.whispers, \"" .. text .. "\"" )
 
-Jailbreak.Whisper = Whisper
+Jailbreak.Whisper = whisper
 
-setChatCommand "w", Whisper
-setChatCommand "whisper", Whisper
+setChatCommand "w", whisper
+setChatCommand "whisper", whisper
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSay
 GM.PlayerSay = ( ply, text, isTeam ) =>
