@@ -13,7 +13,7 @@ GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
         if entity\IsOnFire!
             entity\Extinguish!
 
-        if old < new and new == 3 and entity\IsPlayer! and entity\IsInGame!
+        if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
             entity.DrownDamageTime = CurTime! + random( 15, 45 )
 
 do
@@ -24,7 +24,7 @@ do
     DMG_DROWN = DMG_DROWN
 
     GM.PlayerPostThink = ( ply ) =>
-        unless ply\IsInGame!
+        unless ply\Alive!
             return
 
         if ply\IsUnderwater! and ( ply.DrownDamageTime or 0 ) < CurTime!
@@ -63,7 +63,7 @@ do
     GM.ShockCollars = ( bool ) =>
         receivers = {}
         for ply in *GetAll!
-            if ply\IsInGame! and ply\HasShockCollar!
+            if ply\Alive! and ply\HasShockCollar!
                 unless ply\IsBot!
                     receivers[] = ply
 
@@ -404,7 +404,7 @@ do
                 return
 
             if attacker\IsPlayer!
-                if not attacker\IsInGame! or attacker == @
+                if not attacker\Alive! or attacker == @
                     return
 
             elseif attacker\IsSolid! or attacker\GetNoDraw!

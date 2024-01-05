@@ -123,7 +123,7 @@ do
     -- Returns warden as player
     getWarden = ->
         warden = Jailbreak.Warden
-        if warden and warden\IsValid! and warden\IsWarden! and warden\IsInGame!
+        if warden and warden\IsValid! and warden\IsWarden! and warden\Alive!
             return warden
 
         for ply in *GetAll!
@@ -138,7 +138,7 @@ do
     -- Returns true if warden is exists
     Jailbreak.HasWarden = ->
         warden = getWarden!
-        return warden\IsValid! and warden\IsInGame!
+        return warden\IsValid! and warden\Alive!
 
 -- Round states
 do
@@ -409,15 +409,6 @@ do
                 return entity
 
         return NULL
-
--- Returns true if player is in game
-do
-
-    :Alive, :Team = PLAYER
-    :Teams = Jailbreak
-
-    PLAYER.IsInGame = =>
-        return Alive( @ ) and Teams[ Team( @ ) ]
 
 -- Returns true if player is guard
 PLAYER.IsGuard = =>

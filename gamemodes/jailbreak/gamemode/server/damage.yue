@@ -62,7 +62,7 @@ do
         ply\SetVelocity( velocity )
 
 GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
-    if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and ( not entity\IsInGame! or entity\GetVelocity!\Length! > 800 ) ) )
+    if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and ( not entity\Alive! or entity\GetVelocity!\Length! > 800 ) ) )
         entity\Extinguish!
         return true
 

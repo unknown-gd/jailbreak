@@ -200,7 +200,7 @@ do
                 return true
 
             hook_Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
-                unless @IsInGame!
+                unless @Alive!
                     return
 
                 pos[ 3 ] -= 1000
@@ -259,7 +259,7 @@ do
             Jailbreak.PowerfulPlayers = true
 
             for ply in *player.GetAll!
-                if ply\IsInGame!
+                if ply\Alive!
                     ply\AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_TAUNT_ZOMBIE, true )
 
             return true, false,

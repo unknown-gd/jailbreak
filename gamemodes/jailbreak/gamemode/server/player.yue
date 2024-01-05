@@ -229,7 +229,7 @@ do
 
         ragdoll.Team = @Team!
 
-        if @IsInGame!
+        if @Alive!
             ragdoll.Alive = true
 
             angles = @EyeAngles!

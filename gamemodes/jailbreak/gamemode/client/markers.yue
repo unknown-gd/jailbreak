@@ -60,7 +60,7 @@ do
 
                     material = GunIcon
                 elseif entity\IsPlayer!
-                    unless entity\IsInGame!
+                    unless entity\Alive!
                         return
 
                     switch entity\Team!
@@ -121,7 +121,7 @@ hook.Add "PostDrawTranslucentRenderables", "Jailbreak::Markers", ( drawingDepth,
         entity = data.entity
         if entity
             if entity\IsValid!
-                if ( entity\IsPlayer! and not entity\IsInGame! ) or ( entity\IsWeapon! and entity\GetOwner!\IsValid! )
+                if ( entity\IsPlayer! and not entity\Alive! ) or ( entity\IsWeapon! and entity\GetOwner!\IsValid! )
                     remove( markers, index )
                     continue
 

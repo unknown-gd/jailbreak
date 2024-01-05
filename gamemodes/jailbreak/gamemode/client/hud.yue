@@ -327,7 +327,7 @@ do
             y += textHeight
 
         keyName = input.LookupBinding( "use" )
-        if ply\IsPlayer! and keyName ~= nil
+        if ply\IsPlayer! and keyName ~= nil and ply\Alive!
             useEntity = ply\GetUseEntity!
             if useEntity\IsValid!
                 text = nil
@@ -473,7 +473,7 @@ do
 
             eyePos = EyePos!
             for ply in *GetAll!
-                if ( ply\IsLocalPlayer! and not ply\ShouldDrawLocalPlayer! ) or not ply\IsInGame!
+                if ( ply\IsLocalPlayer! and not ply\ShouldDrawLocalPlayer! ) or not ply\Alive!
                     continue
 
                 isSpeaking = ply\IsSpeaking!

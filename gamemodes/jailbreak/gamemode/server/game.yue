@@ -290,7 +290,7 @@ do
         unless traceEntity\IsValid!
             return true
 
-        if traceEntity\IsPlayer! and traceEntity\IsInGame!
+        if traceEntity\IsPlayer! and traceEntity\Alive!
             if makeSuitable
                 traceEntity\Kill!
                 return true
@@ -435,7 +435,7 @@ do
     }
 
     GM.KeyPress = ( ply, key ) =>
-        if ply\IsInGame! or ply\GetInfo( "jb_spectator_controls" ) == "0"
+        if ply\Alive! or ply\GetInfo( "jb_spectator_controls" ) == "0"
             return
 
         if MovementKeys[ key ]
@@ -474,7 +474,7 @@ do
         if IsRoundPreparing!
             return false
 
-        return ply\IsInGame!
+        return ply\Alive!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathSound
 do
@@ -513,7 +513,7 @@ do
     :AllowSprayEveryone = Jailbreak
 
     GM.PlayerSpray = ( ply ) =>
-        unless ply\IsInGame!
+        unless ply\Alive!
             return true
 
         if AllowSprayEveryone\GetBool! or ply\IsPrisoner!
@@ -524,22 +524,22 @@ do
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerShouldTaunt
 GM.PlayerShouldTaunt = ( ply ) =>
-    return ply\IsInGame!
+    return ply\Alive!
 
 -- https://wiki.facepunch.com/gmod/GM:AllowPlayerPickup
 GM.AllowPlayerPickup = ( ply, entity ) =>
-    return ply\IsInGame! and not entity\IsFood!
+    return ply\Alive! and not entity\IsFood!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupItem
 GM.PlayerCanPickupItem = ( ply, entity ) =>
-    return ply\IsInGame!
+    return ply\Alive!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerNoClip
 GM.PlayerNoClip = ( ply, desiredState ) =>
     unless desiredState
         return true
 
-    unless ply\IsInGame!
+    unless ply\Alive!
         return false
 
     if ply\IsPlayingTaunt!
@@ -552,7 +552,7 @@ GM.PlayerSwitchFlashlight = ( ply, newState ) =>
     unless newState
         return true
 
-    return ply\IsInGame! and ply\CanUseFlashlight!
+    return ply\Alive! and ply\CanUseFlashlight!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerUse
 do
@@ -562,7 +562,7 @@ do
     CurTime = CurTime
 
     GM.PlayerUse = ( ply, entity ) =>
-        unless ply\IsInGame!
+        unless ply\Alive!
             return
 
         weapon = ply\GetActiveWeapon!
@@ -775,7 +775,7 @@ do
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    unless ply\IsInGame!
+    unless ply\Alive!
         return false
 
     if ply\HasWeapon( weapon\GetClass! )

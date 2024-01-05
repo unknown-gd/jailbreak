@@ -289,7 +289,7 @@ do
             rf = RecipientFilter!
             rf\AddPAS( origin )
 
-            isInGame = listener\IsInGame!
+            isInGame = listener\Alive!
             hasRadio = isInGame and listener\HasSecurityRadio!
 
             for speaker in *rf\GetPlayers!
@@ -299,7 +299,7 @@ do
                 if ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
                     continue
 
-                unless speaker\IsInGame!
+                unless speaker\Alive!
                     unless isInGame
                         volumes[] = { speaker, 1 }
                         speakers[ speaker ] = false

@@ -119,7 +119,7 @@ do
                 r, g, b = 255, 255, 255
 
                 ply = @Player
-                if ply\IsValid! and ply\IsInGame!
+                if ply\IsValid! and ply\Alive!
                     r, g, b = ply\GetTeamColorUpacked!
 
                 SetDrawColor( r, g, b, floor( volume * 255 ) )

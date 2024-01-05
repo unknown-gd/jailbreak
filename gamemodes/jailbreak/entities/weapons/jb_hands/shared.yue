@@ -48,7 +48,7 @@ SWEP.PlaySequence = ( sequenceName, onFinish ) =>
     @SequenceFinished = false
 
     owner = @GetOwner!
-    unless owner\IsValid! and owner\IsInGame!
+    unless owner\IsValid! and owner\Alive!
         return
 
     vm = owner\GetViewModel!
@@ -128,7 +128,7 @@ MASK_SHOT_HULL = MASK_SHOT_HULL
 
 SWEP.DealDamage = =>
     owner = @GetOwner!
-    unless owner\IsValid! and owner\IsPlayer! and owner\IsInGame!
+    unless owner\IsValid! and owner\IsPlayer! and owner\Alive!
         return
 
     owner\LagCompensation( true )

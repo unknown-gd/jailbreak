@@ -99,7 +99,7 @@ do
                     ObserveTargets[ key ] = nil
 
                 for ply in *GetAll!
-                    if ply\IsInGame!
+                    if ply\Alive!
                         ply\KillSilent!
 
                     if ply\IsBot! or ( ply\IsGuard! and not PermanentGuards\GetBool! )

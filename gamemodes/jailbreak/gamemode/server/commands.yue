@@ -51,7 +51,7 @@ do
         unless IsValid( @ )
             return
 
-        unless IsRoundRunning! and @IsInGame! and @IsWarden!
+        unless IsRoundRunning! and @Alive! and @IsWarden!
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
             return
 
@@ -92,6 +92,20 @@ Add "jb_respawn", ( _, args ) =>
 
     @Spawn!
 
+Add "jb_move_player", ( _, args ) =>
+    if IsValid( @ ) and not @IsAdmin!
+        return
+
+    ply = Entity( args[ 1 ] )
+    if ply and ply\IsValid!
+        if ply\Alive!
+            ply\Kill!
+
+        ply\SetTeam( args[ 2 ] )
+
+        if args[ 3 ]
+            ply\Spawn!
+
 do
 
     :IsValidModel = util
@@ -111,7 +125,7 @@ do
         traceResult, isPlayer = @GetEyeTrace!, false
         if traceResult.Hit
             entity = traceResult.Entity
-            if entity\IsValid! and entity\IsPlayer! and entity\IsInGame!
+            if entity\IsValid! and entity\IsPlayer! and entity\Alive!
                 isPlayer = true
 
         if isPlayer
@@ -150,7 +164,7 @@ do
     }
 
     Add "marker", =>
-        unless Markers\GetBool! and IsValid( @ ) and @IsInGame!
+        unless Markers\GetBool! and IsValid( @ ) and @Alive!
             return
 
         if @NextMarker and CurTime! < @NextMarker
