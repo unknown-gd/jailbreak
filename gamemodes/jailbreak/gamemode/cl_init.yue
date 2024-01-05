@@ -1,14 +1,6 @@
 include( "shared.lua" )
 Jailbreak = Jailbreak
 
-Jailbreak.SourceHUD = {
-    "CHudSecondaryAmmo"
-    "CHudSuitPower"
-    "CHudBattery"
-    "CHudHealth"
-    "CHudAmmo"
-}
-
 do
 
     FCVAR_SHARED = bit.bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )

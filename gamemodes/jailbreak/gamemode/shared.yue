@@ -23,6 +23,7 @@ $lua[==[
 local Jailbreak = Jailbreak
 local TEAM_GUARD = TEAM_GUARD
 local TEAM_PRISONER = TEAM_PRISONER
+local TEAM_SPECTATOR = TEAM_SPECTATOR
 ]==]
 
 do

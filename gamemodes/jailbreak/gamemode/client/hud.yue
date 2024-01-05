@@ -21,15 +21,23 @@ ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_ENDED = ROUND_ENDED
 
-:SourceHUD = Jailbreak
-for className in *SourceHUD
-    SourceHUD[ className ] = true
+TEAM_SPECTATOR = TEAM_SPECTATOR
 
-GM.HUDShouldDraw = ( name ) =>
-    if SourceHUD[ name ] or ( Jailbreak.PlayingTaunt and name == "CHudWeaponSelection" )
-        return false
+do
 
-    return true
+    sourceHUD = {
+        CHudSecondaryAmmo: true
+        CHudSuitPower: true
+        CHudBattery: true
+        CHudHealth: true
+        CHudAmmo: true
+    }
+
+    GM.HUDShouldDraw = ( name ) =>
+        if sourceHUD[ name ] or ( Jailbreak.PlayingTaunt and name == "CHudWeaponSelection" )
+            return false
+
+        return true
 
 do
 
@@ -452,7 +460,7 @@ do
             @IsPlayer = isPlayer
 
             unless isPlayer
-                @Alive = alive
+                @Alive = false
                 @Health = 0
 
             @InvalidateLayout!
@@ -548,8 +556,7 @@ do
 
         @TimeX, @TimeY = width - timeWidth - offset, ( headerHeight - timeHeight ) / 2
 
-        alive = @Alive
-        if alive
+        if @Alive
             @HeaderColor = GetTeamColor( @TeamID )
 
             healthRects = @HealthRects
@@ -1126,8 +1133,8 @@ do
                     switch item
                         when "jb.flashlight"
                             materialPath = "icon16/lightbulb.png"
-                        when "jb.access-card"
-                            materialPath = "icon16/vcard.png"
+                        when "jb.security.keys"
+                            materialPath = "icon16/key.png"
                         when "jb.walkie-talkie"
                             materialPath = "icon16/phone.png"
 

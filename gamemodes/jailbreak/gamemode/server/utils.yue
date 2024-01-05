@@ -275,7 +275,7 @@ do
         if ragdoll.HasSecurityAccess and not @HasSecurityAccess!
             velocity += direction * 50
             @AllowSecurityAccess( true )
-            @SendPickupNotify( "jb.access-card" )
+            @SendPickupNotify( "jb.security.keys" )
             ragdoll.HasSecurityAccess = nil
 
         if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
