@@ -164,6 +164,11 @@ do
     ENTITY = FindMetaTable( "Entity" )
     :EntIndex = ENTITY
 
+    -- Returns true if door entity is locked
+    ENTITY.IsDoorLocked = =>
+        return @GetNW2Bool( "m_bLocked" )
+
+    -- Returns true if entity is local player
     ENTITY.IsLocalPlayer = =>
         index = Jailbreak.PlayerIndex
         unless index

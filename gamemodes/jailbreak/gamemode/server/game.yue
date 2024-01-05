@@ -579,13 +579,13 @@ do
         className = entity\GetClass!
 
         if not lastUseTime or ( curTime - lastUseTime ) > 0.025
-            ply.StartUseTime = curTime
+            ply\SetNW2Int( "start-use-time", curTime )
             hook_Run( "PlayerHoldUse", ply, entity, 0 )
         else
 
-            startUseTime = ply.StartUseTime
-            if startUseTime and hook_Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
-                ply.StartUseTime = nil
+            startUseTime = ply\GetNW2Int( "start-use-time" )
+            if startUseTime ~= 0 and hook_Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
+                ply\SetNW2Int( "start-use-time", 0 )
 
         if ( curTime - lastUseTime ) <= 0.025
             return

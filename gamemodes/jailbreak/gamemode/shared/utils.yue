@@ -255,6 +255,10 @@ ENTITY.GetRagdollOwnerNickname = =>
 
     return value
 
+-- Returns true if door entity is locked
+ENTITY.IsDoorLocked = =>
+    return @GetInternalVariable( "m_bLocked" )
+
 -- Returns true if entity is under water
 do
 
@@ -441,6 +445,26 @@ do
             players[] = ply
 
         return players
+
+PLAYER.GetUsedEntity = =>
+    if @KeyDown( IN_USE )
+        return @GetUseEntity!
+
+    return NULL
+
+PLAYER.IsUsingEntity = =>
+    if @KeyDown( IN_USE )
+        entity = @GetUseEntity!
+        return entity ~= NULL and entity\IsValid!
+
+    return false
+
+PLAYER.GetUseTime = =>
+    startUseTime = GetNW2Int( @, "start-use-time" )
+    if startUseTime == 0
+        return 0
+
+    return CurTime! - startUseTime
 
 -- Silly spark sounds
 do

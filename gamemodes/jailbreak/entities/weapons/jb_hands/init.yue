@@ -26,9 +26,16 @@ SWEP.UseDoor = ( open ) =>
 
     className = entity\GetClass!
     if className == "prop_door_rotating"
-        if owner\Team! ~= TEAM_GUARD
-            entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
-            owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true )
+        unless owner\HasSecurityAccess!
+            if entity\IsDoorLocked!
+                entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
+                owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true )
+            else
+                entity\Use( owner, owner )
+
+            return
+
+        if open ~= entity\IsDoorLocked! or entity\GetDoorState! ~= 0
             return
 
         timer.Simple 0.8, ->

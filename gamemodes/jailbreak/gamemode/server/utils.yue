@@ -213,6 +213,10 @@ do
         ENTITY.IsProp = =>
             return classNames[ GetClass( @ ) ]
 
+    -- Returns door entity state
+    ENTITY.GetDoorState = =>
+        return @GetInternalVariable( "m_eDoorState" )
+
 do
 
     CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
@@ -349,3 +353,20 @@ do
             phys = ragdoll\GetPhysicsObject!
             if IsValid( phys )
                 phys\ApplyForceCenter( velocity )
+
+do
+
+    tobool = tobool
+    :lower = string
+
+    GM.AcceptInput = ( entity, key ) =>
+        if entity\GetClass! == "prop_door_rotating"
+            switch lower( key )
+                when "lock"
+                    entity\SetNW2Bool( "m_bLocked", true )
+                when "unlock"
+                    entity\SetNW2Bool( "m_bLocked", false )
+
+    GM.EntityKeyValue = ( entity, key, value ) =>
+        if entity\GetClass! == "prop_door_rotating" and lower( key ) == "m_bLocked"
+            entity\SetNW2Bool( key, tobool( value ) )
