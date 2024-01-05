@@ -116,12 +116,13 @@ do
         for index = 1, @VoiceDataLength
             volume = @VoiceData[ index ]
             if volume ~= nil
-                teamColor = white
+                r, g, b = 255, 255, 255
+
                 ply = @Player
                 if ply\IsValid! and ply\IsInGame!
-                    teamColor = ply\GetTeamColor!
+                    r, g, b = ply\GetTeamColorUpacked!
 
-                SetDrawColor( teamColor.r, teamColor.g, teamColor.b, floor( volume * 255 ) )
+                SetDrawColor( r, g, b, floor( volume * 255 ) )
 
                 leftPadding, topPadding = @GetDockPadding!
                 voiceDataHeight = ceil( ( height - topPadding ) * volume )

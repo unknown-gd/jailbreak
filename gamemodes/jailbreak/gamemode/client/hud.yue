@@ -2,11 +2,11 @@ Jailbreak = Jailbreak
 hook_Run = hook.Run
 GM = GM
 
-:Colors, :VMin = Jailbreak
+:Colors, :VMin, :GetTeamColor, :GetTeamColorUpacked = Jailbreak
 :asparagus, :white, :black, :dark_grey, :light_grey, :red, :dark_white, :horizon, :butterfly_bush, :au_chico = Colors
 
-:DrawRect, :DrawTexturedRect, :SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos, :SetAlphaMultiplier, :DrawTexturedRectRotated = surface
-:Clamp, :min, :max, :sin, :floor, :ceil = math
+:DrawRect, :SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos, :SetAlphaMultiplier, :DrawTexturedRectRotated = surface
+:Clamp, :min, :max, :sin, :floor, :ceil, :Round, :Rand = math
 :sub, :format, :match = string
 :Create, :Register = vgui
 :GetPhrase = language
@@ -20,8 +20,6 @@ Lerp = Lerp
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_ENDED = ROUND_ENDED
-
-:GetName, :GetColor = team
 
 :SourceHUD = Jailbreak
 for className in *SourceHUD
@@ -80,13 +78,14 @@ do
         DrawText( text )
 
         if state == ROUND_ENDED
-            teamID, color = GetWinningTeam!, nil
+            teamID = GetWinningTeam!
+            r, g, b = dark_white.r, dark_white.g, dark_white.b
+
             if Teams[ teamID ]
-                text = format( GetPhrase( "#jb.victory" ), GetPhrase( GetName( teamID ) ) )
-                color = GetColor( teamID )
+                text = format( GetPhrase( "#jb.victory" ), GetPhrase( "jb.team." .. teamID ) )
+                r, g, b = GetTeamColorUpacked( teamID )
             else
                 text = GetPhrase( "#jb.draw" )
-                color = dark_white
 
             text = "[" .. text .. "]"
 
@@ -101,7 +100,7 @@ do
             SetTextColor( black.r, black.g, black.b, 120 )
             DrawText( text )
 
-            SetTextColor( color )
+            SetTextColor( r, g, b, 255 )
             SetTextPos( x, y )
             DrawText( text )
 
@@ -162,7 +161,7 @@ do
 
         isPlayerRagdoll = entity\IsPlayerRagdoll!
         isPlayer = entity\IsPlayer!
-        color = white
+        r, g, b = 255, 255, 255
 
         text = nil
         if isPlayer
@@ -170,10 +169,10 @@ do
                 return
 
             text = entity\Nick!
-            color = entity\GetModelColor!
+            r, g, b = entity\GetModelColorUnpacked!
         elseif isPlayerRagdoll
             text = entity\GetRagdollOwnerNickname!
-            color = entity\GetModelColor!
+            r, g, b = entity\GetModelColorUnpacked!
 
         elseif entity\IsWeapon!
             text = GetWeaponName( entity )
@@ -200,7 +199,7 @@ do
         SetTextColor( black.r, black.g, black.b, 120 )
         DrawText( text )
 
-        SetTextColor( color.r, color.g, color.b )
+        SetTextColor( r, g, b )
         SetTextPos( x, y )
         DrawText( text )
 
@@ -209,7 +208,6 @@ do
         if isPlayer or isPlayerRagdoll
             if isPlayer
                 teamID = entity\Team!
-                color = GetColor( teamID )
 
                 if entity\IsWarden!
                     text = "#jb.player.warden"
@@ -220,9 +218,11 @@ do
                 else
                     text = "#jb.unknown"
 
+                r, g, b = GetTeamColorUpacked( teamID )
+
             else
                 text = "#jb.player.corpse"
-                color = dark_white
+                r, g, b = dark_white.r, dark_white.g, dark_white.b
 
             SetFont( "Jailbreak::TargetID - Team" )
             textWidth, textHeight = GetTextSize( text )
@@ -236,15 +236,47 @@ do
             SetTextColor( black.r, black.g, black.b, 120 )
             DrawText( text )
 
-            SetTextColor( color.r, color.g, color.b )
+            SetTextColor( r, g, b )
             SetTextPos( x, y )
             DrawText( text )
 
             y += textHeight
 
-        if isPlayer and entity\HasGodMode!
-            text = "#jb.player.health.invincible"
+        text = nil
 
+        if isPlayer
+            if entity\HasGodMode!
+                text = "#jb.player.health.invincible"
+                r, g, b = 254, 242, 0
+
+            else
+
+                frac = entity\Health! / ply\GetMaxHealth!
+                if frac <= 0
+                    text = "#jb.player.health.dead"
+                elseif frac < 0.25
+                    text = "#jb.player.health.half-dead"
+                elseif frac < 0.5
+                    text = "#jb.player.health.badly_wounded"
+                elseif frac < 0.75
+                    text = "#jb.player.health.wounded"
+                elseif frac < 0.90
+                    text = "#jb.player.health.hurt"
+                else
+                    text = "#jb.player.health.healthy"
+
+                r, g, b = Lerp( frac, red.r, asparagus.r ), Lerp( frac, red.g, asparagus.g ), Lerp( frac, red.b, asparagus.b )
+
+        else
+
+            health = entity\Health!
+            if health >= 1
+                frac = max( 0, Round( 1 - ( health / entity\GetMaxHealth! ), 2 ) )
+                if frac ~= 0
+                    text = GetPhrase( "#jb.entity.damaged" ) .. " " .. ( frac * 100 ) .. "%"
+                    r, g, b = dark_white.r, dark_white.g, dark_white.b
+
+        if text ~= nil
             SetFont( "Jailbreak::TargetID - Health" )
             textWidth, textHeight = GetTextSize( text )
             x = mouseX - textWidth / 2
@@ -256,56 +288,11 @@ do
                     SetTextPos( x + sx, y + sy )
                     DrawText( text )
 
-            SetTextColor( 254, 242, 0 )
+            SetTextColor( r, g, b )
             SetTextPos( x, y )
             DrawText( text )
-            return
 
-        r, g, b = dark_white.r, dark_white.g, dark_white.b
-
-        health = entity\Health!
-        if isPlayer
-            frac = health / ply\GetMaxHealth!
-            r, g, b = Lerp( frac, red.r, asparagus.r ), Lerp( frac, red.g, asparagus.g ), Lerp( frac, red.b, asparagus.b )
-
-            if frac <= 0
-                text = "#jb.player.health.dead"
-            elseif frac < 0.25
-                text = "#jb.player.health.half-dead"
-            elseif frac < 0.5
-                text = "#jb.player.health.badly_wounded"
-            elseif frac < 0.75
-                text = "#jb.player.health.wounded"
-            elseif frac < 0.90
-                text = "#jb.player.health.hurt"
-            else
-                text = "#jb.player.health.healthy"
-
-        else
-
-            if health < 1
-                return
-
-            frac = math.Round( 1 - health / entity\GetMaxHealth!, 2 )
-            if frac == 0
-                return
-
-            text = GetPhrase( "#jb.entity.damaged" ) .. " " .. ( frac * 100 ) .. "%"
-
-        SetFont( "Jailbreak::TargetID - Health" )
-        textWidth, textHeight = GetTextSize( text )
-        x = mouseX - textWidth / 2
-
-        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
-
-        for sx = -2, 2
-            for sy = -2, 2
-                SetTextPos( x + sx, y + sy )
-                DrawText( text )
-
-        SetTextColor( r, g, b )
-        SetTextPos( x, y )
-        DrawText( text )
+            y += textHeight
 
 do
 
@@ -563,7 +550,7 @@ do
 
         alive = @Alive
         if alive
-            @HeaderColor = GetColor( @TeamID )
+            @HeaderColor = GetTeamColor( @TeamID )
 
             healthRects = @HealthRects
             for index = 1, #healthRects
@@ -762,7 +749,6 @@ do
     lightning_delete = Material( "icon16/lightning_delete.png", "mips" )
     lightning_add = Material( "icon16/lightning_add.png", "mips" )
     lightning = Material( "icon16/lightning.png", "mips" )
-    :Rand = math
 
     PANEL = {}
 
@@ -901,8 +887,9 @@ do
             teamID = entity\Team!
             if @TeamID ~= teamID
                 @TeamID = teamID
-                @HeaderColor = GetColor( teamID )
+                @HeaderColor = GetTeamColor( teamID )
                 @InvalidateLayout!
+
         elseif @HeaderColor ~= dark_white
             @HeaderColor = dark_white
             @InvalidateLayout!
@@ -1010,7 +997,8 @@ do
         @SetSize( width, height )
 
     PANEL.Paint = ( width, height ) =>
-        SetDrawColor( @HeaderColor )
+        headerColor = @HeaderColor
+        SetDrawColor( headerColor.r, headerColor.g, headerColor.b, 240 )
         DrawRect( 0, 0, width, @HeaderHeight )
 
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )

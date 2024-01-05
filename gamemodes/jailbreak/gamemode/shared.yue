@@ -7,6 +7,7 @@ GM.TeamBased = true
 global Jailbreak = Jailbreak or {}
 global TEAM_GUARD = 1
 global TEAM_PRISONER = 2
+global TEAM_SPECTATOR = 1002
 
 global ROUND_WAITING_PLAYERS = 0
 global ROUND_PREPARING = 1
@@ -108,7 +109,7 @@ do
     colors = Jailbreak.Colors
 
     GM.CreateTeams = =>
-        SetUp( TEAM_PRISONER, "#jb.team.prisoners", colors.prisoners, true )
+        SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, colors.prisoners, true )
         SetSpawnPoint( TEAM_PRISONER, {
             "info_player_terrorist"
             "info_player_teamspawn"
@@ -119,7 +120,7 @@ do
             "info_player_red"
         } )
 
-        SetUp( TEAM_GUARD, "#jb.team.guards", colors.guards, true )
+        SetUp( TEAM_GUARD, "#jb.team." .. TEAM_GUARD, colors.guards, true )
         SetSpawnPoint( TEAM_GUARD, {
             "info_player_counterterrorist"
             "diprip_start_team_blue"
@@ -132,7 +133,7 @@ do
             "info_player_blue"
         } )
 
-        SetUp( TEAM_SPECTATOR, "#jb.team.spectators", colors.spectators, true )
+        SetUp( TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, colors.spectators, true )
 
 -- Gamemode utils & functions
 include( "shared/utils.lua" )

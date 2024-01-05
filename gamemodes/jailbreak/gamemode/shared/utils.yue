@@ -1,6 +1,7 @@
 Jailbreak = Jailbreak
 GetGlobal2Int = GetGlobal2Int
 :ceil, :max = math
+CurTime = CurTime
 :GetAll = player
 NULL = NULL
 
@@ -203,7 +204,7 @@ Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
-:GetNW2Bool, :GetNW2Entity, :GetNW2Var = ENTITY
+:GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 
 -- Returns entity health
 CHealth = ENTITY.CHealth
@@ -213,12 +214,8 @@ unless CHealth
 
 PLAYER.Health = PLAYER.Health or CHealth
 
-do
-
-    :GetNW2Int = ENTITY
-
-    ENTITY.Health = =>
-        return GetNW2Int( @, "health", CHealth( @ ) )
+ENTITY.Health = =>
+    return GetNW2Int( @, "health", CHealth( @ ) )
 
 SetCHealth = ENTITY.SetCHealth
 unless SetCHealth
@@ -239,6 +236,7 @@ do
 
         SetNW2Int( @, "health", int )
 
+-- Returns true if entity is using security radio
 PLAYER.UsingSecurityRadio = =>
     return GetNW2Bool( @, "using-security-radio" )
 
@@ -288,6 +286,11 @@ do
         ENTITY.GetModelColor = =>
             return ToColor( @IsPlayer! and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ ) )
 
+        ENTITY.GetModelColorUnpacked = =>
+            vector = @IsPlayer! and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ )
+            return vector[ 1 ] * 255, vector[ 2 ] * 255, vector[ 3 ] * 255, 255
+
+
 -- Sets player color
 do
 
@@ -299,11 +302,31 @@ do
 -- Returns player team color
 do
 
-    :GetColor = team
+    DefaultColor = Color( 255, 255, 100, 255 )
+    TeamInfo = team.GetAllTeams!
+
+    getTeamColor = ( teamID ) ->
+        teamInfo = TeamInfo[ teamID ]
+        if teamInfo ~= nil
+            return teamInfo.Color
+
+        return DefaultColor
+
+    Jailbreak.GetTeamColor = getTeamColor
+
+    getTeamColorUpacked = ( teamID ) ->
+        color = getTeamColor( teamID )
+        return color.r, color.g, color.b, color.a
+
+    Jailbreak.GetTeamColorUpacked = getTeamColorUpacked
+
     :Team = PLAYER
 
     PLAYER.GetTeamColor = =>
-        return GetColor( Team( @ ) )
+        return getTeamColor( Team( @ ) )
+
+    PLAYER.GetTeamColorUpacked = =>
+        return getTeamColorUpacked( Team( @ ) )
 
 -- Returns true if player is fully connected
 PLAYER.IsFullyConnected = =>

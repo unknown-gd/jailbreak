@@ -2,9 +2,8 @@ Jailbreak = Jailbreak
 GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
-:TeamIsJoinable, :ChangeTeam, :Colors, :VMin, :Translate = Jailbreak
+:TeamIsJoinable, :ChangeTeam, :Colors, :VMin, :Translate, :GetTeamColor = Jailbreak
 :ceil, :max, :floor, :log, :Clamp = math
-:GetColor, :GetName, :GetScore = team
 :IsGameUIVisible, :HideGameUI = gui
 :Create, :Register = vgui
 :GetPhrase = language
@@ -13,6 +12,7 @@ hook_Run = hook.Run
 :IsKeyDown = input
 IsValid = IsValid
 :format = string
+:GetScore = team
 :GetAll = player
 select = select
 pairs = pairs
@@ -458,11 +458,11 @@ do
             return
 
         unless @Color
-            @Color = GetColor( teamID )
+            @Color = GetTeamColor( teamID )
 
         count = team.NumPlayers( teamID )
         if count ~= @Count
-            @SetText( GetName( teamID ) .. " x" .. count )
+            @SetText( "#jb.team." .. teamID .. " x" .. count )
             @Count = count
 
         ply = Jailbreak.Player
@@ -559,7 +559,7 @@ do
             button = @Add( "Jailbreak::TeamSelect - Button" )
             @Spectators = button
 
-            button\SetText( "#jb.team.spectate" )
+            button\SetText( "#jb.spectate" )
             button.Team = TEAM_SPECTATOR
             button.MainPanel = @
 
@@ -579,7 +579,7 @@ do
             button = @Add( "Jailbreak::TeamSelect - Button" )
             @Random = button
 
-            button\SetText( "#jb.team.random" )
+            button\SetText( "#jb.select_random_team" )
             button.Color = Colors.asparagus
             button.MainPanel = @
 
@@ -833,8 +833,8 @@ do
 
     PANEL.PerformLayout = =>
         teamID = @Team
-        @Color = GetColor( teamID )
-        text = GetName( teamID )
+        @Color = GetTeamColor( teamID )
+        text = "#jb.team." .. teamID
         @SetTooltip( text )
 
         SetFont( "Jailbreak::Scoreboard - Header" )
