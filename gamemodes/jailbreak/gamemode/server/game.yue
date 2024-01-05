@@ -647,15 +647,19 @@ do
 
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
     :FindInSphere = ents
+    hook_Add = hook.Add
 
     GM.OnEntityCreated = ( entity ) =>
         if entity\IsPlayer!
             return
 
-        -- Fuck 'game_player_equip'
-        if entity\GetClass! == "game_player_equip"
-            entity\Remove!
-            return
+        switch entity\GetClass!
+            -- Fuck 'game_player_equip'
+            when "game_player_equip"
+                entity\Remove!
+                return
+            when "func_button"
+                entity\SetNW2Bool( "is-button", true )
 
         if entity\IsValidObserveTarget!
             entity\AddToObserveTargets!

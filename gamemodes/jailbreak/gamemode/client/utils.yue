@@ -168,6 +168,10 @@ do
     ENTITY.IsDoorLocked = =>
         return @GetNW2Bool( "m_bLocked" )
 
+    -- Returns door entity state
+    ENTITY.GetDoorState = =>
+        return @GetNW2Int( "m_eDoorState" )
+
     -- Returns true if entity is local player
     ENTITY.IsLocalPlayer = =>
         index = Jailbreak.PlayerIndex

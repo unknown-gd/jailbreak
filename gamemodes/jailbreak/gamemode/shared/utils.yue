@@ -255,10 +255,6 @@ ENTITY.GetRagdollOwnerNickname = =>
 
     return value
 
--- Returns true if door entity is locked
-ENTITY.IsDoorLocked = =>
-    return @GetInternalVariable( "m_bLocked" )
-
 -- Returns true if entity is under water
 do
 
@@ -302,6 +298,33 @@ do
 
     ENTITY.SetPlayerColor = ( vector ) =>
         SetNW2Var( @, "player-color", vector )
+
+-- Returns true if entity is prop
+do
+
+    classNames = list.GetForEdit( "prop-classnames" )
+    classNames.prop_physics_multiplayer = true
+    classNames.prop_physics_override = true
+    classNames.prop_dynamic_override = true
+    classNames.prop_dynamic = true
+    classNames.prop_ragdoll = true
+    classNames.prop_physics = true
+    classNames.prop_detail = true
+    classNames.prop_static = true
+
+    Jailbreak.IsProp = ( className ) ->
+        return classNames[ className ]
+
+    ENTITY.IsProp = =>
+        return classNames[ @GetClass! ]
+
+-- Returns true if entity is button
+ENTITY.IsButton = =>
+    return GetNW2Bool( @, "is-button" )
+
+-- Returns true if entity is food
+ENTITY.IsFood = =>
+    return GetNW2Bool( @, "is-food" )
 
 -- Returns player team color
 do

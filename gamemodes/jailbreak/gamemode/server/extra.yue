@@ -1,7 +1,9 @@
 Jailbreak = Jailbreak
-:FixModelPath = Jailbreak
+
+ENTITY = FindMetaTable( "Entity" )
 :random, :max, :Rand = math
 timer_Simple = timer.Simple
+:FixModelPath = Jailbreak
 hook_Add = hook.Add
 CurTime = CurTime
 GM = GM
@@ -173,60 +175,61 @@ do
 
                 func( addon )
 
-Jailbreak.FoodModels = Jailbreak.FoodModels or {
-
-    -- GMOD
-    "models/food/burger.mdl"
-    "models/food/hotdog.mdl"
-
-    -- HL2
-    "models/props_c17/doll01.mdl"
-    "models/props_junk/garbage_glassbottle001a.mdl"
-    "models/props_junk/garbage_glassbottle002a.mdl"
-    "models/props_junk/garbage_glassbottle003a.mdl"
-    "models/props_junk/garbage_milkcarton002a.mdl"
-    "models/props_junk/garbage_milkcarton001a.mdl"
-    "models/props_junk/garbage_plasticbottle003a.mdl"
-    "models/props_junk/garbage_takeoutcarton001a.mdl"
-    "models/props_junk/GlassBottle01a.mdl"
-    "models/props_junk/glassjug01.mdl"
-    "models/props_junk/watermelon01.mdl"
-    "models/props_junk/Shoe001a.mdl"
-
-    -- CSS
-    "models/props/CS_militia/bottle01.mdl"
-    "models/props/CS_militia/bottle02.mdl"
-    "models/props/CS_militia/bottle03.mdl"
-    "models/props/cs_office/Snowman_nose.mdl"
-    "models/props/cs_office/trash_can_p8.mdl"
-    "models/props/cs_office/Water_bottle.mdl"
-    "models/props/cs_italy/bananna.mdl"
-    "models/props/cs_italy/bananna_bunch.mdl"
-    "models/props/cs_italy/banannagib1.mdl"
-    "models/props/cs_italy/banannagib2.mdl"
-    "models/props/cs_italy/orange.mdl"
-    "models/props/cs_italy/orangegib1.mdl"
-    "models/props/cs_italy/orangegib2.mdl"
-    "models/props/cs_italy/orangegib3.mdl"
-    "models/props/de_inferno/crate_fruit_break_gib1.mdl"
-    "models/props/de_inferno/crate_fruit_break_gib2.mdl"
-    "models/props/de_inferno/crate_fruit_break_gib3.mdl"
-    "models/props/de_inferno/goldfish.mdl"
-
-}
-
-hook_Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
-    foodModels = Jailbreak.FoodModels
-    for index = 1, #foodModels
-        foodModels[ index ] = FixModelPath( foodModels[ index ] )
-
-isFoodModel = nil
 do
+
+    foodModels = Jailbreak.FoodModels
+    unless foodModels
+        foodModels = {
+            -- GMOD
+            "models/food/burger.mdl"
+            "models/food/hotdog.mdl"
+
+            -- HL2
+            "models/props_c17/doll01.mdl"
+            "models/props_junk/garbage_glassbottle001a.mdl"
+            "models/props_junk/garbage_glassbottle002a.mdl"
+            "models/props_junk/garbage_glassbottle003a.mdl"
+            "models/props_junk/garbage_milkcarton002a.mdl"
+            "models/props_junk/garbage_milkcarton001a.mdl"
+            "models/props_junk/garbage_plasticbottle003a.mdl"
+            "models/props_junk/garbage_takeoutcarton001a.mdl"
+            "models/props_junk/GlassBottle01a.mdl"
+            "models/props_junk/glassjug01.mdl"
+            "models/props_junk/watermelon01.mdl"
+            "models/props_junk/Shoe001a.mdl"
+
+            -- CSS
+            "models/props/CS_militia/bottle01.mdl"
+            "models/props/CS_militia/bottle02.mdl"
+            "models/props/CS_militia/bottle03.mdl"
+            "models/props/cs_office/Snowman_nose.mdl"
+            "models/props/cs_office/trash_can_p8.mdl"
+            "models/props/cs_office/Water_bottle.mdl"
+            "models/props/cs_italy/bananna.mdl"
+            "models/props/cs_italy/bananna_bunch.mdl"
+            "models/props/cs_italy/banannagib1.mdl"
+            "models/props/cs_italy/banannagib2.mdl"
+            "models/props/cs_italy/orange.mdl"
+            "models/props/cs_italy/orangegib1.mdl"
+            "models/props/cs_italy/orangegib2.mdl"
+            "models/props/cs_italy/orangegib3.mdl"
+            "models/props/de_inferno/crate_fruit_break_gib1.mdl"
+            "models/props/de_inferno/crate_fruit_break_gib2.mdl"
+            "models/props/de_inferno/crate_fruit_break_gib3.mdl"
+            "models/props/de_inferno/goldfish.mdl"
+
+        }
+
+        Jailbreak.FoodModels = foodModels
+
+    hook_Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
+        for index = 1, #foodModels
+            foodModels[ index ] = FixModelPath( foodModels[ index ] )
 
     :IsValidModel = util
     cache = {}
 
-    isFoodModel = ( modelName ) ->
+    Jailbreak.IsFoodModel = ( modelName ) ->
         unless modelName
             return false
 
@@ -239,20 +242,26 @@ do
             cache[ modelName ] = false
             return false
 
-        for foodModel in *Jailbreak.FoodModels
-            if fixedModelPath == foodModel
+        for modelPath in *foodModels
+            if fixedModelPath == modelPath
                 cache[ modelName ] = true
                 return true
-
-Jailbreak.IsFoodModel = isFoodModel
 
 do
 
     foodEatingSound = Sound( "player/eating.wav" )
+    :IsFoodModel, :FoodEatingTime = Jailbreak
     RecipientFilter = RecipientFilter
-    :FoodEatingTime = Jailbreak
     CHAN_STATIC = CHAN_STATIC
     :Clamp, :floor = math
+
+    hook_Add "OnEntityCreated", "Jailbreak::FoodEntities", =>
+        unless @IsProp!
+            return
+
+        timer_Simple 0, ->
+            if @IsValid! and IsFoodModel( @GetModel! )
+                @SetNW2Bool( "is-food", true )
 
     cache = {}
 
@@ -261,7 +270,7 @@ do
             return
 
         modelPath = entity\GetModel!
-        unless isFoodModel( modelPath )
+        unless IsFoodModel( modelPath )
             return
 
         healing = cache[ modelPath ]
@@ -409,3 +418,14 @@ do
                     return
 
                 @Spectate( OBS_MODE_CHASE )
+
+do
+
+    :GetInternalVariable, :GetNW2Int, :SetNW2Int = ENTITY
+    :FindByClass = ents
+
+    hook_Add "Think", "Jailbreak::DoorState", ->
+        for entity in *FindByClass( "prop_door_rotating" )
+            state = GetInternalVariable( entity, "m_eDoorState" )
+            if GetNW2Int( entity, "m_eDoorState" ) ~= state
+                SetNW2Int( entity, "m_eDoorState", state )

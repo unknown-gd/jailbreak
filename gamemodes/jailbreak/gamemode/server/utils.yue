@@ -197,21 +197,9 @@ do
             removeAsObserveTarget( @ )
             ObserveTargets[] = @
 
-    -- Check if the entity is a prop
-    do
-
-        classNames = list.GetForEdit( "prop-classnames" )
-        classNames.prop_physics_multiplayer = true
-        classNames.prop_physics_override = true
-        classNames.prop_dynamic_override = true
-        classNames.prop_dynamic = true
-        classNames.prop_ragdoll = true
-        classNames.prop_physics = true
-        classNames.prop_detail = true
-        classNames.prop_static = true
-
-        ENTITY.IsProp = =>
-            return classNames[ GetClass( @ ) ]
+    -- Returns true if door entity is locked
+    ENTITY.IsDoorLocked = =>
+        return @GetInternalVariable( "m_bLocked" )
 
     -- Returns door entity state
     ENTITY.GetDoorState = =>
