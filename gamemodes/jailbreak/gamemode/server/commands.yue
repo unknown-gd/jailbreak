@@ -218,7 +218,7 @@ do
             rf = RecipientFilter!
 
             hasSender = false
-            for ply in *@GetNearPlayers( distance, true )
+            for ply in *@GetNearPlayers( VoiceChatMinDistance\GetInt!, true )
                 if ply == @
                     hasSender = true
 

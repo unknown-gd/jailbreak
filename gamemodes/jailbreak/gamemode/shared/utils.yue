@@ -44,6 +44,9 @@ do
             return true
 
 Jailbreak.GetWeaponName = =>
+    unless @ and @IsValid! and @IsWeapon!
+        return "#jb.unknown"
+
     printName = @GetPrintName!
     if printName == "Scripted Weapon"
         printName = "#" .. @GetClass!
