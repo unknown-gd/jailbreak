@@ -887,18 +887,21 @@ do
     PANEL.Think = =>
         entity = Jailbreak.ViewEntity
         unless entity\IsValid! and entity\IsPlayer!
-            return
-
-        alive = entity\Alive!
-        if alive
-            teamID = entity\Team!
-            if @TeamID ~= teamID
-                @TeamID = teamID
-                @HeaderColor = GetTeamColor( teamID )
+            if @HeaderColor ~= dark_white
+                @HeaderColor = dark_white
                 @InvalidateLayout!
 
-        elseif @HeaderColor ~= dark_white
-            @HeaderColor = dark_white
+            weaponName = GetPhrase( "jb.nothing" )
+            if @WeaponName ~= weaponName
+                @WeaponName = weaponName
+                @InvalidateLayout!
+
+            return
+
+        teamID = entity\Alive! and entity\Team! or TEAM_SPECTATOR
+        if @TeamID ~= teamID
+            @TeamID = teamID
+            @HeaderColor = GetTeamColor( teamID )
             @InvalidateLayout!
 
         weapon = entity\GetActiveWeapon!
