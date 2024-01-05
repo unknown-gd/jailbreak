@@ -3,7 +3,7 @@ GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
 :TeamIsJoinable, :ChangeTeam, :Colors, :VMin, :Translate, :GetTeamColor = Jailbreak
-:ceil, :max, :floor, :log, :Clamp = math
+:ceil, :min, :max, :floor, :log, :Clamp = math
 :IsGameUIVisible, :HideGameUI = gui
 :Create, :Register = vgui
 :GetPhrase = language
@@ -1181,7 +1181,13 @@ do
 
     Jailbreak.Font( "Jailbreak::Tooltip", "Roboto Mono", 1.8 )
 
+    tooltipFadeOut = CreateClientConVar( "tooltip_fadeout", "2", true, false, "Tooltip fadeout speed multiplier.", 0, 10 )
+    tooltipClear = CreateClientConVar( "tooltip_clear", "1", true, false, "If enabled, game will clear alpha of tooltips after fading out.", 0, 1 )
+    tooltipFadeIn = CreateClientConVar( "tooltip_fadein", "3", true, false, "Tooltip fadein speed multiplier.", 0, 10 )
     tooltipDelay = GetConVar( "tooltip_delay" )
+
+    FrameTime = FrameTime
+    CurTime = CurTime
 
     do
 
@@ -1193,6 +1199,7 @@ do
         PANEL.Init = =>
             @SetFontInternal( "Jailbreak::Tooltip" )
             @SetContentAlignment( 5 )
+            @SetAlpha( 0 )
 
             @SetPaintBackgroundEnabled( true )
             @SetKeyboardInputEnabled( false )
@@ -1204,10 +1211,36 @@ do
 
         PANEL.Think = =>
             unless CursorVisible!
-                @Hide!
+                @SetVisible( false )
+                return
 
             x, y = GetCursorPos!
             @SetPos( x, y - @GetTall! )
+
+            if @FadeIn
+                alpha = @GetAlpha!
+                if alpha > 0
+                    @SetAlpha( max( 0, alpha - FrameTime! * 255 * tooltipFadeIn\GetFloat! ) )
+                elseif @IsVisible!
+                    @SetVisible( false )
+
+                return
+
+            lastTextChange = @LastTextChange
+            unless lastTextChange
+                @SetVisible( false )
+                return
+
+            timePassed = CurTime! - lastTextChange
+            if timePassed <= tooltipDelay\GetFloat!
+                if tooltipClear\GetBool!
+                    @SetAlpha( 0 )
+
+                return
+
+            alpha = @GetAlpha!
+            if alpha < 255
+                @SetAlpha( min( alpha + FrameTime! * 255 * tooltipFadeOut\GetFloat!, 255 ) )
 
         PANEL.PerformLayout = =>
             @SetBGColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
@@ -1217,12 +1250,18 @@ do
 
             @SetSize( margin + textWidth + margin, margin + textHeight + margin )
 
+        PANEL.SetText = ( str ) =>
+            PANEL_META.SetText( @, str )
+            @LastTextChange = CurTime!
+            @SetVisible( true )
+            @FadeIn = false
+
         Register( "Jailbreak::Tooltip", PANEL, "Label" )
 
     removeTooltip = =>
         tooltip = Jailbreak.Tooltip
         if IsValid( tooltip )
-            tooltip\Hide!
+            tooltip.FadeIn = true
 
         return true
 
@@ -1256,4 +1295,3 @@ do
             Jailbreak.Tooltip = tooltip
 
         tooltip\SetText( text )
-        tooltip\Show!

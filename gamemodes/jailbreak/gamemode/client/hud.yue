@@ -116,7 +116,7 @@ do
 
 do
 
-    :Translate, :VoiceChatMinDistance, :GetWeaponName = Jailbreak
+    :VoiceChatMinDistance, :GetWeaponName = Jailbreak
     :ScreenToVector = gui
     :CursorVisible = vgui
     :GetCursorPos = input
