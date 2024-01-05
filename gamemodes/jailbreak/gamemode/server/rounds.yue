@@ -70,7 +70,7 @@ do
                     PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
 
                 if isWarden and @IsValid!
-                    hook_Run( "WardenChanged", ply, false )
+                    hook_Run( "WardenChanged", @, false )
 
     Jailbreak.PlayerChangedTeam = playerChangedTeam
 
