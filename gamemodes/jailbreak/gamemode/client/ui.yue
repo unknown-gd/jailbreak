@@ -699,13 +699,17 @@ do
 
         steamid64 = ply\SteamID64!
 
-        menu\AddOption "#jb.user.profile", ->
+        option = menu\AddOption "#jb.user.profile", ->
             gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
 
-        menu\AddOption "#jb.user.steamid64", ->
+        option\SetIcon( "icon16/vcard.png" )
+
+        option = menu\AddOption "#jb.user.steamid64", ->
             notification.AddLegacy( "#jb.notify.steamid64", NOTIFY_GENERIC, 3 )
             PlaySound( "buttons/button18.wav" )
             SetClipboardText( steamid64 )
+
+        option\SetIcon( "icon16/page_copy.png" )
 
         do
 
@@ -714,7 +718,30 @@ do
                 if ply\IsValid!
                     ply\SetMuted( not isMuted )
 
-            option\SetChecked( isMuted )
+            option\SetIcon( isMuted and "icon16/sound_mute.png" or "icon16/sound.png" )
+
+        if LocalPlayer!\IsAdmin!
+
+            subMenu, option = menu\AddSubMenu( "#jb.team-select" )
+            option\SetIcon( "icon16/user_go.png" )
+
+            option = subMenu\AddOption "#jb.team.1", ->
+                if ply\IsValid!
+                    RunConsoleCommand( "jb_move_player", ply\EntIndex!, TEAM_GUARD )
+
+            option\SetIcon( "icon16/user.png" )
+
+            option = subMenu\AddOption "#jb.team.2", ->
+                if ply\IsValid!
+                    RunConsoleCommand( "jb_move_player", ply\EntIndex!, TEAM_PRISONER )
+
+            option\SetIcon( "icon16/user_orange.png" )
+
+            option = subMenu\AddOption "#jb.team.1002", ->
+                if ply\IsValid!
+                    RunConsoleCommand( "jb_move_player", ply\EntIndex!, TEAM_SPECTATOR )
+
+            option\SetIcon( "icon16/user_gray.png" )
 
         menu\Open!
 
