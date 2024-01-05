@@ -82,6 +82,9 @@ do
     Jailbreak.GuardsDiff = CreateConVar( "jb_guards_diff", "4", FCVAR_SHARED, "Number of prisoners per guard.", 0, 1000 )
     Jailbreak.GuardsFriendlyFire = CreateConVar( "jb_guards_friendly_fire", "0", FCVAR_SHARED, "If enabled, guards can hurt themselves.", 0, 1 )
 
+    Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "4", FCVAR_SHARED, "Time to looting a ragdoll in seconds.", 0, 300 )
+    Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "2.5", FCVAR_SHARED, "Time to eat food in seconds.", 0, 300 )
+
     GM.DeathNotice = CreateConVar( "jb_death_notice", "0", FCVAR_SHARED, "Draw death notice.", 0, 1 )
     GM.TargetID = CreateConVar( "jb_targetid", "1", FCVAR_SHARED, "Draw target id.", 0, 1 )
 

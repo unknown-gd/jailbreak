@@ -7,7 +7,7 @@ GM = GM
 
 :DrawRect, :SetMaterial, :SetDrawColor, :SetFont, :GetTextSize, :DrawText, :SetTextColor, :SetTextPos, :SetAlphaMultiplier, :DrawTexturedRectRotated = surface
 :Clamp, :min, :max, :sin, :floor, :ceil, :Round, :Rand = math
-:sub, :format, :match = string
+:sub, :format, :match, :upper = string
 :Create, :Register = vgui
 :GetPhrase = language
 FrameTime = FrameTime
@@ -130,6 +130,18 @@ do
     Jailbreak.Font( "Jailbreak::TargetID", "Roboto Mono Bold", 2.5 )
     Jailbreak.Font( "Jailbreak::TargetID - Team", "Roboto Mono SemiBold Italic", 2.25 )
     Jailbreak.Font( "Jailbreak::TargetID - Health", "Roboto Mono", 1.8 )
+    Jailbreak.Font( "Jailbreak::TargetID - Use", "Roboto Mono Bold", 2 )
+
+    targetIDClasses = Jailbreak.TargetIDClasses
+    unless targetIDClasses
+        targetIDClasses = {
+            prop_door_rotating: true
+            sent_soccerball: true
+            prop_ragdoll: true
+            func_button: true
+        }
+
+        Jailbreak.TargetIDClasses = targetIDClasses
 
     GM.HUDDrawTargetID = =>
         ply = Jailbreak.Player
@@ -169,31 +181,41 @@ do
         unless entity\IsValid!
             return
 
-        isPlayerRagdoll = entity\IsPlayerRagdoll!
-        isPlayer = entity\IsPlayer!
+        entityType = 0
         r, g, b = 255, 255, 255
 
         text = nil
-        if isPlayer
+        if entity\IsPlayer!
             unless entity\Alive!
                 return
 
-            text = entity\Nick!
             r, g, b = entity\GetModelColorUnpacked!
-        elseif isPlayerRagdoll
+            text = entity\Nick!
+            entityType = 1
+        elseif entity\IsPlayerRagdoll!
             text = entity\GetRagdollOwnerNickname!
             r, g, b = entity\GetModelColorUnpacked!
-
+            entityType = 2
         elseif entity\IsWeapon!
             text = GetWeaponName( entity )
-
+            entityType = 3
+        elseif entity\IsFood!
+            text = "#jb.food"
+            entityType = 4
+        elseif entity\IsButton!
+            text = "#jb.func_button"
+            entityType = 5
         else
-
             className = entity\GetClass!
-            if className == "class C_BaseEntity"
-                className = "func_button"
+            entityType = 6
 
-            text = Translate( "#jb." .. className )
+            unless targetIDClasses[ className ]
+                return
+
+            placeholder = "jb." .. className
+            text = GetPhrase( placeholder )
+            if text == placeholder
+                return
 
         SetFont( "Jailbreak::TargetID" )
         textWidth, textHeight = GetTextSize( text )
@@ -215,8 +237,8 @@ do
 
         y += textHeight
 
-        if isPlayer or isPlayerRagdoll
-            if isPlayer
+        if entityType == 1 or entityType == 2
+            if entityType == 1
                 teamID = entity\Team!
 
                 if entity\IsWarden!
@@ -254,7 +276,7 @@ do
 
         text = nil
 
-        if isPlayer
+        if entityType == 1
             if entity\HasGodMode!
                 text = "#jb.player.health.invincible"
                 r, g, b = 254, 242, 0
@@ -303,6 +325,81 @@ do
             DrawText( text )
 
             y += textHeight
+
+        keyName = input.LookupBinding( "use" )
+        if ply\IsPlayer! and keyName ~= nil
+            useEntity = ply\GetUseEntity!
+            if useEntity\IsValid!
+                text = nil
+
+                if entityType == 1
+                    weapon = ply\GetActiveWeapon!
+                    if IsValid( weapon ) and weapon\GetClass! == "jb_hands" and weapon\GetHoldType! == "fist"
+                        text = "#jb.player.push"
+
+                elseif entityType == 2
+                    useTime = ply\GetUseTime!
+                    if useTime ~= 0
+                        text = format( GetPhrase( "jb.player.search.time" ), Clamp( useTime / Jailbreak.RagdollLootingTime\GetInt!, 0, 1 ) * 100 )
+                    else
+                        text = GetPhrase( "jb.player.search" )
+
+                elseif entityType == 5
+                    text = "#jb.player.press_button"
+                elseif entityType == 3
+                    if ply\HasWeapon( useEntity\GetClass! )
+                        text = "#jb.player.pickup_ammo"
+                    else
+                        text = "#jb.player.pickup_weapon"
+
+                elseif entityType == 4
+                    useTime = ply\GetUseTime!
+                    if useTime ~= 0
+                        text = format( GetPhrase( "jb.player.eat_food.time" ), Clamp( useTime / Jailbreak.FoodEatingTime\GetInt!, 0, 1 ) * 100 )
+                    else
+                        text = GetPhrase( "jb.player.eat_food" )
+
+                else
+
+                    className = useEntity\GetClass!
+                    if className == "prop_door_rotating"
+                        if useEntity\GetDoorState! == 0
+                            text = "#jb.player.door_open"
+                        else
+                            text = "#jb.player.door_close"
+
+                if text ~= nil
+                    keyName = upper( keyName )
+
+                    SetFont( "Jailbreak::TargetID - Use" )
+                    textWidth, textHeight = GetTextSize( text )
+                    margin = VMin( 0.5 )
+
+                    width, height = textWidth * 1.2, textHeight * 1.25
+                    x = mouseX - ( width + margin + height ) / 2
+                    y += ( height - textHeight ) / 2 + margin
+
+                    if ply\KeyDown( 32 )
+                        SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
+                        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+                    else
+                        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+                        SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+
+                    DrawRect( x, y - ( height - textHeight ) / 2, height, height )
+
+                    SetTextPos( x + ( height - GetTextSize( keyName ) ) / 2, y )
+                    DrawText( keyName )
+
+                    x += height + margin
+                    SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+                    DrawRect( x, y - ( height - textHeight ) / 2, width, height )
+                    x += ( width - textWidth ) / 2
+
+                    SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+
+                    SetTextPos( x, y )
+                    DrawText( text )
 
 do
 
