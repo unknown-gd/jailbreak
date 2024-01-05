@@ -85,6 +85,8 @@ do
         SetTextPos( x, y )
         DrawText( text )
 
+        y += textHeight
+
         if state == ROUND_ENDED
             teamID = GetWinningTeam!
             r, g, b = dark_white.r, dark_white.g, dark_white.b
@@ -97,8 +99,8 @@ do
 
             text = "[" .. text .. "]"
 
-            textWidth2, textHeight2 = GetTextSize( text )
-            x, y = screenCenterX - textWidth2 / 2, y + ( textHeight + textHeight2 ) / 2
+            textWidth, textHeight = GetTextSize( text )
+            x, y = screenCenterX - textWidth / 2, y
 
             SetTextPos( x - 1, y - 1 )
             SetTextColor( black.r, black.g, black.b, 50 )
@@ -1167,7 +1169,7 @@ do
 
     PANEL.PerformLayout = =>
         screenWidth = Jailbreak.ScreenWidth
-        width = ceil( screenWidth / 6 )
+        width = ceil( screenWidth / 4 )
 
         @SetSize( width, Jailbreak.ScreenHeight )
         @SetPos( floor( ( screenWidth - width ) / 2 ), 0 )
@@ -1183,9 +1185,6 @@ do
     Register( "Jailbreak::PickupNotices", PANEL, "Panel" )
 
 do
-
-    if IsValid( Jailbreak.PickupNotices )
-        Jailbreak.PickupNotices\Remove!
 
     addPickupNotify = ( ... ) ->
         pickupNotices = Jailbreak.PickupNotices
