@@ -528,7 +528,7 @@ GM.PlayerShouldTaunt = ( ply ) =>
 
 -- https://wiki.facepunch.com/gmod/GM:AllowPlayerPickup
 GM.AllowPlayerPickup = ( ply, entity ) =>
-    return ply\IsInGame!
+    return ply\IsInGame! and not entity\IsFood!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupItem
 GM.PlayerCanPickupItem = ( ply, entity ) =>
@@ -578,16 +578,16 @@ do
 
         className = entity\GetClass!
 
-        if not lastUseTime or ( curTime - lastUseTime ) > 0.025
+        isReleased = ( curTime - lastUseTime ) > 0.025
+        if not lastUseTime or isReleased
             ply\SetNW2Int( "start-use-time", curTime )
             hook_Run( "PlayerHoldUse", ply, entity, 0 )
         else
-
             startUseTime = ply\GetNW2Int( "start-use-time" )
             if startUseTime ~= 0 and hook_Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
                 ply\SetNW2Int( "start-use-time", 0 )
 
-        if ( curTime - lastUseTime ) <= 0.025
+        unless isReleased
             return
 
         if entity\IsWeapon!

@@ -55,6 +55,8 @@ do
         if isWarden
             @SetWarden( false, true )
 
+        teamID = @Team!
+
         Create "Jailbreak::TeamPlayerCountChanged", 0.25, 1, ->
             unless IsRoundRunning!
                 return
@@ -64,7 +66,7 @@ do
                 setRoundState( ROUND_ENDED )
             else
 
-                if teams[ 2 ] == 1
+                if teamID == TEAM_PRISONER and teams[ 2 ] == 1
                     PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
 
                 if isWarden and @IsValid!
