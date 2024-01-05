@@ -363,7 +363,9 @@ do
 
                     className = useEntity\GetClass!
                     if className == "prop_door_rotating"
-                        if useEntity\GetDoorState! == 0
+                        if useEntity\IsDoorLocked!
+                            text = "#jb.player.door_locked"
+                        elseif useEntity\GetDoorState! == 0
                             text = "#jb.player.door_open"
                         else
                             text = "#jb.player.door_close"
