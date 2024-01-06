@@ -78,33 +78,64 @@ do
 
         index = args[ 1 ]
         if index
-            index = tonumber( index ) or 0
-
-        if index
-            SetRoundState( Clamp( index, 0, 3 ) )
+            SetRoundState( Clamp( tonumber( index ) or 0, 0, 3 ) )
         else
             SetRoundState( 0 )
             SetRoundTime( 0 )
 
 Add "jb_respawn", ( _, args ) =>
-    unless IsValid( @ ) and @IsAdmin!
+    if IsValid( @ ) and not @IsAdmin!
         return
 
-    @Spawn!
+    if #args == 0
+        @Spawn!
+        return
+
+    index = tonumber( args[ 1 ] )
+    unless index
+        return
+
+    ply = Entity( index )
+    if ply\IsValid!
+        ply\Spawn!
 
 Add "jb_move_player", ( _, args ) =>
     if IsValid( @ ) and not @IsAdmin!
         return
 
-    ply = Entity( args[ 1 ] )
+    index = tonumber( args[ 1 ] )
+    unless index
+        return
+
+    ply = Entity( index )
     if ply and ply\IsValid!
         if ply\Alive!
             ply\Kill!
 
-        ply\SetTeam( args[ 2 ] )
+        teamID = args[ 2 ]
+        unless isnumber( teamID )
+            return
+
+        ply\SetTeam( teamID )
 
         if args[ 3 ]
             ply\Spawn!
+
+Add "jb_kick_player", ( _, args ) =>
+    if IsValid( @ ) and not @IsAdmin!
+        return
+
+    index = tonumber( args[ 1 ] )
+    unless index
+        return
+
+    ply = Entity( index )
+    if ply\IsValid!
+        reason = args[ 2 ]
+        if reason ~= nil
+            ply\Kick( reason )
+        else
+            ply\Kick!
 
 do
 

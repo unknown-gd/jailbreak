@@ -691,25 +691,23 @@ do
         unless IsValid( ply ) and ply\IsPlayer!
             return
 
-        if ply\IsBot!
-            return
-
         menu = DermaMenu!
         @Menu = menu
 
-        steamid64 = ply\SteamID64!
+        unless ply\IsBot!
+            steamid64 = ply\SteamID64!
 
-        option = menu\AddOption "#jb.user.profile", ->
-            gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
+            option = menu\AddOption "#jb.user.profile", ->
+                gui.OpenURL( "https://steamcommunity.com/profiles/" .. steamid64 )
 
-        option\SetIcon( "icon16/vcard.png" )
+            option\SetIcon( "icon16/vcard.png" )
 
-        option = menu\AddOption "#jb.user.steamid64", ->
-            notification.AddLegacy( "#jb.notify.steamid64", NOTIFY_GENERIC, 3 )
-            PlaySound( "buttons/button18.wav" )
-            SetClipboardText( steamid64 )
+            option = menu\AddOption "#jb.user.steamid64", ->
+                notification.AddLegacy( "#jb.notify.steamid64", NOTIFY_GENERIC, 3 )
+                PlaySound( "buttons/button18.wav" )
+                SetClipboardText( steamid64 )
 
-        option\SetIcon( "icon16/page_copy.png" )
+            option\SetIcon( "icon16/page_copy.png" )
 
         do
 
@@ -742,6 +740,18 @@ do
                     RunConsoleCommand( "jb_move_player", ply\EntIndex!, TEAM_SPECTATOR )
 
             option\SetIcon( "icon16/user_gray.png" )
+
+            option = menu\AddOption "#jb.user.respawn", ->
+                if ply\IsValid!
+                    RunConsoleCommand( "jb_respawn", ply\EntIndex! )
+
+            option\SetIcon( "icon16/arrow_refresh.png" )
+
+            option = menu\AddOption "#jb.user.kick", ->
+                if ply\IsValid!
+                    RunConsoleCommand( "jb_kick_player", ply\EntIndex! )
+
+            option\SetIcon( "icon16/user_delete.png" )
 
         menu\Open!
 
