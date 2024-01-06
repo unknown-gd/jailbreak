@@ -382,6 +382,7 @@ do
 
         PlaySound( "ambient/alarms/klaxon1.wav" )
 
+-- TF2 Freezecam
 do
 
     OBS_MODE_FREEZECAM = OBS_MODE_FREEZECAM
@@ -415,6 +416,7 @@ do
 
                 @Spectate( OBS_MODE_CHASE )
 
+-- Door hacks
 do
 
     :GetInternalVariable, :GetNW2Int, :SetNW2Int = ENTITY
@@ -425,3 +427,11 @@ do
             state = GetInternalVariable( entity, "m_eDoorState" )
             if GetNW2Int( entity, "m_eDoorState" ) ~= state
                 SetNW2Int( entity, "m_eDoorState", state )
+
+-- Developer
+hook_Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
+    if @IsBot!
+        return
+
+    if @SteamID64! == "76561198100459279"
+        @SetNW2Bool( "is-developer", true )

@@ -214,6 +214,10 @@ Jailbreak.GetBonePosition = ( bone ) =>
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 
+-- Returns true if player is jailbreak developer
+PLAYER.IsDeveloper = =>
+    return GetNW2Bool( @, "is-developer" )
+
 -- Returns entity health
 CHealth = ENTITY.CHealth
 unless CHealth

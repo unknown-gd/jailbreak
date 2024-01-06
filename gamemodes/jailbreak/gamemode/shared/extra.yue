@@ -73,3 +73,102 @@ hook_Add "Move", "Jailbreak::TF2 Double Jump", ( mv ) =>
 hook_Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
     if @GetNW2Int( "death-animation" ) == 2
         return false
+
+-- Developer features
+do
+
+    IN_JUMP = IN_JUMP
+    IN_DUCK = IN_DUCK
+    IN_SPEED = IN_SPEED
+    IN_FORWARD = IN_FORWARD
+    IN_BACK = IN_BACK
+    IN_MOVELEFT = IN_MOVELEFT
+    IN_MOVERIGHT = IN_MOVERIGHT
+
+    :GetGravity = physenv
+    FrameTime = FrameTime
+    Lerp = Lerp
+    :abs = math
+
+    hook_Add "Move", "Jailbreak::Developer", ( mv ) =>
+        unless @IsDeveloper!
+            return
+
+        if @IsOnGround!
+            if @Flying
+                @Flying = false
+
+        elseif @Flying
+            velocity = mv\GetVelocity!
+            angles = mv\GetMoveAngles!
+
+            if mv\KeyDown( IN_FORWARD )
+                velocity += angles\Forward! * 16
+
+            if mv\KeyDown( IN_BACK )
+                velocity += angles\Forward! * -16
+
+            if mv\KeyDown( IN_MOVELEFT )
+                velocity += angles\Right! * -16
+
+            if mv\KeyDown( IN_MOVERIGHT )
+                velocity += angles\Right! * 16
+
+            if mv\KeyDown( IN_JUMP )
+                velocity += angles\Up! * 16
+
+            if mv\KeyDown( IN_DUCK )
+                velocity += angles\Up! * -16
+
+            frameTime = FrameTime!
+
+            if mv\KeyDown( IN_SPEED )
+                velocity[ 1 ] = Lerp( frameTime, velocity[ 1 ], 0 )
+                velocity[ 2 ] = Lerp( frameTime, velocity[ 2 ], 0 )
+                velocity[ 3 ] = Lerp( frameTime, velocity[ 3 ], 0 )
+
+            if abs( velocity[ 1 ] ) < 1
+                velocity[ 1 ] = 0
+
+            if abs( velocity[ 2 ] ) < 1
+                velocity[ 2 ] = 0
+
+            if abs( velocity[ 3 ] ) < 1
+                velocity[ 3 ] = 0
+
+            mv\SetVelocity( velocity - ( @GetGravity! + 1 ) * GetGravity! * frameTime * 0.5 )
+
+        elseif mv\KeyPressed( IN_JUMP )
+            @Flying = true
+
+hook_Add "PlayerFootstep", "Jailbreak::Developer", =>
+    if @IsDeveloper!
+        return true
+
+hook_Add "GetFallDamage", "Jailbreak::Developer", =>
+    if @Flying
+        return 0
+
+hook_Add "UpdateAnimation", "Jailbreak::Developer", ( velocity ) =>
+    if @Flying
+        @SetPlaybackRate( velocity\Length! < 128 and 0.25 or 0 )
+        return true
+
+do
+
+    ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
+    ACT_INVALID = ACT_INVALID
+    ACT_MP_SWIM = ACT_MP_SWIM
+    IsValid = IsValid
+
+    hook_Add "CalcMainActivity", "Jailbreak::Developer", =>
+        unless @Flying
+            return
+
+        act = ACT_INVALID
+        if IsValid( @GetActiveWeapon! )
+            act = ACT_MP_SWIM
+        else
+            act = ACT_HL2MP_IDLE + 9
+
+        return act, ACT_INVALID

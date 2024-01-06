@@ -237,6 +237,26 @@ do
 
         y += textHeight
 
+        if entityType == 1 and entity\IsDeveloper!
+            text = "#jb.player.developer"
+
+            SetFont( "Jailbreak::TargetID - Team" )
+            textWidth, textHeight = GetTextSize( text )
+            x = mouseX - textWidth / 2
+
+            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
+
+            for sx = -2, 2
+                for sy = -2, 2
+                    SetTextPos( x + sx, y + sy )
+                    DrawText( text )
+
+            SetTextColor( butterfly_bush.r, butterfly_bush.g, butterfly_bush.b )
+            SetTextPos( x, y )
+            DrawText( text )
+
+            y += textHeight
+
         if entityType == 1 or entityType == 2
             if entityType == 1
                 teamID = entity\Team!
