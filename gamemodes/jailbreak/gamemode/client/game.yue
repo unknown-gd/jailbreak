@@ -5,7 +5,6 @@ hook_Run = hook.Run
 GM = GM
 
 GM.InitPostEntity = =>
-    RunConsoleCommand( "dsp_room", "1" )
     Jailbreak.PlayingTaunt = false
 
     do
@@ -16,6 +15,7 @@ GM.InitPostEntity = =>
     timer.Simple 0.5, ->
         RunConsoleCommand( "r_flushlod" )
         RunConsoleCommand( "jb_showteam" )
+        RunConsoleCommand( "dsp_room", "1" )
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
@@ -51,9 +51,9 @@ do
     :ReadString, :ReadUInt, :ReadTable, :ReadEntity, :ReadBool = net
     :ChatText, :Translate = Jailbreak
     :AddLegacy = notification
-    :PlaySound = surface
     isstring = isstring
     unpack = unpack
+    :random = math
 
     Networking = {
         [ 0 ]: ->
@@ -73,7 +73,11 @@ do
 
             ChatText( unpack( data ) )
         [ 4 ]: ->
-            PlaySound( ReadString! )
+            ply = Jailbreak.Player
+            unless ply\IsValid!
+                return
+
+            ply\EmitSound( ReadString!, 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
         [ 5 ]: ->
             entity = ReadEntity!
             if entity and entity\IsValid and entity\IsPlayer!
