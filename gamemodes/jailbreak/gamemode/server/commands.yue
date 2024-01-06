@@ -112,11 +112,9 @@ Add "jb_move_player", ( _, args ) =>
         if ply\Alive!
             ply\Kill!
 
-        teamID = args[ 2 ]
-        unless isnumber( teamID )
-            return
-
-        ply\SetTeam( teamID )
+        teamID = tonumber( args[ 2 ] )
+        if teamID
+            ply\SetTeam( teamID )
 
         if args[ 3 ]
             ply\Spawn!

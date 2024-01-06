@@ -5,6 +5,7 @@ hook_Run = hook.Run
 GM = GM
 
 GM.InitPostEntity = =>
+    RunConsoleCommand( "dsp_room", "1" )
     Jailbreak.PlayingTaunt = false
 
     do
