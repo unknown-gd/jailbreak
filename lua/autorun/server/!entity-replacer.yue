@@ -69,11 +69,11 @@ global class EntityReplacer
 
         newEntity\SetCollisionGroup( entity\GetCollisionGroup! )
 
-        for boneID = 0, entity\GetBoneCount!
-            newEntity\ManipulateBonePosition( boneID, entity\GetManipulateBonePosition( boneID ) )
-            newEntity\ManipulateBoneAngles( boneID, entity\GetManipulateBoneAngles( boneID ) )
-            newEntity\ManipulateBoneJiggle( boneID, entity\GetManipulateBoneJiggle( boneID ) )
-            newEntity\ManipulateBoneScale( boneID, entity\GetManipulateBoneScale( boneID ) )
+        for bone = 0, entity\GetBoneCount! - 1
+            newEntity\ManipulateBonePosition( bone, entity\GetManipulateBonePosition( bone ) )
+            newEntity\ManipulateBoneAngles( bone, entity\GetManipulateBoneAngles( bone ) )
+            newEntity\ManipulateBoneJiggle( bone, entity\GetManipulateBoneJiggle( bone ) )
+            newEntity\ManipulateBoneScale( bone, entity\GetManipulateBoneScale( bone ) )
 
         if newEntity\IsRagdoll!
             for physNum = 0, newEntity\GetPhysicsObjectCount! - 1 do
@@ -81,9 +81,9 @@ global class EntityReplacer
                 unless IsValid( phys )
                     continue
 
-                boneID = newEntity\TranslatePhysBoneToBone( physNum )
-                if boneID >= 0
-                    origin, angles = entity\GetBonePosition( boneID )
+                bone = newEntity\TranslatePhysBoneToBone( physNum )
+                if bone and bone >= 0
+                    origin, angles = entity\GetBonePosition( bone )
                     phys\SetAngles( angles )
                     phys\SetPos( origin )
 

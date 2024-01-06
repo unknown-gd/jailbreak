@@ -23,6 +23,7 @@ GM.ShouldDrawLocalPlayer = ( ply ) =>
 
 do
 
+    :GetBonePosition = Jailbreak
     LerpVector = LerpVector
     LerpAngle = LerpAngle
     :CalcView = drive
@@ -96,9 +97,9 @@ do
                 tauntDistance = 128
                 entity.TauntDistance = tauntDistance
 
-            headBoneID = ply\LookupBone( "ValveBiped.Bip01_Head1" )
-            if headBoneID and headBoneID >= 0
-                origin = ply\GetBonePosition( headBoneID )
+            bone = ply\LookupBone( "ValveBiped.Bip01_Head1" )
+            if bone and bone >= 0
+                origin = GetBonePosition( ply, bone )
 
             targetOrigin = origin - tauntViewAngles\Forward! * tauntDistance
 

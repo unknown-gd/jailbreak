@@ -203,6 +203,14 @@ Jailbreak.GetWardenCoins = ->
 Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
+-- Returns real bone position
+Jailbreak.GetBonePosition = ( bone ) =>
+    matrix = @GetBoneMatrix( bone )
+    unless matrix
+        return
+
+    return matrix\GetTranslation!, matrix\GetAngles!
+
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 

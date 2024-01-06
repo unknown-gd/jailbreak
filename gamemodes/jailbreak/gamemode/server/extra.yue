@@ -312,10 +312,6 @@ do
     :DeathAnimations = Jailbreak
     :band = bit
 
-    hook_Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
-        if @GetNW2Int( "death-animation" ) == 2
-            return false
-
     hook_Add "PlayerTakeDamage", "Jailbreak::Death Animations", ( damageInfo, teamID ) =>
         if not DeathAnimations\GetBool! or @GetNW2Int( "death-animation" ) == 1
             return

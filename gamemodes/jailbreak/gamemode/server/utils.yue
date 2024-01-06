@@ -244,6 +244,14 @@ do
         CTakeDamageInfo.IsCrushDamage = =>
             return band( GetDamageType( @ ), DMG_CRUSH ) == DMG_CRUSH
 
+    -- Returns true if the damage type is shock damage
+    do
+
+        DMG_SHOCK = DMG_SHOCK
+
+        CTakeDamageInfo.IsShockDamage = =>
+            return band( GetDamageType( @ ), DMG_SHOCK ) == DMG_SHOCK
+
 do
 
     :GetAmmoMax = game

@@ -91,9 +91,6 @@ do
 
             return true
 
-        unless entity\IsSolid!
-            return
-
         damageType = damageInfo\GetDamageType!
         if band( damageType, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
             return true
@@ -200,7 +197,6 @@ do
                         dir[ 3 ] = 1
 
                         damageInfo\SetDamage( attacker\GetMaxHealth! / Rand( 2, 3 ) )
-                        damageInfo\SetDamagePosition( damageOrigin )
                         damageInfo\SetDamageForce( dir * 100 )
                         damageInfo\SetDamageType( DMG_SHOCK )
                         damageInfo\SetAttacker( entity )
@@ -221,7 +217,7 @@ do
             return
 
         origin = damageInfo\GetDamagePosition!
-        for physNum = 0, entity\GetPhysicsObjectCount! - 1 do
+        for physNum = 0, entity\GetPhysicsObjectCount! - 1
             phys = entity\GetPhysicsObjectNum( physNum )
             if IsValid( phys )
                 phys\ApplyForceOffset( velocity, origin )

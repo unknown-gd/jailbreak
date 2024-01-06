@@ -275,11 +275,11 @@ do
             ragdoll\SetNW2String( "owner-steamid64", @SteamID64! )
         ragdoll\SetNW2String( "owner-nickname", @Nick! )
 
-        for boneID = 0, @GetBoneCount!
-            ragdoll\ManipulateBonePosition( boneID, @GetManipulateBonePosition( boneID ) )
-            ragdoll\ManipulateBoneAngles( boneID, @GetManipulateBoneAngles( boneID ) )
-            ragdoll\ManipulateBoneJiggle( boneID, @GetManipulateBoneJiggle( boneID ) )
-            ragdoll\ManipulateBoneScale( boneID, @GetManipulateBoneScale( boneID ) )
+        for bone = 0, @GetBoneCount! - 1
+            ragdoll\ManipulateBonePosition( bone, @GetManipulateBonePosition( bone ) )
+            ragdoll\ManipulateBoneAngles( bone, @GetManipulateBoneAngles( bone ) )
+            ragdoll\ManipulateBoneJiggle( bone, @GetManipulateBoneJiggle( bone ) )
+            ragdoll\ManipulateBoneScale( bone, @GetManipulateBoneScale( bone ) )
 
         if ragdoll\IsRagdoll!
             velocity = @LastVelocity

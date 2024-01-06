@@ -68,3 +68,8 @@ hook_Add "Move", "Jailbreak::TF2 Double Jump", ( mv ) =>
         velocity = mv\GetVelocity!
         velocity[ 3 ] = @GetJumpPower! * 2
         mv\SetVelocity( velocity )
+
+-- Player can't take damage in death animation
+hook_Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
+    if @GetNW2Int( "death-animation" ) == 2
+        return false

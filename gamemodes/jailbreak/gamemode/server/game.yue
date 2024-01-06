@@ -74,11 +74,11 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
         ply\Ignite( 5, 16 )
         ragdoll\Extinguish!
 
-    for boneID = 0, ply\GetBoneCount!
-        ply\ManipulateBonePosition( boneID, ragdoll\GetManipulateBonePosition( boneID ) )
-        ply\ManipulateBoneAngles( boneID, ragdoll\GetManipulateBoneAngles( boneID ) )
-        ply\ManipulateBoneJiggle( boneID, ragdoll\GetManipulateBoneJiggle( boneID ) )
-        ply\ManipulateBoneScale( boneID, ragdoll\GetManipulateBoneScale( boneID ) )
+    for bone = 0, ply\GetBoneCount! - 1
+        ply\ManipulateBonePosition( bone, ragdoll\GetManipulateBonePosition( bone ) )
+        ply\ManipulateBoneAngles( bone, ragdoll\GetManipulateBoneAngles( bone ) )
+        ply\ManipulateBoneJiggle( bone, ragdoll\GetManipulateBoneJiggle( bone ) )
+        ply\ManipulateBoneScale( bone, ragdoll\GetManipulateBoneScale( bone ) )
 
     if ragdoll\IsRagdoll!
         velocity = Vector!
@@ -391,6 +391,8 @@ do
 
             if damageInfo\IsDissolveDamage!
                 ragdoll\Dissolve!
+            else
+                ragdoll\TakeDamageInfo( damageInfo )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeath
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
