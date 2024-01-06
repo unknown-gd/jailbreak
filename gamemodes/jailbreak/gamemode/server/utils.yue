@@ -1,7 +1,10 @@
+:min, :floor, :random = math
+EffectData = EffectData
 Jailbreak = Jailbreak
-:min, :floor = math
 hook_Run = hook.Run
 IsValid = IsValid
+util = util
+:Effect = util
 
 -- Networking
 util.AddNetworkString( "Jailbreak::Networking" )
@@ -65,9 +68,6 @@ do
 do
 
     CHAN_STATIC = CHAN_STATIC
-    EffectData = EffectData
-    :random = math
-    :Effect = util
 
     Jailbreak.ShockCollarEffect = ( origin, pitch ) =>
         unless origin
@@ -366,3 +366,47 @@ do
     GM.EntityKeyValue = ( entity, key, value ) =>
         if entity\GetClass! == "prop_door_rotating" and lower( key ) == "m_bLocked"
             entity\SetNW2Bool( key, tobool( value ) )
+
+do
+
+    :TraceLine, :Decal = util
+    trace = {}
+
+    Jailbreak.BloodSplashes = ( damageInfo, death, velocity ) =>
+        unless velocity
+            velocity = @GetVelocity! + damageInfo\GetDamageForce!
+
+        damagePosition = damageInfo\GetDamagePosition!
+        speed = velocity\Length!
+
+        fx = EffectData!
+        fx\SetNormal( velocity\GetNormalized! )
+        fx\SetMagnitude( speed / 100 )
+        fx\SetScale( 10 )
+        fx\SetFlags( 3 )
+        fx\SetColor( 0 )
+        fx\SetOrigin( damagePosition )
+        Effect( "BloodImpact", fx, true, true )
+
+        trace.start = damagePosition
+        trace.filter = @
+
+        unless death
+            trace.endpos = damagePosition + velocity
+            traceResult = TraceLine( trace )
+            unless traceResult.Hit
+                return
+
+            Decal( "Blood", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
+            return
+
+        decal = damageInfo\IsShockDamage! and "FadingScorch" or "Blood"
+
+        for bone = 0, @GetBoneCount! - 1
+            origin = @GetBonePosition( bone )
+
+            trace.endpos = origin + ( origin - damagePosition ) * speed
+            traceResult = TraceLine( trace )
+
+            if traceResult.Hit
+                Decal( decal, traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )

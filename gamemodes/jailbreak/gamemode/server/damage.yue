@@ -311,9 +311,11 @@ do
                 ragdoll.Alive = false
 
         if nextHealth > 0
+            Jailbreak.BloodSplashes( ragdoll, damageInfo, false )
             return
 
         velocity = ragdoll\GetVelocity! + damageInfo\GetDamageForce!
+        Jailbreak.BloodSplashes( ragdoll, damageInfo, true, velocity )
 
         weapons = ragdoll.Weapons
         if weapons ~= nil
