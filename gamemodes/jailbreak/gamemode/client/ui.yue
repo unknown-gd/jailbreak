@@ -718,7 +718,7 @@ do
 
             option\SetIcon( isMuted and "icon16/sound_mute.png" or "icon16/sound.png" )
 
-        if LocalPlayer!\IsAdmin!
+        if LocalPlayer!\IsSuperAdmin!
 
             subMenu, option = menu\AddSubMenu( "#jb.team-select" )
             option\SetIcon( "icon16/user_go.png" )

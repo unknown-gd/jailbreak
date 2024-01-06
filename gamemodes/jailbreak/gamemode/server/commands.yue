@@ -84,7 +84,7 @@ do
             SetRoundTime( 0 )
 
 Add "jb_respawn", ( _, args ) =>
-    if IsValid( @ ) and not @IsAdmin!
+    if IsValid( @ ) and not @IsSuperAdmin!
         return
 
     if #args == 0
@@ -100,7 +100,7 @@ Add "jb_respawn", ( _, args ) =>
         ply\Spawn!
 
 Add "jb_move_player", ( _, args ) =>
-    if IsValid( @ ) and not @IsAdmin!
+    if IsValid( @ ) and not @IsSuperAdmin!
         return
 
     index = tonumber( args[ 1 ] )
@@ -120,7 +120,7 @@ Add "jb_move_player", ( _, args ) =>
             ply\Spawn!
 
 Add "jb_kick_player", ( _, args ) =>
-    if IsValid( @ ) and not @IsAdmin!
+    if IsValid( @ ) and not @IsSuperAdmin!
         return
 
     index = tonumber( args[ 1 ] )
