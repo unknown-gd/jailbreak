@@ -202,14 +202,15 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
+    :IsInWorld, :IsValidModel, :TraceLine = util
     :RagdollRemove, :FixModelPath = Jailbreak
-    :IsInWorld, :IsValidModel = util
+    trace = {}
 
     PLAYER.CreateRagdoll = =>
         if RagdollRemove\GetBool!
             @RemoveRagdoll!
 
-        spawnOrigin = @WorldSpaceCenter!
+        spawnOrigin = @GetPos!
         unless IsInWorld( spawnOrigin )
             return NULL
 
@@ -288,17 +289,26 @@ do
                 unless IsValid( phys )
                     continue
 
-                boneID = ragdoll\TranslatePhysBoneToBone( physNum )
-                if boneID < 0
+                bone = ragdoll\TranslatePhysBoneToBone( physNum )
+                if bone < 0
                     continue
 
-                origin, angles = @GetBonePosition( boneID )
-                phys\SetVelocity( velocity )
-                phys\SetAngles( angles )
+                origin, angles = @GetBonePosition( bone )
+                if origin ~= nil
+                    phys\SetAngles( angles )
+                    unless IsInWorld( origin )
+                        continue
 
-                if IsInWorld( origin )
+                    trace.start = origin
+                    trace.endpos = origin
+                    trace.filter = { ragdoll, @ }
+
+                    if TraceLine( trace ).Hit
+                        continue
+
                     phys\SetPos( origin )
 
+                phys\SetVelocity( velocity )
                 phys\Wake!
 
         else
