@@ -82,6 +82,9 @@ do
     :band = bit
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
+        if damageInfo\IsExplosionDamage!
+            damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
+
         if entity\IsPlayerRagdoll!
             inflictor = damageInfo\GetInflictor!
             if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
@@ -288,8 +291,14 @@ do
         if armor ~= nil and armor > 0
             ragdoll.Armor = @PerformArmorDamage( ragdoll, armor, damageInfo )
 
+        if damageInfo\IsExplosionDamage!
+            damageInfo\ScaleDamage( 0.25 )
+        else
+            damageInfo\ScaleDamage( 0.025 )
+
         health = ragdoll\Health!
-        nextHealth = floor( health - ( damageInfo\GetDamage! * 0.025 ) )
+        nextHealth = floor( health - damageInfo\GetDamage! )
+        ragdoll\SetHealth( nextHealth )
 
         if ragdoll.Alive
             startHealth = ragdoll.StartHealth
@@ -302,7 +311,6 @@ do
                 ragdoll.Alive = false
 
         if nextHealth > 0
-            ragdoll\SetHealth( nextHealth )
             return
 
         velocity = ragdoll\GetVelocity! + damageInfo\GetDamageForce!
