@@ -96,11 +96,17 @@ PLAYER.SetShockCollar = ( bool, silent ) =>
     unless silent
         hook_Run( "ShockCollarChanged", @, bool )
 
+-- Allows player to open security doors and lock them
 PLAYER.AllowSecurityAccess = ( bool ) =>
     @SetNW2Bool( "security-access", bool )
 
+-- Allows player to use security radio
 PLAYER.AllowSecurityRadio = ( bool ) =>
     @SetNW2Bool( "security-radio", bool )
+
+-- Allows player to fly
+PLAYER.AllowFlight = ( bool ) =>
+    @SetNW2Bool( "flight-allowed", bool )
 
 do
 

@@ -91,7 +91,7 @@ do
     :abs = math
 
     hook_Add "Move", "Jailbreak::Developer", ( mv ) =>
-        unless @IsDeveloper!
+        unless @IsFlightAllowed!
             return
 
         if @IsOnGround!
@@ -140,10 +140,6 @@ do
 
         elseif mv\KeyPressed( IN_JUMP )
             @Flying = true
-
-hook_Add "PlayerFootstep", "Jailbreak::Developer", =>
-    if @IsDeveloper!
-        return true
 
 hook_Add "GetFallDamage", "Jailbreak::Developer", =>
     if @Flying

@@ -363,6 +363,10 @@ do
 PLAYER.IsFullyConnected = =>
     return GetNW2Bool( @, "fully-connected" )
 
+-- Returns true if player is flight allowed
+PLAYER.IsFlightAllowed = =>
+    return GetNW2Bool( @, "flight-allowed" )
+
 -- Returns weapons in slot as table
 PLAYER.GetWeaponsInSlot = ( slot ) =>
     weapons = {}

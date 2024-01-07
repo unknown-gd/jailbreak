@@ -7,8 +7,9 @@ hook_Add = hook.Add
 xpcall = xpcall
 :gsub = string
 
-:Colors, :SendChatText = Jailbreak
+:Colors, :SendChatText, :GetTeamPlayers, :IsRoundRunning = Jailbreak
 CHAT_CUSTOM = CHAT_CUSTOM
+:GetAll = player
 :white = Colors
 
 events = Jailbreak.Events
@@ -126,6 +127,7 @@ Jailbreak.RunEvents = ( state ) ->
         if event\Run( state )
             stoppedTypes[ event.type ] = true
 
+-- Female prison
 do
 
     event = Jailbreak.RegisterEvent "female-prison", ->
@@ -138,6 +140,7 @@ do
     event\SetColor( Colors.pink )
     event\ConVar( 15 )
 
+-- Masquerade
 do
 
     :PrecacheModel = util
@@ -193,6 +196,7 @@ do
 
             SendChatText( ply, false, CHAT_CUSTOM, white, "+ ", unpack( message ) )
 
+-- Grass is lava
 do
 
     event = Jailbreak.RegisterEvent "grass-is-lava", ->
@@ -254,12 +258,13 @@ do
 
             SendChatText( ply, false, CHAT_CUSTOM, white, "+ ", unpack( message ) )
 
+-- Powerful players
 do
 
     event = Jailbreak.RegisterEvent "powerful-players", ->
             Jailbreak.PowerfulPlayers = true
 
-            for ply in *player.GetAll!
+            for ply in *GetAll!
                 if ply\Alive!
                     ply\AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_TAUNT_ZOMBIE, true )
 
@@ -273,9 +278,9 @@ do
     event\SetType( "damage" )
     event\ConVar( 5 )
 
+-- Random knife
 do
 
-    :GetTeamPlayers, :IsRoundRunning = Jailbreak
     TEAM_PRISONER = TEAM_PRISONER
     timer_Simple = timer.Simple
     :ceil = math
@@ -301,4 +306,26 @@ do
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( nil )
     event\SetType( "weapon" )
+    event\ConVar( 10 )
+
+-- Hidden Angel
+do
+
+    event = Jailbreak.RegisterEvent "hidden-angel", ->
+            prisoners = GetTeamPlayers( true, TEAM_PRISONER )[ 1 ]
+
+            prisonerCount = #prisoners
+            if prisonerCount == 0
+                return false, false
+
+            prisoners[ random( 1, prisonerCount ) ]\AllowFlight( true )
+            return true, true,
+        ->
+            for ply in *GetAll!
+                ply\AllowFlight( false )
+
+    event\SetStartState( ROUND_RUNNING )
+    event\SetFinishState( ROUND_WAITING_PLAYERS )
+    event\SetColor( Colors.white )
+    event\SetType( "movement" )
     event\ConVar( 10 )
