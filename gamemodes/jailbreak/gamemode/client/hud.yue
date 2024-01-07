@@ -41,7 +41,7 @@ do
 
 do
 
-    :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams = Jailbreak
+    :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams, :TargetID, :DeathNotice = Jailbreak
 
     Jailbreak.Font( "Jailbreak::Winners", "Roboto Mono Bold Italic", 4 )
     Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
@@ -49,10 +49,10 @@ do
     GM.HUDPaint = =>
         hook_Run( "HUDDrawInfo", Jailbreak.Player )
 
-        if @TargetID\GetBool!
+        if TargetID\GetBool!
             hook_Run( "HUDDrawTargetID" )
 
-        if @DeathNotice\GetBool!
+        if DeathNotice\GetBool!
             hook_Run( "DrawDeathNotice", 0.85, 0.04 )
 
         state = GetRoundState!

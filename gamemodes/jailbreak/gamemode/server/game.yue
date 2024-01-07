@@ -103,14 +103,11 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
     ply\SelectWeapon( "jb_hands" )
 
     hook_Run( "TeamPlayerSpawn", ply, teamID )
-    ply\SetupHands!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :RagdollRemove, :AllowCustomWeaponColors, :AllowCustomPlayerColors, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor, :DefaultTeamColors = Jailbreak
-    tonumber = tonumber
-    :Explode = string
+    :RagdollRemove, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor = Jailbreak
 
     GM.PlayerSpawn = ( ply, transiton ) =>
         ply\RemoveFromObserveTargets!
@@ -169,48 +166,10 @@ do
             ply\RemoveRagdoll!
 
         unless transiton
-            hook_Run( "PlayerLoadout", ply, teamID )
+            hook_Run( "PlayerLoadout", ply )
 
-        hook_Run( "PlayerSetModel", ply, teamID )
-
-        isBot = ply\IsBot!
-        if isBot
-
-            ply\SetSkin( random( 0, ply\SkinCount! ) )
-
-            for bodygroup in *ply\GetBodyGroups!
-                ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
-
-        else
-
-            ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
-
-            -- Model bodygroups setup
-            groups = Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
-            for i = 0, ply\GetNumBodyGroups! - 1 do
-                ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
-
-        -- Player color setup
-        unless AllowCustomPlayerColors\GetBool!
-            ply\SetPlayerColor( DefaultTeamColors[ teamID ] )
-        elseif isBot
-            ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
-        else
-            ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
-
-        unless AllowCustomWeaponColors\GetBool!
-            ply\SetWeaponColor( DefaultTeamColors[ teamID ] )
-        elseif isBot
-            ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
-        else
-            weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
-            if weaponColor\Length! < 0.001
-                weaponColor = Vector( 0.001, 0.001, 0.001 )
-
-            ply\SetWeaponColor( weaponColor )
-
+        hook_Run( "PlayerSetModel", ply )
         hook_Run( "TeamPlayerSpawn", ply, teamID )
-        ply\SetupHands!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSelectSpawn
 do
@@ -301,7 +260,7 @@ do
 
 -- https://wiki.facepunch.com/gmod/GM:SetupMove
 GM.SetupMove = ( ply, _, cmd ) =>
-    if ply\IsBot! or ply\IsFullyConnected! or not cmd\IsForced!
+    if ply\IsFullyConnected! or not ( cmd\IsForced! or ply\IsBot! )
         return
 
     ply\SetNW2Bool( "fully-connected", true )
@@ -310,31 +269,72 @@ GM.SetupMove = ( ply, _, cmd ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetModel
 do
 
-    :AllowCustomPlayerModels, :FixModelPath, :PlayerModels, :IsFemalePrison = Jailbreak
+    :AllowCustomPlayerModels, :AllowCustomPlayerColors, :AllowCustomWeaponColors, :FixModelPath, :PlayerModels, :IsFemalePrison, :DefaultTeamColors = Jailbreak
     :TranslatePlayerModel = player_manager
     :PrecacheModel, :IsValidModel = util
-    :match = string
+    :Explode, :match = string
+    tonumber = tonumber
 
-    GM.PlayerSetModel = ( ply, teamID ) =>
+    GM.PlayerSetModel = ( ply ) =>
+        teamID = ply\Team!
+
         requested = FixModelPath( TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
         if AllowCustomPlayerModels\GetBool! and IsValidModel( requested )
             PrecacheModel( requested )
             ply\SetModel( requested )
-            return
+        else
 
-        models = PlayerModels[ teamID ][ IsFemalePrison! ]
-        if #models == 1
-            ply\SetModel( models[ 1 ] )
-            return
+            models = PlayerModels[ teamID ][ IsFemalePrison! ]
+            if #models == 1
+                ply\SetModel( models[ 1 ] )
+            else
 
-        if IsValidModel( requested )
-            requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
-            for modelPath in *models
-                if modelPath == requested or match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
-                    ply\SetModel( modelPath )
-                    return
+                playerModel = nil
 
-        ply\SetModel( models[ random( 1, #models ) ] )
+                if IsValidModel( requested )
+                    requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
+                    for modelPath in *models
+                        if modelPath == requested or match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
+                            playerModel = modelPath
+                            break
+
+                ply\SetModel( playerModel or models[ random( 1, #models ) ] )
+
+        isBot = ply\IsBot!
+        if isBot
+            ply\SetSkin( random( 0, ply\SkinCount! ) )
+
+            for bodygroup in *ply\GetBodyGroups!
+                ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
+
+        else
+            ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
+
+            -- Model bodygroups setup
+            groups = Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
+            for i = 0, ply\GetNumBodyGroups! - 1 do
+                ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
+
+        -- Player color setup
+        unless AllowCustomPlayerColors\GetBool!
+            ply\SetPlayerColor( DefaultTeamColors[ teamID ] )
+        elseif isBot
+            ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+        else
+            ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
+
+        unless AllowCustomWeaponColors\GetBool!
+            ply\SetWeaponColor( DefaultTeamColors[ teamID ] )
+        elseif isBot
+            ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
+        else
+            weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
+            if weaponColor\Length! < 0.001
+                weaponColor = Vector( 0.001, 0.001, 0.001 )
+
+            ply\SetWeaponColor( weaponColor )
+
+        ply\SetupHands!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetHandsModel
 do
@@ -649,7 +649,6 @@ do
 
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
     :FindInSphere = ents
-    hook_Add = hook.Add
 
     GM.OnEntityCreated = ( entity ) =>
         if entity\IsPlayer!
@@ -748,7 +747,8 @@ do
     GM.GuardsAmmoMult = CreateConVar( "jb_guards_ammo", "1", ConVarFlags, "Guards ammo multiplier ( max * multiplier ) on spawn.", 0, 1000 )
     :GetAmmoTypes, :GetAmmoMax = game
 
-    GM.PlayerLoadout = ( ply, teamID ) =>
+    GM.PlayerLoadout = ( ply ) =>
+        teamID = ply\Team!
         if teamID == TEAM_GUARD
             -- Giving all ammo
             do

@@ -17,7 +17,8 @@ UserOrangeIcon = Material( "icon16/user_orange.png", "mips" )
 UserSuitIcon = Material( "icon16/user_suit.png", "mips" )
 UserIcon = Material( "icon16/user.png", "mips" )
 BricksIcon = Material( "icon16/bricks.png", "mips" )
-WorldIcon = Material( "icon16/world.png", "mips" )
+OrangeFlagIcon = Material( "icon16/flag_orange.png", "mips" )
+BlueFlagIcon = Material( "icon16/flag_blue.png", "mips" )
 DoorIcon = Material( "icon16/door.png", "mips" )
 ImageIcon = Material( "icon16/image.png", "mips" )
 PhotoIcon = Material( "icon16/photo.png", "mips" )
@@ -48,7 +49,7 @@ do
         unless owner\IsValid! and owner\Alive!
             return
 
-        material = WorldIcon
+        material = owner\IsPrisoner! and OrangeFlagIcon or BlueFlagIcon
         entity = nil
 
         if ReadBool!

@@ -139,7 +139,7 @@ do
 
     :IsValidModel = util
 
-    Add "drop", =>
+    dropWeapon = =>
         unless @Alive!
             return
 
@@ -176,6 +176,10 @@ do
             return
 
         @SelectWeapon( nextWeapon\GetClass! )
+
+    Add "drop", dropWeapon
+    Jailbreak.SetChatCommand "drop", dropWeapon
+    Jailbreak.SetChatCommand "dropweapon", dropWeapon
 
 do
 
@@ -293,4 +297,4 @@ do
                 Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
 
         else
-            Emotion( @, "#jb.chat.pointed-at \"#jb.world\"." )
+            Emotion( @, "#jb.chat.pointed-at \"#jb.position\"." )

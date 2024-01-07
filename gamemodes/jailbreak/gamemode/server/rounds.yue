@@ -81,9 +81,8 @@ do
 -- Perform a round state change
 do
 
-    :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GuardsDiff, :GetWarden, :PermanentGuards = Jailbreak
+    :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards = Jailbreak
     timer_Simple = timer.Simple
-    :ceil, :random = math
     :CleanUpMap = game
     :GetAll = player
     pairs = pairs

@@ -251,7 +251,6 @@ do
 
     foodEatingSound = Sound( "player/eating.wav" )
     :IsFoodModel, :FoodEatingTime = Jailbreak
-    RecipientFilter = RecipientFilter
     CHAN_STATIC = CHAN_STATIC
     :Clamp, :floor = math
 

@@ -434,10 +434,6 @@ PLAYER.IsPrisoner = =>
 PLAYER.IsWarden = =>
     return GetNW2Bool( @, "is-warden" )
 
--- Returns true if player is muted by warden
-PLAYER.IsMutedByWarden = =>
-    return GetNW2Bool( @, "warden-mute" )
-
 -- Returns true if player has shock collar
 PLAYER.HasShockCollar = =>
     return GetNW2Bool( @, "shock-collar" )
@@ -455,7 +451,7 @@ do
 
     :FindInSphere = ents
 
-    PLAYER.GetNearPlayers = ( distance, isTeam ) =>
+    PLAYER.GetNearPlayers = ( distance, isTeam, noSpeaker ) =>
         teamID = false
         if isTeam
             teamID = @Team!
@@ -463,6 +459,9 @@ do
         players = {}
         for ply in *FindInSphere( @EyePos!, distance )
             unless ply\IsPlayer!
+                continue
+
+            if noSpeaker and ply == @
                 continue
 
             if isTeam and ply\Team! ~= teamID
