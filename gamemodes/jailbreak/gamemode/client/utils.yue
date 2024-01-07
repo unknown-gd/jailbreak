@@ -111,7 +111,7 @@ do
             CreateFont data.fontName, fontData
 
 GM.PerformPlayerVoice = ( ply ) =>
-    voiceVolume = ply\VoiceVolume!
+    voiceVolume = ply\IsSpeaking! and ply\VoiceVolume! or 0
 
     lastVoiceVolume = ply.m_LastVoiceVolume
     unless lastVoiceVolume
