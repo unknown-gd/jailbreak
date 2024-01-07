@@ -2,64 +2,337 @@ Jailbreak = Jailbreak
 :Colors = Jailbreak
 GM = GM
 
-:Clamp, :Rand, :abs, :sin, :min, :random = math
 :dark_white, :light_grey, :white = Colors
+:Clamp, :Rand, :abs, :sin, :min = math
 :GetPhrase = language
 :find = string
 
 do
 
-    :AddText, :PlaySound = chat
-    :date = os
-
-    chatTime = CreateClientConVar( "jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1 )
-    chatSound = CreateClientConVar( "jb_chat_sound", "1", true, false, "Play sound of chat messages.", 0, 1 )
-
-    Jailbreak.ChatText = ( ... ) ->
-        if chatSound\GetBool!
-            PlaySound!
-
-        if chatTime\GetBool!
-            AddText( light_grey, date( "[%H:%M:%S] " ), white, ... )
-        else
-            AddText( white, ... )
-
-do
-
     TEXT_FILTER_GAME_CONTENT = TEXT_FILTER_GAME_CONTENT
     TEXT_FILTER_CHAT = TEXT_FILTER_CHAT
-    :ChatText, :Translate = Jailbreak
+    :AddText, :PlaySound = chat
+    :Translate = Jailbreak
+    isstring = isstring
     :FilterText = util
-    :Number = cvars
     unpack = unpack
     :band = bit
+    :date = os
 
-    GM.OnPlayerChat = ( ply, text, _, isDead ) =>
-        result = {}
+    chatSound = CreateClientConVar( "jb_chat_sound", "1", true, false, "Play sound of chat messages.", 0, 1 )
+    chatTime = CreateClientConVar( "jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1 )
+    cl_chatfilters = GetConVar( "cl_chatfilters" )
 
-        if isDead
-            result[] = dark_white
-            result[] = "[" .. GetPhrase( "jb.chat.dead" ) .. "] "
+    message = {}
+    length = 0
 
-        if ply and ply\IsValid!
-            result[] = ply\GetModelColor!
-            result[] = ply\Nick!
+    insert = ( value, borders, isTag ) ->
+        length += 1
 
-            unless ply\IsLocalPlayer!
-                if ply\IsMuted!
-                    text = GetPhrase( "jb.chat.muted." .. random( 0, 2 ) )
+        if borders ~= nil
+            value = borders[ 1 ] .. value .. borders[ 2 ]
+
+        if isTag
+            value ..= " "
+
+        message[ length ] = value
+
+    messageHandlers = Jailbreak.MessageHandlers
+    unless istable( messageHandlers )
+        messageHandlers = {}
+        Jailbreak.MessageHandlers = messageHandlers
+
+    messageHandlers[ CHAT_TEXT ] = ( listener, speaker, data ) ->
+        if data[ 3 ]
+            insert( dark_white )
+            insert( GetPhrase( "jb.chat.dead" ), "[]", true )
+
+        teamID = data[ 4 ]
+        if teamID
+            insert( Jailbreak.GetTeamColor( teamID ) )
+            insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
+
+        if data[ 5 ]
+            insert( Colors.horizon )
+            insert( GetPhrase( "jb.walkie-talkie" ), "[]", true )
+
+        text, nickname, isMuted = data[ 1 ], data[ 2 ], false
+
+        if speaker\IsValid!
+            if speaker\IsPlayer!
+                if speaker\IsDeveloper!
+                    insert( Colors.butterfly_bush )
+                    insert( "/", "<>", true )
+
+                insert( speaker\GetModelColor! )
+                insert( nickname or speaker\Nick! )
+
+                if speaker\IsMuted!
+                    text, isMuted = GetPhrase( "jb.chat.muted" ), true
                 else
-                    text = FilterText( text, ( band( Number( "cl_chatfilters", 0 ), 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, ply )
+                    text = FilterText( text, ( band( cl_chatfilters\GetInt!, 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
+
+        elseif nickname
+            insert( dark_white )
+            insert( nickname )
 
         else
-            result[] = Colors.console
-            result[] = GetPhrase( "jb.chat.console" )
+            insert( Colors.butterfly_bush )
+            insert( GetPhrase( "jb.chat.console" ) )
 
-        result[] = white
-        result[] = Translate( " #jb.chat.says: \"" .. text .. "\"" )
+        insert( white )
+        insert( " " .. GetPhrase( "jb.chat.says" ) .. ": \"" )
 
-        ChatText( unpack( result ) )
-        return true
+        if isMuted
+            insert( dark_white )
+
+        insert( text )
+
+        if isMuted
+            insert( white )
+
+        insert( "\"" )
+
+    do
+
+        OOCHandler = ( listener, speaker, data, isLocal ) ->
+            if isLocal
+                insert( Colors.blue )
+                insert( GetPhrase( "jb.chat.looc" ), "[]", true )
+            else
+                insert( Colors.turquoise )
+                insert( GetPhrase( "jb.chat.ooc" ), "[]", true )
+
+            unless data[ 3 ]
+                insert( dark_white )
+                insert( GetPhrase( "jb.chat.dead" ), "[]", true )
+
+            teamID = data[ 4 ]
+            if teamID
+                insert( Jailbreak.GetTeamColor( teamID ) )
+                insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
+
+            text, nickname, isMuted = data[ 1 ], data[ 2 ], false
+
+            if speaker\IsValid! and speaker\IsPlayer!
+                if speaker\IsDeveloper!
+                    insert( Colors.butterfly_bush )
+                    insert( "/", "<>", true )
+
+                insert( speaker\GetModelColor! )
+                insert( nickname or speaker\Nick! )
+
+                if speaker\IsMuted!
+                    text, isMuted = GetPhrase( "jb.chat.muted" ), true
+                else
+                    text = FilterText( text, ( band( cl_chatfilters\GetInt!, 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
+
+            else
+                insert( dark_white )
+                insert( nickname )
+
+            insert( white )
+            insert( ": " )
+
+            if isMuted
+                insert( dark_white )
+
+            insert( text )
+
+        messageHandlers[ CHAT_OOC ] = OOCHandler
+
+        messageHandlers[ CHAT_LOOC ] = ( listener, speaker, data ) ->
+            return OOCHandler( listener, speaker, data, true )
+
+    messageHandlers[ CHAT_EMOTION ] = ( listener, speaker, data ) ->
+        unless table.remove( data, 2 )
+            insert( dark_white )
+            insert( GetPhrase( "jb.chat.dead" ), "[]", true )
+
+        nickname = table.remove( data, 1 )
+        if speaker\IsValid! and speaker\IsPlayer!
+            if speaker\IsMuted!
+                return true
+
+            if speaker\IsDeveloper!
+                insert( Colors.butterfly_bush )
+                insert( "/", "<>", true )
+
+            insert( speaker\GetModelColor! )
+            insert( nickname or speaker\Nick! )
+        else
+            insert( dark_white )
+            insert( nickname )
+
+        insert( white )
+        insert( " " )
+
+        for value in *data
+            if isstring( value )
+                value = Translate( value )
+
+            insert( value )
+
+    messageHandlers[ CHAT_WHISPER ] = ( listener, speaker, data ) ->
+        unless data[ 3 ]
+            insert( dark_white )
+            insert( GetPhrase( "jb.chat.dead" ), "[]", true )
+
+        teamID = data[ 4 ]
+        if teamID
+            insert( Jailbreak.GetTeamColor( teamID ) )
+            insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
+
+        text, nickname, isMuted = data[ 1 ], data[ 2 ], false
+
+        if speaker\IsValid! and speaker\IsPlayer!
+            if speaker\IsDeveloper!
+                insert( Colors.butterfly_bush )
+                insert( "/", "<>", true )
+
+            insert( speaker\GetModelColor! )
+            insert( nickname or speaker\Nick! )
+
+            if speaker\IsMuted!
+                text, isMuted = GetPhrase( "jb.chat.muted" ), true
+            else
+                text = FilterText( text, ( band( cl_chatfilters\GetInt!, 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
+
+        else
+            insert( dark_white )
+            insert( nickname )
+
+        insert( white )
+        insert( " " .. GetPhrase( "jb.chat.whispers" ) .. ": \"" )
+
+        if isMuted
+            insert( dark_white )
+
+        insert( text )
+
+        if isMuted
+            insert( white )
+
+        insert( "\"" )
+
+    messageHandlers[ CHAT_CUSTOM ] = ( _, __, data ) ->
+        for value in *data
+            if isstring( value )
+                value = Translate( value )
+
+            insert( value )
+
+    messageHandlers[ CHAT_SERVERMESSAGE ] = ( _, __, data ) ->
+        insert( dark_white )
+        insert( data[ 1 ] )
+
+    messageHandlers[ CHAT_CONNECTED ] = ( _, __, data ) ->
+        insert( white )
+        insert( GetPhrase( "jb.player" ) .. " " )
+
+        insert( data[ 1 ] )
+        insert( data[ 2 ] )
+
+        steamID = data[ 3 ]
+        if steamID
+            insert( white )
+            insert( " ( " )
+
+            insert( Colors.blue )
+            insert( steamID )
+
+            insert( white )
+            insert( " )" )
+
+        insert( white )
+        insert( " " .. GetPhrase( "jb.chat.player.connected" ) )
+
+    messageHandlers[ CHAT_CONNECT ] = ( _, __, data ) ->
+        insert( white )
+        insert( GetPhrase( "jb.player" ) .. " " )
+
+        insert( Colors.asparagus )
+        insert( data[ 1 ] )
+
+        address = data[ 2 ]
+        if address
+            insert( white )
+            insert( " ( " )
+
+            insert( Colors.blue )
+            insert( address )
+
+            insert( white )
+            insert( " )" )
+
+        insert( white )
+        insert( " " .. GetPhrase( "jb.chat.player.connecting" ) )
+
+    messageHandlers[ CHAT_DISCONNECT ] = ( _, __, data ) ->
+        insert( white )
+        insert( GetPhrase( "jb.player" ) .. " " )
+
+        insert( Colors.au_chico )
+        insert( data[ 1 ] )
+
+        steamID = data[ 2 ]
+        if steamID
+            insert( white )
+            insert( " ( " )
+
+            insert( Colors.blue )
+            insert( steamID )
+
+            insert( white )
+            insert( " )" )
+
+        insert( white )
+
+        reason = data[ 3 ]
+        if reason ~= nil
+            insert( " " .. GetPhrase( "jb.chat.player.disconnected_with_reason" ) .. ": \"" )
+
+            insert( dark_white )
+            insert( reason )
+
+            insert( white )
+            insert( "\"" )
+        else
+            insert( " " .. GetPhrase( "jb.chat.player.disconnected" ) )
+
+    messageHandlers[ CHAT_NAMECHANGE ] = ( _, __, data ) ->
+        insert( white )
+        insert( GetPhrase( "jb.player" ) .. " " )
+
+        color = data[ 1 ]
+        insert( color )
+        insert( data[ 2 ] )
+
+        insert( white )
+        insert( " " .. GetPhrase( "jb.chat.player.changed_name" ) .. " " )
+
+        insert( color )
+        insert( data[ 3 ] )
+
+        insert( white )
+        insert( "." )
+
+    GM.OnChatText = ( speaker, messageType, data ) =>
+        for index = 1, #message
+            message[ index ] = nil
+        length = 0
+
+        handler = messageHandlers[ messageType ]
+        if handler and handler( Jailbreak.Player, speaker, data )
+            return
+
+        if chatTime\GetBool!
+            AddText( light_grey, date( "[%H:%M:%S] " ), white, unpack( message ) )
+        else
+            AddText( white, unpack( message ) )
+
+        if chatSound\GetBool!
+            PlaySound!
 
 do
 
@@ -207,3 +480,35 @@ do
                 ply\ManipulateBoneAngles( boneID, angles, false )
             else
                 ply\ManipulateBoneAngles( 0, angles, false )
+
+do
+
+    :TrimLeft, :sub, :match = string
+
+    GM.OnChatTab = ( text ) =>
+        text = TrimLeft( text )
+        if sub( text, 1, 1 ) == "/"
+            command = match( text, "/([^%s]+)" )
+            unless command
+                return "/whisper " .. sub( text, 2 )
+
+            arguments = sub( text, #command + 2 )
+
+            switch command
+                when "whisper"
+                    text = "/emotion" .. arguments
+                when "emotion"
+                    text = "/coin" .. arguments
+                when "coin"
+                    text = "/roll" .. arguments
+                when "roll"
+                    text = "/looc" .. arguments
+                when "looc"
+                    text = "/ooc" .. arguments
+                when "ooc"
+                    text = "/whisper" .. arguments
+
+        else
+            text = "/whisper " .. text
+
+        return text

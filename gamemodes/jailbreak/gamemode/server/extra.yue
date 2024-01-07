@@ -58,6 +58,7 @@ do
 do
 
     :ShockCollarEffect, :SendChatText = Jailbreak
+    CHAT_CUSTOM = CHAT_CUSTOM
     :GetAll = player
 
     GM.ShockCollars = ( bool ) =>
@@ -69,7 +70,7 @@ do
 
                 ShockCollarEffect( ply )
 
-        SendChatText( receivers, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+        SendChatText( receivers, false, CHAT_CUSTOM, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
 
 do
 

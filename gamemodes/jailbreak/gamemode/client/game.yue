@@ -2,6 +2,7 @@ RunConsoleCommand = RunConsoleCommand
 Jailbreak = Jailbreak
 hook_Run = hook.Run
 :format = string
+NULL = NULL
 GM = GM
 
 GM.InitPostEntity = =>
@@ -49,9 +50,9 @@ do
 do
 
     :ReadString, :ReadUInt, :ReadTable, :ReadEntity, :ReadBool = net
-    :ChatText, :Translate = Jailbreak
     :AddLegacy = notification
-    isstring = isstring
+    :Translate = Jailbreak
+    Entity = Entity
     unpack = unpack
     :random = math
 
@@ -65,13 +66,7 @@ do
         [ 2 ]: ->
             AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
         [ 3 ]: ->
-            data = ReadTable( true )
-            for index = 1, #data
-                value = data[ index ]
-                if isstring( value )
-                    data[ index ] = Translate( value )
-
-            ChatText( unpack( data ) )
+            hook_Run( "OnChatText", ReadBool! and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 4 ), ReadTable( true ) )
         [ 4 ]: ->
             ply = Jailbreak.Player
             unless ply\IsValid!
@@ -93,3 +88,16 @@ do
             return
 
         func( len )
+
+do
+
+    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
+
+    GM.ChatText = ( index, nickname, text, messageType ) =>
+        if messageType == "servermsg"
+            hook_Run( "OnChatText", NULL, CHAT_SERVERMESSAGE, { text } )
+
+        return true
+
+GM.OnPlayerChat = =>
+    return true

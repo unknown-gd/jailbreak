@@ -499,8 +499,16 @@ GM.PlayerDisconnected = ( ply ) =>
 do
 
     :Start, :WriteUInt, :WriteString, :Send = net
+    CHAT_CONNECTED = CHAT_CONNECTED
+    :SendChatText = Jailbreak
 
     GM.PlayerInitialized = ( ply ) =>
+        if ply\IsBot!
+            SendChatText( false, false, CHAT_CONNECTED, ply\GetModelColor!, ply\Nick! )
+            return
+
+        SendChatText( false, false, CHAT_CONNECTED, ply\GetModelColor!, ply\Nick!, ply\SteamID! )
+
         gameName = Jailbreak.GameName
         unless gameName
             return

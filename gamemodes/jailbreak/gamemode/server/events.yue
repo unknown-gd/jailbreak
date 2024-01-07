@@ -7,8 +7,9 @@ hook_Add = hook.Add
 xpcall = xpcall
 :gsub = string
 
-colors = Jailbreak.Colors
-:white = colors
+:Colors, :SendChatText = Jailbreak
+CHAT_CUSTOM = CHAT_CUSTOM
+:white = Colors
 
 events = Jailbreak.Events
 unless istable( events )
@@ -75,7 +76,7 @@ class JailbreakEvent
         return @color, "#jb.event." .. @name
 
     SendMessage: =>
-        Jailbreak.SendChatText( false, white, "+ ", @GetMessage! )
+        SendChatText( false, false, CHAT_CUSTOM, white, "+ ", @GetMessage! )
 
     Finish: ( state ) =>
         if state ~= @finishState
@@ -134,7 +135,7 @@ do
             Jailbreak.SetFemalePrison( false )
 
     event\SetType( "playermodel" )
-    event\SetColor( colors.pink )
+    event\SetColor( Colors.pink )
     event\ConVar( 15 )
 
 do
@@ -190,7 +191,7 @@ do
                 index += 1
                 message[ index ] = utf8.sub( text, i, i )
 
-            Jailbreak.SendChatText( ply, white, "+ ", unpack( message ) )
+            SendChatText( ply, false, CHAT_CUSTOM, white, "+ ", unpack( message ) )
 
 do
 
@@ -216,7 +217,7 @@ do
                     return
 
                 if traceResult.MatType == MAT_GRASS
-                    @SetColor( colors.black )
+                    @SetColor( Colors.black )
                     @Ignite( 0.25, 32 )
 
                     damageInfo = DamageInfo!
@@ -251,7 +252,7 @@ do
                 index += 1
                 message[ index ] = utf8.sub( text, i, i )
 
-            Jailbreak.SendChatText( ply, white, "+ ", unpack( message ) )
+            SendChatText( ply, false, CHAT_CUSTOM, white, "+ ", unpack( message ) )
 
 do
 
@@ -268,7 +269,7 @@ do
 
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( ROUND_ENDED )
-    event\SetColor( colors.red )
+    event\SetColor( Colors.red )
     event\SetType( "damage" )
     event\ConVar( 5 )
 
