@@ -485,6 +485,7 @@ do
         render_SetMaterial = render.SetMaterial
         render_DrawSprite = render.DrawSprite
         LocalToWorld = LocalToWorld
+        angle_zero = angle_zero
         :GetAll = player
 
         typingIcon = Material( "icon16/comment_edit.png", "mips" )
@@ -507,6 +508,9 @@ do
                 bone = ply\LookupBone( "ValveBiped.Bip01_Head1" )
                 if bone and bone >= 0
                     origin, angles = GetBonePosition( ply, bone )
+                    unless origin
+                        origin = ply\EyePos!
+                        origin[ 3 ] += 14
 
                     hitboxset = ply\GetHitboxSet!
                     for hitbox = 0, ply\GetHitBoxCount( hitboxset )
