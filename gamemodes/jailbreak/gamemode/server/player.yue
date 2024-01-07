@@ -348,5 +348,7 @@ do
         ragdoll.Weapons = weapons
         ragdoll.Ammo = @GetAmmo!
 
-        ragdoll\AddToObserveTargets!
+        if ragdoll\IsValidObserveTarget!
+            ragdoll\AddToObserveTargets!
+
         return ragdoll

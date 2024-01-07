@@ -336,15 +336,14 @@ do
 
 do
 
-    PLAYER = FindMetaTable( "Player" )
-    PLAYER_SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
+    :SetVoiceVolumeScale = FindMetaTable( "Player" )
     :ReadEntity, :ReadFloat, :ReadUInt = net
 
     net.Receive "JB::Communication", ->
         for i = 1, ReadUInt( 10 )
             ply, volume = ReadEntity!, ReadFloat!
             if ply\IsValid!
-                PLAYER_SetVoiceVolumeScale( ply, volume )
+                SetVoiceVolumeScale( ply, volume )
 
 do
 

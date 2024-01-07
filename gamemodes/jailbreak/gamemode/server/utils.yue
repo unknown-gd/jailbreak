@@ -169,14 +169,18 @@ do
             return true
 
     -- Returns true if the entity is valid observe target
-    ENTITY.IsValidObserveTarget = =>
-        if @IsPlayer! and @Alive!
-            return true
+    do
 
-        if @IsPlayerRagdoll!
-            return true
+        :AllowRagdollSpectate = Jailbreak
 
-        return GetClass( @ ) == "info_observer_point"
+        ENTITY.IsValidObserveTarget = =>
+            if @IsPlayer! and @Alive!
+                return true
+
+            if @IsPlayerRagdoll!
+                return AllowRagdollSpectate\GetBool!
+
+            return GetClass( @ ) == "info_observer_point"
 
     do
 

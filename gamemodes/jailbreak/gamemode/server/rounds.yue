@@ -214,7 +214,9 @@ do
 
     GM.TeamPlayerSpawn = ( ply, teamID ) =>
         ply\SetNoCollideWithTeammates( teamID == TEAM_GUARD or Jailbreak.GameName == "tf" )
-        ply\AddToObserveTargets!
+
+        if ply\IsValidObserveTarget!
+            ply\AddToObserveTargets!
 
         if IsWaitingPlayers!
             teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )

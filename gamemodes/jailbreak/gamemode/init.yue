@@ -45,6 +45,7 @@ do
     -- Voice Chat
     Jailbreak.VoiceChatUDP = CreateConVar( "jb_voice_chat_udp", "1", FCVAR_SERVER, "Use faster udp voice chat packets instead of tcp.", 0, 1 )
     Jailbreak.VoiceChatSpeed = CreateConVar( "jb_voice_chat_speed", "4", FCVAR_SERVER, "Speed of voice chat packets sending.", 0, 10 )
+    Jailbreak.VoiceChatProximity = CreateConVar( "jb_voice_chat_proximity", "0", FCVAR_SHARED, "Enable proximity voice chat.", 0, 1 )
 
     -- Player Customization
     Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", FCVAR_SERVER, "Allow custom player colors.", 0, 1 )
@@ -60,7 +61,7 @@ do
     Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
     Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "1", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
     Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 freezecam on death.", 0, 1 )
-
+    Jailbreak.AllowRagdollSpectate = CreateConVar( "jb_allow_ragdoll_spectate", "1", FCVAR_SERVER, "Enables ragdoll spectate.", 0, 1 )
 
 -- Utils
 include( "server/language.lua" )
