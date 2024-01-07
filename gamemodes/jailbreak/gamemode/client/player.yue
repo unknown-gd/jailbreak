@@ -63,7 +63,10 @@ do
 
         Jailbreak.ViewEntity = entity
 
-        unless entity\IsPlayer! and entity\Alive!
+        if ply ~= entity
+            return view
+
+        unless ply\Alive!
             return view
 
         if entity\Health! < 1
@@ -163,27 +166,27 @@ do
         if CreateMove( cmd )
             return true
 
-        entity = Jailbreak.ViewEntity
-        unless entity\IsValid! and entity\IsPlayer! and entity\Alive!
+        ply = Jailbreak.Player
+        unless ply\IsValid!
             return
 
-        unless entity\IsPlayingTaunt!
+        unless ply\IsPlayingTaunt!
             Jailbreak.PlayingTaunt = false
             return
 
         Jailbreak.PlayingTaunt = true
 
         -- FrameTime!
-        tauntViewAngles = entity.TauntViewAngles
+        tauntViewAngles = ply.TauntViewAngles
         if tauntViewAngles
             tauntViewAngles[ 1 ] += cmd\GetMouseY! * 0.01
             tauntViewAngles[ 2 ] -= cmd\GetMouseX! * 0.01
 
-        tauntDistance = entity.TauntDistance
+        tauntDistance = ply.TauntDistance
         if tauntDistance
-            entity.TauntDistance = Clamp( tauntDistance - cmd\GetMouseWheel! * ( tauntDistance * 0.25 ), 16, 1024 )
+            ply.TauntDistance = Clamp( tauntDistance - cmd\GetMouseWheel! * ( tauntDistance * 0.25 ), 16, 1024 )
 
-        tauntPlayerAngles = entity.TauntPlayerAngles
+        tauntPlayerAngles = ply.TauntPlayerAngles
         if tauntPlayerAngles
             cmd\SetViewAngles( tauntPlayerAngles )
 

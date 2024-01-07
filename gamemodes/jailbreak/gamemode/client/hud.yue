@@ -481,7 +481,7 @@ do
     -- Player status icons
     do
 
-        :StatusIcons, :VoiceChatMaxDistance, :GetBonePosition = Jailbreak
+        :StatusIcons, :VoiceChatMaxDistance = Jailbreak
         render_SetMaterial = render.SetMaterial
         render_DrawSprite = render.DrawSprite
         LocalToWorld = LocalToWorld
@@ -507,10 +507,7 @@ do
 
                 bone = ply\LookupBone( "ValveBiped.Bip01_Head1" )
                 if bone and bone >= 0
-                    origin, angles = GetBonePosition( ply, bone )
-                    unless origin
-                        origin = ply\EyePos!
-                        origin[ 3 ] += 14
+                    origin, angles = ply\GetBonePosition( bone )
 
                     hitboxset = ply\GetHitboxSet!
                     for hitbox = 0, ply\GetHitBoxCount( hitboxset )

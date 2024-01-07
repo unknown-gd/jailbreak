@@ -340,6 +340,7 @@ do
         @SetNW2Int( "death-animation", 2 )
         @SetNotSolid( true )
         @SetHealth( 0 )
+        @DropToFloor!
 
         @AnimRestartNetworkedGesture GESTURE_SLOT_CUSTOM, ACT_GMOD_DEATH, true, =>
             if @GetNW2Int( "death-animation" ) ~= 2
