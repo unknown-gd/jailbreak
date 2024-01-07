@@ -26,6 +26,7 @@ GM.PlayerInitialSpawn = ( ply, transiton ) =>
         ragdoll\SetNW2Entity( "ragdoll-owner", ply )
     else
         ply\SetTeam( ply\IsBot! and TEAM_PRISONER or TEAM_SPECTATOR )
+        ply\KillSilent!
 
     ply.InitialSpawn = true
 
