@@ -352,11 +352,16 @@ do
                 damageInfo = DamageInfo!
                 damageInfo\SetDamage( damage )
 
-                damageInfo\SetInflictor( inflictor )
-                damageInfo\SetAttacker( attacker )
+                if inflictor\IsValid!
+                    damageInfo\SetInflictor( inflictor )
+
+                if attacker\IsValid!
+                    damageInfo\SetAttacker( attacker )
 
                 damageInfo\SetDamageType( damageType )
-                damageInfo\SetAmmoType( ammoType )
+
+                if ammoType > 0
+                    damageInfo\SetAmmoType( ammoType )
 
                 damageInfo\SetReportedPosition( reportedOrigin )
                 damageInfo\SetDamagePosition( origin )

@@ -1,7 +1,7 @@
 GM = GM
 GM.Name = "Jailbreak"
-GM.Author = "Unknown Developer & Gunter"
-GM.Version = "1.0.0"
+GM.Author = "Unknown Developer"
+GM.Version = "07.01.2024a"
 GM.TeamBased = true
 
 global Jailbreak = Jailbreak or {}
