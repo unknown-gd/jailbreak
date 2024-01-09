@@ -38,7 +38,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
         ply\KillSilent!
 
         timer_Simple 0, ->
-            unless ply\IsValid!
+            if not ply\IsValid! or ply\Alive!
                 return
 
             if ragdoll\IsValid!
@@ -410,6 +410,7 @@ GM.PlayerSilentDeath = ( ply ) =>
 -- https://wiki.facepunch.com/gmod/GM:PostPlayerDeath
 GM.PostPlayerDeath = ( ply ) =>
     ply\ResetToggles!
+    ply\DropObject!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
@@ -460,12 +461,14 @@ do
 
         elseif key == IN_JUMP
             target = ply\GetObserverTarget!
-            if IsValid( target ) and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
-                switch ply\GetObserverMode!
-                    when OBS_MODE_CHASE
-                        ply\Spectate( OBS_MODE_IN_EYE )
-                    when OBS_MODE_IN_EYE
-                        ply\Spectate( OBS_MODE_CHASE )
+            unless IsValid( target ) and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
+                return
+
+            switch ply\GetObserverMode!
+                when OBS_MODE_CHASE
+                    ply\Spectate( OBS_MODE_IN_EYE )
+                when OBS_MODE_IN_EYE
+                    ply\Spectate( OBS_MODE_CHASE )
 
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink

@@ -114,6 +114,10 @@ do
     OBS_MODE_CHASE = OBS_MODE_CHASE
 
     PLAYER.ObserveEntity = ( entity ) =>
+        if @Alive!
+            @UnSpectate!
+            return
+
         unless entity and entity\IsValid!
             if @GetObserverMode! ~= OBS_MODE_ROAMING
                 @Spectate( OBS_MODE_ROAMING )
@@ -131,7 +135,7 @@ do
         :ObserveTargets = Jailbreak
 
         PLAYER.MoveObserveIndex = ( move, players ) =>
-            if #ObserveTargets == 0
+            if @Alive! or #ObserveTargets == 0
                 return
 
             index, length = ( @LastSpectatedIndex or 0 ) + move, #ObserveTargets

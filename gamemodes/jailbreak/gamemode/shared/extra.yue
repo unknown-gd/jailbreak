@@ -92,13 +92,16 @@ do
 
     hook_Add "Move", "Jailbreak::Developer", ( mv ) =>
         unless @IsFlightAllowed!
+            if @GetNW2Bool( "in-flight" )
+                @SetNW2Bool( "in-flight", false )
+
             return
 
         if @IsOnGround!
-            if @Flying
-                @Flying = false
+            if @GetNW2Bool( "in-flight" )
+                @SetNW2Bool( "in-flight", false )
 
-        elseif @Flying
+        elseif @GetNW2Bool( "in-flight" )
             velocity = mv\GetVelocity!
             angles = mv\GetMoveAngles!
 
@@ -139,14 +142,14 @@ do
             mv\SetVelocity( velocity - ( @GetGravity! + 1 ) * GetGravity! * frameTime * 0.5 )
 
         elseif mv\KeyPressed( IN_JUMP )
-            @Flying = true
+            @SetNW2Bool( "in-flight", true )
 
 hook_Add "GetFallDamage", "Jailbreak::Developer", =>
-    if @Flying
+    if @GetNW2Bool( "in-flight" )
         return 0
 
 hook_Add "UpdateAnimation", "Jailbreak::Developer", ( velocity ) =>
-    if @Flying
+    if @GetNW2Bool( "in-flight" )
         @SetPlaybackRate( velocity\Length! < 128 and 0.25 or 0 )
         return true
 
@@ -158,7 +161,7 @@ do
     IsValid = IsValid
 
     hook_Add "CalcMainActivity", "Jailbreak::Developer", =>
-        unless @Flying
+        unless @GetNW2Bool( "in-flight" )
             return
 
         act = ACT_INVALID

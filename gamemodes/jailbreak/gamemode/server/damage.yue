@@ -2,6 +2,7 @@ Jailbreak = Jailbreak
 
 :ceil, :random, :max, :floor, :Rand = math
 :ShockCollarEffect = Jailbreak
+CHAN_STATIC = CHAN_STATIC
 DMG_SHOCK = DMG_SHOCK
 GM = GM
 
@@ -69,10 +70,9 @@ GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
 do
 
     :IsValidModel, :IsInWorld, :Effect, :ScreenShake = util
-    :Teams, :DoorsHealth, :GameInProgress = Jailbreak
+    :Teams, :DoorsHealth, :IsRoundPreparing = Jailbreak
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
     DMG_NEVERGIB = DMG_NEVERGIB
-    CHAN_STATIC = CHAN_STATIC
     EffectData = EffectData
     DMG_BLAST = DMG_BLAST
     hook_Run = hook.Run
@@ -115,7 +115,7 @@ do
             return true
 
         className = entity\GetClass!
-        unless GameInProgress!
+        if IsRoundPreparing!
             if className == "func_button"
                 return
 
@@ -276,7 +276,6 @@ GM.GetFallDamage = ( ply, speed ) =>
 do
 
     LocalToWorld = LocalToWorld
-    CHAN_STATIC = CHAN_STATIC
     Vector = Vector
     Angle = Angle
     pairs = pairs
@@ -346,6 +345,11 @@ do
                 weapon.PickupForbidden = nil
 
             ragdoll.Weapons = nil
+
+        if random( 1, 2 ) == 1
+            ragdoll\EmitSound( "physics/body/body_medium_break" .. random( 2, 4 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        else
+            ragdoll\EmitSound( "physics/flesh/flesh_squishy_impact_hard" .. random( 1, 4 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
         if ragdoll\PrecacheGibs! > 0
             ragdoll\GibBreakClient( velocity )

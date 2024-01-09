@@ -311,6 +311,8 @@ do
 -- Hidden Angel
 do
 
+    :dark_white = Colors
+
     event = Jailbreak.RegisterEvent "hidden-angel", ->
             prisoners = GetTeamPlayers( true, TEAM_PRISONER )[ 1 ]
 
@@ -318,7 +320,9 @@ do
             if prisonerCount == 0
                 return false, false
 
-            prisoners[ random( 1, prisonerCount ) ]\AllowFlight( true )
+            ply = prisoners[ random( 1, prisonerCount ) ]
+            ply\AllowFlight( true )
+            SendChatText( ply, false, CHAT_CUSTOM, dark_white, "#jb.event.hidden-angel.message" )
             return true, true,
         ->
             for ply in *GetAll!
@@ -326,6 +330,6 @@ do
 
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( ROUND_WAITING_PLAYERS )
-    event\SetColor( Colors.white )
+    event\SetColor( dark_white )
     event\SetType( "movement" )
     event\ConVar( 10 )

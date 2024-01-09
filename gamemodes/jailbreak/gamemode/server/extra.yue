@@ -382,7 +382,7 @@ do
 
     :IsRoundRunning, :PlaySound, :GetTeamPlayersCount, :GuardsDeathSound = Jailbreak
 
-    hook.Add "PlayerDeath", "Jailbreak::First Blood", =>
+    hook_Add "PlayerDeath", "Jailbreak::First Blood", =>
         unless GuardsDeathSound\GetBool! and IsRoundRunning! and @IsGuard! and GetTeamPlayersCount( true, TEAM_GUARD )[ 1 ] ~= 0
             return
 
@@ -395,29 +395,26 @@ do
     OBS_MODE_CHASE = OBS_MODE_CHASE
     :TF2Freezecam = Jailbreak
 
-    hook.Add "PlayerDeath", "Jailbreak::TF2 Freezecam", ( _, attacker ) =>
-        unless TF2Freezecam\GetBool!
+    hook_Add "PlayerDeath", "Jailbreak::TF2 Freezecam", ( _, attacker ) =>
+        unless TF2Freezecam\GetBool! and attacker and attacker\IsValid!
             return
 
         timer_Simple 0, ->
-            unless @IsValid!
-                return
-
-            unless IsValid( attacker )
+            if not attacker\IsValid! or not @IsValid! or @Alive!
                 return
 
             if attacker\IsPlayer!
                 if not attacker\Alive! or attacker == @
                     return
 
-            elseif attacker\IsSolid! or attacker\GetNoDraw!
+            elseif not attacker\IsSolid! or attacker\GetNoDraw!
                 return
 
             @Spectate( OBS_MODE_FREEZECAM )
             @SpectateEntity( attacker )
 
             timer_Simple 1.5, ->
-                unless @IsValid!
+                if not @IsValid! or @Alive! or @GetObserverMode! ~= OBS_MODE_FREEZECAM
                     return
 
                 @Spectate( OBS_MODE_CHASE )

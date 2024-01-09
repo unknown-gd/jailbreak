@@ -327,9 +327,9 @@ do
             return
 
         if chatTime\GetBool!
-            AddText( light_grey, date( "[%H:%M:%S] " ), white, unpack( message ) )
+            AddText( light_grey, date( "[%H:%M:%S] " ), unpack( message ) )
         else
-            AddText( white, unpack( message ) )
+            AddText( unpack( message ) )
 
         if chatSound\GetBool!
             PlaySound!

@@ -187,10 +187,11 @@ do
 
     :Markers, :VoiceChatMinDistance, :MarkersLifetime, :MarkersCount, :Emotion, :GetWeaponName = Jailbreak
     :Start, :WriteEntity, :WriteBool, :WriteVector, :Send, :Broadcast = net
+    :white = Jailbreak.Colors
     CHAN_STATIC = CHAN_STATIC
     EmitSound = EmitSound
     :TraceLine = util
-    :random = math
+    :abs, :random = math
 
     trace = {
         mask: MASK_SHOT
@@ -288,13 +289,20 @@ do
 
         if entity\IsValid!
             if entity\IsPlayer!
-                Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\Nick!, white, "." )
+                Emotion( @, "#jb.chat.pointed-at \"", entity\GetModelColor!, entity\Nick!, white, "\"." )
             elseif entity\IsPlayerRagdoll!
-                Emotion( @, "#jb.chat.pointed-at ", entity\GetModelColor!, entity\GetRagdollOwnerNickname!, white, "." )
+                Emotion( @, "#jb.chat.pointed-at \"", entity\GetModelColor!, entity\GetRagdollOwnerNickname!, white, "\"." )
             elseif entity\IsWeapon!
                 Emotion( @, "#jb.chat.pointed-at \"" .. GetWeaponName( entity ) .. "\"." )
             else
                 Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
 
         else
-            Emotion( @, "#jb.chat.pointed-at \"#jb.position\"." )
+
+            dir = traceResult.HitNormal
+            if abs( dir[ 1 ] ) > 0.5 or abs( dir[ 2 ] ) > 0.5
+                Emotion( @, "#jb.chat.pointed-at \"#jb.wall\"." )
+            elseif dir[ 3 ] > 0.5
+                Emotion( @, "#jb.chat.pointed-at \"#jb.floor\"." )
+            else
+                Emotion( @, "#jb.chat.pointed-at \"#jb.ceiling\"." )
