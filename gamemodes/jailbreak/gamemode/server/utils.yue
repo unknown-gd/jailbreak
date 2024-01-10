@@ -36,6 +36,27 @@ do
         WriteString( soundPath )
         Broadcast!
 
+do
+
+    :DelayedRemove = Jailbreak
+    :BlastDamage = util
+    :ceil = math
+
+    Jailbreak.Explosion = ( inflictor, attacker, origin, radius, damage ) ->
+        fx = EffectData!
+        fx\SetOrigin( origin )
+
+        scale = ceil( radius / 125 )
+        fx\SetRadius( scale )
+        fx\SetScale( scale )
+
+        fx\SetMagnitude( ceil( damage / 18.75 ) )
+
+        Effect( "Sparks", fx )
+        Effect( "Explosion", fx )
+
+        BlastDamage( inflictor, attacker, origin, radius, damage )
+
 -- Change player team
 do
 

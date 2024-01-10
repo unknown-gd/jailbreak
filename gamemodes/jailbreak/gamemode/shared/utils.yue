@@ -203,6 +203,16 @@ Jailbreak.GetWardenCoins = ->
 Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
+-- Delayed entity remove
+do
+
+    :Simple = timer
+
+    Jailbreak.DelayedRemove = ( delay ) =>
+        Simple delay or 0, ->
+            if @IsValid!
+                @Remove!
+
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 
