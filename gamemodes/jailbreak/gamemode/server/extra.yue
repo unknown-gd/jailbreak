@@ -58,7 +58,7 @@ do
 do
 
     :ShockCollarEffect, :SendChatText = Jailbreak
-    CHAT_CUSTOM = CHAT_CUSTOM
+    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
     :GetAll = player
 
     GM.ShockCollars = ( bool ) =>
@@ -70,7 +70,7 @@ do
 
                 ShockCollarEffect( ply )
 
-        SendChatText( receivers, false, CHAT_CUSTOM, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+        SendChatText( receivers, false, CHAT_SERVERMESSAGE, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
 
 do
 
@@ -88,10 +88,7 @@ do
             isnumber = isnumber
             istable = istable
 
-            replaceFilter = ( modelName, chance ) ->
-                unless isnumber( chance )
-                    chance = nil
-
+            replaceFilter = ( modelName ) ->
                 if isstring( modelName )
                     modelName = lower( modelName )
                 elseif istable( modelName )
@@ -102,7 +99,7 @@ do
                     modelName = tbl
                 else
                     return =>
-                        return not chance or random( 1, 100 ) <= chance
+                        return true
 
                 return =>
                     modelPath = @GetModel!
@@ -114,33 +111,15 @@ do
                         return false
 
                     if istable( modelName )
-                        unless modelName[ modelPath ]
-                            return false
-                    else
-                        unless find( modelPath, modelName, 1, false )
-                            return false
+                        return modelName[ modelPath ]
 
-                    return not chance or random( 1, 100 ) <= chance
+                    return find( modelPath, modelName, 1, false ) ~= nil
 
         entityReplaces = {
 
             -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
             ["293904092"]: ->
                 EntityReplacer "^prop_physics.*", "sent_soccerball", replaceFilter( "models/props_phx/misc/soccerball%.mdl" )
-
-            -- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
-            ["931376012"]: ->
-                EntityReplacer "^prop_physics.*", "sent_jetpack", replaceFilter( "models/props_junk/%w+%.mdl", 2 ), =>
-                    @SetSlotName( @GetClass! )
-
-            -- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
-            ["931448005"]: ->
-                EntityReplacer "^prop_physics.*", "sent_grapplehook_bpack", replaceFilter( "models/props_junk/%w+%.mdl", 5 ), =>
-                    @SetSlotName( @GetClass! )
-
-                    timer_Simple 0, ->
-                        if @IsValid!
-                            @SetKey( 12 )
 
         }
 

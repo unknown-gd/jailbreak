@@ -12,19 +12,19 @@ do
 
     PLAYER.PlaySound = ( soundPath ) =>
         Start( "Jailbreak::Networking" )
-        WriteUInt( 4, 3 )
+        WriteUInt( 4, 4 )
         WriteString( soundPath )
         Send( @ )
 
     PLAYER.SendPickupNotify = ( itemName ) =>
         Start( "Jailbreak::Networking" )
-        WriteUInt( 1, 3 )
+        WriteUInt( 1, 4 )
         WriteString( itemName )
         Send( @ )
 
     PLAYER.ResetToggles = =>
         Start( "Jailbreak::Networking" )
-        WriteUInt( 6, 3 )
+        WriteUInt( 6, 4 )
         Send( @ )
 
     do
@@ -42,7 +42,7 @@ do
             rf\AddPVS( @WorldSpaceCenter! )
             if rf\GetCount! > 0
                 Start( "Jailbreak::Networking" )
-                WriteUInt( 5, 3 )
+                WriteUInt( 5, 4 )
                 WriteEntity( @ )
                 WriteUInt( slot, 3 )
                 WriteUInt( activity, 11 )
@@ -69,7 +69,7 @@ do
 
         PLAYER.SendNotify = ( text, typeID, length, ... ) =>
             Start( "Jailbreak::Networking" )
-            WriteUInt( 2, 3 )
+            WriteUInt( 2, 4 )
             WriteString( text )
             WriteTable( { ... }, true )
             WriteUInt( typeID, 3 )

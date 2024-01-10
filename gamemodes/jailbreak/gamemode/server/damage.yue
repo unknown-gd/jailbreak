@@ -69,8 +69,8 @@ GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
 
 do
 
+    :Teams, :DoorsHealth, :IsRoundPreparing, :Explosion = Jailbreak
     :IsValidModel, :IsInWorld, :Effect, :ScreenShake = util
-    :Teams, :DoorsHealth, :IsRoundPreparing = Jailbreak
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
     DMG_NEVERGIB = DMG_NEVERGIB
     EffectData = EffectData
@@ -80,6 +80,9 @@ do
     IsValid = IsValid
     :Create = ents
     :band = bit
+
+    sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
+    sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
         if damageInfo\IsExplosionDamage!
@@ -183,6 +186,21 @@ do
                 Effect( "Sparks", fx )
 
                 return true
+
+            when "weapon_frag"
+                if entity.Exploded
+                    return true
+
+                entity.Exploded = true
+
+                radius = sk_fraggrenade_radius\GetInt!
+                if damageInfo\IsExplosionDamage!
+                    radius *= random( 1, 4 )
+
+                Explosion( entity, damageInfo\GetAttacker!, entity\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
+                entity\Remove!
+                return true
+
             when "func_button"
                 if band( damageType, DMG_BLAST ) == DMG_BLAST
                     return true

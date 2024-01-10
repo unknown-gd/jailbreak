@@ -146,7 +146,7 @@ do
     ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
     ROUND_PREPARING = ROUND_PREPARING
     ROUND_RUNNING = ROUND_RUNNING
-    ROUND_ENDED = ROUND_ENDED
+    ROUND_FINISHED = ROUND_FINISHED
 
     -- Returns round state as integer
     getRoundState = ->
@@ -166,9 +166,9 @@ do
     Jailbreak.IsRoundRunning = =>
         return getRoundState! == ROUND_RUNNING
 
-    -- Returns true if round is ended
-    Jailbreak.IsRoundEnded = =>
-        return getRoundState! == ROUND_ENDED
+    -- Returns true if round is finished
+    Jailbreak.IsRoundFinished = =>
+        return getRoundState! == ROUND_FINISHED
 
     -- Returns true if game is in progress
     Jailbreak.GameInProgress = =>

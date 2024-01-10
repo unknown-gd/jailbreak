@@ -17,10 +17,6 @@ IsValid = IsValid
 EyePos = EyePos
 Lerp = Lerp
 
-ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
-ROUND_RUNNING = ROUND_RUNNING
-ROUND_ENDED = ROUND_ENDED
-
 TEAM_SPECTATOR = TEAM_SPECTATOR
 
 do
@@ -42,6 +38,9 @@ do
 do
 
     :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams, :TargetID, :DeathNotice = Jailbreak
+    ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
+    ROUND_RUNNING = ROUND_RUNNING
+    ROUND_FINISHED = ROUND_FINISHED
 
     Jailbreak.Font( "Jailbreak::Winners", "Roboto Mono Bold Italic", 4 )
     Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
@@ -87,7 +86,7 @@ do
 
         y += textHeight
 
-        if state == ROUND_ENDED
+        if state == ROUND_FINISHED
             teamID = GetWinningTeam!
             r, g, b = dark_white.r, dark_white.g, dark_white.b
 

@@ -87,7 +87,7 @@ do
     }
 
     net.Receive "Jailbreak::Networking", ( len ) ->
-        func = Networking[ ReadUInt( 3 ) ]
+        func = Networking[ ReadUInt( 4 ) ]
         unless func
             return
 

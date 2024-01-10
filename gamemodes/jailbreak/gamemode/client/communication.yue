@@ -223,8 +223,8 @@ do
             insert( value )
 
     messageHandlers[ CHAT_SERVERMESSAGE ] = ( _, __, data ) ->
-        insert( dark_white )
-        insert( data[ 1 ] )
+        insert( data[ 2 ] or dark_white )
+        insert( Translate( data[ 1 ] ), nil )
 
     messageHandlers[ CHAT_CONNECTED ] = ( _, __, data ) ->
         insert( white )

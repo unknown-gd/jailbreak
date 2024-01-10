@@ -7,7 +7,7 @@ CurTime = CurTime
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
-ROUND_ENDED = ROUND_ENDED
+ROUND_FINISHED = ROUND_FINISHED
 
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
@@ -64,7 +64,7 @@ do
 
             teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
             if teams[ 1 ] == 0 or teams[ 2 ] == 0
-                setRoundState( ROUND_ENDED )
+                setRoundState( ROUND_FINISHED )
             else
 
                 if teamID == TEAM_PRISONER and teams[ 2 ] == 1 and teams[ 2 ] < lastPrisonersCount
@@ -84,7 +84,8 @@ do
 -- Perform a round state change
 do
 
-    :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards = Jailbreak
+    :Colors, :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards, :SendChatText = Jailbreak
+    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
     timer_Simple = timer.Simple
     :CleanUpMap = game
     :GetAll = player
@@ -108,6 +109,7 @@ do
                         ply\SetTeam( TEAM_PRISONER )
 
                 timer_Simple( 0, CleanUpMap )
+                SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new )
 
             when ROUND_PREPARING
                 SetShockCollars( true )
@@ -120,6 +122,7 @@ do
                         ply\Spawn!
 
                 timer_Simple( 0, CleanUpMap )
+                SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.horizon )
 
             when ROUND_RUNNING
                 PlaySound( "ambient/alarms/warningbell1.wav" )
@@ -160,13 +163,18 @@ do
                 if roundTime > 0
                     setRoundTime( roundTime )
 
-            when ROUND_ENDED
+                SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.asparagus )
+
+            when ROUND_FINISHED
                 teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
                 if teams[ 1 ] > teams[ 2 ]
+                    SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. "." .. TEAM_GUARD, Jailbreak.GetTeamColor( TEAM_GUARD ) )
                     setWinningTeam( TEAM_GUARD )
                 elseif teams[ 1 ] < teams[ 2 ]
+                    SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. "." .. TEAM_PRISONER, Jailbreak.GetTeamColor( TEAM_PRISONER ) )
                     setWinningTeam( TEAM_PRISONER )
                 else
+                    SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. ".0", Colors.dark_white )
                     setWinningTeam( 0 )
 
                 warden = GetWarden!
@@ -243,7 +251,7 @@ do
                 AddScore( TEAM_GUARD, 1 )
                 setWinningTeam( TEAM_GUARD )
 
-                setRoundState( ROUND_ENDED, true )
+                setRoundState( ROUND_FINISHED, true )
                 setRoundTime( PrepareTime\GetInt! )
-            when ROUND_ENDED
+            when ROUND_FINISHED
                 setRoundState( ROUND_WAITING_PLAYERS )

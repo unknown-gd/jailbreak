@@ -32,7 +32,7 @@ do
 
     sendChatText = ( target, speaker, messageType, text, nickname, isDead, isTeamChat, ... ) ->
         Start( "Jailbreak::Networking" )
-        WriteUInt( 3, 3 )
+        WriteUInt( 3, 4 )
 
         hasSpeaker = speaker and speaker\IsValid!
         WriteBool( hasSpeaker )

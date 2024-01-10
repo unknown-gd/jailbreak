@@ -32,7 +32,7 @@ do
 
     Jailbreak.PlaySound = ( soundPath ) ->
         Start( "Jailbreak::Networking" )
-        WriteUInt( 4, 3 )
+        WriteUInt( 4, 4 )
         WriteString( soundPath )
         Broadcast!
 
