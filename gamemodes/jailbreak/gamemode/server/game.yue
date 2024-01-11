@@ -620,8 +620,6 @@ GM.PlayerSwitchFlashlight = ( ply, newState ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerUse
 do
 
-    AmmoPickupBlacklist = list.GetForEdit( "Jailbreak::AmmoPickupBlacklist" )
-    list.Set( "Jailbreak::AmmoPickupBlacklist", "weapon_frag", true )
     CurTime = CurTime
 
     GM.PlayerUse = ( ply, entity ) =>
@@ -667,9 +665,6 @@ do
                     return false
 
             if ply\HasWeapon( className )
-                if AmmoPickupBlacklist[ className ]
-                    return false
-
                 clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
                 if clip1 > 0 and clip1Type >= 0
                     ply\GiveAmmo( clip1, clip1Type, false )
@@ -860,18 +855,11 @@ do
             owner.m_bGivedAmmo = givedAmmo
 
         primaryAmmoType = weapon\GetPrimaryAmmoType!
-        if primaryAmmoType >= 0
-            if weapon\GetClass! == "weapon_frag"
-                timer_Simple 0, ->
-                    if owner\IsValid!
-                        owner\SetAmmo( 1, primaryAmmoType )
-
-                weapon\SetClip1( -1 )
-            elseif givedAmmo[ primaryAmmoType ] == nil
-                count = min( 256, GetAmmoMax( primaryAmmoType ) ) - owner\GetAmmoCount( primaryAmmoType )
-                if count > 0
-                    owner\GiveAmmo( count, primaryAmmoType, false )
-                    givedAmmo[ primaryAmmoType ] = true
+        if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
+            count = min( 256, GetAmmoMax( primaryAmmoType ) ) - owner\GetAmmoCount( primaryAmmoType )
+            if count > 0
+                owner\GiveAmmo( count, primaryAmmoType, false )
+                givedAmmo[ primaryAmmoType ] = true
 
         secondaryAmmoType = weapon\GetSecondaryAmmoType!
         if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
