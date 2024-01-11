@@ -8,11 +8,21 @@ PLAYER.ChangeTeam = Jailbreak.ChangeTeam
 
 do
 
+    :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed = Jailbreak
+
+    PLAYER.SetupSpeed = =>
+        @SetSlowWalkSpeed( PlayerSlowWalkSpeed\GetInt! )
+        @SetWalkSpeed( PlayerWalkSpeed\GetInt! )
+        @SetRunSpeed( PlayerRunSpeed\GetInt! )
+        hook_Run( "SetupPlayerSpeed", @ )
+
+do
+
     :Start, :WriteUInt, :WriteTable, :WriteString, :WriteBool, :WriteEntity, :Send = net
 
     PLAYER.PlaySound = ( soundPath ) =>
         Start( "Jailbreak::Networking" )
-        WriteUInt( 4, 4 )
+        WriteUInt( 3, 4 )
         WriteString( soundPath )
         Send( @ )
 
@@ -24,7 +34,7 @@ do
 
     PLAYER.ResetToggles = =>
         Start( "Jailbreak::Networking" )
-        WriteUInt( 6, 4 )
+        WriteUInt( 5, 4 )
         Send( @ )
 
     do
@@ -42,7 +52,7 @@ do
             rf\AddPVS( @WorldSpaceCenter! )
             if rf\GetCount! > 0
                 Start( "Jailbreak::Networking" )
-                WriteUInt( 5, 4 )
+                WriteUInt( 4, 4 )
                 WriteEntity( @ )
                 WriteUInt( slot, 3 )
                 WriteUInt( activity, 11 )

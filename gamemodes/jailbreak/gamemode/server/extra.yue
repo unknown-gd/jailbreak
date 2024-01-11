@@ -1,7 +1,7 @@
 Jailbreak = Jailbreak
 
+:Clamp, :Rand, :random, :max, :floor = math
 ENTITY = FindMetaTable( "Entity" )
-:random, :max, :Rand = math
 timer_Simple = timer.Simple
 :FixModelPath = Jailbreak
 hook_Add = hook.Add
@@ -232,7 +232,6 @@ do
     foodEatingSound = Sound( "player/eating.wav" )
     :IsFoodModel, :FoodEatingTime = Jailbreak
     CHAN_STATIC = CHAN_STATIC
-    :Clamp, :floor = math
 
     hook_Add "OnEntityCreated", "Jailbreak::FoodEntities", =>
         unless @IsProp!
@@ -417,3 +416,46 @@ hook_Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
 
     if @SteamID64! == "76561198100459279"
         @SetNW2Bool( "is-developer", true )
+
+-- Ultra realistic items mass
+GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
+    if entity.RagdollMover
+        hook.Add "Think", entity, =>
+            unless @IsPlayerHolding!
+                @Remove!
+
+        entity = entity.Ragdoll
+        unless entity\IsValid!
+            return
+
+    entityMass = 1 / entity\GetPhysicsMass!
+
+    slowWalkSpeed = ply\GetSlowWalkSpeed!
+    ply\SetSlowWalkSpeed( Clamp( entityMass * slowWalkSpeed, 32, slowWalkSpeed ) )
+
+    walkSpeed = ply\GetWalkSpeed!
+    ply\SetWalkSpeed( Clamp( entityMass * walkSpeed, 64, walkSpeed ) )
+
+    runSpeed = ply\GetRunSpeed!
+    ply\SetRunSpeed( Clamp( entityMass * runSpeed, 64, runSpeed ) )
+
+GM.OnPlayerPhysicsDrop = ( ply, entity, thrown ) =>
+    ply\SetupSpeed!
+
+    unless thrown
+        return
+
+    if entity.RagdollMover
+        ragdoll = entity.Ragdoll
+        entity\Remove!
+
+        unless ragdoll\IsValid!
+            return
+
+        entity = ragdoll
+
+    force = floor( entity\GetPhysicsMass! / 2 )
+    if force == 0
+        return
+
+    ply\SetVelocity( ply\GetAimVector! * force )

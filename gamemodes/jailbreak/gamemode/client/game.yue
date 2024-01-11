@@ -70,18 +70,16 @@ do
         [ 2 ]: ->
             AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
         [ 3 ]: ->
-            hook_Run( "OnChatText", ReadBool! and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 4 ), ReadTable( true ) )
-        [ 4 ]: ->
             ply = Jailbreak.Player
             unless ply\IsValid!
                 return
 
             ply\EmitSound( ReadString!, 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
-        [ 5 ]: ->
+        [ 4 ]: ->
             entity = ReadEntity!
             if entity and entity\IsValid and entity\IsPlayer!
                 entity\AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool! )
-        [ 6 ]: ->
+        [ 5 ]: ->
             RunConsoleCommand( "jb_security_radio", "0" )
             RunConsoleCommand( "jb_megaphone", "0" )
     }
@@ -92,16 +90,3 @@ do
             return
 
         func( len )
-
-do
-
-    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
-
-    GM.ChatText = ( index, nickname, text, messageType ) =>
-        if messageType == "servermsg"
-            hook_Run( "OnChatText", NULL, CHAT_SERVERMESSAGE, { text } )
-
-        return true
-
-GM.OnPlayerChat = =>
-    return true

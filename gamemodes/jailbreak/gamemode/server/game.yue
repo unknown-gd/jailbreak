@@ -108,7 +108,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :RagdollRemove, :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :GameInProgress, :GuardsArmor = Jailbreak
+    :RagdollRemove, :GameInProgress, :GuardsArmor = Jailbreak
 
     GM.PlayerSpawn = ( ply, transiton ) =>
         ply\RemoveFromObserveTargets!
@@ -118,13 +118,10 @@ do
         ply\RemoveAllAmmo!
         ply\StripWeapons!
         ply\UnSpectate!
+        ply\SetupSpeed!
 
         if ply\FlashlightIsOn!
             ply\Flashlight( false )
-
-        ply\SetSlowWalkSpeed( PlayerSlowWalkSpeed\GetInt! )
-        ply\SetWalkSpeed( PlayerWalkSpeed\GetInt! )
-        ply\SetRunSpeed( PlayerRunSpeed\GetInt! )
 
         ply\SetMaxHealth( 100 )
         ply\SetMaxArmor( 100 )
@@ -429,7 +426,10 @@ do
 -- Spectator controls
 do
 
-    IN_ATTACK, IN_ATTACK2 = IN_ATTACK, IN_ATTACK2
+    IN_ATTACK, IN_ATTACK2, IN_USE = IN_ATTACK, IN_ATTACK2, IN_USE
+    :Weld = constraint
+    :TraceLine = util
+    :Create = ents
 
     MovementKeys = {
         [ IN_FORWARD ]: true
@@ -438,8 +438,55 @@ do
         [ IN_MOVERIGHT ]: true
     }
 
+    trace = {}
+
     GM.KeyPress = ( ply, key ) =>
-        if ply\Alive! or ply\GetInfo( "jb_spectator_controls" ) == "0"
+        if ply\Alive!
+            if key ~= IN_USE
+                return
+
+            if ply\IsHoldingEntity!
+                return
+
+            timer_Simple 0.05 + ply\Ping! / 1000, ->
+                unless ply\IsValid! and ply\Alive!
+                    return
+
+                if ply\KeyDown( IN_USE ) or ply\IsHoldingEntity!
+                    return
+
+                start = ply\EyePos!
+                trace.start = start
+                trace.endpos = start + ply\GetAimVector! * 72
+                trace.filter = ply
+
+                traceResult = TraceLine( trace )
+                unless traceResult.Hit
+                    return
+
+                entity = traceResult.Entity
+                unless entity\IsValid!
+                    return
+
+                if entity\IsRagdoll!
+                    physID = max( 0, traceResult.PhysicsBone )
+
+                    phys = entity\GetPhysicsObjectNum( physID )
+                    unless IsValid( phys ) and phys\IsMoveable!
+                        return
+
+                    mover = Create( "jb_ragdoll_mover" )
+                    mover\SetPos( phys\LocalToWorld( phys\GetMassCenter! ) )
+                    mover.Ragdoll = entity
+                    mover\SetOwner( ply )
+                    mover\Spawn!
+
+                    mover.Weld = Weld( mover, entity, 0, physID, 0, true, true )
+                    ply\PickupObject( mover )
+
+            return
+
+        if ply\GetInfo( "jb_spectator_controls" ) == "0"
             return
 
         if MovementKeys[ key ]
@@ -452,24 +499,26 @@ do
             ply\SpectateEntity!
 
             ply\SetEyeAngles( eyeAngles )
+            return
 
-        elseif key == IN_ATTACK
-            ply\MoveObserveIndex( 1 )
+        switch key
+            when IN_ATTACK
+                ply\MoveObserveIndex( 1 )
 
-        elseif key == IN_ATTACK2
-            ply\MoveObserveIndex( -1 )
+            when IN_ATTACK2
+                ply\MoveObserveIndex( -1 )
 
-        elseif key == IN_JUMP
-            target = ply\GetObserverTarget!
-            unless IsValid( target ) and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
-                return
+            when IN_JUMP
+                target = ply\GetObserverTarget!
+                unless IsValid( target ) and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
+                    return
 
-            switch ply\GetObserverMode!
-                when OBS_MODE_CHASE
-                    ply\Spectate( OBS_MODE_IN_EYE )
-                when OBS_MODE_IN_EYE
-                    ply\Spectate( OBS_MODE_CHASE )
+                switch ply\GetObserverMode!
+                    when OBS_MODE_CHASE
+                        ply\Spectate( OBS_MODE_IN_EYE )
 
+                    when OBS_MODE_IN_EYE
+                        ply\Spectate( OBS_MODE_CHASE )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
@@ -579,6 +628,9 @@ do
         unless ply\Alive!
             return
 
+        if ply\IsHoldingEntity!
+            return false
+
         weapon = ply\GetActiveWeapon!
         if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
             velocity = ply\GetVelocity!
@@ -600,6 +652,7 @@ do
             startUseTime = ply\GetNW2Int( "start-use-time" )
             if startUseTime ~= 0 and hook_Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
                 ply\SetNW2Int( "start-use-time", 0 )
+                return false
 
         unless isReleased
             return
@@ -713,6 +766,11 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
 
     if entity\IsValidObserveTarget!
         entity\RemoveFromObserveTargets!
+
+    if entity.RagdollMover
+        weld = entity.Weld
+        if IsValid( weld )
+            weld\Remove!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDroppedWeapon
 do

@@ -178,8 +178,8 @@ do
         @SelectWeapon( nextWeapon\GetClass! )
 
     Add "drop", dropWeapon
-    Jailbreak.SetChatCommand "drop", dropWeapon
-    Jailbreak.SetChatCommand "dropweapon", dropWeapon
+    Jailbreak.SetChatCommand "drop", dropWeapon, "#jb.chat.command.drop"
+    Jailbreak.SetChatCommand "dropweapon", dropWeapon, "#jb.chat.command.drop"
 
 do
 
@@ -296,6 +296,9 @@ do
                 Emotion( @, "#jb.chat.pointed-at \"" .. GetWeaponName( entity ) .. "\"." )
             else
                 Emotion( @, "#jb.chat.pointed-at \"#jb." .. entity\GetClass! .. "\"." )
+
+        elseif traceResult.HitSky
+            Emotion( @, "#jb.chat.pointed-at \"#jb.sky\"." )
 
         else
 

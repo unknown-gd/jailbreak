@@ -32,7 +32,7 @@ do
 
     Jailbreak.PlaySound = ( soundPath ) ->
         Start( "Jailbreak::Networking" )
-        WriteUInt( 4, 4 )
+        WriteUInt( 3, 4 )
         WriteString( soundPath )
         Broadcast!
 
@@ -157,6 +157,21 @@ do
 
     ENTITY = FindMetaTable( "Entity" )
     :GetClass = ENTITY
+
+    -- Returns entity mass in kilograms
+    do
+
+        :GetPhysicsObjectCount, :GetPhysicsObjectNum = ENTITY
+
+        ENTITY.GetPhysicsMass = =>
+            objectMass = 0
+
+            for physNum = 0, GetPhysicsObjectCount( @ ) - 1
+                phys = GetPhysicsObjectNum( @, physNum )
+                if IsValid( phys )
+                    objectMass += phys\GetMass!
+
+            return objectMass
 
     -- Entity dissolve method
     do

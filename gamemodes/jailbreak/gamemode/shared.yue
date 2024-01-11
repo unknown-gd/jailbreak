@@ -93,6 +93,10 @@ do
     Jailbreak.VoiceFlexLess = CreateConVar( "jb_voice_flex_less", "1", FCVAR_SHARED, "Flex less animations mode.", 0, 10 )
     Jailbreak.VoiceForceFlexLess = CreateConVar( "jb_voice_force_flex_less", "0", FCVAR_SHARED, "Forces flex less animations for all playermodels.", 0, 1 )
 
+    -- Chat
+    Jailbreak.MinWhisperDistance = CreateConVar( "jb_chat_whisper_distance_min", "40", FCVAR_SERVER, "Minimal distance for damaging whisper messages.", 16, 65536 )
+    Jailbreak.MaxWhisperDistance = CreateConVar( "jb_chat_whisper_distance_max", "128", FCVAR_SERVER, "Maximal distance for damaging whisper messages.", 128, 65536 )
+
     -- Markers
     Jailbreak.Markers = CreateConVar( "jb_markers", "1", FCVAR_SHARED, "Allow players use markers.", 0, 1 )
     Jailbreak.MarkersCount = CreateConVar( "jb_markers_count", "5", FCVAR_SHARED, "Marker counts from marker lifetime.", 0, 100 )

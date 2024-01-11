@@ -349,7 +349,7 @@ do
         if ply\IsPlayer! and keyName ~= nil and ply\Alive!
             useEntity = ply\GetUseEntity!
             if useEntity\IsValid!
-                text = nil
+                text, progress = nil, 0
 
                 if entityType == 1
                     weapon = ply\GetActiveWeapon!
@@ -359,12 +359,13 @@ do
                 elseif entityType == 2
                     useTime = ply\GetUseTime!
                     if useTime ~= 0
-                        text = format( GetPhrase( "jb.player.search.time" ), Clamp( useTime / Jailbreak.RagdollLootingTime\GetInt!, 0, 1 ) * 100 )
-                    else
-                        text = GetPhrase( "jb.player.search" )
+                        progress = Clamp( useTime / Jailbreak.RagdollLootingTime\GetInt!, 0, 1 )
+
+                    text = GetPhrase( "jb.player.search" )
 
                 elseif entityType == 5
                     text = "#jb.player.press_button"
+
                 elseif entityType == 3
                     if ply\HasWeapon( useEntity\GetClass! )
                         text = "#jb.player.pickup_ammo"
@@ -374,9 +375,9 @@ do
                 elseif entityType == 4
                     useTime = ply\GetUseTime!
                     if useTime ~= 0
-                        text = format( GetPhrase( "jb.player.eat_food.time" ), Clamp( useTime / Jailbreak.FoodEatingTime\GetInt!, 0, 1 ) * 100 )
-                    else
-                        text = GetPhrase( "jb.player.eat_food" )
+                        progress = Clamp( useTime / Jailbreak.FoodEatingTime\GetInt!, 0, 1 )
+
+                    text = GetPhrase( "jb.player.eat_food" )
 
                 else
 
@@ -400,14 +401,25 @@ do
                     x = mouseX - ( width + margin + height ) / 2
                     y += ( height - textHeight ) / 2 + margin
 
-                    if ply\KeyDown( 32 )
-                        SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
-                        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
-                    else
+                    if progress ~= 0
                         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-                        SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+                        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+                        DrawRect( x, y - ( height - textHeight ) / 2, height, height )
 
-                    DrawRect( x, y - ( height - textHeight ) / 2, height, height )
+                        SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
+
+                        rectHeight = ceil( height * progress )
+                        DrawRect( x, ( y - ( height - textHeight ) / 2 + height ) - rectHeight, height, rectHeight )
+
+                    else
+                        if ply\KeyDown( 32 )
+                            SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
+                            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+                        else
+                            SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+                            SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+
+                        DrawRect( x, y - ( height - textHeight ) / 2, height, height )
 
                     SetTextPos( x + ( height - GetTextSize( keyName ) ) / 2, y )
                     DrawText( keyName )
