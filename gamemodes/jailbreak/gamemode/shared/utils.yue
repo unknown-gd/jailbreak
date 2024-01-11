@@ -213,6 +213,21 @@ do
             if @IsValid!
                 @Remove!
 
+-- Returns converted tf2 teams to jailbreak teams
+do
+
+    TEAM_SPECTATOR = TEAM_SPECTATOR
+
+    Jailbreak.TF2Team = ( teamID ) ->
+        switch teamID
+            when 2
+                return TEAM_PRISONER
+
+            when 3
+                return TEAM_GUARD
+
+        return TEAM_SPECTATOR
+
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 

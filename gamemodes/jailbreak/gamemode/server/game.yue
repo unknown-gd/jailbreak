@@ -229,7 +229,7 @@ do
         unless Teams[ teamID ]
             return true
 
-        if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or TF2Team( entity.Team ) ~= teamID )
+        if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or entity.Team ~= teamID )
             return false
 
         trace.filter = entity

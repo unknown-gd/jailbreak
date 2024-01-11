@@ -22,10 +22,6 @@ global NOTIFY_UNDO = 2
 global NOTIFY_HINT = 3
 global NOTIFY_CLEANUP = 4
 
--- TF2 teams to jailbreak teams
-Jailbreak.TF2Team = ( teamID ) ->
-    return teamID % 2 + 1
-
 do
 
     :Start, :WriteUInt, :WriteString, :Broadcast = net

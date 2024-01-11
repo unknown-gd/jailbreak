@@ -1,6 +1,3 @@
-tonumber = tonumber
-tobool = tobool
-
 ENT.Type = "point"
 
 ENT.Initialize = =>
@@ -15,9 +12,16 @@ ENT.AcceptInput = ( key, activator, caller, data ) =>
         when "Toggle"
             @Disabled = not @Disabled
 
-ENT.KeyValue = ( key, value ) =>
-    switch key
-        when "TeamNum"
-            @Team = tonumber( value ) - 1
-        when "StartDisabled"
-            @Disabled = tobool( value )
+do
+
+    :TF2Team = Jailbreak
+    tonumber = tonumber
+    tobool = tobool
+
+    ENT.KeyValue = ( key, value ) =>
+        switch key
+            when "TeamNum"
+                @Team = TF2Team( tonumber( value ) or 0)
+
+            when "StartDisabled"
+                @Disabled = tobool( value )
