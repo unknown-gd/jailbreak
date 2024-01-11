@@ -812,38 +812,73 @@ do
             @PlayerDroppedWeapon( ply, weapon )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
+GM.PlayerLoadout = ( ply ) =>
+    teamID = ply\Team!
+    if teamID == TEAM_GUARD
+        -- Giving weapons if not cstrike
+        if Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
+            avaliableWeapons = @AvaliableWeapons
+            count = #avaliableWeapons / 4
+            gived = {}
+
+            while count > 0
+                className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
+                if ply\HasWeapon( className ) or gived[ className ]
+                    continue
+
+                gived[ className ] = true
+                ply\Give( className )
+                count -= 1
+
+    -- Giving hands
+    ply\Give( "jb_hands" )
+    ply\SelectWeapon( "jb_hands" )
+
 do
 
-    GM.GuardsAmmoMult = CreateConVar( "jb_guards_ammo", "1", ConVarFlags, "Guards ammo multiplier ( max * multiplier ) on spawn.", 0, 1000 )
-    :GetAmmoTypes, :GetAmmoMax = game
+    :GetAmmoMax = game
 
-    GM.PlayerLoadout = ( ply ) =>
-        teamID = ply\Team!
-        if teamID == TEAM_GUARD
-            -- Giving all ammo
-            do
-                mult = @GuardsAmmoMult\GetFloat!
-                for index = 1, #GetAmmoTypes!
-                    ply\GiveAmmo( min( 250, GetAmmoMax( index ) * mult ), index, true )
+    hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", =>
+        @m_bGivedAmmo = nil
 
-            -- Giving weapons if not cstrike
-            if Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
-                avaliableWeapons = @AvaliableWeapons
-                count = #avaliableWeapons / 4
-                gived = {}
+    GM.WeaponEquip = ( weapon, owner ) =>
+        unless weapon.Equiped
+            if weapon\Clip1! > 0
+                weapon\SetClip1( 0 )
 
-                while count > 0
-                    className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
-                    if ply\HasWeapon( className ) or gived[ className ]
-                        continue
+            if weapon\Clip2! > 0
+                weapon\SetClip2( 0 )
 
-                    gived[ className ] = true
-                    ply\Give( className )
-                    count -= 1
+            weapon.Equiped = true
 
-        -- Giving hands
-        ply\Give( "jb_hands" )
-        ply\SelectWeapon( "jb_hands" )
+        unless owner\IsGuard!
+            return
+
+        givedAmmo = owner.m_bGivedAmmo
+        unless givedAmmo
+            givedAmmo = {}
+            owner.m_bGivedAmmo = givedAmmo
+
+        primaryAmmoType = weapon\GetPrimaryAmmoType!
+        if primaryAmmoType >= 0
+            if weapon\GetClass! == "weapon_frag"
+                timer_Simple 0, ->
+                    if owner\IsValid!
+                        owner\SetAmmo( 1, primaryAmmoType )
+
+                weapon\SetClip1( -1 )
+            elseif givedAmmo[ primaryAmmoType ] == nil
+                count = min( 256, GetAmmoMax( primaryAmmoType ) ) - owner\GetAmmoCount( primaryAmmoType )
+                if count > 0
+                    owner\GiveAmmo( count, primaryAmmoType, false )
+                    givedAmmo[ primaryAmmoType ] = true
+
+        secondaryAmmoType = weapon\GetSecondaryAmmoType!
+        if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
+            count = min( 256, GetAmmoMax( secondaryAmmoType ) ) - owner\GetAmmoCount( secondaryAmmoType )
+            if count > 0
+                owner\GiveAmmo( count, secondaryAmmoType, false )
+                givedAmmo[ secondaryAmmoType ] = true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>

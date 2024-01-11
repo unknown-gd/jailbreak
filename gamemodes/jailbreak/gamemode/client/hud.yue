@@ -37,6 +37,33 @@ do
 
 do
 
+    OBS_MODE_IN_EYE = OBS_MODE_IN_EYE
+    :IgnoreZ = cam
+
+    GM.PreDrawViewModels = ->
+        ply = Jailbreak.Player
+        unless ply\IsValid! and ply\GetObserverMode! == OBS_MODE_IN_EYE
+            return
+
+        viewEntity = Jailbreak.ViewEntity
+        unless viewEntity\IsPlayer! and viewEntity\Alive!
+            return
+
+        IgnoreZ( true )
+
+        for index = 0, 2
+            viewModel = viewEntity\GetViewModel( index )
+            if IsValid( viewModel )
+                viewModel\DrawModel!
+
+        hands = viewEntity\GetHands!
+        if IsValid( hands )
+            hands\DrawModel!
+
+        IgnoreZ( false )
+
+do
+
     :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams, :TargetID, :DeathNotice = Jailbreak
     ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
     ROUND_RUNNING = ROUND_RUNNING
@@ -116,6 +143,7 @@ do
 do
 
     :VoiceChatMinDistance, :GetWeaponName = Jailbreak
+    OBS_MODE_IN_EYE = OBS_MODE_IN_EYE
     :ScreenToVector = gui
     :CursorVisible = vgui
     :GetCursorPos = input

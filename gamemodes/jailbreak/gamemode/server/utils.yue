@@ -156,7 +156,6 @@ do
 do
 
     ENTITY = FindMetaTable( "Entity" )
-    :GetClass = ENTITY
 
     -- Returns entity mass in kilograms
     do
@@ -216,7 +215,7 @@ do
             if @IsPlayerRagdoll!
                 return AllowRagdollSpectate\GetBool!
 
-            return GetClass( @ ) == "info_observer_point"
+            return @GetClass! == "info_observer_point"
 
     do
 
