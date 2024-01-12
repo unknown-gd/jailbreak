@@ -213,7 +213,7 @@ do
             if health > 1
                 entity\SetHealth( health )
 
-                if health / maxHealth < 0.5
+                if health / maxHealth <= 0.5
                     if className ~= "prop_physics"
                         prop = Create( "prop_physics" )
 
@@ -221,60 +221,75 @@ do
                             prop\SetSaveValue( key, value )
 
                         prop\Spawn!
-                        prop\SetHealth( health )
-                        prop\SetMaxHealth( maxHealth )
-
                         entity\Remove!
                         entity = prop
 
-                    phys = entity\GetPhysicsObject!
-                    if IsValid( phys )
-                        unless phys\IsMotionEnabled!
+                        entity\SetHealth( health )
+                        entity\SetMaxHealth( maxHealth )
+
+                        fx = EffectData!
+                        fx\SetOrigin( entity\WorldSpaceCenter! )
+                        fx\SetMagnitude( 5 )
+                        fx\SetRadius( 5 )
+                        fx\SetScale( 2 )
+                        Effect( "Sparks", fx )
+
+                        entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+
+                    else
+
+                        phys = entity\GetPhysicsObject!
+                        if IsValid( phys ) and not phys\IsMotionEnabled!
+                            fx = EffectData!
+                            fx\SetOrigin( entity\WorldSpaceCenter! )
+                            fx\SetMagnitude( 5 )
+                            fx\SetRadius( 5 )
+                            fx\SetScale( 2 )
+                            Effect( "Sparks", fx )
+
+                            entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                             phys\EnableMotion( true )
 
-                        if phys\IsAsleep!
-                            phys\Wake!
+                return true
 
-            else
+            velocity = entity\GetVelocity! + damageInfo\GetDamageForce!
+            if entity\PrecacheGibs! > 0
+                entity\GibBreakClient( velocity )
 
-                velocity = entity\GetVelocity! + damageInfo\GetDamageForce!
-                if entity\PrecacheGibs! > 0
-                    entity\GibBreakClient( velocity )
+            dropModels = dropList[ entity\GetModel! ]
+            if dropModels ~= nil
+                count = dropModels.Count
+                if istable( count )
+                    count = random( count[ 1 ], count[ 2 ] )
+                elseif not isnumber( count )
+                    count = 1
 
-                dropModels = dropList[ entity\GetModel! ]
-                if dropModels ~= nil
-                    count = dropModels.Count
-                    if istable( count )
-                        count = random( count[ 1 ], count[ 2 ] )
-                    elseif not isnumber( count )
-                        count = 1
+                dropModels = dropModels.Models
+                isTable = istable( dropModels )
+                if isTable or isstring( dropModels )
+                    mins, maxs = entity\GetCollisionBounds!
+                    speed = velocity\Length!
 
-                    dropModels = dropModels.Models
-                    isTable = istable( dropModels )
-                    if isTable or isstring( dropModels )
-                        mins, maxs = entity\GetCollisionBounds!
-                        speed = velocity\Length!
+                    mins *= 0.8
+                    maxs *= 0.8
 
-                        mins *= 0.8
-                        maxs *= 0.8
+                    for i = 1, count
+                        prop = Create( "prop_physics" )
 
-                        for i = 1, count
-                            prop = Create( "prop_physics" )
+                        if isTable
+                            prop\SetModel( dropModels[ random( 1, #dropModels ) ] )
+                        else
+                            prop\SetModel( dropModels )
 
-                            if isTable
-                                prop\SetModel( dropModels[ random( 1, #dropModels ) ] )
-                            else
-                                prop\SetModel( dropModels )
+                        prop\SetPos( entity\LocalToWorld( Vector( random( mins[ 1 ], maxs[ 1 ] ), random( mins[ 2 ], maxs[ 2 ] ), random( mins[ 3 ], maxs[ 3 ] ) ) ) )
+                        prop\SetAngles( Angle( random( -180, 180 ), random( -180, 180 ), random( -180, 180 ) ) )
+                        prop\Spawn!
 
-                            prop\SetPos( entity\LocalToWorld( Vector( random( mins[ 1 ], maxs[ 1 ] ), random( mins[ 2 ], maxs[ 2 ] ), random( mins[ 3 ], maxs[ 3 ] ) ) ) )
-                            prop\SetAngles( Angle( random( -180, 180 ), random( -180, 180 ), random( -180, 180 ) ) )
-                            prop\Spawn!
+                        phys = prop\GetPhysicsObject!
+                        if IsValid( phys )
+                            phys\ApplyForceCenter( Vector( random( -1, 1 ), random( -1, 1 ), random( -1, 1 ) ) * speed )
 
-                            phys = prop\GetPhysicsObject!
-                            if IsValid( phys )
-                                phys\ApplyForceCenter( Vector( random( -1, 1 ), random( -1, 1 ), random( -1, 1 ) ) * speed )
-
-                entity\Remove!
+            entity\Remove!
 
             return true
 

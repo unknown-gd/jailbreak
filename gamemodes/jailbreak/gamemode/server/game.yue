@@ -842,15 +842,6 @@ do
         @m_bGivedAmmo = nil
 
     GM.WeaponEquip = ( weapon, owner ) =>
-        unless weapon.Equiped
-            if weapon\Clip1! > 0
-                weapon\SetClip1( 0 )
-
-            if weapon\Clip2! > 0
-                weapon\SetClip2( 0 )
-
-            weapon.Equiped = true
-
         unless owner\IsGuard!
             return
 
