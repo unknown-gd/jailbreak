@@ -208,10 +208,9 @@ do
         unless entity\IsValid!
             return
 
-        entityType = 0
+        entityType, text = 0, nil
         r, g, b = 255, 255, 255
 
-        text = nil
         if entity\IsPlayer!
             unless entity\Alive!
                 return
@@ -234,15 +233,19 @@ do
             entityType = 5
         else
             className = entity\GetClass!
-            entityType = 6
+            if Jailbreak.IsProp( className )
+                text = "#jb.prop_physics"
+                entityType = 6
+            elseif targetIDClasses[ className ]
+                entityType = 7
 
-            unless targetIDClasses[ className ]
-                return
+                placeholder = "jb." .. className
+                text = GetPhrase( placeholder )
+                if text == placeholder
+                    return
 
-            placeholder = "jb." .. className
-            text = GetPhrase( placeholder )
-            if text == placeholder
-                return
+        if entityType == 0 or text == nil
+            return
 
         SetFont( "Jailbreak::TargetID" )
         textWidth, textHeight = GetTextSize( text )

@@ -4,6 +4,10 @@ Jailbreak = Jailbreak
 :ShockCollarEffect = Jailbreak
 CHAN_STATIC = CHAN_STATIC
 DMG_SHOCK = DMG_SHOCK
+IsValid = IsValid
+Vector = Vector
+Angle = Angle
+pairs = pairs
 GM = GM
 
 do
@@ -62,14 +66,46 @@ do
         velocity[ 3 ] /= 8
         ply\SetVelocity( velocity )
 
-GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
-    if entity\IsOnFire! and ( entity\WaterLevel! >= 2 or ( entity\IsPlayer! and ( not entity\Alive! or entity\GetVelocity!\Length! > 800 ) ) )
-        entity\Extinguish!
-        return true
+do
+
+    unflamableMaterials = {
+        [ MAT_METAL ]: true
+        [ MAT_GRATE ]: true
+        [ MAT_TILE ]: true
+        [ MAT_SAND ]: true
+        [ MAT_VENT ]: true
+        [ MAT_CONCRETE ]: true
+        [ MAT_SNOW ]: true
+        [ MAT_GLASS ]: true
+        [ MAT_DEFAULT ]: true
+    }
+
+    Jailbreak.UnflamableMaterials = unflamableMaterials
+
+    GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
+        unless entity\IsOnFire!
+            return
+
+        if entity\WaterLevel! >= 2
+            entity\Extinguish!
+            return
+
+        if entity\IsPlayer!
+            unless entity\Alive!
+                entity\Extinguish!
+                return true
+
+            if entity\GetVelocity!\Length! > 800
+                entity\Extinguish!
+                return true
+
+        elseif unflamableMaterials[ entity\GetMaterialType! ]
+            entity\Extinguish!
+            return true
 
 do
 
-    :Teams, :DoorsHealth, :IsRoundPreparing, :Explosion = Jailbreak
+    :Teams, :DoorsHealth, :IsRoundPreparing, :Explosion, :IsProp = Jailbreak
     :IsValidModel, :IsInWorld, :Effect, :ScreenShake = util
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
     DMG_NEVERGIB = DMG_NEVERGIB
@@ -77,12 +113,45 @@ do
     DMG_BLAST = DMG_BLAST
     hook_Run = hook.Run
     DMG_BURN = DMG_BURN
-    IsValid = IsValid
+    isnumber = isnumber
+    istable = istable
     :Create = ents
     :band = bit
 
     sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
     sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
+
+    materials = {
+        [ MAT_GLASS ]: 0.5
+        [ MAT_CONCRETE ]: 5
+        [ MAT_SLOSH ]: 0.25
+        [ MAT_GRATE ]: 8
+        [ MAT_DIRT ]: 3
+        [ MAT_TILE ]: 2
+        [ MAT_FOLIAGE ]: 1.5
+        [ MAT_VENT ]: 0.25
+        [ MAT_WOOD ]: 3
+        [ MAT_COMPUTER ]: 0.25
+        [ MAT_METAL ]: 8
+        [ MAT_PLASTIC ]: 1.25
+        [ MAT_GRASS ]: 0.25
+        [ MAT_DEFAULT ]: 16
+        [ MAT_FLESH ]: 0.5
+        [ MAT_BLOODYFLESH ]: 0.25
+    }
+
+    Jailbreak.DamageMaterials = materials
+
+    dropList = {
+        ["models/props/de_inferno/crate_fruit_break.mdl"]: {
+            ["Models"]: "models/props/cs_italy/orange.mdl"
+            ["Count"]: { 16, 32 }
+        }
+    }
+
+    Jailbreak.BreakDropList = dropList
+
+    cache = {}
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
         if damageInfo\IsExplosionDamage!
@@ -126,6 +195,88 @@ do
 
         if band( damageType, DMG_NEVERGIB ) == DMG_NEVERGIB
             return
+
+        if IsProp( className )
+            maxHealth = entity\GetMaxHealth!
+            if maxHealth <= 1 and entity\Health! < 1
+                health = cache[ entity\GetModel! ]
+                unless health
+                    mins, maxs = entity\GetCollisionBounds!
+                    health = ceil( mins\Distance( maxs ) * ( materials[ entity\GetMaterialType! or 0 ] or 1 ) )
+                    cache[ entity\GetModel! ] = health
+
+                entity\SetHealth( health )
+                entity\SetMaxHealth( health )
+                return
+
+            health = max( 0, entity\Health! - damageInfo\GetDamage! )
+            if health > 1
+                entity\SetHealth( health )
+
+                if health / maxHealth < 0.5
+                    if className ~= "prop_physics"
+                        prop = Create( "prop_physics" )
+
+                        for key, value in pairs( entity\GetSaveTable( true ) )
+                            prop\SetSaveValue( key, value )
+
+                        prop\Spawn!
+                        prop\SetHealth( health )
+                        prop\SetMaxHealth( maxHealth )
+
+                        entity\Remove!
+                        entity = prop
+
+                    phys = entity\GetPhysicsObject!
+                    if IsValid( phys )
+                        unless phys\IsMotionEnabled!
+                            phys\EnableMotion( true )
+
+                        if phys\IsAsleep!
+                            phys\Wake!
+
+            else
+
+                velocity = entity\GetVelocity! + damageInfo\GetDamageForce!
+                if entity\PrecacheGibs! > 0
+                    entity\GibBreakClient( velocity )
+
+                dropModels = dropList[ entity\GetModel! ]
+                if dropModels ~= nil
+                    count = dropModels.Count
+                    if istable( count )
+                        count = random( count[ 1 ], count[ 2 ] )
+                    elseif not isnumber( count )
+                        count = 1
+
+                    dropModels = dropModels.Models
+                    isTable = istable( dropModels )
+                    if isTable or isstring( dropModels )
+                        mins, maxs = entity\GetCollisionBounds!
+                        speed = velocity\Length!
+
+                        mins *= 0.8
+                        maxs *= 0.8
+
+                        for i = 1, count
+                            prop = Create( "prop_physics" )
+
+                            if isTable
+                                prop\SetModel( dropModels[ random( 1, #dropModels ) ] )
+                            else
+                                prop\SetModel( dropModels )
+
+                            prop\SetPos( entity\LocalToWorld( Vector( random( mins[ 1 ], maxs[ 1 ] ), random( mins[ 2 ], maxs[ 2 ] ), random( mins[ 3 ], maxs[ 3 ] ) ) ) )
+                            prop\SetAngles( Angle( random( -180, 180 ), random( -180, 180 ), random( -180, 180 ) ) )
+                            prop\Spawn!
+
+                            phys = prop\GetPhysicsObject!
+                            if IsValid( phys )
+                                phys\ApplyForceCenter( Vector( random( -1, 1 ), random( -1, 1 ), random( -1, 1 ) ) * speed )
+
+                entity\Remove!
+
+            return true
 
         switch className
             when "prop_door_rotating"
@@ -294,9 +445,6 @@ GM.GetFallDamage = ( ply, speed ) =>
 do
 
     LocalToWorld = LocalToWorld
-    Vector = Vector
-    Angle = Angle
-    pairs = pairs
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo, isPlayerRagdoll ) =>
         unless isPlayerRagdoll
@@ -364,12 +512,11 @@ do
 
             ragdoll.Weapons = nil
 
-        if random( 1, 2 ) == 1
+        if ragdoll\PrecacheGibs! > 0
+            ragdoll\GibBreakClient( velocity )
+        elseif random( 1, 2 ) == 1
             ragdoll\EmitSound( "physics/body/body_medium_break" .. random( 2, 4 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
         else
             ragdoll\EmitSound( "physics/flesh/flesh_squishy_impact_hard" .. random( 1, 4 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
-        if ragdoll\PrecacheGibs! > 0
-            ragdoll\GibBreakClient( velocity )
-        else
-            ragdoll\Remove!
+        ragdoll\Remove!
