@@ -1,6 +1,6 @@
 Jailbreak = Jailbreak
 
-:Clamp, :Rand, :random, :max, :floor = math
+:Clamp, :Rand, :random, :min, :max, :floor = math
 ENTITY = FindMetaTable( "Entity" )
 timer_Simple = timer.Simple
 :FixModelPath = Jailbreak
@@ -420,7 +420,7 @@ hook_Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
 -- Ultra realistic items mass
 GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
     if entity.RagdollMover
-        hook.Add "Think", entity, =>
+        hook_Add "Think", entity, =>
             unless @IsPlayerHolding!
                 @Remove!
 
@@ -459,3 +459,109 @@ GM.OnPlayerPhysicsDrop = ( ply, entity, thrown ) =>
         return
 
     ply\SetVelocity( ply\GetAimVector! * force )
+
+do
+
+    :GetAmmoID, :GetAmmoMax = game
+
+    clips = {
+        weapon_crossbow: 4
+        weapon_frag: 1
+        weapon_slam: 3
+        weapon_ar2: 30
+        weapon_rpg: 3
+    }
+
+    hook_Add "OnEntityCreated", "Jailbreak::HL2AmmoFix", =>
+        unless clips[ @GetClass! ]
+            return
+
+        timer_Simple 0, ->
+            if @IsValid! and @Clip1! ~= -1
+                @SetClip1( @GetMaxClip1! )
+
+    hook_Add "WeaponEquip", "Jailbreak::HL2AmmoFix", ( ply ) =>
+        className = @GetClass!
+        unless clips[ className ]
+            return
+
+        if className == "weapon_frag" or className == "weapon_slam"
+            timer_Simple 0, ->
+                if @IsValid! and ply\IsValid! and ply == @GetOwner!
+                    ply\SetAmmo( 1, max( @GetPrimaryAmmoType!, @GetSecondaryAmmoType! ) )
+
+            return
+
+        clip1 = @Clip1!
+        @SetClip1( 0 )
+
+        timer_Simple 0, ->
+            if @IsValid!
+                @SetClip1( min( clip1, @GetMaxClip1! ) )
+
+    hook_Add "PlayerCanPickupWeapon", "Jailbreak::HL2AmmoFix", ( weapon ) =>
+        className = weapon\GetClass!
+        unless clips[ className ] ~= nil and @HasWeapon( className )
+            return
+
+        if className == "weapon_frag" or className == "weapon_rpg"
+            return false
+
+        ammoType = weapon\GetPrimaryAmmoType!
+        if ammoType == -1
+            ammoType = weapon\GetSecondaryAmmoType!
+            if ammoType == -1
+                return false
+
+        ammoMax = 0
+        if className == "weapon_frag" or className == "weapon_slam"
+            ammoMax = clips[ className ]
+        else
+            ammoMax = GetAmmoMax( ammoType )
+
+        ammoCount = @GetAmmoCount( ammoType )
+        if ammoCount >= ammoMax
+            return false
+
+        clip1 = weapon\Clip1!
+        if clip1 > 0
+            ammoCount = min( clip1, ammoMax - ammoCount )
+            @GiveAmmo( ammoCount, ammoType, false )
+            clip1 -= ammoCount
+            weapon\SetClip1( clip1 )
+            return false
+
+    do
+
+        ammos = {
+            item_ammo_pistol: GetAmmoID( "Pistol" )
+            item_ammo_smg1: GetAmmoID( "SMG1" )
+            item_box_buckshot: GetAmmoID( "Buckshot" )
+            item_ammo_smg1_grenade: GetAmmoID( "SMG1_Grenade" )
+            item_rpg_round: GetAmmoID( "RPG_Round" )
+            item_ammo_crossbow: GetAmmoID( "XBowBolt" )
+            item_ammo_ar2_altfire: GetAmmoID( "AR2AltFire" )
+            item_ammo_357: GetAmmoID( "357" )
+            item_ammo_ar2: GetAmmoID( "AR2" )
+        }
+
+        ammos.item_ammo_pistol_large = ammos.item_ammo_pistol
+        ammos.item_ammo_smg1_large = ammos.item_ammo_smg1
+        ammos.item_ammo_357_large = ammos.item_ammo_357
+        ammos.item_ammo_ar2_large = ammos.item_ammo_ar2
+
+        hook_Add "PlayerCanPickupItem", "Jailbreak::HL2AmmoFix", ( item ) =>
+            ammoType = ammos[ item\GetClass! ]
+            if not ammoType or ammoType == -1
+                return
+
+            if @GetAmmoCount( ammoType ) >= GetAmmoMax( ammoType )
+                return false
+
+    do
+
+        grenadeAmmo = GetAmmoID( "Grenade" )
+
+        hook_Add "PlayerAmmoChanged", "Jailbreak::HL2AmmoFix", ( ammoID, old, new ) =>
+            if ammoID == grenadeAmmo and new > 1
+                @SetAmmo( 1, ammoID )

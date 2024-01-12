@@ -620,6 +620,7 @@ GM.PlayerSwitchFlashlight = ( ply, newState ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerUse
 do
 
+    :GetAmmoMax = game
     CurTime = CurTime
 
     GM.PlayerUse = ( ply, entity ) =>
@@ -667,13 +668,17 @@ do
             if ply\HasWeapon( className )
                 clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
                 if clip1 > 0 and clip1Type >= 0
-                    ply\GiveAmmo( clip1, clip1Type, false )
-                    entity\SetClip1( 0 )
+                    canPickup = min( clip1, max( 0, GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) ))
+                    if canPickup > 0
+                        entity\SetClip1( clip1 - canPickup )
+                        ply\GiveAmmo( canPickup, clip1Type, false )
 
                 clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
                 if clip2 > 0 and clip2Type >= 0
-                    ply\GiveAmmo( clip2, clip2Type, false )
-                    entity\SetClip2( 0 )
+                    canPickup = min( clip2, max( 0, GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) ))
+                    if canPickup > 0
+                        entity\SetClip2( clip2 - canPickup )
+                        ply\GiveAmmo( canPickup, clip2Type, false )
 
                 return false
 
