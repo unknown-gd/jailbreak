@@ -213,8 +213,12 @@ do
             if health > 1
                 entity\SetHealth( health )
 
-                if health / maxHealth <= 0.5
-                    if className ~= "prop_physics"
+                if ( health / maxHealth ) > 0.5
+                    return true
+
+                phys = entity\GetPhysicsObject!
+                if IsValid( phys )
+                    unless phys\IsMoveable! and className ~= "prop_physics"
                         prop = Create( "prop_physics" )
 
                         for key, value in pairs( entity\GetSaveTable( true ) )
@@ -235,20 +239,18 @@ do
                         Effect( "Sparks", fx )
 
                         entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+                        return true
 
-                    else
+                    unless phys\IsMotionEnabled!
+                        fx = EffectData!
+                        fx\SetOrigin( entity\WorldSpaceCenter! )
+                        fx\SetMagnitude( 5 )
+                        fx\SetRadius( 5 )
+                        fx\SetScale( 2 )
+                        Effect( "Sparks", fx )
 
-                        phys = entity\GetPhysicsObject!
-                        if IsValid( phys ) and not phys\IsMotionEnabled!
-                            fx = EffectData!
-                            fx\SetOrigin( entity\WorldSpaceCenter! )
-                            fx\SetMagnitude( 5 )
-                            fx\SetRadius( 5 )
-                            fx\SetScale( 2 )
-                            Effect( "Sparks", fx )
-
-                            entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-                            phys\EnableMotion( true )
+                        entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+                        phys\EnableMotion( true )
 
                 return true
 
