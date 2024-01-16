@@ -309,3 +309,9 @@ do
                 Emotion( @, "#jb.chat.pointed-at \"#jb.floor\"." )
             else
                 Emotion( @, "#jb.chat.pointed-at \"#jb.ceiling\"." )
+
+Add "jb_reload_localization", =>
+    if IsValid( @ ) and not @IsListenServerHost!
+        return
+
+    Jailbreak.ReloadLocalization!

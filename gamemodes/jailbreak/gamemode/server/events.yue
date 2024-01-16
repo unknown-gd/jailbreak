@@ -192,7 +192,7 @@ do
             text = Jailbreak.Translate( ply, "#jb.event." .. @name )
             message, index = {}, 0
 
-            for i = 1, utf8.len( text ) - 1
+            for i = 1, utf8.len( text )
                 index += 1
                 message[ index ] = HSVToColor( i * seed % 360, 1, 1 )
 
@@ -253,7 +253,7 @@ do
             text = Jailbreak.Translate( ply, "#jb.event." .. @name )
             message, index = {}, 0
 
-            length = utf8.len( text ) - 1
+            length = utf8.len( text )
             for i = 1, length
                 index += 1
                 message[ index ] = HSVToColor( ( length - i ) * 10 % 360, 1, 1 )

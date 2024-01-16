@@ -359,8 +359,6 @@ do
         unless Teams[ teamID ]
             return
 
-        ply\AddDeaths( 1 )
-
         if attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
             attacker\AddFrags( 1 )
 
@@ -406,6 +404,7 @@ GM.PlayerSilentDeath = ( ply ) =>
 
 -- https://wiki.facepunch.com/gmod/GM:PostPlayerDeath
 GM.PostPlayerDeath = ( ply ) =>
+    ply\AddDeaths( 1 )
     ply\ResetToggles!
     ply\DropObject!
 
@@ -448,7 +447,7 @@ do
             if ply\IsHoldingEntity!
                 return
 
-            timer_Simple 0.05 + ply\Ping! / 1000, ->
+            timer_Simple 0.05 + ( ply\Ping! or 0 ) / 1000, ->
                 unless ply\IsValid! and ply\Alive!
                     return
 

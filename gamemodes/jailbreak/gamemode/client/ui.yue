@@ -809,7 +809,7 @@ do
             @Remove!
             return
 
-        ping, pingStr = @Ping, tostring( ply\Ping! ) .. "ms"
+        ping, pingStr = @Ping, tostring( ply\Ping! or 0 ) .. "ms"
         if IsValid( ping ) and ping\GetText! ~= pingStr
             ping\SetTooltip( pingStr )
             ping\SetText( pingStr )

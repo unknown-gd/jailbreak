@@ -78,16 +78,12 @@ include( "server/game.lua" )
 
 do
 
-    :LoadLocalization = Jailbreak
+    RunConsoleCommand = RunConsoleCommand
     :FindByClass = ents
 
     GM.InitPostEntity = =>
         -- Start round state
         Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
-
-        -- Localization loading
-        LoadLocalization "resource/localization"
-        LoadLocalization "gamemodes/jailbreak/content/resource/localization"
 
         -- Correcting silly convar values
         RunConsoleCommand( "sv_defaultdeployspeed", "1" )
@@ -106,3 +102,6 @@ do
 -- Console commands and extra stuff
 include( "server/commands.lua" )
 include( "server/extra.lua" )
+
+-- Localization initialization
+timer.Simple 0, Jailbreak.ReloadLocalization
