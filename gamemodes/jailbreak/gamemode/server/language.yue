@@ -1,6 +1,6 @@
 :char, :sub, :gsub, :gmatch, :find = string
+Jailbreak = Jailbreak
 IsValid = IsValid
-select = select
 
 global language = language or {}
 
@@ -69,30 +69,34 @@ do
 
     string.ParseEscapedChars = parseEscapedChars
 
-    loadLocalization = ( folderPath ) ->
-        for languageCode in *select( 2, file.Find( folderPath .. "/*", "GAME" ) )
-            for fileName in *file.Find( folderPath .. "/" .. languageCode .. "/*.properties", "GAME" )
-                file.AsyncRead folderPath .. "/" .. languageCode .. "/" .. fileName, "GAME", ( _, __, status, data ) ->
-                    if status ~= 0
-                        return
+    loadLocalization = nil
+    do
 
-                    if not data or #data < 3
-                        return
+        :AsyncRead, :Find = file
+        select = select
+        print = print
 
-                    for line in gmatch( data, "(.-)\n" )
-                        if #line >= 3
-                            separatorPos = find( line, "=" )
-                            unless separatorPos
-                                continue
+        loadLocalization = ( folderPath ) ->
+            for languageCode in *select( 2, Find( folderPath .. "/*", "GAME" ) )
+                if Jailbreak.Developer
+                    print "[Jailbreak] Loading '" .. languageCode .. "' localization..."
 
-                            add( languageCode, sub( line, 1, separatorPos - 1 ), parseEscapedChars( parseUnicode( sub( line, separatorPos + 1 ) ) ) )
+                for fileName in *Find( folderPath .. "/" .. languageCode .. "/*.properties", "GAME" )
+                    AsyncRead folderPath .. "/" .. languageCode .. "/" .. fileName, "GAME", ( _, __, status, data ) ->
+                        if status ~= 0 or not data or #data < 3
+                            return
 
-    Jailbreak.LoadLocalization = loadLocalization
+                        for line in gmatch( data, "(.-)\n" )
+                            if #line >= 3
+                                separatorPos = find( line, "=" )
+                                unless separatorPos
+                                    continue
 
-    concommand.Add "jb_reload_localization", =>
-        if IsValid( @ ) and not @IsListenServerHost!
-            return
+                                add( languageCode, sub( line, 1, separatorPos - 1 ), parseEscapedChars( parseUnicode( sub( line, separatorPos + 1 ) ) ) )
 
+        Jailbreak.LoadLocalization = loadLocalization
+
+    Jailbreak.ReloadLocalization = ->
         loadLocalization "resource/localization"
         loadLocalization "gamemodes/jailbreak/content/resource/localization"
 
@@ -101,7 +105,7 @@ Jailbreak.Translate = ( str ) =>
         return str
 
     languageCode = @GetInfo( "gmod_language" )
-    if not languageCode and #languageCode < 2
+    if not languageCode or #languageCode == 0
         return str
 
     return gsub str, "#([%w%.-_]+)", ( placeholder ) ->
