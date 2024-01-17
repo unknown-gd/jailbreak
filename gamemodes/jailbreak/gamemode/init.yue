@@ -35,6 +35,7 @@ do
     Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", FCVAR_SERVER, "Guards armor amount on spawn.", 0, 1000 )
     Jailbreak.PermanentGuards = CreateConVar( "jb_permanent_guards", "0", FCVAR_SERVER, "If enabled, disables guard rotation.", 0, 1 )
     Jailbreak.GuardsDeathSound = CreateConVar( "jb_guards_death_sound", "0", FCVAR_SERVER, "If enabled, an alarm will sound when the guard dies.", 0, 1 )
+    Jailbreak.WardenCoins = CreateConVar( "jb_warden_coins", "100", FCVAR_SERVER, "Warden coins amount on spawn.", 0, 16384 )
 
     -- Chat
     Jailbreak.EmotionDistance = CreateConVar( "jb_chat_emotion_distance", "300", FCVAR_SERVER, "Distance of emotion messages.", 32, 65536 )

@@ -122,6 +122,7 @@ do
 
             when ROUND_RUNNING
                 PlaySound( "ambient/alarms/warningbell1.wav" )
+                SetWardenCoins( WardenCoins\GetInt! )
                 players = GetAll!
 
                 for ply in *players
@@ -258,4 +259,3 @@ GM.ShockCollarToggled = ( ply, bool ) =>
         SendChatText( ply, false, CHAT_SERVERMESSAGE, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
 
     ply\DoElectricSparks!
-
