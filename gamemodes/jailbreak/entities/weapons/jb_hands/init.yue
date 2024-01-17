@@ -26,7 +26,7 @@ SWEP.UseDoor = ( open ) =>
 
     className = entity\GetClass!
     if className == "prop_door_rotating"
-        unless owner\HasSecurityAccess!
+        unless owner\HasSecurityKeys!
             if entity\IsDoorLocked!
                 entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, math.random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
                 owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true )
@@ -120,7 +120,7 @@ SWEP.HitMaterial = ( matType, owner, origin ) =>
         if matType == MAT_COMPUTER
             damageInfo\SetDamageType( DMG_SHOCK )
 
-            if owner\HasShockCollar!
+            if owner\ShockCollarIsEnabled!
                 damageInfo\ScaleDamage( 2 )
 
         else

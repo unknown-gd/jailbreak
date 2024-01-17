@@ -1,7 +1,6 @@
 Jailbreak = Jailbreak
 
 :ceil, :random, :max, :floor, :Rand = math
-:ShockCollarEffect = Jailbreak
 CHAN_STATIC = CHAN_STATIC
 DMG_SHOCK = DMG_SHOCK
 IsValid = IsValid
@@ -12,28 +11,25 @@ GM = GM
 
 do
 
-    :ShockCollarVictimDamage, :ShockCollarAttackerDamage, :IsShockCollarsActive = Jailbreak
+    :ShockCollarVictimDamage, :ShockCollarAttackerDamage = Jailbreak
     NOTIFY_ERROR = NOTIFY_ERROR
     DMG_SONIC = DMG_SONIC
-    :band = bit
 
     GM.PlayerTakeDamage = ( ply, damageInfo, teamID ) =>
-        damageType = damageInfo\GetDamageType!
-        if ply\HasShockCollar! and band( damageType, DMG_SHOCK ) == DMG_SHOCK
+        if ply\HasShockCollar! and damageInfo\IsShockDamage!
+            ply\DoElectricSparks!
+            ply\TakeShockCollar( true )
             ply\SendNotify( "#jb.notify.shock-collar.broken", NOTIFY_ERROR, 10 )
-            ply\SetShockCollar( false )
-            ShockCollarEffect( ply )
 
         attacker = damageInfo\GetAttacker!
         attackerIsPlayer = attacker\IsValid! and attacker\IsPlayer!
         isCloseRangeDamage = damageInfo\IsCloseRangeDamage!
 
-        if IsShockCollarsActive! and attackerIsPlayer and isCloseRangeDamage and attacker\HasShockCollar! and attacker ~= ply
-            damage = damageInfo\GetDamage!
-
+        if attackerIsPlayer and isCloseRangeDamage and attacker\ShockCollarIsEnabled! and attacker ~= ply
+            damage, damageType = damageInfo\GetDamage!, damageInfo\GetDamageType!
             newDamage = damage * ShockCollarAttackerDamage\GetFloat!
             if newDamage >= 1
-                ShockCollarEffect( attacker )
+                attacker\DoElectricSparks!
                 damageInfo\SetDamage( newDamage )
                 damageInfo\SetDamageType( DMG_SONIC )
                 attacker\TakeDamageInfo( damageInfo )
@@ -378,7 +374,7 @@ do
                     entity\Use( attacker, attacker )
 
                     damageOrigin = damageInfo\GetDamagePosition!
-                    ShockCollarEffect( entity, damageOrigin, 150 )
+                    entity\DoElectricSparks( damageOrigin, 150 )
 
                     if damageInfo\IsCloseRangeDamage!
                         attacker\Ignite( 0.25, 16 )

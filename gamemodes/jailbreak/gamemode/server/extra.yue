@@ -57,23 +57,6 @@ do
 
 do
 
-    :ShockCollarEffect, :SendChatText = Jailbreak
-    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
-    :GetAll = player
-
-    GM.ShockCollars = ( bool ) =>
-        receivers = {}
-        for ply in *GetAll!
-            if ply\Alive! and ply\HasShockCollar!
-                unless ply\IsBot!
-                    receivers[] = ply
-
-                ShockCollarEffect( ply )
-
-        SendChatText( receivers, false, CHAT_SERVERMESSAGE, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
-
-do
-
     EntityReplacer = EntityReplacer
 
     if EntityReplacer ~= nil

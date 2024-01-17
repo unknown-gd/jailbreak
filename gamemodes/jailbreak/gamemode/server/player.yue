@@ -6,6 +6,117 @@ NULL = NULL
 PLAYER = FindMetaTable( "Player" )
 PLAYER.ChangeTeam = Jailbreak.ChangeTeam
 
+-- Flashlight
+PLAYER.HasFlashlight = PLAYER.CanUseFlashlight
+
+PLAYER.GiveFlashlight = ( silent ) =>
+    if @HasFlashlight!
+        return
+
+    if @FlashlightIsOn!
+        @Flashlight( false )
+
+    @AllowFlashlight( true )
+
+    unless @IsBot! or silent
+        @SendPickupNotify( "jb.flashlight" )
+
+PLAYER.TakeFlashlight = ( silent ) =>
+    unless @HasFlashlight!
+        return
+
+    if @FlashlightIsOn!
+        @Flashlight( false )
+
+    @AllowFlashlight( false )
+
+    unless @IsBot! or silent
+        @SendNotify( "#jb.flashlight.lost", NOTIFY_UNDO, 5 )
+
+-- Security keys
+PLAYER.GiveSecurityKeys = ( silent ) =>
+    if @HasSecurityKeys!
+        return
+
+    @SetNW2Bool( "security-keys", true )
+
+    unless @IsBot! or silent
+        @SendPickupNotify( "jb.security.keys" )
+
+PLAYER.TakeSecurityKeys = ( silent ) =>
+    unless @HasSecurityKeys!
+        return
+
+    @SetNW2Bool( "security-keys", false )
+
+    unless @IsBot! or silent
+        @SendNotify( "#jb.security.keys.lost", NOTIFY_UNDO, 5 )
+
+-- Security radio
+PLAYER.GiveSecurityRadio = ( silent ) =>
+    if @HasSecurityRadio!
+        return
+
+    @SetNW2Bool( "security-radio", true )
+
+    unless @IsBot! or silent
+        @SendPickupNotify( "jb.walkie-talkie" )
+
+PLAYER.TakeSecurityRadio = ( silent ) =>
+    unless @HasSecurityRadio!
+        return
+
+    @SetNW2Bool( "security-radio", false )
+
+    unless @IsBot! or silent
+        @SendNotify( "#jb.walkie-talkie.lost", NOTIFY_UNDO, 5 )
+
+-- Shock collar
+PLAYER.GiveShockCollar = ( silent ) =>
+    if @HasShockCollar!
+        return
+
+    @SetNW2Bool( "shock-collar", true )
+
+    unless @IsBot! or silent
+        @SendPickupNotify( "jb.shock-collar" )
+
+PLAYER.TakeShockCollar = ( silent ) =>
+    unless @HasShockCollar!
+        return
+
+    @SetNW2Bool( "shock-collar", false )
+
+    unless @IsBot! or silent
+        @SendNotify( "#jb.shock-collar.lost", NOTIFY_UNDO, 5 )
+
+PLAYER.SetShockCollar = ( bool, silent ) =>
+    if bool == @ShockCollarIsEnabled!
+        return
+
+    @SetNW2Bool( "shock-collar-enabled", bool )
+
+    if silent
+        return
+
+    hook_Run( "ShockCollarToggled", @, bool )
+
+-- Warden
+PLAYER.SetWarden = ( bool, silent ) =>
+    if bool == @IsWarden!
+        return
+
+    @SetNW2Bool( "is-warden", bool )
+
+    if silent
+        return
+
+    hook_Run( "WardenChanged", @, bool )
+
+-- Allows player use of flight
+PLAYER.AllowFlight = ( bool ) =>
+    @SetNW2Bool( "flight-allowed", bool )
+
 do
 
     :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed = Jailbreak
@@ -74,7 +185,7 @@ do
             [ NOTIFY_ERROR ]: "player/suit_denydevice.wav"
             [ NOTIFY_HINT ]: "buttons/button24.wav"
             [ NOTIFY_CLEANUP ]: "buttons/button6.wav"
-            [ NOTIFY_UNDO ]: "buttons/button8.wav"
+            [ NOTIFY_UNDO ]: "buttons/button9.wav"
         }
 
         PLAYER.SendNotify = ( text, typeID, length, ... ) =>
@@ -89,34 +200,6 @@ do
             soundPath = sounds[ typeID ]
             if soundPath ~= nil
                 @PlaySound( soundPath )
-
-PLAYER.SetWarden = ( bool, silent ) =>
-    if bool == @IsWarden!
-        return
-
-    @SetNW2Bool( "is-warden", bool )
-    unless silent
-        hook_Run( "WardenChanged", @, bool )
-
-PLAYER.SetShockCollar = ( bool, silent ) =>
-    if bool == @HasShockCollar!
-        return
-
-    @SetNW2Bool( "shock-collar", bool )
-    unless silent
-        hook_Run( "ShockCollarChanged", @, bool )
-
--- Allows player to open security doors and lock them
-PLAYER.AllowSecurityAccess = ( bool ) =>
-    @SetNW2Bool( "security-access", bool )
-
--- Allows player to use security radio
-PLAYER.AllowSecurityRadio = ( bool ) =>
-    @SetNW2Bool( "security-radio", bool )
-
--- Allows player to fly
-PLAYER.AllowFlight = ( bool ) =>
-    @SetNW2Bool( "flight-allowed", bool )
 
 do
 
@@ -343,8 +426,8 @@ do
 
         hook_Run( "PlayerRagdollCreated", @, ragdoll )
 
-        ragdoll.HasSecurityAccess = @HasSecurityAccess!
         ragdoll.HasSecurityRadio = @HasSecurityRadio!
+        ragdoll.HasSecurityKeys = @HasSecurityKeys!
         ragdoll.HasFlashlight = @CanUseFlashlight!
         ragdoll.HasShockCollar = @HasShockCollar!
 

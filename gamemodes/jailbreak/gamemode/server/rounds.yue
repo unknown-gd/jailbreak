@@ -84,12 +84,9 @@ do
 -- Perform a round state change
 do
 
-    :Colors, :RunEvents, :SetShockCollars, :ObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards, :SendChatText = Jailbreak
+    :SafeCleanUpMap, :Colors, :RunEvents, :SetShockCollars, :ClearObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards, :SendChatText, :SetWardenCoins, :WardenCoins = Jailbreak
     CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
-    timer_Simple = timer.Simple
-    :CleanUpMap = game
     :GetAll = player
-    pairs = pairs
 
     GM.RoundStateChanged = ( old, new ) =>
         RunEvents( new )
@@ -97,9 +94,7 @@ do
         switch ( new )
             when ROUND_WAITING_PLAYERS
                 SetShockCollars( false )
-
-                for key in pairs( ObserveTargets )
-                    ObserveTargets[ key ] = nil
+                ClearObserveTargets!
 
                 for ply in *GetAll!
                     if ply\Alive!
@@ -108,8 +103,8 @@ do
                     if ply\IsBot! or ( ply\IsGuard! and not PermanentGuards\GetBool! )
                         ply\SetTeam( TEAM_PRISONER )
 
-                timer_Simple( 0, CleanUpMap )
                 SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new )
+                SafeCleanUpMap!
 
             when ROUND_PREPARING
                 SetShockCollars( true )
@@ -121,8 +116,8 @@ do
                     if Teams[ ply\Team! ]
                         ply\Spawn!
 
-                timer_Simple( 0, CleanUpMap )
                 SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.horizon )
+                SafeCleanUpMap!
 
             when ROUND_RUNNING
                 PlaySound( "ambient/alarms/warningbell1.wav" )
@@ -146,13 +141,13 @@ do
                 for ply in *players
                     teamID = ply\Team!
                     if Teams[ teamID ]
+                        unless ply\Alive!
+                            ply\Spawn!
+
                         if teamID == TEAM_GUARD
                             guards[] = ply
                         elseif teamID == TEAM_PRISONER
-                            ply\SetShockCollar( true )
-
-                        unless ply\Alive!
-                            ply\Spawn!
+                            ply\GiveShockCollar!
 
                 if #guards == 1
                     guards[ 1 ]\SetWarden( true )
@@ -196,17 +191,11 @@ do
 -- Called when a in game player dies
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\RemoveFromObserveTargets!
+    ply\TakeSecurityRadio!
+    ply\TakeSecurityKeys!
+    ply\TakeShockCollar!
+    ply\TakeFlashlight!
     ply\UnSpectate!
-
-    ply\AllowSecurityAccess( false )
-    ply\AllowSecurityRadio( false )
-    ply\AllowFlashlight( false )
-
-    if ply\HasShockCollar!
-        ply\SetShockCollar( false, true )
-
-    if ply\FlashlightIsOn!
-        ply\Flashlight( false )
 
 -- Called when a player disconnected
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
@@ -244,6 +233,7 @@ do
         switch GetRoundState!
             when ROUND_PREPARING
                 setRoundState( ROUND_RUNNING )
+
             when ROUND_RUNNING
                 if RoundTime\GetInt! == 0
                     return
@@ -253,5 +243,6 @@ do
 
                 setRoundState( ROUND_FINISHED, true )
                 setRoundTime( PrepareTime\GetInt! )
+
             when ROUND_FINISHED
                 setRoundState( ROUND_WAITING_PLAYERS )

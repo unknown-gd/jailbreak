@@ -7,4 +7,4 @@ ENT.PassesFilter = ( entity, ply ) =>
     if requestedTeam == ply\Team!
         return true
 
-    return ply\HasSecurityAccess! and requestedTeam == TEAM_GUARD
+    return ply\HasSecurityKeys! and requestedTeam == TEAM_GUARD

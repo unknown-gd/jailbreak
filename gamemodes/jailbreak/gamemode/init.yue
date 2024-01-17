@@ -99,9 +99,9 @@ do
             xpcall( SoundHandler, ErrorNoHaltWithStack, "cstrike" )
             Jailbreak.GameName = "cstrike"
 
+        -- Localization initialization
+        timer.Simple 0, Jailbreak.ReloadLocalization
+
 -- Console commands and extra stuff
 include( "server/commands.lua" )
 include( "server/extra.lua" )
-
--- Localization initialization
-timer.Simple 0, Jailbreak.ReloadLocalization

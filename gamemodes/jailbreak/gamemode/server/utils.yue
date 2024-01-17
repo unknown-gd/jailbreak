@@ -3,6 +3,7 @@ EffectData = EffectData
 Jailbreak = Jailbreak
 hook_Run = hook.Run
 IsValid = IsValid
+pairs = pairs
 util = util
 :Effect = util
 
@@ -56,22 +57,17 @@ do
 -- Change player team
 do
 
-    :Teams, :TeamIsJoinable = Jailbreak
     NOTIFY_ERROR = NOTIFY_ERROR
-    :Joinable = team
+    :Teams = Jailbreak
 
-    Jailbreak.ChangeTeam = ( teamID ) =>
-        unless Joinable( teamID )
-            return
-
+    changeTeam = ( teamID, force ) =>
         oldTeamID = @Team!
-        if oldTeamID == teamID
-            @SendNotify( "#jb.error.already-on-team", NOTIFY_ERROR, 3 )
-            return
 
-        unless TeamIsJoinable( teamID )
-            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
-            return
+        unless force
+            allowed, reason, lifetime = hook_Run( "PlayerCanJoinTeam", @, teamID, oldTeamID )
+            unless allowed
+                @SendNotify( reason or "#jb.error.cant-do-that", NOTIFY_ERROR, lifetime or 3 )
+                return
 
         if @Alive!
             if Teams[ oldTeamID ]
@@ -81,27 +77,8 @@ do
 
         @SetTeam( teamID )
 
--- Shock collar effect
-do
-
-    CHAN_STATIC = CHAN_STATIC
-
-    Jailbreak.ShockCollarEffect = ( origin, pitch ) =>
-        unless origin
-            boneID = @LookupBone( "ValveBiped.Bip01_Head1" )
-            if boneID and boneID >= 0
-                matrix = @GetBoneMatrix( boneID )
-                if matrix
-                    origin = matrix\GetTranslation!
-
-        fx = EffectData!
-        fx\SetScale( 0.5 )
-        fx\SetOrigin( origin or @EyePos! )
-        fx\SetMagnitude( random( 3, 5 ) )
-        fx\SetRadius( random( 1, 5 ) )
-        Effect( "ElectricSpark", fx )
-
-        @EmitSound( "Jailbreak.Shock", 75, pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+    Jailbreak.ChangeTeam = changeTeam
+    GM.PlayerRequestTeam = changeTeam
 
 do
 
@@ -130,9 +107,9 @@ do
             SetGlobal2Bool( "shock-collars", bool )
 
             unless silent
-                hook_Run( "ShockCollars", bool )
+                hook_Run( "ShockCollarsToggled", bool )
 
--- Warden coins
+-- Set warden coins count
 do
 
     SetGlobal2Int = SetGlobal2Int
@@ -147,6 +124,27 @@ do
 
         unless silent
             hook_Run( "WardenCoins", oldValue, value )
+
+-- Clear observe targets
+do
+
+    :ObserveTargets = Jailbreak
+
+    Jailbreak.ClearObserveTargets = ->
+        for key in pairs( ObserveTargets )
+            ObserveTargets[ key ] = nil
+
+-- Cleanup's map safely
+do
+
+    :CleanUpMap = game
+    :Create = timer
+
+    filters = { "env_fire", "entityflame", "_firesmoke" }
+
+    Jailbreak.SafeCleanUpMap = ->
+        Create "Jailbreak::CleanUpMap", 0.25, 1, ->
+            CleanUpMap( false, filters )
 
 -- Entity metatable
 do
@@ -240,6 +238,29 @@ do
     ENTITY.GetDoorState = =>
         return @GetInternalVariable( "m_eDoorState" )
 
+    -- Electric shock effect
+    do
+
+        CHAN_STATIC = CHAN_STATIC
+
+        ENTITY.DoElectricSparks = ( origin, pitch ) =>
+            unless origin
+                bone = @LookupBone( "ValveBiped.Bip01_Head1" )
+                if bone and bone >= 0
+                    origin = @GetBonePosition( bone )
+
+                unless origin
+                    origin = @EyePos!
+
+            fx = EffectData!
+            fx\SetScale( 0.5 )
+            fx\SetOrigin( origin )
+            fx\SetMagnitude( random( 3, 5 ) )
+            fx\SetRadius( random( 1, 5 ) )
+            Effect( "ElectricSpark", fx )
+
+            @EmitSound( "Jailbreak.ElectricSpark", random( 50, 90 ), pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+
 do
 
     CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
@@ -293,7 +314,6 @@ do
     istable = istable
     :Shuffle = table
     Vector = Vector
-    pairs = pairs
 
     Jailbreak.LootRagdoll = ( ragdoll ) =>
         velocity = Vector!
@@ -301,23 +321,20 @@ do
         direction = @EyePos! - ragdoll\WorldSpaceCenter!
         direction\Normalize!
 
-        if ragdoll.HasFlashlight and not @CanUseFlashlight!
-            velocity += direction * 150
-            @AllowFlashlight( true )
-            @SendPickupNotify( "jb.flashlight" )
+        if ragdoll.HasFlashlight and not @HasFlashlight!
             ragdoll.HasFlashlight = nil
+            velocity += direction * 150
+            @GiveFlashlight!
 
-        if ragdoll.HasSecurityAccess and not @HasSecurityAccess!
+        if ragdoll.HasSecurityKeys and not @HasSecurityKeys!
+            ragdoll.HasSecurityKeys = nil
             velocity += direction * 50
-            @AllowSecurityAccess( true )
-            @SendPickupNotify( "jb.security.keys" )
-            ragdoll.HasSecurityAccess = nil
+            @GiveSecurityKeys!
 
         if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
-            velocity += direction * 50
-            @AllowSecurityRadio( true )
-            @SendPickupNotify( "jb.walkie-talkie" )
             ragdoll.HasSecurityRadio = nil
+            velocity += direction * 50
+            @GiveSecurityRadio!
 
         weapons = ragdoll.Weapons
         if istable( weapons )

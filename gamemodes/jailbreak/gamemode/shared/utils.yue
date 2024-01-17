@@ -455,13 +455,24 @@ PLAYER.IsPrisoner = =>
 PLAYER.IsWarden = =>
     return GetNW2Bool( @, "is-warden" )
 
--- Returns true if player has shock collar
-PLAYER.HasShockCollar = =>
-    return GetNW2Bool( @, "shock-collar" )
+do
+
+    -- Returns true if player has shock collar
+    hasShockCollar = =>
+        return GetNW2Bool( @, "shock-collar" )
+
+    PLAYER.HasShockCollar = hasShockCollar
+
+    -- Returns true if player shock collar is enabled
+    PLAYER.ShockCollarIsEnabled = =>
+        unless hasShockCollar( @ )
+            return false
+
+        return GetNW2Bool( @, "shock-collar-enabled" )
 
 -- Returns true if player has security access
-PLAYER.HasSecurityAccess = =>
-    return GetNW2Bool( @, "security-access" )
+PLAYER.HasSecurityKeys = =>
+    return GetNW2Bool( @, "security-keys" )
 
 -- Returns true if player has security radio
 PLAYER.HasSecurityRadio = =>
@@ -533,7 +544,7 @@ do
         sounds[ number ] = "ambient/energy/spark" .. number .. ".wav"
 
     sound.Add {
-        name: "Jailbreak.Shock"
+        name: "Jailbreak.ElectricSpark"
         channel: CHAN_WEAPON
         level: SNDLVL_70dB
         sound: sounds

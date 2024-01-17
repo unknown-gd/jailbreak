@@ -14,8 +14,9 @@ ENT.PassesFilter = ( entity, ply ) =>
     if requestedTeam == ply\Team!
         return not @Negated
 
-    if ply\HasSecurityAccess! and requestedTeam == TEAM_GUARD
+    if ply\HasSecurityKeys! and requestedTeam == TEAM_GUARD
         return not @Negated
+
     return @Negated
 
 ENT.KeyValue = ( key, value ) =>
