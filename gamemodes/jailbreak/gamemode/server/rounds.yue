@@ -1,9 +1,10 @@
 Jailbreak = Jailbreak
 GM = GM
 
-:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime, :PlaySound = Jailbreak
+:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime, :PlaySound, :SendChatText = Jailbreak
 hook_Run = hook.Run
 CurTime = CurTime
+:GetAll = player
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -11,6 +12,8 @@ ROUND_FINISHED = ROUND_FINISHED
 
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
+
+CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 
 setRoundState, setWinningTeam, setRoundTime = nil, nil, nil
 do
@@ -84,9 +87,7 @@ do
 -- Perform a round state change
 do
 
-    :SafeCleanUpMap, :Colors, :RunEvents, :SetShockCollars, :ClearObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards, :SendChatText, :SetWardenCoins, :WardenCoins = Jailbreak
-    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
-    :GetAll = player
+    :SafeCleanUpMap, :Colors, :RunEvents, :SetShockCollars, :ClearObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards, :SetWardenCoins, :WardenCoins = Jailbreak
 
     GM.RoundStateChanged = ( old, new ) =>
         RunEvents( new )
@@ -246,3 +247,15 @@ do
 
             when ROUND_FINISHED
                 setRoundState( ROUND_WAITING_PLAYERS )
+
+GM.ShockCollarsToggled = ( bool ) =>
+    for ply in *GetAll!
+        if ply\HasShockCollar!
+            ply\SetShockCollar( bool, false )
+
+GM.ShockCollarToggled = ( ply, bool ) =>
+    unless ply\IsBot!
+        SendChatText( ply, false, CHAT_SERVERMESSAGE, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
+
+    ply\DoElectricSparks!
+

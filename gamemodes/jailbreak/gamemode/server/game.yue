@@ -13,7 +13,7 @@ TEAM_GUARD = TEAM_GUARD
 OBS_MODE_ROAMING = OBS_MODE_ROAMING
 OBS_MODE_CHASE = OBS_MODE_CHASE
 
-:Teams, :SendChatText = Jailbreak
+:Teams = Jailbreak
 
 -- https://wiki.facepunch.com/gmod/GM:ShowTeam
 GM.ShowTeam = ( ply ) =>
@@ -549,6 +549,7 @@ do
 
     :Start, :WriteUInt, :WriteString, :Send = net
     CHAT_CONNECTED = CHAT_CONNECTED
+    :SendChatText = Jailbreak
 
     GM.PlayerInitialized = ( ply ) =>
         if ply\IsBot!
@@ -897,22 +898,3 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
             return false
 
     return true
-
-do
-
-    :GetAll = player
-
-    GM.ShockCollarsToggled = ( bool ) =>
-        for ply in *GetAll!
-            if ply\HasShockCollar!
-                ply\SetShockCollar( bool, false )
-
-do
-
-    CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
-
-    GM.ShockCollarToggled = ( ply, bool ) =>
-        unless ply\IsBot!
-            SendChatText( ply, false, CHAT_SERVERMESSAGE, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off" )
-
-        ply\DoElectricSparks!
