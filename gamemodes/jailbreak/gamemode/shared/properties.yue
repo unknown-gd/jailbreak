@@ -1,0 +1,150 @@
+properties = properties
+Jailbreak = Jailbreak
+IsValid = IsValid
+
+:List = properties
+
+if CLIENT
+
+    hook.Remove "PreventScreenClicks", "PropertiesPreventClicks"
+	hook.Remove "PreDrawEffects", "PropertiesUpdateEyePos"
+    hook.Remove "GUIMousePressed", "PropertiesClick"
+    hook.Remove "PreDrawHalos", "PropertiesHover"
+    NULL = NULL
+
+    entity, trace, traceResult = NULL, {}, nil
+
+    hook.Add "Think", "Jailbreak::Properties", =>
+        panel = vgui.GetHoveredPanel!
+        unless IsValid( panel ) and panel\IsWorldClicker!
+            entity = NULL
+            return
+
+        trace.start = EyePos!
+        trace.endpos = trace.start + gui.ScreenToVector( input.GetCursorPos! ) * 1024
+        trace.filter = Jailbreak.ViewEntity
+
+        traceResult = util.TraceLine( trace )
+        entity = traceResult.Hit and traceResult.Entity or NULL
+
+        if entity\IsValid! and ( entity\GetNoDraw! or not properties.CanBeTargeted( entity, Jailbreak.Player ) )
+           entity = NULL
+
+    hook.Add "PostDrawTranslucentRenderables", "!!!Jailbreak::Properties", ( drawingDepth, drawingSkybox ) ->
+        if drawingDepth or drawingSkybox or not entity\IsValid!
+            return
+
+        render.SetStencilEnable( true )
+        render.SuppressEngineLighting( true )
+        render.SetStencilWriteMask( 1 )
+        render.SetStencilTestMask( 1 )
+        render.SetStencilReferenceValue( 1 )
+
+        render.SetStencilCompareFunction( STENCIL_ALWAYS )
+        render.SetStencilPassOperation( STENCIL_REPLACE )
+        render.SetStencilFailOperation( STENCIL_KEEP )
+        render.SetStencilZFailOperation( STENCIL_KEEP )
+
+        entity\DrawModel!
+
+        render.SetStencilCompareFunction( STENCIL_EQUAL )
+        render.SetStencilPassOperation( STENCIL_KEEP )
+
+        cam.Start2D!
+        surface.SetDrawColor( 255, 255, 255, 5 )
+        surface.DrawRect( 0, 0, Jailbreak.ScreenWidth, Jailbreak.ScreenHeight )
+        cam.End2D!
+
+        render.SuppressEngineLighting( false )
+        render.SetStencilEnable( false )
+
+        render.SetStencilTestMask( 0 )
+    	render.SetStencilWriteMask( 0 )
+	    render.SetStencilReferenceValue( 0 )
+
+    -- hook.Add "PlayerButtonUp", "Jailbreak::Properties", ( key ) =>
+    --     if key ~= MOUSE_LEFT or input.IsButtonDown( MOUSE_RIGHT ) or @KeyDown( IN_WALK )
+    --         return
+
+    --     timer.Simple 0, ->
+    --         unless entity\IsValid!
+    --             return
+
+    --         options, length = {}, 0
+    --         for _, data in SortedPairsByMemberValue( List, "Order" )
+    --             unless data.Filter and data\Filter( entity, ply )
+    --                 continue
+
+    --             length += 1
+    --             options[ length ] = data
+
+    --         if length == 0
+    --             return
+
+    --         if IsValid( optionsPanel )
+    --             optionsPanel\Remove!
+
+    --         optionsPanel = DermaMenu( true, panel )
+
+    --         for index = 1, length
+    --             data = options[ index ]
+
+    --             option = nil
+    --             if data.Type == "toggle"
+    --                 unless optionsPanel.ToggleSpacer
+    --                     spacer = optionsPanel\AddSpacer!
+    --                     optionsPanel.ToggleSpacer = spacer
+    --                     spacer\SetZPos( 500 )
+
+    --                 option = optionsPanel\AddOption data.MenuLabel, ->
+    --                     data\Action( entity, traceResult )
+
+    --                 option\SetChecked( data\Checked( entity, ply ) )
+    --                 option\SetZPos( 501 )
+    --             else
+    --                 if data.PrependSpacer
+    --                     optionsPanel\AddSpacer!
+
+    --                 option = optionsPanel\AddOption( data.MenuLabel, ->
+    --                     data\Action( entity, traceResult )
+    --                 )
+
+    --                 icon = data.MenuIcon
+    --                 if icon
+    --                     option\SetImage( icon )
+
+    --                 func = data.MenuOpen
+    --                 if func
+    --                     func( data, option, entity, traceResult )
+
+    --             func = data.OnCreate
+    --             if func
+    --                 func( data, optionsPanel, option )
+
+    --         optionsPanel\Open!
+
+GM.CanProperty = ( ply, propertyName, entity ) =>
+    unless IsValid( entity )
+        return
+
+    if propertyName == "bonemanipulate"
+        return false
+
+    allowedTools = entity.m_tblToolsAllowed
+    if allowedTools
+        length = #allowedTools
+        for index = 1, length
+            if allowedTools[ index ] == propertyName
+                break
+
+            if index == length
+                return false
+
+    if entity\IsWeapon! and entity\GetOwner!\IsValid!
+        return false
+
+    func = entity.CanProperty
+	if func
+        return func( entity, ply, propertyName )
+
+    return true

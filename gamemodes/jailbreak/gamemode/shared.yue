@@ -218,3 +218,4 @@ include( "shared/weapons.lua" )
 
 -- Additional game details
 include( "shared/extra.lua" )
+include( "shared/properties.lua" )
