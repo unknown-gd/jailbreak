@@ -111,6 +111,7 @@ do
     DMG_BURN = DMG_BURN
     isnumber = isnumber
     istable = istable
+    :find = string
     :Create = ents
     :band = bit
 
@@ -214,7 +215,7 @@ do
 
                 phys = entity\GetPhysicsObject!
                 if IsValid( phys )
-                    unless phys\IsMoveable! and className ~= "prop_physics"
+                    if find( className, "^prop_physics%w*") == nil
                         prop = Create( "prop_physics" )
 
                         for key, value in pairs( entity\GetSaveTable( true ) )
