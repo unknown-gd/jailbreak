@@ -346,7 +346,7 @@ do
                         weapons[ key ] = nil
                         continue
 
-                    if IsValid( weapon\GetOwner! )
+                    if weapon\GetOwner!\IsValid!
                         weapons[ key ] = nil
                         continue
 

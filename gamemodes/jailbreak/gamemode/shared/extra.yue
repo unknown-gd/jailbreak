@@ -8,8 +8,9 @@ do
     IN_WALK = IN_WALK
 
     hook_Add "StartCommand", "Jailbreak::Markers", ( cmd ) =>
-        if @Alive! and cmd\KeyDown( IN_WALK ) and cmd\KeyDown( IN_ATTACK )
+        if @Alive! and cmd\KeyDown( IN_WALK )
             cmd\RemoveKey( IN_ATTACK )
+            cmd\RemoveKey( IN_ATTACK2 )
 
 -- Funny run and crouch animations
 do

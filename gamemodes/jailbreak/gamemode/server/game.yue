@@ -438,10 +438,7 @@ do
 
     GM.KeyPress = ( ply, key ) =>
         if ply\Alive!
-            if key ~= IN_USE
-                return
-
-            if ply\IsHoldingEntity!
+            if key ~= IN_USE or ply\IsHoldingEntity!
                 return
 
             timer_Simple 0.05 + ( ply\Ping! or 0 ) / 1000, ->
@@ -479,6 +476,9 @@ do
 
                     mover.Weld = Weld( mover, entity, 0, physID, 0, true, true )
                     ply\PickupObject( mover )
+
+                elseif entity\IsFood!
+                    ply\PickupObject( entity )
 
             return
 
@@ -749,7 +749,7 @@ do
             unless entity\IsValid!
                 return
 
-            if IsValid( entity\GetOwner! )
+            if entity\GetOwner!\IsValid!
                 return
 
             if entity\GetPos!\Length! <= 3
@@ -803,8 +803,16 @@ do
             unless weapon\IsValid!
                 return
 
+            if weapon\GetOwner!\IsValid!
+                return
+
+            unless weapon\IsInWorld!
+                weapon\Remove!
+                return
+
             phys = weapon\GetPhysicsObject!
             unless IsValid( phys )
+                weapon\Remove!
                 return
 
             start = weapon\WorldSpaceCenter!

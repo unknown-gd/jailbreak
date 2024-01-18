@@ -141,3 +141,13 @@ hook.Add "PostDrawTranslucentRenderables", "Jailbreak::Markers", ( drawingDepth,
         SetMaterial( data.material )
         DrawSprite( origin + Vector( 0, 0, 1 + sin( CurTime! * ( 4 + amplitude ) ) * ( 1.5 + amplitude ) * fraction ), scale, scale, white )
         IgnoreZ( false )
+
+-- Disallow player shoot on marker setup
+do
+
+    IN_WALK = IN_WALK
+
+    hook.Add "PreventScreenClicks", "Jailbreak::Markers", ->
+        ply = Jailbreak.Player
+        if ply\IsValid! and ply\KeyDown( IN_WALK )
+            return true

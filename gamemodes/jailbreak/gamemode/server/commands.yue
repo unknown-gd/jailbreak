@@ -157,12 +157,17 @@ do
             if entity\IsValid! and entity\IsPlayer! and entity\Alive!
                 isPlayer = true
 
+        @DropWeapon( droppedWeapon )
+
+        unless droppedWeapon\IsInWorld!
+            @PickupWeapon( droppedWeapon )
+            @SelectWeapon( droppedWeapon\GetClass! )
+            return
+
         if isPlayer
             @DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_GIVE )
         else
             @DoAnimationEvent( ACT_GMOD_GESTURE_ITEM_DROP )
-
-        @DropWeapon( droppedWeapon )
 
         maxWeight, nextWeapon = nil, nil
         for weapon in *@GetWeapons!

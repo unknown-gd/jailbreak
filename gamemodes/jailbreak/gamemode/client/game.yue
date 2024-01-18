@@ -48,7 +48,7 @@ do
             RunConsoleCommand( "jb_showteam" )
 
     GM.PlayerButtonDown = ( ply, keyCode ) =>
-        if keyCode == 107 and IsKeyDown( 81 )
+        if ( keyCode == 107 or keyCode == 108 ) and IsKeyDown( 81 )
             RunConsoleCommand( "marker" )
 
 do
