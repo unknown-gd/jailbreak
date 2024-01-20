@@ -196,9 +196,17 @@ Jailbreak.GetWinningTeam = ->
 Jailbreak.IsShockCollarsActive = ->
     return GetGlobal2Bool( "shock-collars" )
 
--- Returns warden coins as integer
-Jailbreak.GetWardenCoins = ->
-    return GetGlobal2Int( "warden-coins" )
+do
+
+    -- Returns warden coins as integer
+    getWardenCoins = ->
+        return GetGlobal2Int( "warden-coins" )
+
+    Jailbreak.GetWardenCoins = getWardenCoins
+
+    -- Returns true if warden player can afford to buy
+    Jailbreak.CanWardenAfford = ( value ) ->
+        return getWardenCoins! >= value
 
 -- Returns true if female prison is enabled
 Jailbreak.IsFemalePrison = ->

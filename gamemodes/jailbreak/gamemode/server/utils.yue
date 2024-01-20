@@ -1,4 +1,4 @@
-:min, :random = math
+:min, :max, :random = math
 EffectData = EffectData
 Jailbreak = Jailbreak
 hook_Run = hook.Run
@@ -108,21 +108,31 @@ do
             unless silent
                 hook_Run( "ShockCollarsToggled", bool )
 
--- Set warden coins count
 do
 
     SetGlobal2Int = SetGlobal2Int
     :GetWardenCoins = Jailbreak
 
-    Jailbreak.SetWardenCoins = ( value, silent ) ->
+    -- Set warden coins
+    setWardenCoins = ( value, silent ) ->
         oldValue = GetWardenCoins!
-        if value == oldValue
+        if oldValue == value
             return
 
         SetGlobal2Int( "warden-coins", value )
 
         unless silent
             hook_Run( "WardenCoins", oldValue, value )
+
+    Jailbreak.SetWardenCoins = setWardenCoins
+
+    -- Take warden coins
+    Jailbreak.TakeWardenCoins = ( value, silent ) ->
+        setWardenCoins( max( 0, GetWardenCoins! - value ), silent )
+
+    -- Give warden coins
+    Jailbreak.GiveWardenCoins = ( value, silent ) ->
+        setWardenCoins( max( 0, GetWardenCoins! + value ), silent )
 
 -- Clear observe targets
 do
