@@ -1,6 +1,7 @@
 Jailbreak = Jailbreak
+
 GetGlobal2Int = GetGlobal2Int
-:ceil, :max = math
+:ceil, :min, :max = math
 CurTime = CurTime
 :GetAll = player
 NULL = NULL
@@ -534,6 +535,19 @@ do
             return 0
 
         return CurTime! - startUseTime
+
+do
+
+    :GetAmmoCount = PLAYER
+    :GetAmmoMax = game
+
+    getAmmoMax = ( ammoType ) ->
+        return max( 0, min( 256, GetAmmoMax( ammoType ) ) )
+
+    Jailbreak.GetAmmoMax = getAmmoMax
+
+    PLAYER.GetPickupAmmoCount = ( ammoType ) =>
+        return max( 0, getAmmoMax( ammoType ) - GetAmmoCount( @, ammoType ) )
 
 -- Silly spark sounds
 do

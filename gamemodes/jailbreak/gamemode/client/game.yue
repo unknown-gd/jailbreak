@@ -2,7 +2,6 @@ RunConsoleCommand = RunConsoleCommand
 Jailbreak = Jailbreak
 hook_Run = hook.Run
 :format = string
-NULL = NULL
 GM = GM
 
 GM.InitPostEntity = =>
@@ -56,7 +55,6 @@ do
     :ReadString, :ReadUInt, :ReadTable, :ReadEntity, :ReadBool = net
     :AddLegacy = notification
     :Translate = Jailbreak
-    Entity = Entity
     unpack = unpack
     :random = math
 

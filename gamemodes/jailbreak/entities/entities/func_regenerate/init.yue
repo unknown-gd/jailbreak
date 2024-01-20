@@ -1,6 +1,3 @@
-:floor, :max = math
-:GetAmmoMax = game
-
 ENT.Type = "brush"
 ENT.Sound = Sound( "Regenerate.Touch" )
 
@@ -9,19 +6,19 @@ ENT.Initialize = =>
     @Players = {}
 
 ENT.Regenerate = ( ply ) =>
-    ply\SetHealth( max( ply\Health!, ply\GetMaxHealth! ) )
+    ply\Heal!
 
     for weapon in *ply\GetWeapons!
         clip1Type = weapon\GetPrimaryAmmoType!
         if clip1Type >= 0
-            amount = floor( GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) )
-            if amount > 0
+            amount = ply\GetPickupAmmoCount( clip1Type )
+            if amount ~= 0
                 ply\GiveAmmo( amount, clip1Type, false )
 
         clip2Type = weapon\GetSecondaryAmmoType!
         if clip2Type >= 0
-            amount = floor( GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) )
-            if amount > 0
+            amount = ply\GetPickupAmmoCount( clip2Type )
+            if amount ~= 0
                 ply\GiveAmmo( amount, clip2Type, false )
 
 ENT.StartTouch = ( entity ) =>

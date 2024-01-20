@@ -1,4 +1,4 @@
-:min, :floor, :random = math
+:min, :random = math
 EffectData = EffectData
 Jailbreak = Jailbreak
 hook_Run = hook.Run
@@ -35,7 +35,6 @@ do
 
 do
 
-    :DelayedRemove = Jailbreak
     :BlastDamage = util
     :ceil = math
 
@@ -310,7 +309,6 @@ do
 
 do
 
-    :GetAmmoMax = game
     istable = istable
     :Shuffle = table
     Vector = Vector
@@ -369,14 +367,14 @@ do
                 ragdoll.Ammo = nil
             else
                 for ammoType, ammoCount in pairs( ammo )
-                    pickupAmount = min( ammoCount, floor( GetAmmoMax( ammoType ) - @GetAmmoCount( ammoType ) ) )
-                    if pickupAmount < 1
+                    amount = min( ammoCount, @GetPickupAmmoCount( ammoType ) )
+                    if amount < 1
                         continue
 
-                    @GiveAmmo( pickupAmount, ammoType )
+                    @GiveAmmo( amount, ammoType )
                     velocity += direction * 100
 
-                    ammoCount -= pickupAmount
+                    ammoCount -= amount
                     if ammoCount > 0
                         ammo[ ammoType ] = ammoCount
                     else

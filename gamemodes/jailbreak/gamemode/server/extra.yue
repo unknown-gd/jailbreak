@@ -68,7 +68,6 @@ do
         do
 
             isstring = isstring
-            isnumber = isnumber
             istable = istable
 
             replaceFilter = ( modelName ) ->
@@ -445,7 +444,8 @@ GM.OnPlayerPhysicsDrop = ( ply, entity, thrown ) =>
 
 do
 
-    :GetAmmoID, :GetAmmoMax = game
+    :GetAmmoMax = Jailbreak
+    :GetAmmoID = game
 
     clips = {
         weapon_crossbow: 4
