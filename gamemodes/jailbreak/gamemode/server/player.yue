@@ -300,6 +300,32 @@ PLAYER.RemoveRagdoll = =>
     if ragdoll\IsValid!
         ragdoll\Remove!
 
+do
+
+    :ceil = math
+
+    PLAYER.Heal = ( frac ) =>
+        amount = ceil( @GetMaxHealth! * ( frac or 1 ) )
+        @SetHealth( amount )
+        return amount
+
+do
+
+    :max = math
+
+    PLAYER.AddHealth = ( amount ) =>
+        amount = max( @GetHealth! + amount, @GetMaxHealth! )
+        @SetHealth( amount )
+        return amount
+
+    PLAYER.TakeHealth = ( amount ) =>
+        amount = max( 0, @GetHealth! - amount )
+        @SetHealth( amount )
+        if amount == 0
+            @Kill!
+
+        return amount
+
 PLAYER.CreateClientsideRagdoll = PLAYER.CreateClientsideRagdoll or PLAYER.CreateRagdoll
 COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
