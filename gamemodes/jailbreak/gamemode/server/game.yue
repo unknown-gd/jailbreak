@@ -219,6 +219,8 @@ do
 
     trace = {
         mask: MASK_PLAYERSOLID
+        filter: =>
+            return @IsPlayer!
     }
 
     GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
@@ -228,8 +230,6 @@ do
 
         if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or entity.Team ~= teamID )
             return false
-
-        trace.filter = entity
 
         start = entity\GetPos!
         trace.start = start
@@ -631,7 +631,6 @@ GM.PlayerSwitchFlashlight = ( ply, newState ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerUse
 do
 
-    :GetAmmoMax = game
     CurTime = CurTime
 
     GM.PlayerUse = ( ply, entity ) =>
@@ -679,14 +678,14 @@ do
             if ply\HasWeapon( className )
                 clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
                 if clip1 > 0 and clip1Type >= 0
-                    canPickup = min( clip1, max( 0, GetAmmoMax( clip1Type ) - ply\GetAmmoCount( clip1Type ) ))
+                    canPickup = min( clip1, ply\GetPickupAmmoCount( clip1Type ) )
                     if canPickup > 0
                         entity\SetClip1( clip1 - canPickup )
                         ply\GiveAmmo( canPickup, clip1Type, false )
 
                 clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
                 if clip2 > 0 and clip2Type >= 0
-                    canPickup = min( clip2, max( 0, GetAmmoMax( clip2Type ) - ply\GetAmmoCount( clip2Type ) ))
+                    canPickup = min( clip2, ply\GetPickupAmmoCount( clip2Type ) )
                     if canPickup > 0
                         entity\SetClip2( clip2 - canPickup )
                         ply\GiveAmmo( canPickup, clip2Type, false )
@@ -853,35 +852,31 @@ GM.PlayerLoadout = ( ply ) =>
     ply\Give( "jb_hands" )
     ply\SelectWeapon( "jb_hands" )
 
-do
+hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", =>
+    @m_bGivedAmmo = nil
 
-    :GetAmmoMax = game
+GM.WeaponEquip = ( weapon, owner ) =>
+    unless owner\IsGuard!
+        return
 
-    hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", =>
-        @m_bGivedAmmo = nil
+    givedAmmo = owner.m_bGivedAmmo
+    unless givedAmmo
+        givedAmmo = {}
+        owner.m_bGivedAmmo = givedAmmo
 
-    GM.WeaponEquip = ( weapon, owner ) =>
-        unless owner\IsGuard!
-            return
+    primaryAmmoType = weapon\GetPrimaryAmmoType!
+    if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
+        amount = owner\GetPickupAmmoCount( primaryAmmoType )
+        if amount ~= 0
+            owner\GiveAmmo( amount, primaryAmmoType, false )
+            givedAmmo[ primaryAmmoType ] = true
 
-        givedAmmo = owner.m_bGivedAmmo
-        unless givedAmmo
-            givedAmmo = {}
-            owner.m_bGivedAmmo = givedAmmo
-
-        primaryAmmoType = weapon\GetPrimaryAmmoType!
-        if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
-            count = min( 256, GetAmmoMax( primaryAmmoType ) ) - owner\GetAmmoCount( primaryAmmoType )
-            if count > 0
-                owner\GiveAmmo( count, primaryAmmoType, false )
-                givedAmmo[ primaryAmmoType ] = true
-
-        secondaryAmmoType = weapon\GetSecondaryAmmoType!
-        if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
-            count = min( 256, GetAmmoMax( secondaryAmmoType ) ) - owner\GetAmmoCount( secondaryAmmoType )
-            if count > 0
-                owner\GiveAmmo( count, secondaryAmmoType, false )
-                givedAmmo[ secondaryAmmoType ] = true
+    secondaryAmmoType = weapon\GetSecondaryAmmoType!
+    if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
+        amount = owner\GetPickupAmmoCount( secondaryAmmoType )
+        if amount ~= 0
+            owner\GiveAmmo( amount, secondaryAmmoType, false )
+            givedAmmo[ secondaryAmmoType ] = true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
