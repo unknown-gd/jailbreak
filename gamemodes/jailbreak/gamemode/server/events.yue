@@ -141,6 +141,7 @@ do
         ->
             Jailbreak.SetFemalePrison( false )
 
+    event\SetFinishState( ROUND_FINISHED )
     event\SetType( "playermodel" )
     event\SetColor( Colors.pink )
     event\ConVar( 15 )

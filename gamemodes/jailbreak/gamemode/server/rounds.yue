@@ -108,8 +108,6 @@ do
                 SafeCleanUpMap!
 
             when ROUND_PREPARING
-                SetShockCollars( true )
-
                 for ply in *GetAll!
                     if ply\IsBot!
                         ply\SetTeam( TEAM_PRISONER )
@@ -118,6 +116,7 @@ do
                         ply\Spawn!
 
                 SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.horizon )
+                SetShockCollars( false )
                 SafeCleanUpMap!
 
             when ROUND_RUNNING

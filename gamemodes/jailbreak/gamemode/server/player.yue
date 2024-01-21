@@ -77,6 +77,7 @@ PLAYER.GiveShockCollar = ( silent ) =>
         return
 
     @SetNW2Bool( "shock-collar", true )
+    @SetShockCollar( false, true )
 
     unless @IsBot! or silent
         @SendPickupNotify( "jb.shock-collar" )
@@ -85,6 +86,7 @@ PLAYER.TakeShockCollar = ( silent ) =>
     unless @HasShockCollar!
         return
 
+    @SetShockCollar( false, true )
     @SetNW2Bool( "shock-collar", false )
 
     unless @IsBot! or silent
