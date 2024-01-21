@@ -69,37 +69,41 @@ do
 
         @InvalidateLayout!
 
-    PANEL.Think = =>
-        if @NextVoiceData < CurTime!
-            ply = @Player
-            if ply\IsValid!
-                voiceData = @VoiceData
-                length = #voiceData
+    do
 
-                if length > @VoiceDataLength
-                    table.remove( voiceData, 1 )
+        :remove = table
 
-                voiceData[ length + 1 ] = max( 0.05, ply\VoiceFraction! )
-                @NextVoiceData = CurTime! + 0.025
+        PANEL.Think = =>
+            if @NextVoiceData < CurTime!
+                ply = @Player
+                if IsValid( ply )
+                    voiceData = @VoiceData
+                    length = #voiceData
 
-        animationType = @AnimationType
-        if animationType ~= nil
-            if animationType
-                alpha = @GetAlpha!
-                if alpha > 0
-                    @SetAlpha( max( 0, @GetAlpha! - 255 * FrameTime! * 2 ) )
+                    if length > @VoiceDataLength
+                        remove( voiceData, 1 )
+
+                    voiceData[ length + 1 ] = max( 0.05, ply\VoiceFraction! )
+                    @NextVoiceData = CurTime! + 0.025
+
+            animationType = @AnimationType
+            if animationType ~= nil
+                if animationType
+                    alpha = @GetAlpha!
+                    if alpha > 0
+                        @SetAlpha( max( 0, @GetAlpha! - 255 * FrameTime! * 2 ) )
+                    else
+                        @AnimationType = nil
+                        if @IsVisible!
+                            @Hide!
+
                 else
-                    @AnimationType = nil
-                    if @IsVisible!
-                        @Hide!
 
-            else
-
-                alpha = @GetAlpha!
-                if alpha < 255
-                    @SetAlpha( min( @GetAlpha! + 255 * FrameTime! * 2, 255 ) )
-                else
-                    @AnimationType = nil
+                    alpha = @GetAlpha!
+                    if alpha < 255
+                        @SetAlpha( min( @GetAlpha! + 255 * FrameTime! * 2, 255 ) )
+                    else
+                        @AnimationType = nil
 
     PANEL.FadeIn = =>
         @AnimationType = true
@@ -119,7 +123,7 @@ do
                 r, g, b = 255, 255, 255
 
                 ply = @Player
-                if ply\IsValid! and ply\Alive!
+                if IsValid( ply ) and ply\Alive!
                     r, g, b = ply\GetTeamColorUpacked!
 
                 SetDrawColor( r, g, b, floor( volume * 255 ) )
@@ -170,7 +174,7 @@ do
 
     PANEL.Think = =>
         for panel in *@GetChildren!
-            unless panel.Player\IsValid!
+            unless IsValid( panel.Player )
                 if panel\GetAlpha! == 0
                     panel\Remove!
                 elseif not panel\IsInAnimation!
