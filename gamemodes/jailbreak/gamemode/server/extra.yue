@@ -8,13 +8,18 @@ hook_Add = hook.Add
 CurTime = CurTime
 GM = GM
 
-GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
-    if new >= 2
-        if entity\IsOnFire!
-            entity\Extinguish!
+do
 
-        if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
-            entity.DrownDamageTime = CurTime! + random( 15, 45 )
+    :white = Jailbreak.Colors
+
+    GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
+        if new >= 2
+            if entity\IsOnFire!
+                entity\Extinguish!
+
+            if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
+                entity.DrownDamageTime = CurTime! + random( 15, 45 )
+                entity\SetColor( white )
 
 do
 

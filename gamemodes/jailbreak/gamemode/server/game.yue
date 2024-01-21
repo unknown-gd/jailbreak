@@ -113,12 +113,14 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 do
 
     :RagdollRemove, :GameInProgress, :GuardsArmor = Jailbreak
+    :white = Jailbreak.Colors
 
     GM.PlayerSpawn = ( ply, transiton ) =>
         ply\RemoveFromObserveTargets!
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
         ply\SetWarden( false )
+        ply\SetColor( white )
         ply\RemoveAllAmmo!
         ply\StripWeapons!
         ply\UnSpectate!
