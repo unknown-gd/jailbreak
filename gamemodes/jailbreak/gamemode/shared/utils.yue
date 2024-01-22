@@ -303,11 +303,12 @@ do
 
 do
 
+    :DefaultPlayerColor = Jailbreak
+
     -- Returns player color as vector
     getPlayerColor = nil
     do
 
-        :DefaultPlayerColor = Jailbreak
         :GetNW2Vector = ENTITY
 
         getPlayerColor = =>
@@ -318,16 +319,27 @@ do
     -- Returns entity custom color
     do
 
-        PLAYER_GetPlayerColor = PLAYER.GetPlayerColor
         :ToColor = FindMetaTable( "Vector" )
+        :GetPlayerColor = PLAYER
+
+        defaultColor = ToColor( DefaultPlayerColor )
 
         ENTITY.GetModelColor = =>
-            return ToColor( @IsPlayer! and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ ) )
+            if @IsValid!
+                return ToColor( @IsPlayer! and GetPlayerColor( @ ) or getPlayerColor( @ ) )
 
-        ENTITY.GetModelColorUnpacked = =>
-            vector = @IsPlayer! and PLAYER_GetPlayerColor( @ ) or getPlayerColor( @ )
-            return vector[ 1 ] * 255, vector[ 2 ] * 255, vector[ 3 ] * 255, 255
+            return defaultColor
 
+        do
+
+            vector = DefaultPlayerColor
+
+            ENTITY.GetModelColorUnpacked = =>
+                if @IsValid!
+                    vector = @IsPlayer! and GetPlayerColor( @ ) or getPlayerColor( @ )
+                    return vector[ 1 ] * 255, vector[ 2 ] * 255, vector[ 3 ] * 255, 255
+
+                return DefaultPlayerColor
 
 -- Sets player color
 do

@@ -216,7 +216,7 @@ do
             r, g, b = entity\GetModelColorUnpacked!
             text = entity\Nick!
             entityType = 1
-        elseif entity\IsPlayerRagdoll!
+        elseif entity\IsRagdoll!
             text = entity\GetRagdollOwnerNickname!
             r, g, b = entity\GetModelColorUnpacked!
             entityType = 2

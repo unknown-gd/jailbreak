@@ -10,18 +10,20 @@ ENT.PlayerGotItem = ( ply ) =>
     gived = false
 
     for weapon in *ply\GetWeapons!
-        clip1Type = weapon\GetPrimaryAmmoType!
-        if clip1Type >= 0
-            amount = floor( ply\GetPickupAmmoCount( clip1Type ) * @Ammo )
-            if amount ~= 0
-                ply\GiveAmmo( amount, clip1Type, false )
-                gived = true
+        if weapon\Clip1! ~= -1
+            clip1Type = weapon\GetPrimaryAmmoType!
+            if clip1Type >= 0
+                amount = floor( ply\GetPickupAmmoCount( clip1Type ) * @Ammo )
+                if amount ~= 0
+                    ply\GiveAmmo( amount, clip1Type, false )
+                    gived = true
 
-        clip2Type = weapon\GetSecondaryAmmoType!
-        if clip2Type >= 0
-            amount = floor( ply\GetPickupAmmoCount( clip2Type ) * @Ammo )
-            if amount ~= 0
-                ply\GiveAmmo( amount, clip2Type, false )
-                gived = true
+        if weapon\Clip2! ~= -1
+            clip2Type = weapon\GetSecondaryAmmoType!
+            if clip2Type >= 0
+                amount = floor( ply\GetPickupAmmoCount( clip2Type ) * @Ammo )
+                if amount ~= 0
+                    ply\GiveAmmo( amount, clip2Type, false )
+                    gived = true
 
     return gived
