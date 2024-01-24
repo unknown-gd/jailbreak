@@ -1,10 +1,10 @@
 Jailbreak = Jailbreak
 GM = GM
 
-:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime, :PlaySound, :SendChatText = Jailbreak
-hook_Run = hook.Run
+:GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime, :PlaySound, :SendChatText, :GetRoundState = Jailbreak
 CurTime = CurTime
 :GetAll = player
+:Run = hook
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -21,15 +21,15 @@ do
     SetGlobal2Int = SetGlobal2Int
 
     -- Set the round state
-    do
+    setRoundState = ( state, silent ) ->
+        oldState = GetRoundState!
+        if oldState == state
+            return
 
-        :GetRoundState = Jailbreak
+        SetGlobal2Int( "round-state", state )
 
-        setRoundState = ( state, silent ) ->
-            oldState = GetRoundState!
-            SetGlobal2Int( "round-state", state )
-            unless silent
-                hook_Run( "RoundStateChanged", oldState, state )
+        unless silent
+            Run( "RoundStateChanged", oldState, state )
 
     Jailbreak.SetRoundState = setRoundState
 
@@ -50,7 +50,7 @@ do
 
 do
 
-    :IsRoundRunning = Jailbreak
+    :GetPlayersCount = Jailbreak
     :Create = timer
 
     lastPrisonersCount = 0
@@ -62,21 +62,24 @@ do
 
         teamID = @Team!
         Create "Jailbreak::TeamPlayerCountChanged", 0.25, 1, ->
-            unless IsRoundRunning!
-                return
+            switch GetRoundState!
+                when ROUND_PREPARING
+                    if Teams[ teamID ] and GetPlayersCount( teamID ) == 0
+                        setRoundState( ROUND_WAITING_PLAYERS )
 
-            teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
-            if teams[ 1 ] == 0 or teams[ 2 ] == 0
-                setRoundState( ROUND_FINISHED )
-            else
+                when ROUND_RUNNING
+                    teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
+                    if teams[ 1 ] == 0 or teams[ 2 ] == 0
+                        setRoundState( ROUND_FINISHED )
+                    else
 
-                if teamID == TEAM_PRISONER and teams[ 2 ] == 1 and teams[ 2 ] < lastPrisonersCount
-                    PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
+                        if teamID == TEAM_PRISONER and teams[ 2 ] == 1 and teams[ 2 ] < lastPrisonersCount
+                            PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
 
-                lastPrisonersCount = teams[ 2 ]
+                        lastPrisonersCount = teams[ 2 ]
 
-                if isWarden and @IsValid!
-                    hook_Run( "WardenChanged", @, false )
+                        if isWarden and @IsValid!
+                            Run( "WardenChanged", @, false )
 
     Jailbreak.PlayerChangedTeam = playerChangedTeam
 
@@ -180,15 +183,6 @@ do
                 setRoundTime( PrepareTime\GetInt! )
                 PlaySound( "ambient/alarms/warningbell1.wav" )
 
--- https://wiki.facepunch.com/gmod/GM:PlayerChangedTeam
-do
-
-    :IsRoundPreparing, :GetPlayersCount = Jailbreak
-
-    GM.PlayerChangedTeam = ( ply, oldTeam, newTeam ) =>
-        if IsRoundPreparing! and Teams[ oldTeam ] and ( GetPlayersCount( oldTeam ) - 1 ) == 0
-            setRoundState( ROUND_WAITING_PLAYERS )
-
 -- Called when a in game player dies
 GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\RemoveFromObserveTargets!
@@ -224,7 +218,7 @@ do
 
 do
 
-    :GetRoundTime, :GetRoundState = Jailbreak
+    :GetRoundTime = Jailbreak
     :AddScore = team
 
     GM.Think = =>
