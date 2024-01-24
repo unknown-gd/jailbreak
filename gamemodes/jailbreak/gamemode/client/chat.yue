@@ -83,13 +83,20 @@ do
             switch messageType
                 when "servermsg"
                     buffer[ 1 ] = text
+                    buffer[ 2 ] = nil
                     performChatMessage( NULL, CHAT_SERVERMESSAGE, buffer )
 
                 when "chat"
                     buffer[ 1 ] = text
+                    buffer[ 2 ] = nil
                     performChatMessage( NULL, CHAT_TEXT, buffer )
 
             return true
+
+        FindMetaTable( "Player" ).ChatPrint = ( text ) =>
+            buffer[ 1 ] = text
+            buffer[ 2 ] = white
+            performChatMessage( NULL, CHAT_SERVERMESSAGE, buffer )
 
     net.Receive "Jailbreak::Chat", ->
         performChatMessage( ReadBool! and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 4 ), ReadTable( true ) )

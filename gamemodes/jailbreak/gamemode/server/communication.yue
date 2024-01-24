@@ -6,6 +6,7 @@ GM = GM
 
 :VoiceChatMinDistance, :VoiceChatMaxDistance, :GameInProgress = Jailbreak
 :white, :red, :dark_white = Jailbreak.Colors
+CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 
 :GetHumans = player
 tonumber = tonumber
@@ -84,6 +85,12 @@ do
 
                 Send( players )
 
+    FindMetaTable( "Player" ).ChatPrint = ( text ) =>
+        unless isstring( text ) and #text > 0
+            text = fallbackStr
+
+        sendChatText( @, false, CHAT_SERVERMESSAGE, text, white )
+
 Jailbreak.SendChatText = sendChatText
 
 -- Chat Commands
@@ -107,8 +114,6 @@ do
         chatCommands[ lower( str ) ] = { func, description }
 
     Jailbreak.SetChatCommand = setChatCommand
-
-CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 
 -- Help
 setChatCommand "help", =>
