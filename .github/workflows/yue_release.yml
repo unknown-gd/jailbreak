@@ -12,20 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: CD
+      - name: Change directory
         run: cd $GITHUB_WORKSPACE
 
-      - name: Update apt
-        run: sudo apt-get update -y
+      # - name: Update apt
+      #   run: sudo apt-get update -y
 
-      - name: Install LuaRocks
-        run: sudo apt-get install -y luarocks
+      # - name: Install LuaRocks
+      #   run: sudo apt-get install -y luarocks
 
-      - name: Install Yuescript
-        run: sudo luarocks install yuescript
+      # - name: Install Yuescript
+      #   run: sudo luarocks install yuescript
+
+      # - name: Download Yuescript
 
       - name: Build Lua
-        run: yue lua/*
+        run: ./yue lua/*
 
       - name: Remove yue
         run: find . -type f -name '*.yue' -delete
@@ -33,8 +35,14 @@ jobs:
       - name: Remove github dir
         run: rm -rf .github
 
+      - name: Remove .gitattributes
+        run: rm -f .gitattributes
+
       - name: Remove .gitignore
-        run: rm -rf .gitignore
+        run: rm -f .gitignore
+
+      - name: Remove todo.md
+        run: rm -f todo.md
 
       - name: Create VERSION file
         run: versionStr=${{ github.ref }};echo -e v${versionStr#*v} > VERSION
