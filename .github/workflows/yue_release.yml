@@ -24,10 +24,8 @@ jobs:
       # - name: Install Yuescript
       #   run: sudo luarocks install yuescript
 
-      # - name: Download Yuescript
-
       - name: Build Lua
-        run: ./.github/other/yue lua/*
+        run: ./.github/yue ./
 
       - name: Remove yue
         run: find . -type f -name '*.yue' -delete
@@ -35,11 +33,11 @@ jobs:
       - name: Remove github dir
         run: rm -rf .github
 
-      - name: Remove .gitattributes
-        run: rm -f .gitattributes
-
       - name: Remove .gitignore
         run: rm -f .gitignore
+
+      - name: Remove .gitattributes
+        run: rm -f .gitattributes
 
       - name: Remove todo.md
         run: rm -f todo.md
