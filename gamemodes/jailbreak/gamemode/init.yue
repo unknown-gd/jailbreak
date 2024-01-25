@@ -83,8 +83,8 @@ do
     :FindByClass = ents
 
     GM.InitPostEntity = =>
-        -- Start round state
-        Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
+        -- -- Start round state
+        -- Jailbreak.SetRoundState( ROUND_WAITING_PLAYERS )
 
         -- Correcting silly convar values
         RunConsoleCommand( "sv_defaultdeployspeed", "1" )
