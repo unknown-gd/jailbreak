@@ -27,7 +27,7 @@ jobs:
       # - name: Download Yuescript
 
       - name: Build Lua
-        run: ./yue lua/*
+        run: ./.github/other/yue lua/*
 
       - name: Remove yue
         run: find . -type f -name '*.yue' -delete
