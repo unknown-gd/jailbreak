@@ -49,11 +49,11 @@ do
 
 -- Silly death animations
 hook_Add "FinishMove", "Jailbreak::Death Animations", ( mv ) =>
-    if @GetNW2Int( "death-animation" ) > 0
+    if @GetNW2Int( "death-animation" ) ~= 0
         return true
 
 hook_Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
-    if @GetNW2Int( "death-animation" ) > 0
+    if @GetNW2Int( "death-animation" ) ~= 0
         return false
 
 -- TF2 Double Jump
