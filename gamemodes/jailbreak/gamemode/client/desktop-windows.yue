@@ -135,7 +135,7 @@ list_Set "DesktopWindows", "shock-collars", {
 
 do
 
-    :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
+    :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups, :VMin = Jailbreak
     playerOptionsAnimations = list.Get( "PlayerOptionsAnimations" )
     default_animations = { "idle_all_01", "menu_walk" }
     previewOffset = Vector( -100, 0, -61 )
@@ -157,12 +157,9 @@ do
         order: 200
         init: ( window ) =>
             window\SetTitle( "#smwidget.playermodel_title" )
-            window\SetSize( 960, 700 )
-            window\Center!
-
-            window\SetSize( min( Jailbreak.ScreenWidth - 16, window\GetWide! ), min( Jailbreak.ScreenHeight - 16, window\GetTall! ) )
-            window\SetMinWidth( window\GetWide! )
-            window\SetMinHeight( window\GetTall! )
+            window\SetSize( VMin( 70 ), VMin( 40 ) )
+            window\SetMinWidth( VMin( 60 ) )
+            window\SetMinHeight( VMin( 30 ) )
             window\SetSizable( true )
             window\Center!
 
