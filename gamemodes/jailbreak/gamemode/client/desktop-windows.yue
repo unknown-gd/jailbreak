@@ -367,6 +367,7 @@ do
                     return
 
                 previewEntity\SetPos( previewOffset )
+                previewEntity\SetPlayerColor( Vector( PlayerColor\GetString! ) )
 
                 bodygroupsTab = bodygroupsSheet.Tab
                 if IsValid( bodygroupsTab )
