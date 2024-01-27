@@ -148,9 +148,7 @@ do
     MASK_SHOT = MASK_SHOT
     :TraceLine = util
 
-    trace = {
-        mask: MASK_SHOT
-    }
+    trace, useDistance = { mask: MASK_SHOT }, 75 ^ 2
 
     Jailbreak.Font( "Jailbreak::TargetID", "Roboto Mono Bold", 2.5 )
     Jailbreak.Font( "Jailbreak::TargetID - Team", "Roboto Mono SemiBold Italic", 2.25 )
@@ -196,10 +194,7 @@ do
         trace.filter = filter
 
         traceResult = TraceLine( trace )
-        unless traceResult.Hit
-            return
-
-        if traceResult.HitWorld
+        if not traceResult.Hit or traceResult.HitWorld
             return
 
         entity = traceResult.Entity
@@ -374,96 +369,97 @@ do
 
             y += textHeight
 
+        if start\DistToSqr( traceResult.HitPos ) > useDistance
+            return
+
         keyName = input.LookupBinding( "use" )
         if ply\IsPlayer! and keyName ~= nil and ply\Alive!
-            useEntity = ply\GetUseEntity!
-            if useEntity\IsValid!
-                text, progress = nil, 0
+            text, progress = nil, 0
 
-                if entityType == 1
-                    weapon = ply\GetActiveWeapon!
-                    if IsValid( weapon ) and weapon\GetClass! == "jb_hands" and weapon\GetHoldType! == "fist"
-                        text = "#jb.player.push"
+            if entityType == 1
+                weapon = ply\GetActiveWeapon!
+                if IsValid( weapon ) and weapon\GetClass! == "jb_hands" and weapon\GetHoldType! == "fist"
+                    text = "#jb.player.push"
 
-                elseif entityType == 2
-                    useTime = ply\GetUseTime!
-                    if useTime ~= 0
-                        progress = Clamp( useTime / RagdollLootingTime\GetInt!, 0, 1 )
+            elseif entityType == 2
+                useTime = ply\GetUseTime!
+                if useTime ~= 0
+                    progress = Clamp( useTime / RagdollLootingTime\GetInt!, 0, 1 )
 
-                    text = GetPhrase( "jb.player.search" )
+                text = GetPhrase( "jb.player.search" )
 
-                elseif entityType == 5
-                    text = "#jb.player.press_button"
+            elseif entityType == 5
+                text = "#jb.player.press_button"
 
-                elseif entityType == 3
-                    if ply\HasWeapon( useEntity\GetClass! )
-                        if ( useEntity\Clip1! > 0 or useEntity\Clip2! > 0 ) and ( ply\GetPickupAmmoCount( useEntity\GetPrimaryAmmoType! ) > 1 or ply\GetPickupAmmoCount( useEntity\GetSecondaryAmmoType! ) ~= 0 )
-                            text = "#jb.player.pickup_ammo"
-
-                    else
-                        text = "#jb.player.pickup_weapon"
-
-                elseif entityType == 4
-                    useTime = ply\GetUseTime!
-                    if useTime ~= 0
-                        progress = Clamp( useTime / FoodEatingTime\GetInt!, 0, 1 )
-
-                    text = GetPhrase( "jb.player.eat_food" )
+            elseif entityType == 3
+                if ply\HasWeapon( entity\GetClass! )
+                    if ( entity\Clip1! > 0 or entity\Clip2! > 0 ) and ( ply\GetPickupAmmoCount( entity\GetPrimaryAmmoType! ) > 1 or ply\GetPickupAmmoCount( entity\GetSecondaryAmmoType! ) ~= 0 )
+                        text = "#jb.player.pickup_ammo"
 
                 else
+                    text = "#jb.player.pickup_weapon"
 
-                    className = useEntity\GetClass!
-                    if className == "prop_door_rotating"
-                        if useEntity\IsDoorLocked!
-                            text = "#jb.player.door_locked"
-                        elseif useEntity\GetDoorState! == 0
-                            text = "#jb.player.door_open"
-                        else
-                            text = "#jb.player.door_close"
+            elseif entityType == 4
+                useTime = ply\GetUseTime!
+                if useTime ~= 0
+                    progress = Clamp( useTime / FoodEatingTime\GetInt!, 0, 1 )
 
-                if text ~= nil
-                    keyName = upper( keyName )
+                text = GetPhrase( "jb.player.eat_food" )
 
-                    SetFont( "Jailbreak::TargetID - Use" )
-                    textWidth, textHeight = GetTextSize( text )
-                    margin = VMin( 0.5 )
+            else
 
-                    width, height = textWidth * 1.2, textHeight * 1.25
-                    x = mouseX - ( width + margin + height ) / 2
-                    y += ( height - textHeight ) / 2 + margin
-
-                    if progress ~= 0
-                        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-                        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
-                        DrawRect( x, y - ( height - textHeight ) / 2, height, height )
-
-                        SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
-
-                        rectHeight = ceil( height * progress )
-                        DrawRect( x, ( y - ( height - textHeight ) / 2 + height ) - rectHeight, height, rectHeight )
-
+                className = entity\GetClass!
+                if className == "prop_door_rotating"
+                    if entity\IsDoorLocked!
+                        text = "#jb.player.door_locked"
+                    elseif entity\GetDoorState! == 0
+                        text = "#jb.player.door_open"
                     else
-                        if ply\KeyDown( 32 )
-                            SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
-                            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
-                        else
-                            SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-                            SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+                        text = "#jb.player.door_close"
 
-                        DrawRect( x, y - ( height - textHeight ) / 2, height, height )
+            if text ~= nil
+                keyName = upper( keyName )
 
-                    SetTextPos( x + ( height - GetTextSize( keyName ) ) / 2, y )
-                    DrawText( keyName )
+                SetFont( "Jailbreak::TargetID - Use" )
+                textWidth, textHeight = GetTextSize( text )
+                margin = VMin( 0.5 )
 
-                    x += height + margin
+                width, height = textWidth * 1.2, textHeight * 1.25
+                x = mouseX - ( width + margin + height ) / 2
+                y += ( height - textHeight ) / 2 + margin
+
+                if progress ~= 0
                     SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
-                    DrawRect( x, y - ( height - textHeight ) / 2, width, height )
-                    x += ( width - textWidth ) / 2
+                    SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+                    DrawRect( x, y - ( height - textHeight ) / 2, height, height )
 
-                    SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+                    SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
 
-                    SetTextPos( x, y )
-                    DrawText( text )
+                    rectHeight = ceil( height * progress )
+                    DrawRect( x, ( y - ( height - textHeight ) / 2 + height ) - rectHeight, height, rectHeight )
+
+                else
+                    if ply\KeyDown( 32 )
+                        SetDrawColor( light_grey.r, light_grey.g, light_grey.b, 240 )
+                        SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b )
+                    else
+                        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+                        SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+
+                    DrawRect( x, y - ( height - textHeight ) / 2, height, height )
+
+                SetTextPos( x + ( height - GetTextSize( keyName ) ) / 2, y )
+                DrawText( keyName )
+
+                x += height + margin
+                SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
+                DrawRect( x, y - ( height - textHeight ) / 2, width, height )
+                x += ( width - textWidth ) / 2
+
+                SetTextColor( dark_white.r, dark_white.g, dark_white.b )
+
+                SetTextPos( x, y )
+                DrawText( text )
 
 do
 

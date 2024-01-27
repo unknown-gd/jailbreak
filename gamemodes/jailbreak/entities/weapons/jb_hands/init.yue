@@ -53,8 +53,8 @@ SWEP.UseDoor = ( open ) =>
 do
 
     ConVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
-    SWEP.MinDamage = CreateConVar( "jb_hands_damage_min", "8", ConVarFlags, "", 0, 16384 )
-    SWEP.MaxDamage = CreateConVar( "jb_hands_damage_max", "12", ConVarFlags, "", 0, 16384 )
+    SWEP.MinDamage = CreateConVar( "jb_hands_damage_min", "8", ConVarFlags, "Minimal damage from a fist punch.", 0, 16384 )
+    SWEP.MaxDamage = CreateConVar( "jb_hands_damage_max", "12", ConVarFlags, "Maximal damage from a fist punch.", 0, 16384 )
 
 do
 

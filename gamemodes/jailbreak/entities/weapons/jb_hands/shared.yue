@@ -118,7 +118,7 @@ SWEP.SecondaryAttack = =>
     elseif SERVER
         @UseDoor( true )
 
-SWEP.HitDistance = CreateConVar( "jb_hands_distance", "48", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "", 16, 4096 )
+SWEP.HitDistance = CreateConVar( "jb_hands_distance", "48", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "Distance of the player's fist punch.", 16, 4096 )
 
 HitSound = Sound( "Flesh.ImpactHard" )
 
