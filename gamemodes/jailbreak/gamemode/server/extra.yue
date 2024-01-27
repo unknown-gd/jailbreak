@@ -427,7 +427,7 @@ GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
     ply\SetRunSpeed( Clamp( entityMass * runSpeed, 64, runSpeed ) )
 
 GM.OnPlayerPhysicsDrop = ( ply, entity, thrown ) =>
-    ply\SetupSpeed!
+    ply\SetupMovement!
 
     unless thrown
         return

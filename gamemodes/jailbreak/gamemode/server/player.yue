@@ -121,13 +121,14 @@ PLAYER.AllowFlight = ( bool ) =>
 
 do
 
-    :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed = Jailbreak
+    :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :PlayerJumpPower = Jailbreak
 
-    PLAYER.SetupSpeed = =>
+    PLAYER.SetupMovement = =>
         @SetSlowWalkSpeed( PlayerSlowWalkSpeed\GetInt! )
         @SetWalkSpeed( PlayerWalkSpeed\GetInt! )
         @SetRunSpeed( PlayerRunSpeed\GetInt! )
-        hook_Run( "SetupPlayerSpeed", @ )
+        @SetJumpPower( PlayerJumpPower\GetInt! )
+        hook_Run( "SetupPlayerMovement", @ )
 
 do
 

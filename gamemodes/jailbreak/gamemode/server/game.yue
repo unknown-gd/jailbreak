@@ -121,10 +121,10 @@ do
         ply\SetCanZoom( false )
         ply\SetWarden( false )
         ply\SetColor( white )
+        ply\SetupMovement!
         ply\RemoveAllAmmo!
         ply\StripWeapons!
         ply\UnSpectate!
-        ply\SetupSpeed!
 
         ply\SetMaxHealth( 100 )
         ply\SetMaxArmor( 100 )
