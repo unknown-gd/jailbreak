@@ -362,7 +362,7 @@ do
             attacker\AddFrags( 1 )
 
         if IsWaitingPlayers!
-            return
+            ply\RemoveRagdoll!
 
         ragdoll = ply\CreateRagdoll!
         if ragdoll\IsValid!

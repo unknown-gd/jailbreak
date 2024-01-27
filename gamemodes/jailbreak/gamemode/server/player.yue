@@ -338,7 +338,7 @@ do
     :RagdollRemove, :FixModelPath = Jailbreak
     trace = {}
 
-    PLAYER.CreateRagdoll = =>
+    PLAYER.CreateRagdoll = ( putItems ) =>
         if RagdollRemove\GetBool!
             @RemoveRagdoll!
 
@@ -455,24 +455,31 @@ do
 
         hook_Run( "PlayerRagdollCreated", @, ragdoll )
 
-        ragdoll.HasSecurityRadio = @HasSecurityRadio!
-        ragdoll.HasSecurityKeys = @HasSecurityKeys!
-        ragdoll.HasFlashlight = @CanUseFlashlight!
-        ragdoll.HasShockCollar = @HasShockCollar!
+        if putItems ~= false
+            ragdoll.HasSecurityRadio = @HasSecurityRadio!
+            ragdoll.HasSecurityKeys = @HasSecurityKeys!
+            ragdoll.HasFlashlight = @CanUseFlashlight!
+            ragdoll.HasShockCollar = @HasShockCollar!
 
-        weapons = {}
-        for weapon in *@GetWeapons!
-            @DropWeapon( weapon )
+            weapons, count = {}, 0
+            for weapon in *@GetWeapons!
+                @DropWeapon( weapon )
 
-            weapon\SetPos( spawnOrigin )
-            weapon\SetParent( ragdoll )
-            weapon\SetNotSolid( true )
-            weapon\SetNoDraw( true )
+                if weapon\IsValid!
+                    weapon\SetPos( spawnOrigin )
+                    weapon\SetParent( ragdoll )
+                    weapon\SetNotSolid( true )
+                    weapon\SetNoDraw( true )
 
-            weapon.PickupForbidden = true
-            weapons[] = weapon
-        ragdoll.Weapons = weapons
-        ragdoll.Ammo = @GetAmmo!
+                    weapon.PickupForbidden = true
+
+                    count += 1
+                    weapons[ count ] = weapon
+
+            if count ~= 0
+                ragdoll.Weapons = weapons
+
+            ragdoll.Ammo = @GetAmmo!
 
         if ragdoll\IsValidObserveTarget!
             ragdoll\AddToObserveTargets!
