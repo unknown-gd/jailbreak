@@ -16,7 +16,348 @@
             "type"		    "CheckBox"
             "default"	    "1"
             "singleplayer"	"1"
-            "dontcreate"	"1"
+        }
+        2
+        {
+            "name"          "jb_player_slow_walk_speed"
+            "text"          "Player Slow Walk Speed"
+            "help"          "The speed of the player while slow walking."
+            "type"          "Numeric"
+            "default"	    "110"
+            "singleplayer"	"1"
+        }
+        3
+        {
+            "name"          "jb_player_walk_speed"
+            "text"          "Player Walk Speed"
+            "help"          "The speed of the player while walking."
+            "type"          "Numeric"
+            "default"       "220"
+            "singleplayer"  "1"
+        }
+        4
+        {
+            "name"          "jb_player_run_speed"
+            "text"          "Player Run Speed"
+            "help"          "The speed of the player while running."
+            "type"          "Numeric"
+            "default"       "280"
+            "singleplayer"  "1"
+        }
+        5
+        {
+            "name"          "jb_player_jump_power"
+            "text"          "Player Jump Power"
+            "help"          "The jump power of the player."
+            "type"          "Numeric"
+            "default"       "300"
+            "singleplayer"  "1"
+        }
+        6
+        {
+            "name"          "jb_allow_custom_player_models"
+            "text"          "Allow Player Models."
+            "help"          "Allow custom player models."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        7
+        {
+            "name"          "jb_allow_custom_player_colors"
+            "text"          "Allow Player Colors"
+            "help"          "Allow custom player colors."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        8
+        {
+            "name"          "jb_allow_custom_weapon_colors"
+            "text"          "Allow Weapon Colors."
+            "help"          "Allow custom weapon colors."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        9
+        {
+            "name"          "jb_allow_spray_everyone"
+            "text"          "Allow Spray To Everyone."
+            "help"          "Allow use spray to everyone."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        10
+        {
+            "name"          "jb_guards_diff"
+            "text"          "Guards Difference"
+            "help"          "Number of prisoners per guard."
+            "type"          "Numeric"
+            "default"       "4"
+            "singleplayer"  "1"
+        }
+        11
+        {
+            "name"          "jb_guards_friendly_fire"
+            "text"          "Guards Friendly Fire"
+            "help"          "If enabled, guards can hurt themselves."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        12
+        {
+            "name"          "jb_guards_armor"
+            "text"          "Guards Armor"
+            "help"          "Guards armor amount on spawn."
+            "type"          "Numeric"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        13
+        {
+            "name"          "jb_permanent_guards"
+            "text"          "Permanent Guards"
+            "help"          "If enabled, disables guard rotation."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        14
+        {
+            "name"          "jb_guards_death_sound"
+            "text"          "Guards Death Sound"
+            "help"          "If enabled, an alarm will sound when the guard dies."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        15
+        {
+            "name"          "jb_warden_coins"
+            "text"          "Warden Coins"
+            "help"          "Warden coins amount on spawn."
+            "type"          "Numeric"
+            "default"       "100"
+            "singleplayer"  "1"
+        }
+        16
+        {
+            "name"          "jb_chat_whisper_distance_min"
+            "text"          "Chat Whisper Distance Minimal"
+            "help"          "Minimal distance for damaging whisper messages."
+            "type"          "Numeric"
+            "default"       "40"
+            "singleplayer"  "1"
+        }
+        17
+        {
+            "name"          "jb_chat_whisper_distance_max"
+            "text"          "Chat Whisper Distance Maximal"
+            "help"          "Maximal distance for damaging whisper messages."
+            "type"          "Numeric"
+            "default"       "128"
+            "singleplayer"  "1"
+        }
+        18
+        {
+            "name"          "jb_chat_emotion_distance"
+            "text"          "Chat Emotion Distance"
+            "help"          "Distance of emotion messages."
+            "type"          "Numeric"
+            "default"       "300"
+            "singleplayer"  "1"
+        }
+        19
+        {
+            "name"          "jb_chat_ooc"
+            "text"          "Chat OOC"
+            "help"          "Allows non-game global chat to be used by everyone."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        20
+        {
+            "name"          "jb_chat_allow_team_chat"
+            "text"          "Chat Allow Team Chat"
+            "help"          "Allows team chat."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        21
+        {
+            "name"          "jb_voice_distance_min"
+            "text"          "Voice Distance Minimal"
+            "help"          "The minimum value at which the player can be heard."
+            "type"          "Numeric"
+            "default"       "256"
+            "singleplayer"  "1"
+        }
+        22
+        {
+            "name"          "jb_voice_distance_max"
+            "text"          "Voice Distance Maximal"
+            "help"          "The maximum value at which a player can be heard."
+            "type"          "Numeric"
+            "default"       "2048"
+            "singleplayer"  "1"
+        }
+        23
+        {
+            "name"          "jb_voice_chat_notifications"
+            "text"          "Voice Chat Notifications"
+            "help"          "Show voice chat notifications."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        24
+        {
+            "name"          "jb_voice_chat_proximity"
+            "text"          "Voice Chat Proximity"
+            "help"          "Enable proximity voice chat."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        25
+        {
+            "name"          "jb_status_icons"
+            "text"          "Status icons"
+            "help"          "Show voice/chat icons on players."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        26
+        {
+            "name"          "jb_death_notice"
+            "text"          "Death Notice"
+            "help"          "Draw death notice."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        27
+        {
+            "name"          "jb_targetid"
+            "text"          "Target ID"
+            "help"          "Draw target id."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        28
+        {
+            "name"          "jb_markers"
+            "text"          "Markers"
+            "help"          "Allow players use markers."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        29
+        {
+            "name"          "jb_markers_count"
+            "text"          "Markers Counts"
+            "help"          "Marker counts from marker lifetime."
+            "type"          "Numeric"
+            "default"       "5"
+            "singleplayer"  "1"
+        }
+        30
+        {
+            "name"          "jb_markers_lifetime"
+            "text"          "Markers Lifetime"
+            "help"          "Marker lifetime in seconds."
+            "type"          "Numeric"
+            "default"       "10"
+            "singleplayer"  "1"
+        }
+        31
+        {
+            "name"          "jb_ragdoll_looting_time"
+            "text"          "Ragdoll Looting Time"
+            "help"          "Time to looting a ragdoll in seconds."
+            "type"          "Numeric"
+            "default"       "4"
+            "singleplayer"  "1"
+        }
+        32
+        {
+            "name"          "jb_food_eating_time"
+            "text"          "Food Eating Time"
+            "help"          "Time to eat food in seconds."
+            "type"          "Number"
+            "default"       "2.5"
+            "singleplayer"  "1"
+        }
+        33
+        {
+            "name"          "jb_ragdoll_remove"
+            "text"          "Ragdoll Remove"
+            "help"          "If enabled, player ragdoll will be removed on player spawn."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        34
+        {
+            "name"          "jb_doors_health"
+            "text"          "Doors Health"
+            "help"          "The value is responsible for the health of the door."
+            "type"          "Numeric"
+            "default"       "100"
+            "singleplayer"  "1"
+        }
+        35
+        {
+            "name"          "jb_death_animations"
+            "text"          "Death Animations"
+            "help"          "Enables silly player death animations."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        36
+        {
+            "name"          "jb_tf2_freezecam"
+            "text"          "TF2 Freezecam"
+            "help"          "Enables TF2 style freezecam on death."
+            "type"          "CheckBox"
+            "default"       "1"
+            "singleplayer"  "1"
+        }
+        37
+        {
+            "name"          "jb_allow_ragdoll_spectate"
+            "text"          "Allow Ragdoll Spectate"
+            "help"          "Enables ragdoll spectate."
+            "type"          "CheckBox"
+            "default"       "0"
+            "singleplayer"  "1"
+        }
+        38
+        {
+            "name"          "jb_shock_collar_victim_damage"
+            "text"          "Shock Collar Victim Damage"
+            "help"          "Damage to the victim from the electric collar."
+            "type"          "Numeric"
+            "default"       "0.25"
+            "singleplayer"  "1"
+        }
+        39
+        {
+            "name"          "jb_shock_collar_attacker_damage"
+            "text"          "Shock Collar Attacker Damage"
+            "help"          "Damage to the attacker from the electric collar."
+            "type"          "Numeric"
+            "default"       "0.5"
+            "singleplayer"  "1"
         }
     }
 }

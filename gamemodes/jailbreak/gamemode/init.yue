@@ -61,7 +61,7 @@ do
     Jailbreak.RagdollRemove = CreateConVar( "jb_ragdoll_remove", "0", FCVAR_SERVER, "If enabled, player ragdoll will be removed on player spawn.", 0, 1 )
     Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
     Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "0", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
-    Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 freezecam on death.", 0, 1 )
+    Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 style freezecam on death.", 0, 1 )
     Jailbreak.AllowRagdollSpectate = CreateConVar( "jb_allow_ragdoll_spectate", "0", FCVAR_SERVER, "Enables ragdoll spectate.", 0, 1 )
 
 -- Utils
