@@ -63,9 +63,7 @@ jobs:
         run: ls | grep -v ${{ github.event.repository.name }} | xargs mv -t ${{ github.event.repository.name }}
 
       - name: Create Release Asset
-        run: |
-          zip -r9 ${{ github.event.repository.name }}.zip .
-          tar -czvf ${{ github.event.repository.name }}.tar.gz .
+        run: zip -r9 ${{ github.event.repository.name }}.zip .
 
       - name: Publish Release
         uses: softprops/action-gh-release@v1
@@ -77,4 +75,3 @@ jobs:
           generate_release_notes: true
           files: |
             ./${{ github.event.repository.name }}.zip
-            ./${{ github.event.repository.name }}.tar.gz
