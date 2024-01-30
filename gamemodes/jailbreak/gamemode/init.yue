@@ -26,7 +26,7 @@ do
     -- Player Movement
     Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", FCVAR_SERVER, "The speed of the player while walking.", 0, 3000 )
     Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", FCVAR_SERVER, "The speed of the player while running.", 0, 3000 )
-    Jailbreak.PlayerJumpPower = CreateConVar( "jb_player_jump_power", "300", FCVAR_SERVER, "The jump power of the player.", 0, 3000 )
+    Jailbreak.PlayerJumpPower = CreateConVar( "jb_player_jump_power", "250", FCVAR_SERVER, "The jump power of the player.", 0, 3000 )
 
     -- Player Customization
     Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", FCVAR_SERVER, "Allow custom player colors.", 0, 1 )

@@ -50,7 +50,7 @@
             "text"          "Player Jump Power"
             "help"          "The jump power of the player."
             "type"          "Numeric"
-            "default"       "300"
+            "default"       "250"
             "singleplayer"  "1"
         }
         6

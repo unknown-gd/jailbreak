@@ -104,6 +104,8 @@ do
     :Teams, :DoorsHealth, :IsRoundPreparing, :Explosion, :IsProp = Jailbreak
     :IsValidModel, :IsInWorld, :Effect, :ScreenShake = util
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
+    MOVETYPE_VPHYSICS = MOVETYPE_VPHYSICS
+    SOLID_VPHYSICS = SOLID_VPHYSICS
     DMG_NEVERGIB = DMG_NEVERGIB
     EffectData = EffectData
     DMG_BLAST = DMG_BLAST
@@ -213,41 +215,35 @@ do
                 if ( health / maxHealth ) > 0.5
                     return true
 
+                changed = false
+                if entity\GetMoveType! ~= MOVETYPE_VPHYSICS
+                    entity\SetMoveType( MOVETYPE_VPHYSICS )
+                    changed = true
+
                 phys = entity\GetPhysicsObject!
                 if IsValid( phys )
-                    if find( className, "^prop_physics%w*") == nil
-                        prop = Create( "prop_physics" )
+                    if phys\IsMoveable!
+                        unless phys\IsMotionEnabled!
+                            phys\EnableMotion( true )
+                            changed = true
 
-                        for key, value in pairs( entity\GetSaveTable( true ) )
-                            prop\SetSaveValue( key, value )
+                        if phys\IsAsleep!
+                            phys\Wake!
 
-                        prop\Spawn!
-                        entity\Remove!
-                        entity = prop
+                    else
+                        entity\PhysicsInit( SOLID_VPHYSICS )
+                        entity\PhysWake!
+                        changed = true
 
-                        entity\SetHealth( health )
-                        entity\SetMaxHealth( maxHealth )
+                if changed
+                    fx = EffectData!
+                    fx\SetOrigin( entity\WorldSpaceCenter! )
+                    fx\SetMagnitude( 5 )
+                    fx\SetRadius( 5 )
+                    fx\SetScale( 2 )
+                    Effect( "Sparks", fx )
 
-                        fx = EffectData!
-                        fx\SetOrigin( entity\WorldSpaceCenter! )
-                        fx\SetMagnitude( 5 )
-                        fx\SetRadius( 5 )
-                        fx\SetScale( 2 )
-                        Effect( "Sparks", fx )
-
-                        entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-                        return true
-
-                    unless phys\IsMotionEnabled!
-                        fx = EffectData!
-                        fx\SetOrigin( entity\WorldSpaceCenter! )
-                        fx\SetMagnitude( 5 )
-                        fx\SetRadius( 5 )
-                        fx\SetScale( 2 )
-                        Effect( "Sparks", fx )
-
-                        entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-                        phys\EnableMotion( true )
+                    entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
                 return true
 

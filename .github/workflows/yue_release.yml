@@ -15,17 +15,17 @@ jobs:
       - name: Change directory
         run: cd $GITHUB_WORKSPACE
 
-      # - name: Update apt
-      #   run: sudo apt-get update -y
+      - name: Download Yuescript
+        run: wget https://github.com/pigpigyyy/Yuescript/releases/download/v0.21.3/yue-linux-x86_64.zip
 
-      # - name: Install LuaRocks
-      #   run: sudo apt-get install -y luarocks
+      - name: Unzip Yuescript
+        run: unzip yue-linux-x86_64.zip
 
-      # - name: Install Yuescript
-      #   run: sudo luarocks install yuescript
+      - name: Remove yue-linux-x86_64.zip
+        run: rm yue-linux-x86_64.zip
 
       - name: Build Lua
-        run: ./.github/yue ./
+        run: ./yue ./
 
       - name: Remove yue
         run: find . -type f -name '*.yue' -delete
@@ -34,13 +34,13 @@ jobs:
         run: rm -rf .github
 
       - name: Remove .gitignore
-        run: rm -f .gitignore
+        run: rm .gitignore
 
       - name: Remove .gitattributes
-        run: rm -f .gitattributes
+        run: rm .gitattributes
 
       - name: Remove todo.md
-        run: rm -f todo.md
+        run: rm todo.md
 
       - name: Create VERSION file
         run: echo -e ${{ github.ref }} > VERSION
@@ -63,15 +63,18 @@ jobs:
         run: ls | grep -v ${{ github.event.repository.name }} | xargs mv -t ${{ github.event.repository.name }}
 
       - name: Create Release Asset
-        run: zip -r9 ${{ github.event.repository.name }}.zip .
+        run: |
+          zip -r9 ${{ github.event.repository.name }}.zip .
+          tar -czvf ${{ github.event.repository.name }}.tar.gz .
 
       - name: Publish Release
-        id: create_release
         uses: softprops/action-gh-release@v1
+        id: create_release
         with:
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref }}
           draft: false
           prerelease: false
           generate_release_notes: true
           files: |
             ./${{ github.event.repository.name }}.zip
+            ./${{ github.event.repository.name }}.tar.gz
