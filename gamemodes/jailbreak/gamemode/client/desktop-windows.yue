@@ -1,12 +1,13 @@
 Jailbreak = Jailbreak
+
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
+:Colors, :VMin = Jailbreak
 :find, :Explode = string
 :GetPhrase = language
 :PlaySound = surface
-list_Set = list.Set
-:Colors = Jailbreak
 IsValid = IsValid
+:Set = list
 
 do
 
@@ -15,7 +16,7 @@ do
         PlaySound( value == "1" and "npc/overwatch/radiovoice/on3.wav" or "npc/overwatch/radiovoice/off2.wav" )
     "Jailbreak::SecurityRadio" )
 
-    list_Set "DesktopWindows", "walkie-talkie", {
+    Set "DesktopWindows", "walkie-talkie", {
         title: "#jb.walkie-talkie"
         icon: "icon16/phone.png"
         order: 500
@@ -41,7 +42,7 @@ do
 
     Megaphone = CreateConVar( "jb_megaphone", "0", FCVAR_USERINFO, "Activates the warden's ability to speak for the entire map.", 0, 1 )
 
-    list_Set "DesktopWindows", "megaphone", {
+    Set "DesktopWindows", "megaphone", {
         title: "#jb.megaphone"
         icon: "icon16/sound_mute.png"
         order: 500
@@ -61,7 +62,7 @@ do
             Megaphone\SetBool( not Megaphone\GetBool! )
     }
 
-list_Set "DesktopWindows", "warden-request", {
+Set "DesktopWindows", "warden-request", {
     title: "#jb.warden.join"
     icon: "icon16/user_suit.png"
     order: 1000
@@ -107,7 +108,7 @@ list_Set "DesktopWindows", "warden-request", {
         RunConsoleCommand( "jb_warden" )
 }
 
-list_Set "DesktopWindows", "shock-collars", {
+Set "DesktopWindows", "shock-collars", {
     title: "#jb.shock-collars"
     icon: "icon16/lightning.png"
     order: 500
@@ -133,9 +134,38 @@ list_Set "DesktopWindows", "shock-collars", {
         RunConsoleCommand( "jb_shock_collars" )
 }
 
+Set "DesktopWindows", "warden-shop", {
+    title: "#jb.warden.shop"
+    icon: "icon16/cart.png"
+    onewindow: true
+    order: 500
+    think: =>
+        if Jailbreak.GameInProgress!
+            ply = Jailbreak.Player
+            if ply\IsWarden! and ply\Alive!
+                unless @IsVisible!
+                    @Show!
+
+                return
+
+        if @IsVisible!
+            @Hide!
+
+    init: ( window ) =>
+        window\SetTitle( "#jb.warden.shop" )
+        window\SetIcon( "icon16/cart.png" )
+        window\SetSize( VMin( 80 ), VMin( 60 ) )
+        window\SetMinWidth( VMin( 60 ) )
+        window\SetMinHeight( VMin( 30 ) )
+        window\SetSizable( true )
+        window\Center!
+
+}
+
+
 do
 
-    :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups, :VMin = Jailbreak
+    :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
     playerOptionsAnimations = list.Get( "PlayerOptionsAnimations" )
     default_animations = { "idle_all_01", "menu_walk" }
     previewOffset = Vector( -100, 0, -61 )
@@ -150,13 +180,14 @@ do
     :concat = table
     pairs = pairs
 
-    list_Set "DesktopWindows", "player-editor", {
+    Set "DesktopWindows", "player-editor", {
         title: "#smwidget.playermodel"
         icon: "icon64/playermodel.png"
         onewindow: true
         order: 200
         init: ( window ) =>
             window\SetTitle( "#smwidget.playermodel_title" )
+            window\SetIcon( "icon16/user_edit.png" )
             window\SetSize( VMin( 70 ), VMin( 40 ) )
             window\SetMinWidth( VMin( 60 ) )
             window\SetMinHeight( VMin( 30 ) )
@@ -447,30 +478,30 @@ do
                 entity\SetAngles( @Angles )
     }
 
-list_Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
+Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
 
-list_Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
-list_Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
-list_Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
-list_Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
+Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
+Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
+Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
+Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
 
-list_Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
-list_Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
+Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
+Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
+Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
+Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
+Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
 
-list_Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
-list_Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
+Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
+Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
+Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
+Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
+Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
 
-list_Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
-list_Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
+Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
