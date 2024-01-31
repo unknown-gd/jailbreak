@@ -1,0 +1,206 @@
+addonName = "unknown-ghost"
+
+:random, :Clamp, :Remap, :NormalizeAngle = math
+:CreateClientside = ents
+FrameTime = FrameTime
+EyePos = EyePos
+Lerp = Lerp
+
+addonData = {
+    workshop: {}
+    maps: {}
+}
+
+scripted_ents.Register( {
+    Type: "anim"
+
+    PrintName: "#" .. addonName
+    Spawnable: false
+
+    AutomaticFrameAdvance: true
+
+    ModelIsValid: =>
+        if @ModelStatus == 1
+            return true
+
+        if @ModelStatus == 2
+            return false
+
+        if file.Exists( @ModelPath, "GAME" )
+            util.PrecacheModel( @ModelPath )
+            @ModelStatus = 1
+            return true
+
+        return false
+
+    DownloadModel: =>
+        workshopID = @WorkshopID or addonData.workshop[ @ModelPath ]
+        unless workshopID
+            return
+
+        if @ModelStatus ~= 0
+            return
+
+        @ModelStatus = 2
+
+        attepts = @Attepts
+        if attepts
+            if attepts >= 3
+                return
+
+        else
+            attepts = 0
+
+        @Attepts = attepts + 1
+
+        steamworks.DownloadUGC workshopID, ( filePath ) ->
+            game.MountGMA( filePath )
+            @ModelStatus = 0
+
+            timer.Simple 0.5, ->
+                for entity in *ents.FindByClass( addonName )
+                    entity\Initialize!
+
+    Initialize: =>
+        unless @ModelStatus
+            @ModelStatus = 0
+
+        unless @ModelIsValid!
+            @SetNoDraw( true )
+            @DownloadModel!
+            return
+
+        @SetModel( @ModelPath )
+        @SetNoDraw( false )
+        @DrawShadow( true )
+        @SetupBones!
+
+        bodygroups = @BodyGroups
+        if bodygroups
+            for i = 1, #bodygroups
+                @SetBodygroup( i, tonumber( bodygroups[ i ] ) or 0 )
+
+        @SetSkin( @Skin or 0 )
+        @SetIK( true )
+
+        sequence = @SelectWeightedSequence( @Act or ACT_HL2MP_IDLE )
+        if sequence > 0
+            @ResetSequence( sequence )
+
+    DrawTranslucent: ( flags ) =>
+        @Draw( flags )
+
+    Draw: ( flags ) =>
+        @DrawModel( flags )
+
+    GetPoseInfo: ( name ) =>
+        min, max = @GetPoseParameterRange( @LookupPoseParameter( name ) )
+        return Remap( @GetPoseParameter( name ), 0, 1, min, max ), min, max
+
+    Think: =>
+        if @GetNoDraw!
+            return
+
+        @FrameAdvance!
+
+        unless @Spectate
+            return
+
+        id, origin = @LookupAttachment( "eyes" ), nil
+        if id and id > 0
+            origin = @GetAttachment( id ).Pos
+        else
+
+            bone = @LookupBone( "ValveBiped.Bip01_Head1" )
+            if bone and bone >= 0
+                origin = @GetBonePosition( bone )
+            else
+                origin = @EyePos!
+
+        dir, angles = ( EyePos! - origin ), @GetAngles!
+        dir\Normalize!
+
+        if dir\Dot( angles\Forward! ) < -0.25
+            @SetPoseParameter( "head_yaw", Lerp( FrameTime! * 2.5, @GetPoseInfo( "head_yaw" ), 0 ) )
+        else
+
+            fraction, dir = FrameTime! * 2.5, dir\Angle! - angles
+
+            value, min, max = @GetPoseInfo( "head_pitch" )
+            @SetPoseParameter( "head_pitch", Lerp( fraction, value, Clamp( NormalizeAngle( dir[ 1 ] ), min, max ) ) )
+
+            value, min, max = @GetPoseInfo( "head_yaw" )
+            @SetPoseParameter( "head_yaw", Lerp( fraction, value, Clamp( NormalizeAngle( dir[ 2 ] ), min, max ) ) )
+
+        @InvalidateBoneCache!
+
+}, addonName )
+
+
+perform = ->
+    for entity in *ents.FindByClass( addonName )
+        entity\Remove!
+
+    map = addonData.maps[ game.GetMap! ]
+    if map == nil
+        return
+
+    for data in *map
+        chance = data.chance
+        if chance ~= nil and chance ~= true
+            if chance == false
+                continue
+
+            if random( 1, 100 ) > Clamp( chance, 0, 100 )
+                continue
+
+        entity = CreateClientside( addonName )
+        entity.ModelPath = data.modelpath
+
+        if data.origin
+            entity\SetPos( data.origin )
+
+        if data.angles
+            entity\SetAngles( data.angles )
+
+        if data.act
+            entity.Act = data.act
+
+        entity.Spectate = data.spectate or false
+
+        if data.workshopid
+            entity.WorkshopID = data.workshopid
+
+        if data.skin
+            entity.Skin = data.skin
+
+        if data.bodygroups
+            entity.BodyGroups = data.bodygroups
+
+        if data.color
+            entity\SetColor( data.color )
+
+        entity\Spawn!
+
+ug_source = CreateClientConVar( "ug_source", "https://raw.githubusercontent.com/PrikolMen/unknown-ghost/main/default-ghosts.json", true, false, "Unknown ghost's source." )
+
+requestData = ->
+    HTTP {
+        method: "GET"
+        url: ug_source\GetString!
+        success: ( code, data ) ->
+            if code ~= 200
+                error "Failed to load unknown ghost data: " .. code
+
+            tbl = util.JSONToTable( data )
+            unless tbl
+                error "Failed to parse unknown ghost data. [" .. data .. "]"
+
+            table.Merge( addonData, tbl )
+            print "[UG] Unknown ghost data received!"
+            perform!
+    }
+
+hook.Add "InitPostEntity", addonName, perform
+concommand.Add "ug_reload", requestData
+timer.Simple 0.25, requestData
