@@ -2,10 +2,10 @@ Jailbreak = Jailbreak
 
 :Clamp, :Rand, :random, :min, :max, :floor = math
 ENTITY = FindMetaTable( "Entity" )
-timer_Simple = timer.Simple
 :FixModelPath = Jailbreak
 hook_Add = hook.Add
 CurTime = CurTime
+:Simple = timer
 GM = GM
 
 do
@@ -131,7 +131,7 @@ do
         global ReplaceFilterByModel = replaceFilter
         Jailbreak.EntityReplaces = entityReplaces
 
-        timer_Simple 0, ->
+        Simple 0, ->
             for addon in *engine.GetAddons!
                 unless addon.downloaded and addon.mounted
                     continue
@@ -224,7 +224,7 @@ do
         unless @IsProp!
             return
 
-        timer_Simple 0, ->
+        Simple 0, ->
             if @IsValid! and IsFoodModel( @GetModel! )
                 @SetNW2Bool( "is-food", true )
 
@@ -364,7 +364,7 @@ do
         unless TF2Freezecam\GetBool! and attacker and attacker\IsValid!
             return
 
-        timer_Simple 0, ->
+        Simple 0, ->
             if not attacker\IsValid! or not @IsValid! or @Alive!
                 return
 
@@ -378,7 +378,7 @@ do
             @Spectate( OBS_MODE_FREEZECAM )
             @SpectateEntity( attacker )
 
-            timer_Simple 1.5, ->
+            Simple 1.5, ->
                 if not @IsValid! or @Alive! or @GetObserverMode! ~= OBS_MODE_FREEZECAM
                     return
 
@@ -464,7 +464,7 @@ do
         unless clips[ @GetClass! ]
             return
 
-        timer_Simple 0, ->
+        Simple 0, ->
             if @IsValid! and @Clip1! ~= -1
                 @SetClip1( @GetMaxClip1! )
 
@@ -474,7 +474,7 @@ do
             return
 
         if className == "weapon_frag" or className == "weapon_slam"
-            timer_Simple 0, ->
+            Simple 0, ->
                 if @IsValid! and ply\IsValid! and ply == @GetOwner!
                     ply\SetAmmo( 1, max( @GetPrimaryAmmoType!, @GetSecondaryAmmoType! ) )
 
@@ -483,7 +483,7 @@ do
         clip1 = @Clip1!
         @SetClip1( 0 )
 
-        timer_Simple 0, ->
+        Simple 0, ->
             if @IsValid!
                 @SetClip1( min( clip1, @GetMaxClip1! ) )
 

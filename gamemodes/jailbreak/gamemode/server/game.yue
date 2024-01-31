@@ -1,8 +1,8 @@
 :random, :max, :min, :Rand = math
-timer_Simple = timer.Simple
 Jailbreak = Jailbreak
 hook_Run = hook.Run
 IsValid = IsValid
+:Simple = timer
 Vector = Vector
 GM = GM
 
@@ -37,7 +37,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
         ply\SetTeam( teamID or TEAM_SPECTATOR )
         ply\KillSilent!
 
-        timer_Simple 0, ->
+        Simple 0, ->
             if not ply\IsValid! or ply\Alive!
                 return
 
@@ -380,7 +380,7 @@ do
                 if IsValid( phys )
                     phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
 
-            timer_Simple 0, ->
+            Simple 0, ->
                 if ragdoll\IsValid! and ply\IsValid! and not ply\Alive!
                     ply\ObserveEntity( ragdoll )
 
@@ -443,16 +443,12 @@ do
             if key ~= IN_USE or ply\IsHoldingEntity!
                 return
 
-            timer_Simple 0.05 + ( ply\Ping! or 0 ) / 1000, ->
-                unless ply\IsValid! and ply\Alive!
+            Simple 0.05 + ( ply\Ping! or 0 ) / 1000, ->
+                if not ( ply\IsValid! and ply\Alive! ) or ply\KeyDown( IN_USE ) or ply\IsHoldingEntity!
                     return
 
-                if ply\KeyDown( IN_USE ) or ply\IsHoldingEntity!
-                    return
-
-                start = ply\EyePos!
-                trace.start = start
-                trace.endpos = start + ply\GetAimVector! * 72
+                trace.start = ply\EyePos!
+                trace.endpos = trace.start + ply\GetAimVector! * 72
                 trace.filter = ply
 
                 traceResult = TraceLine( trace )
@@ -746,7 +742,7 @@ do
         unless entity\IsWeapon!
             return
 
-        timer_Simple 0.025, ->
+        Simple 0.025, ->
             unless entity\IsValid!
                 return
 
