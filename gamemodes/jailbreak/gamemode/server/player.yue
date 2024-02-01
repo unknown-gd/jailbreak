@@ -1,6 +1,7 @@
 Jailbreak = Jailbreak
-hook_Run = hook.Run
+:TraceLine = util
 :Create = ents
+:Run = hook
 NULL = NULL
 
 PLAYER = FindMetaTable( "Player" )
@@ -101,7 +102,7 @@ PLAYER.SetShockCollar = ( bool, silent ) =>
     if silent
         return
 
-    hook_Run( "ShockCollarToggled", @, bool )
+    Run( "ShockCollarToggled", @, bool )
 
 -- Warden
 PLAYER.SetWarden = ( bool, silent ) =>
@@ -113,7 +114,7 @@ PLAYER.SetWarden = ( bool, silent ) =>
     if silent
         return
 
-    hook_Run( "WardenChanged", @, bool )
+    Run( "WardenChanged", @, bool )
 
 -- Allows player use of flight
 PLAYER.AllowFlight = ( bool ) =>
@@ -128,7 +129,7 @@ do
         @SetWalkSpeed( PlayerWalkSpeed\GetInt! )
         @SetRunSpeed( PlayerRunSpeed\GetInt! )
         @SetJumpPower( PlayerJumpPower\GetInt! )
-        hook_Run( "SetupPlayerMovement", @ )
+        Run( "SetupPlayerMovement", @ )
 
 do
 
@@ -284,7 +285,7 @@ do
         unless weapon\IsWeapon!
             return weapon
 
-        if hook_Run( "PlayerCanPickupWeapon", @, weapon ) == false
+        if Run( "PlayerCanPickupWeapon", @, weapon ) == false
             weapon\Remove!
             return NULL
 
@@ -334,8 +335,8 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
-    :IsInWorld, :IsValidModel, :TraceLine = util
     :RagdollRemove, :FixModelPath = Jailbreak
+    :IsInWorld, :IsValidModel = util
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
@@ -453,7 +454,7 @@ do
             ragdoll\Ignite( 5, 64 )
             @Extinguish!
 
-        hook_Run( "PlayerRagdollCreated", @, ragdoll )
+        Run( "PlayerRagdollCreated", @, ragdoll )
 
         if putItems ~= false
             ragdoll.HasSecurityRadio = @HasSecurityRadio!
@@ -485,3 +486,85 @@ do
             ragdoll\AddToObserveTargets!
 
         return ragdoll
+
+do
+
+    trace = {}
+
+    fixupProp = ( entity, origin, mins, maxs ) =>
+        downEndPos, upEndPos = entity\LocalToWorld( mins ), entity\LocalToWorld( maxs )
+        trace.filter = { entity, @ }
+
+        trace.start = origin
+        trace.endpos = downEndPos
+        traceResultDown = TraceLine( trace )
+
+        trace.start = origin
+        trace.endpos = upEndPos
+        traceResultUp = TraceLine( trace )
+
+        -- Both traces hit meaning we are probably inside a wall on both sides, do nothing
+        if traceResultUp.Hit and traceResultDown.Hit
+            return
+
+        if traceResultDown.Hit
+            entity\SetPos( origin + ( traceResultDown.HitPos - downEndPos ) )
+
+        if traceResultUp.Hit
+            entity\SetPos( origin + ( traceResultUp.HitPos - upEndPos ) )
+
+    tryFixPosition = ( entity, origin ) =>
+        mins, maxs = entity\GetCollisionBounds!
+        mins[ 2 ], mins[ 3 ] = 0, 0
+        maxs[ 2 ], maxs[ 3 ] = 0, 0
+
+        fixupProp( @, entity, origin, mins, maxs )
+
+        mins, maxs = entity\GetCollisionBounds!
+        mins[ 1 ], mins[ 3 ] = 0, 0
+        maxs[ 1 ], maxs[ 3 ] = 0, 0
+
+        fixupProp( @, entity, origin, mins, maxs )
+
+        mins, maxs = entity\GetCollisionBounds!
+        mins[ 1 ], mins[ 2 ] = 0, 0
+        maxs[ 1 ], maxs[ 2 ] = 0, 0
+
+        fixupProp( @, entity, origin, mins, maxs )
+
+    NOTIFY_ERROR = NOTIFY_ERROR
+
+    PLAYER.SpawnEntity = ( className, preSpawn ) =>
+        trace.start = @GetShootPos!
+        trace.endpos = trace.start + ( @GetAimVector! * 2048 )
+        trace.filter = @
+
+        traceResult = TraceLine( trace )
+        if not traceResult.Hit or traceResult.Fraction < 0.025
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+            return NULL
+
+        entity = Create( className )
+        unless entity and entity\IsValid!
+            return NULL
+
+        ang = @EyeAngles!
+        ang[ 1 ] = 0
+        ang[ 2 ] += 180
+        ang[ 3 ] = 0
+
+        origin = traceResult.HitPos
+        entity\SetPos( origin )
+        entity\SetAngles( ang )
+
+        if preSpawn ~= nil
+            preSpawn( @, entity )
+
+        entity\Spawn!
+        entity\Activate!
+
+        origin = entity\NearestPoint( origin - ( traceResult.HitNormal * entity\OBBMins! ) )
+        entity\SetPos( origin )
+
+        tryFixPosition( @, entity, origin )
+        return entity
