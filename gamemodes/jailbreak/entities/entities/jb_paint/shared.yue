@@ -32,6 +32,7 @@ if CLIENT
             button.DoClick = ->
                 color = mixer\GetColor!
                 RunConsoleCommand( "jb_paint_apply", @EntIndex or 0, color.r .. " " .. color.g .. " " .. color.b )
+                @Close!
 
         PANEL.PerformLayout = ( ... ) =>
             size = VMin( 40 )

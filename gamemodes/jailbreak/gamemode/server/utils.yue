@@ -138,17 +138,74 @@ do
 
 do
 
-    :ShopItems = Jailbreak
+    shopItems = Jailbreak.ShopItems
+    unless shopItems
+        shopItems = {}
+        Jailbreak.ShopItems = shopItems
 
-    Jailbreak.AddShopItem = ( name, price, action ) ->
-        if #name == 0 or not price or not action
-            return
+    class ShopItem
+        new: ( name ) =>
+            @title = "#jb." .. name
+            @bodygroups = ""
+            @name = name
+            @skin = 0
 
-        ShopItems[ name ] = { :name, title: "#jb." .. name, price: max( 1, price ), :action }
+        -- Item model
+        GetModel: =>
+            return @model
+
+        SetModel: ( model ) =>
+            @model = model or "models/weapons/w_bugbait.mdl"
+
+        -- Item skin
+        GetSkin: =>
+            return @skin
+
+        SetSkin: ( skin ) =>
+            @skin = skin
+
+        -- Item bodygroups
+        GetBodygroups: =>
+            return @bodygroups
+
+        SetBodygroups: ( bodygroups ) =>
+            @bodygroups = bodygroups
+
+        -- Price in credits
+        GetPrice: =>
+            return @price
+
+        SetPrice: ( price ) =>
+            @price = max( 1, price )
+
+        -- Action
+        GetAction: =>
+            return @action
+
+        SetAction: ( action ) =>
+            @action = action
+
+    Jailbreak.ShopItem = ShopItem
+
+    Jailbreak.AddShopItem = ( name, model, price, action ) ->
+        if not name or #name == 0
+            name = "shopitem"
+
+        item = shopItems[ name ]
+        if item == nil
+            item = ShopItem( name )
+            shopItems[ name ] = item
+            shopItems[] = item
+
+        item\SetModel( model )
+        item\SetPrice( price )
+        item\SetAction( action )
+
+        return item
 
     Simple 0.25, ->
-        table.Empty( ShopItems )
-        Run( "Jailbreak::ShopItems", Jailbreak.AddShopItem, ShopItems )
+        table.Empty( shopItems )
+        Run( "Jailbreak::ShopItems", Jailbreak.AddShopItem, shopItems )
 
 -- Clear observe targets
 do

@@ -208,8 +208,6 @@ Jailbreak.IsShockCollarsActive = ->
 
 do
 
-    Jailbreak.ShopItems = Jailbreak.ShopItems or {}
-
     -- Returns warden coins as integer
     getWardenCoins = ->
         return GetGlobal2Int( "warden-coins" )

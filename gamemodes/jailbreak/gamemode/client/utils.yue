@@ -185,14 +185,27 @@ do
 
 do
 
-    :ShopItems = Jailbreak
+    shopItems = Jailbreak.ShopItems
+    unless shopItems
+        shopItems = {}
+        Jailbreak.ShopItems = shopItems
 
-    Jailbreak.AddShopItem = ( name, price, model, skin, bodygroups ) ->
-        if #name == 0 or not price
-            return
+    :ReadString, :ReadUInt, :ReadBool = net
+    :Empty = table
 
-        ShopItems[] = { :name, title: "#jb." .. name, price: max( 1, price ), :model, :skin, :bodygroups }
+    net.Receive "Jailbreak::Shop", ->
+        table.Empty( shopItems )
+        length = 0
 
-    Simple 0.25, ->
-        table.Empty( ShopItems )
-        Run( "Jailbreak::ShopItems", Jailbreak.AddShopItem, ShopItems )
+        while ReadBool!
+            name, length = ReadString!, length + 1
+            shopItems[ length ] = {
+                :name
+                title: "#jb." .. name
+                model: ReadString!
+                price: ReadUInt( 16 )
+                skin: ReadUInt( 8 )
+                bodygroups: ReadString!
+            }
+
+        Run( "Jailbreak::ShopItems", shopItems )

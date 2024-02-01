@@ -147,6 +147,24 @@ do
         WriteString( itemName )
         Send( @ )
 
+    do
+
+        util.AddNetworkString( "Jailbreak::Shop" )
+        :ShopItems = Jailbreak
+
+        PLAYER.SendShopItems = =>
+            Start( "Jailbreak::Shop" )
+
+            for item in *ShopItems
+                WriteBool( true )
+                WriteString( item.name )
+                WriteString( item.model )
+                WriteUInt( item.price, 16 )
+                WriteUInt( item.skin, 8 )
+                WriteString( item.bodygroups )
+
+            Send( @ )
+
     PLAYER.ResetToggles = =>
         Start( "Jailbreak::Networking" )
         WriteUInt( 5, 4 )

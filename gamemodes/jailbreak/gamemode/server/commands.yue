@@ -345,6 +345,9 @@ do
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
             return
 
+        unless item.action
+            return
+
         if item.action( @, item ) == false
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
             return

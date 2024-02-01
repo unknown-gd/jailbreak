@@ -555,9 +555,12 @@ do
                 @SetAmmo( 1, ammoID )
 
 hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
-    add "weapon_medkit", 10, =>
+    add "weapon_medkit", "models/Items/HealthKit.mdl", 25, =>
         if @HasWeapon( "weapon_medkit" )
             return false
 
         @Give( "weapon_medkit" )
 
+    add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 10, =>
+        unless @SpawnEntity( "jb_paint" )\IsValid!
+            return false

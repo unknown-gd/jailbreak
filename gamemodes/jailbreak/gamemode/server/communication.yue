@@ -357,6 +357,9 @@ do
     hook_Add "WardenChanged", "Jailbreak::WardenNotification", ( state ) =>
         sendChatText( false, false, CHAT_CUSTOM, @GetModelColor!, @Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
 
+        if state and not @IsBot!
+            @SendShopItems!
+
         rf = RecipientFilter!
         rf\AddPAS( @EyePos! )
         @EmitSound( state and "ui/buttonclick.wav" or "ui/buttonclickrelease.wav", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1, rf )
