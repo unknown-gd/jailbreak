@@ -52,7 +52,7 @@ do
 
     Jailbreak.GetWeaponName = ( weapon ) ->
         unless weapon and weapon\IsValid! and weapon\IsWeapon!
-        return "#jb.unknown"
+            return "#jb.unknown"
 
         if CLIENT
             placeholder = "jb." .. weapon\GetClass!
@@ -60,10 +60,10 @@ do
                 return "#" .. placeholder
 
         printName = weapon\GetPrintName!
-    if printName == "Scripted Weapon"
+        if printName == "Scripted Weapon"
             printName = "#" .. weapon\GetClass!
 
-    return printName
+        return printName
 
 -- Returns fixed model path
 do
@@ -207,6 +207,8 @@ Jailbreak.IsShockCollarsActive = ->
     return GetGlobal2Bool( "shock-collars" )
 
 do
+
+    Jailbreak.ShopItems = Jailbreak.ShopItems or {}
 
     -- Returns warden coins as integer
     getWardenCoins = ->

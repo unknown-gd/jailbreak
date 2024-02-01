@@ -1,0 +1,4 @@
+hook_Add = hook.Add
+
+hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
+    add( "weapon_medkit", 10, "models/Items/HealthKit.mdl" )

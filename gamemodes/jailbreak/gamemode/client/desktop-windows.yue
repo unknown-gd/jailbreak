@@ -9,6 +9,8 @@ RunConsoleCommand = RunConsoleCommand
 IsValid = IsValid
 :Set = list
 
+:black = Colors
+
 do
 
     securityRadio = CreateConVar( "jb_security_radio", "0", FCVAR_USERINFO, "Responsible for turning the radio on or off.", 0, 1 )
@@ -134,6 +136,65 @@ Set "DesktopWindows", "shock-collars", {
         RunConsoleCommand( "jb_shock_collars" )
 }
 
+do
+
+    Jailbreak.Font( "Jailbreak::Coins", "Roboto Mono Bold", 1.8 )
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        @OverlayFade = nil
+
+        label = @Add( "DLabel" )
+        @Label = label
+
+        label\SetExpensiveShadow( 3, Color( 0, 0, 0, 125 ) )
+        label\SetFont( "Jailbreak::Coins" )
+        label\SetContentAlignment( 1 )
+        label\SetWrap( true )
+        label\Dock( FILL )
+
+    PANEL.Setup = ( item ) =>
+        @SetModelName( item.model )
+        @SetSkinID( item.skin or 0 )
+
+        @Icon\SetModel( item.model, item.skin, item.bodygroups )
+        @Label\SetText( "$" .. item.price )
+        @SetTooltip( item.title )
+        @ItemName = item.name
+        @Price = item.price
+
+    PANEL.DoRightClick = ->
+
+    PANEL.DoClick = =>
+        RunConsoleCommand( "jb_buy", @ItemName )
+
+    do
+
+        :CanWardenAfford = Jailbreak
+        :spectators, :grey = Colors
+        color = nil
+
+        PANEL.Think = =>
+            color = CanWardenAfford( @Price or 0 ) and spectators or grey
+            if @Label\GetTextColor! ~= color
+                @Label\SetTextColor( color )
+                @InvalidateLayout!
+
+    do
+
+        :SetDrawColor, :DrawRect = surface
+
+        PANEL.Paint = ( width, height ) =>
+            if @IsHovered! and not dragndrop.IsDragging! then
+                SetDrawColor( 255, 255, 255, 10 )
+                DrawRect( 0, 0, width, height )
+
+    PANEL.PaintOver = ( width, height ) =>
+        @DrawSelections!
+
+    vgui.Register( "Jailbreak:ShopItem", PANEL, "SpawnIcon" )
+
 Set "DesktopWindows", "warden-shop", {
     title: "#jb.warden.shop"
     icon: "icon16/cart.png"
@@ -154,11 +215,70 @@ Set "DesktopWindows", "warden-shop", {
     init: ( window ) =>
         window\SetTitle( "#jb.warden.shop" )
         window\SetIcon( "icon16/cart.png" )
-        window\SetSize( VMin( 80 ), VMin( 60 ) )
-        window\SetMinWidth( VMin( 60 ) )
-        window\SetMinHeight( VMin( 30 ) )
+        window\SetSize( VMin( 80 ), VMin( 40 ) )
+        window\SetMinWidth( VMin( 50 ) )
+        window\SetMinHeight( VMin( 20 ) )
         window\SetSizable( true )
         window\Center!
+
+        hook.Add "LanguageChanged", window, ->
+            hook.Remove "LanguageChanged", window
+            window\Remove!
+
+        :ShopItems = Jailbreak
+
+        do
+
+            menuBar = vgui.Create( "DMenuBar", window )
+            menuBar\DockMargin( -3, -6, -3, 0 )
+            menuBar\Dock( TOP )
+
+            do
+
+                coins = menuBar\Add( "DLabel" )
+                coins\SetFont( "Jailbreak::Coins" )
+                coins\SetMouseInputEnabled( true )
+                coins\SetTextColor( black )
+                coins\Dock( RIGHT )
+
+                :GetWardenCoins = Jailbreak
+                count = 0
+
+                coins.Think = =>
+                    count = GetWardenCoins!
+                    if @Count ~= count
+                        @Count = count
+                        @SetText( "$" .. count )
+                        @SetTooltip( "$" .. count)
+                        @SizeToContentsX( VMin( 1 ) )
+
+            other = menuBar\AddMenu( "#jb.shop.other" )
+            menuBar.Other = other
+
+            other\AddOption "#jb.shop.buy.random", ->
+                item = ShopItems[ random( 1, #ShopItems ) ]
+                unless item
+                    MsgN( "#jb.shop.no_items" )
+                    return
+
+                RunConsoleCommand( "jb_buy", item.name )
+
+            xpcall( hook.Run, ErrorNoHaltWithStack, "Jailbreak::WardenShopMenuBar", menuBar, window )
+
+        margin = VMin( 0.5 )
+
+        scroll = window\Add( "DScrollPanel" )
+        scroll\DockMargin( 0, margin, 0, 0 )
+        scroll\Dock( FILL )
+
+        items = scroll\Add( "DIconLayout" )
+        items\Dock( FILL )
+
+        items\SetSpaceX( margin )
+        items\SetSpaceY( margin )
+
+        for item in *ShopItems
+            items\Add( "Jailbreak:ShopItem" )\Setup( item )
 
 }
 
@@ -297,7 +417,7 @@ do
 
                 label = colorsPanel\Add( "DLabel" )
                 label\SetText( "#smwidget.color_plr" )
-                label\SetTextColor( Colors.black )
+                label\SetTextColor( black )
                 label\Dock( TOP )
 
             do
@@ -328,7 +448,7 @@ do
 
                 label = colorsPanel\Add( "DLabel" )
                 label\SetText( "#smwidget.color_wep" )
-                label\SetTextColor( Colors.black )
+                label\SetTextColor( black )
                 label\DockMargin( 0, 32, 0, 0 )
                 label\Dock( TOP )
 

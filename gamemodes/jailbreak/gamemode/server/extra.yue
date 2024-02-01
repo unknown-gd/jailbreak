@@ -553,3 +553,11 @@ do
         hook_Add "PlayerAmmoChanged", "Jailbreak::HL2AmmoFix", ( ammoID, old, new ) =>
             if ammoID == grenadeAmmo and new > 1
                 @SetAmmo( 1, ammoID )
+
+hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
+    add "weapon_medkit", 10, =>
+        if @HasWeapon( "weapon_medkit" )
+            return false
+
+        @Give( "weapon_medkit" )
+

@@ -1,5 +1,7 @@
 Jailbreak = Jailbreak
-hook_Run = hook.Run
+:Simple = timer
+:max = math
+:Run = hook
 
 do
 
@@ -7,7 +9,7 @@ do
 
     cvars.AddChangeCallback( "gmod_language", ( _, __, value ) ->
         timer.Create "Jailbreak::LanguageChanged", 0.025, 1, ->
-            hook_Run( "LanguageChanged", String( "gmod_language", "en" ), value )
+            Run( "LanguageChanged", String( "gmod_language", "en" ), value )
     "Jailbreak::LanguageChanged" )
 
 do
@@ -37,7 +39,7 @@ do
 do
 
     ScrW, ScrH = ScrW, ScrH
-    :min, :max, :ceil = math
+    :min, :ceil = math
 
     width, height = ScrW!, ScrH!
     vmin, vmax = min( width, height ) / 100, max( width, height ) / 100
@@ -51,7 +53,7 @@ do
 
         Jailbreak.ScreenWidth, Jailbreak.ScreenHeight = width, height
         Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
-        hook_Run( "ScreenResolutionChanged", width, height )
+        Run( "ScreenResolutionChanged", width, height )
 
     Jailbreak.VMin = ( number ) ->
         if number ~= nil
@@ -147,7 +149,6 @@ do
     do
 
         isfunction = isfunction
-        :Simple = timer
 
         PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished ) =>
             sequenceID = @SelectWeightedSequence( activity )
@@ -181,3 +182,17 @@ do
             return true
 
         return EntIndex( @ ) == index
+
+do
+
+    :ShopItems = Jailbreak
+
+    Jailbreak.AddShopItem = ( name, price, model, skin, bodygroups ) ->
+        if #name == 0 or not price
+            return
+
+        ShopItems[] = { :name, title: "#jb." .. name, price: max( 1, price ), :model, :skin, :bodygroups }
+
+    Simple 0.25, ->
+        table.Empty( ShopItems )
+        Run( "Jailbreak::ShopItems", Jailbreak.AddShopItem, ShopItems )

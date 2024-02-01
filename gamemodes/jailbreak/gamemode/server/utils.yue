@@ -1,9 +1,11 @@
 :min, :max, :random = math
 EffectData = EffectData
 Jailbreak = Jailbreak
-hook_Run = hook.Run
 IsValid = IsValid
+:Simple = timer
 pairs = pairs
+:Run = hook
+
 util = util
 :Effect = util
 
@@ -63,7 +65,7 @@ do
         oldTeamID = @Team!
 
         unless force
-            allowed, reason, lifetime = hook_Run( "PlayerCanJoinTeam", @, teamID, oldTeamID )
+            allowed, reason, lifetime = Run( "PlayerCanJoinTeam", @, teamID, oldTeamID )
             unless allowed
                 @SendNotify( reason or "#jb.error.cant-do-that", NOTIFY_ERROR, lifetime or 3 )
                 return
@@ -106,7 +108,7 @@ do
             SetGlobal2Bool( "shock-collars", bool )
 
             unless silent
-                hook_Run( "ShockCollarsToggled", bool )
+                Run( "ShockCollarsToggled", bool )
 
 do
 
@@ -122,7 +124,7 @@ do
         SetGlobal2Int( "warden-coins", value )
 
         unless silent
-            hook_Run( "WardenCoins", oldValue, value )
+            Run( "WardenCoins", oldValue, value )
 
     Jailbreak.SetWardenCoins = setWardenCoins
 
@@ -133,6 +135,20 @@ do
     -- Give warden coins
     Jailbreak.GiveWardenCoins = ( value, silent ) ->
         setWardenCoins( max( 0, GetWardenCoins! + value ), silent )
+
+do
+
+    :ShopItems = Jailbreak
+
+    Jailbreak.AddShopItem = ( name, price, action ) ->
+        if #name == 0 or not price or not action
+            return
+
+        ShopItems[ name ] = { :name, title: "#jb." .. name, price: max( 1, price ), :action }
+
+    Simple 0.25, ->
+        table.Empty( ShopItems )
+        Run( "Jailbreak::ShopItems", Jailbreak.AddShopItem, ShopItems )
 
 -- Clear observe targets
 do
@@ -176,35 +192,31 @@ do
             return objectMass
 
     -- Entity dissolve method
-    do
+    ENTITY.Dissolve = =>
+        dissolver = ENTITY.Dissolver
+        unless IsValid( dissolver )
+            dissolver = ents.Create( "env_entity_dissolver" )
+            ENTITY.Dissolver = dissolver
 
-        :Simple = timer
+            dissolver\SetKeyValue( "dissolvetype", 0 )
+            dissolver\SetKeyValue( "magnitude", 0 )
+            dissolver\Spawn!
 
-        ENTITY.Dissolve = =>
-            dissolver = ENTITY.Dissolver
-            unless IsValid( dissolver )
-                dissolver = ents.Create( "env_entity_dissolver" )
-                ENTITY.Dissolver = dissolver
+        unless IsValid( dissolver )
+            return false
 
-                dissolver\SetKeyValue( "dissolvetype", 0 )
-                dissolver\SetKeyValue( "magnitude", 0 )
-                dissolver\Spawn!
+        dissolver\SetPos( @WorldSpaceCenter! )
 
-            unless IsValid( dissolver )
-                return false
+        temporaryName = "dissolver" .. dissolver\EntIndex! .. "_request" .. @EntIndex!
+        @SetName( temporaryName )
 
-            dissolver\SetPos( @WorldSpaceCenter! )
+        dissolver\Fire( "dissolve", temporaryName, 0 )
 
-            temporaryName = "dissolver" .. dissolver\EntIndex! .. "_request" .. @EntIndex!
-            @SetName( temporaryName )
+        Simple 0, ->
+            if @IsValid!
+                @SetName( "" )
 
-            dissolver\Fire( "dissolve", temporaryName, 0 )
-
-            Simple 0, ->
-                if @IsValid!
-                    @SetName( "" )
-
-            return true
+        return true
 
     -- Returns true if the entity is valid observe target
     do
@@ -358,7 +370,7 @@ do
                         weapons[ key ] = nil
                         continue
 
-                    if hook_Run( "PlayerCanPickupWeapon", @, weapon ) == false
+                    if Run( "PlayerCanPickupWeapon", @, weapon ) == false
                         continue
 
                     weapon\SetNotSolid( false )
