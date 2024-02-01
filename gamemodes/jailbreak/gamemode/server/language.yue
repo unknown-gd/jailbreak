@@ -100,12 +100,19 @@ do
         loadLocalization "resource/localization"
         loadLocalization "gamemodes/jailbreak/content/resource/localization"
 
-Jailbreak.Translate = ( str ) =>
-    unless IsValid( @ ) and @IsPlayer!
-        return str
-
+Jailbreak.GetPhrase = ( placeholder ) =>
     languageCode = @GetInfo( "gmod_language" )
     if not languageCode or #languageCode == 0
+        return placeholder
+
+    fulltext = getPhrase( languageCode, placeholder )
+    if fulltext == placeholder and sub( placeholder, 1, 3 ) == "jb."
+        return sub( placeholder, 4 )
+
+    return fulltext
+
+Jailbreak.Translate = ( str ) =>
+    unless IsValid( @ ) and @IsPlayer!
         return str
 
     return gsub str, "#([%w%.-_]+)", ( placeholder ) ->

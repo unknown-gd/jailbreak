@@ -29,6 +29,8 @@ do
 
         return fulltext
 
+    Jailbreak.GetPhrase = filter
+
     Jailbreak.Translate = ( str ) ->
         return gsub( str, "#([%w%.-_]+)", filter )
 

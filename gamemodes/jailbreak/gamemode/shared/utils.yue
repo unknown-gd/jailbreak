@@ -45,13 +45,23 @@ do
 
             return true
 
-Jailbreak.GetWeaponName = =>
-    unless @ and @IsValid! and @IsWeapon!
+do
+
+    CLIENT = CLIENT
+    GetPhrase = CLIENT and language.GetPhrase
+
+    Jailbreak.GetWeaponName = ( weapon ) ->
+        unless weapon and weapon\IsValid! and weapon\IsWeapon!
         return "#jb.unknown"
 
-    printName = @GetPrintName!
+        if CLIENT
+            placeholder = "jb." .. weapon\GetClass!
+            if GetPhrase( placeholder ) ~= placeholder
+                return "#" .. placeholder
+
+        printName = weapon\GetPrintName!
     if printName == "Scripted Weapon"
-        printName = "#" .. @GetClass!
+            printName = "#" .. weapon\GetClass!
 
     return printName
 

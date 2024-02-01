@@ -104,10 +104,9 @@ do
         title = data.title
 
         button = scrollPanel\Add( "Jailbreak::ContextMenu - Button" )
-
         button.Image\SetImage( data.icon )
-        button.Label\SetText( title )
         button\SetTooltip( title )
+        button.Title = title
 
         @InvalidateLayout!
 
@@ -230,6 +229,7 @@ do
         PANEL.Init = =>
             @SetText( "" )
             @Dock( TOP )
+            @Title = ""
 
             label = @Add( "DLabel" )
             @Label = label
@@ -313,11 +313,12 @@ do
 
             label = @Label
             if IsValid( label )
+                label\SetText( @Title or label\GetText! )
                 height += select( 2, label\GetTextSize! )
 
             @SetTall( height )
 
-            DLabel.PerformLayout( @, width, height )
+            -- DLabel.PerformLayout( @, width, height )
 
         PANEL.Paint = ( width, height ) ->
 
@@ -1131,62 +1132,6 @@ GM.ScoreboardHide = =>
     scoreboard = @ScoreBoard
     if IsValid( scoreboard )
         scoreboard\Hide!
-
--- do
-
---     PANEL = {}
-
---     PANEL.Init = =>
---         print "INIT"
-
---     PANEL.OnRemove = =>
-
---     PANEL.Think = =>
---         if IsKeyDown( 70 ) or IsGameUIVisible!
---             @Hide!
-
---     PANEL.Show = =>
---         @InvalidateLayout( true )
---         @SetVisible( true )
---         @MakePopup!
-
---     PANEL.Hide = =>
---         HideGameUI!
-
---         if Jailbreak.Developer
---             @Remove!
---         else
---             @SetVisible( false )
-
---         chat.Close!
-
---     PANEL.PerformLayout = =>
---         width, height = VMin( 25 ), VMin( 25 )
---         @SetSize( width, height )
-
---     PANEL.Paint = ( width, height ) =>
---         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
---         DrawRect( 0, 0, width, height )
-
---     Register( "Jailbreak::ChatBox", PANEL, "EditablePanel" )
-
--- GM.StartChat = ( isTeam ) =>
---     chatBox = Jailbreak.ChatBox
---     if IsValid( chatBox )
---         chatBox\Remove!
-
---     unless IsValid( chatBox )
---         chatBox = Create( "Jailbreak::ChatBox" )
---         Jailbreak.ChatBox = chatBox
-
---     if IsValid( chatBox )
---         chatBox\Show!
---         return true
-
--- GM.FinishChat = =>
---     chatBox = Jailbreak.ChatBox
---     if IsValid( chatBox ) and chatBox\IsVisible!
---         chatBox\Hide!
 
 do
 
