@@ -219,13 +219,13 @@ do
 -- Cleanup's map safely
 do
 
+    timer_Create = timer.Create
     :CleanUpMap = game
-    :Create = timer
 
     filters = { "env_fire", "entityflame", "_firesmoke" }
 
     Jailbreak.SafeCleanUpMap = ->
-        Create "Jailbreak::CleanUpMap", 0.25, 1, ->
+        timer_Create "Jailbreak::CleanUpMap", 0.25, 1, ->
             CleanUpMap( false, filters )
 
 -- Entity metatable
