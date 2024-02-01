@@ -1,0 +1,69 @@
+ENT.Type = "anim"
+ENT.PrintName = "#jb.jb_paint"
+ENT.Spawnable = false
+
+if CLIENT
+
+    do
+
+        :VMin = Jailbreak
+        PANEL = {}
+
+        PANEL.Init = =>
+            @SetTitle( "#jb.jb_paint" )
+            @SetIcon( "icon16/paintcan.png" )
+
+            @SetSizable( true )
+            @MakePopup!
+            @Center!
+
+            mixer = @Add( "DColorMixer" )
+            @Mixer = mixer
+
+            mixer\Dock( FILL )
+            mixer\SetAlphaBar( false )
+
+            button = @Add( "DButton" )
+            @Button = button
+
+            button\Dock( BOTTOM )
+            button\SetText( "#jb.apply" )
+
+            button.DoClick = ->
+                color = mixer\GetColor!
+                RunConsoleCommand( "jb_paint_apply", @EntIndex or 0, color.r .. " " .. color.g .. " " .. color.b )
+
+        PANEL.PerformLayout = ( ... ) =>
+            size = VMin( 40 )
+            @SetSize( size, size )
+            @SetMinWidth( size )
+            @SetMinHeight( size )
+
+            mixer = @Mixer
+            if mixer and mixer\IsValid!
+                mixer\DockMargin( 0, 0, 0, VMin( 0.5 ) )
+
+            button = @Button
+            if button and button\IsValid!
+                button\SetTall( VMin( 5 ) )
+
+            DFrame.PerformLayout( @, ... )
+
+        vgui.Register( "Jailbreak::PaintMenu", PANEL, "DFrame" )
+
+    panel = nil
+
+    concommand.Add "jb_paint", ( _, args ) =>
+        if panel and panel\IsValid!
+            panel\Remove!
+            return
+
+        entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
+        unless entity and entity\IsValid!
+            return
+
+        if entity\GetPos!\Distance( @GetPos! ) > 72
+            return
+
+        panel = vgui.Create( "Jailbreak::PaintMenu" )
+        panel.EntIndex = entity\EntIndex!

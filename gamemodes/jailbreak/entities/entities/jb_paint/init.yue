@@ -1,0 +1,36 @@
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
+
+:random = math
+
+models = {
+    "models/props_junk/metal_paintcan001a.mdl",
+    "models/props_junk/metal_paintcan001b.mdl"
+}
+
+ENT.Initialize = =>
+    @SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+    @SetModel( models[ random( 1, #models ) ] )
+    @SetMoveType( MOVETYPE_VPHYSICS )
+    @PhysicsInit( SOLID_VPHYSICS )
+    @SetSolid( SOLID_VPHYSICS )
+    @SetUseType( SIMPLE_USE )
+    @DrawShadow( true )
+
+ENT.Use = ( ply ) =>
+    if ply\Alive!
+        ply\ConCommand( "jb_paint " .. @EntIndex! )
+
+concommand.Add "jb_paint_apply", ( _, args ) =>
+    unless @ and @IsValid! and @Alive!
+        return
+
+    entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
+    unless entity and entity\IsValid!
+        return
+
+    if entity\GetPos!\Distance( @GetPos! ) > 72
+        return
+
+    color = string.Split( args[ 2 ] or "0 0 0", " " )
+    @SetColor( Color( color[ 1 ], color[ 2 ], color[ 3 ] ) )

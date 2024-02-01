@@ -86,7 +86,7 @@ do
     IN_MOVELEFT = IN_MOVELEFT
     IN_MOVERIGHT = IN_MOVERIGHT
 
-    :GetGravity = physenv
+    sv_gravity = GetConVar( "sv_gravity" )
     FrameTime = FrameTime
     Lerp = Lerp
     :abs = math
@@ -140,7 +140,9 @@ do
             if abs( velocity[ 3 ] ) < 1
                 velocity[ 3 ] = 0
 
-            mv\SetVelocity( velocity - ( @GetGravity! + 1 ) * GetGravity! * frameTime * 0.5 )
+            velocity[ 3 ] += ( @GetGravity! + 1 ) * sv_gravity\GetInt! * frameTime * 0.5
+
+            mv\SetVelocity( velocity )
 
         elseif mv\KeyPressed( IN_JUMP )
             @SetNW2Bool( "in-flight", true )
