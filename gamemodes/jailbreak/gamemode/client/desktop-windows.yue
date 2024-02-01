@@ -154,6 +154,8 @@ do
         label\SetWrap( true )
         label\Dock( FILL )
 
+        @Icon\Dock( FILL )
+
     PANEL.Setup = ( item ) =>
         @SetModelName( item.model )
         @SetSkinID( item.skin or 0 )
@@ -168,6 +170,13 @@ do
 
     PANEL.DoClick = =>
         RunConsoleCommand( "jb_buy", @ItemName )
+
+    PANEL.PerformLayout = =>
+        size = VMin( 10 )
+        @SetSize( size, size )
+
+        margin = VMin( 0.5 )
+        @DockPadding( margin, margin, margin, margin )
 
     do
 
@@ -187,7 +196,11 @@ do
 
         PANEL.Paint = ( width, height ) =>
             if @IsHovered! and not dragndrop.IsDragging! then
-                SetDrawColor( 255, 255, 255, 10 )
+                if @IsDown! and not @Dragging
+                    SetDrawColor( 255, 255, 255, 25 )
+                else
+                    SetDrawColor( 255, 255, 255, 10 )
+
                 DrawRect( 0, 0, width, height )
 
     PANEL.PaintOver = ( width, height ) =>
