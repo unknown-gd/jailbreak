@@ -1,8 +1,8 @@
 Jailbreak = Jailbreak
 
+:Colors, :VMin, :GameInProgress = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
-:Colors, :VMin = Jailbreak
 :find, :Explode = string
 :GetPhrase = language
 :PlaySound = surface
@@ -115,7 +115,7 @@ Set "DesktopWindows", "shock-collars", {
     icon: "icon16/lightning.png"
     order: 500
     think: =>
-        if Jailbreak.GameInProgress!
+        if GameInProgress!
             ply = Jailbreak.Player
             if ply\IsWarden! and ply\Alive!
                 state = Jailbreak.IsShockCollarsActive!
@@ -201,7 +201,7 @@ Set "DesktopWindows", "warden-shop", {
     onewindow: true
     order: 500
     think: =>
-        if Jailbreak.GameInProgress!
+        if GameInProgress!
             ply = Jailbreak.Player
             if ply\IsWarden! and ply\Alive!
                 unless @IsVisible!
@@ -211,6 +211,9 @@ Set "DesktopWindows", "warden-shop", {
 
         if @IsVisible!
             @Hide!
+
+        if IsValid( @Window )
+            @Window\Remove!
 
     init: ( window ) =>
         window\SetTitle( "#jb.warden.shop" )

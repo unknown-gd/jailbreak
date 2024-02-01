@@ -126,6 +126,8 @@ do
         if isfunction( init )
             button.DoClick = ->
                 window = button.Window
+                @Window = window
+
                 if data.onewindow and IsValid( window )
                     window\Remove!
 

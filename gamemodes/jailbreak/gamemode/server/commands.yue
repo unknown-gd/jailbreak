@@ -325,12 +325,12 @@ Add "jb_reload_localization", =>
 
 do
 
-    :ShopItems, :TakeWardenCoins, :CanWardenAfford = Jailbreak
+    :ShopItems, :TakeWardenCoins, :CanWardenAfford, :GameInProgress = Jailbreak
     NOTIFY_GENERIC = NOTIFY_GENERIC
     :Run = hook
 
     Add "jb_buy", ( _, args ) =>
-        unless IsValid( @ ) and @Alive! and @IsWarden!
+        unless GameInProgress! and IsValid( @ ) and @Alive! and @IsWarden!
             return
 
         item = ShopItems[ args[ 1 ] ]
