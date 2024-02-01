@@ -195,12 +195,11 @@ do
 
     net.Receive "Jailbreak::Shop", ->
         table.Empty( shopItems )
-        length = 0
 
-        while ReadBool!
-            name, length = ReadString!, length + 1
-            shopItems[ length ] = {
-                :name
+        for index = 1, ReadUInt( 16 )
+            name = ReadString!
+            shopItems[ index ] = {
+                name: name
                 title: "#jb." .. name
                 model: ReadString!
                 price: ReadUInt( 16 )

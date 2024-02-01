@@ -155,13 +155,17 @@ do
         PLAYER.SendShopItems = =>
             Start( "Jailbreak::Shop" )
 
-            for item in *ShopItems
-                WriteBool( true )
-                WriteString( item.name )
-                WriteString( item.model )
-                WriteUInt( item.price, 16 )
-                WriteUInt( item.skin, 8 )
-                WriteString( item.bodygroups )
+            length = #ShopItems
+            WriteUInt( length, 16 )
+
+            for index = 1, length
+                item = ShopItems[ index ]
+                if item ~= nil
+                    WriteString( item.name )
+                    WriteString( item.model )
+                    WriteUInt( item.price, 16 )
+                    WriteUInt( item.skin, 8 )
+                    WriteString( item.bodygroups )
 
             Send( @ )
 
