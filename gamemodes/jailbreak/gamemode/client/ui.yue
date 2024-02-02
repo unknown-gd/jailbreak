@@ -7,9 +7,8 @@ GM = GM
 :IsGameUIVisible, :HideGameUI = gui
 :Create, :Register = vgui
 :GetPhrase = language
-hook_Add = hook.Add
-hook_Run = hook.Run
 :IsKeyDown = input
+:Run, :Add = hook
 IsValid = IsValid
 :format = string
 :GetScore = team
@@ -58,10 +57,10 @@ do
         scrollPanel.OnMousePressed = ( _, ... ) ->
             @OnMousePressed( ... )
 
-        hook_Add "LanguageChanged", @, ->
+        Add "LanguageChanged", @, ->
             @InvalidateChildren( true )
 
-        hook_Run( "ContextMenuCreated", @ )
+        Run( "ContextMenuCreated", @ )
         @SetVisible( false )
 
         desktopWindows = {}
@@ -116,7 +115,7 @@ do
 
         think = data.think
         if isfunction( think )
-            hook_Add "Think", button, think
+            Add "Think", button, think
 
         click = data.click
         if isfunction( click )
@@ -191,10 +190,10 @@ do
         :ScreenToVector = gui
 
         PANEL.OnMousePressed = ( _, code ) ->
-            hook_Run( "GUIMousePressed", code, ScreenToVector( GetCursorPos! ) )
+            Run( "GUIMousePressed", code, ScreenToVector( GetCursorPos! ) )
 
         PANEL.OnMouseReleased = ( _, code ) ->
-            hook_Run( "GUIMouseReleased", code, ScreenToVector( GetCursorPos! ) )
+            Run( "GUIMouseReleased", code, ScreenToVector( GetCursorPos! ) )
 
     PANEL.Paint = ( width, height ) =>
         if GetRoundState! ~= ROUND_RUNNING
@@ -327,11 +326,11 @@ do
         Register( "Jailbreak::ContextMenu - Button", PANEL, "DButton" )
 
     GM.OnContextMenuOpen = =>
-        unless hook_Run( "ContextMenuOpen" )
+        unless Run( "ContextMenuOpen" )
             return
 
         contextMenu = Jailbreak.ContextMenu
-        unless hook_Run( "ContextMenuEnabled" )
+        unless Run( "ContextMenuEnabled" )
             if IsValid( contextMenu )
                 contextMenu\Remove!
 
@@ -347,7 +346,7 @@ do
         unless contextMenu\IsVisible!
             contextMenu\Open!
 
-        hook_Run( "ContextMenuOpened", contextMenu )
+        Run( "ContextMenuOpened", contextMenu )
 
     GM.OnContextMenuClose = =>
         contextMenu = Jailbreak.ContextMenu
@@ -359,7 +358,7 @@ do
         else
             contextMenu\Close!
 
-        hook_Run( "ContextMenuClosed", contextMenu )
+        Run( "ContextMenuClosed", contextMenu )
 
 do
 
@@ -498,7 +497,7 @@ do
     PANEL.Init = =>
         @SetVisible( false )
 
-        hook_Add "PlayerButtonDown", @, ( ply, key ) =>
+        Add "PlayerButtonDown", @, ( ply, key ) =>
             if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
                 @Hide!
 

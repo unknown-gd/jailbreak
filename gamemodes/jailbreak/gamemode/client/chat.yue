@@ -2,7 +2,6 @@ Jailbreak = Jailbreak
 
 :asparagus, :au_chico, :blue, :butterfly_bush, :dark_white, :horizon, :light_grey, :turquoise, :white = Jailbreak.Colors
 isstring = isstring
-hook_Run = hook.Run
 string = string
 
 CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
@@ -38,6 +37,7 @@ do
     :FilterText = util
     Entity = Entity
     unpack = unpack
+    :Run = hook
     NULL = NULL
     :band = bit
     :date = os
@@ -60,7 +60,7 @@ do
             data[ 1 ] = FilterText( data[ 1 ], ( band( cl_chatfilters\GetInt!, 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
 
         listener = Jailbreak.Player
-        hook_Run( "OnChatText", listener, speaker, data )
+        Run( "OnChatText", listener, speaker, data )
 
         if handler( listener, speaker, data )
             return

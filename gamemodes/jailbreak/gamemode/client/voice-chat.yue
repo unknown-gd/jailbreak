@@ -3,11 +3,11 @@ Jailbreak = Jailbreak
 :ceil, :floor, :log, :max, :min, :Clamp = math
 :dark_grey, :black, :white = Jailbreak.Colors
 :DrawRect, :SetDrawColor = surface
-hook_Run = hook.Run
 IsValid = IsValid
 :VMin = Jailbreak
 select = select
 NULL = NULL
+:Run = hook
 
 Jailbreak.Font( "Jailbreak::Voice Chat", "Roboto Mono Medium", 2 )
 
@@ -193,7 +193,7 @@ do
 
     GM.PlayerStartVoice = ( ply ) =>
         if ply\IsLocalPlayer!
-            hook_Run( "LocalPlayerVoice", ply, true )
+            Run( "LocalPlayerVoice", ply, true )
             return true
 
         voiceChat = Jailbreak.VoiceChat
@@ -212,7 +212,7 @@ do
 
 GM.PlayerEndVoice = ( ply ) =>
     if ply\IsLocalPlayer!
-        hook_Run( "LocalPlayerVoice", ply, false )
+        Run( "LocalPlayerVoice", ply, false )
         return
 
     voiceChat = Jailbreak.VoiceChat

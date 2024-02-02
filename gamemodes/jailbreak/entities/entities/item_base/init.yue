@@ -1,4 +1,5 @@
 AddCSLuaFile( "cl_init.lua" )
+:Run = hook
 
 ENT.Type = "anim"
 ENT.Sequence = "idle"
@@ -59,7 +60,7 @@ ENT.Touch = ( entity ) =>
     unless entity\IsPlayer!
         return
 
-    if hook.Run( "PlayerCanPickupItem", entity, @ ) == false
+    if Run( "PlayerCanPickupItem", entity, @ ) == false
         return
 
     playerGotItem = @PlayerGotItem

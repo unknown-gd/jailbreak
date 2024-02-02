@@ -1,9 +1,9 @@
 :random, :max, :min, :Rand = math
 Jailbreak = Jailbreak
-hook_Run = hook.Run
 IsValid = IsValid
 :Simple = timer
 Vector = Vector
+:Run = hook
 GM = GM
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -107,7 +107,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
     ply\Give( "jb_hands" )
     ply\SelectWeapon( "jb_hands" )
 
-    hook_Run( "TeamPlayerSpawn", ply, teamID )
+    Run( "TeamPlayerSpawn", ply, teamID )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
@@ -134,7 +134,7 @@ do
 
             ragdoll = ply\GetRagdollEntity!
             if ragdoll\IsValid!
-                unless hook_Run( "PlayerSpawnFromRagdoll", ply, ragdoll )
+                unless Run( "PlayerSpawnFromRagdoll", ply, ragdoll )
                     ragdoll\Remove!
 
                 return
@@ -163,10 +163,10 @@ do
             ply\RemoveRagdoll!
 
         unless transiton
-            hook_Run( "PlayerLoadout", ply )
+            Run( "PlayerLoadout", ply )
 
-        hook_Run( "PlayerSetModel", ply )
-        hook_Run( "TeamPlayerSpawn", ply, teamID )
+        Run( "PlayerSetModel", ply )
+        Run( "TeamPlayerSpawn", ply, teamID )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSelectSpawn
 do
@@ -208,7 +208,7 @@ do
 
             for index = 1, length
                 entity = spawnPoints[ index ]
-                if entity\IsValid! and hook_Run( "IsSpawnpointSuitable", ply, entity, index >= killLength )
+                if entity\IsValid! and Run( "IsSpawnpointSuitable", ply, entity, index >= killLength )
                     return entity
 
         ply\SetPos( vector_origin )
@@ -261,7 +261,7 @@ GM.SetupMove = ( ply, _, cmd ) =>
         return
 
     ply\SetNW2Bool( "fully-connected", true )
-    hook_Run( "PlayerInitialized", ply )
+    Run( "PlayerInitialized", ply )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetModel
 do
@@ -393,13 +393,13 @@ do
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
-        hook_Run( "TeamPlayerDeath", ply, teamID )
+        Run( "TeamPlayerDeath", ply, teamID )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSilentDeath
 GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
-        hook_Run( "TeamPlayerDeath", ply, teamID )
+        Run( "TeamPlayerDeath", ply, teamID )
 
 -- https://wiki.facepunch.com/gmod/GM:PostPlayerDeath
 GM.PostPlayerDeath = ( ply ) =>
@@ -540,7 +540,7 @@ do
 GM.PlayerDisconnected = ( ply ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
-        hook_Run( "TeamPlayerDisconnected", ply, teamID )
+        Run( "TeamPlayerDisconnected", ply, teamID )
 
 -- Game info sending
 do
@@ -654,10 +654,10 @@ do
         isReleased = ( curTime - lastUseTime ) > 0.025
         if not lastUseTime or isReleased
             ply\SetNW2Int( "start-use-time", curTime )
-            hook_Run( "PlayerHoldUse", ply, entity, 0 )
+            Run( "PlayerHoldUse", ply, entity, 0 )
         else
             startUseTime = ply\GetNW2Int( "start-use-time" )
-            if startUseTime ~= 0 and hook_Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
+            if startUseTime ~= 0 and Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
                 ply\SetNW2Int( "start-use-time", 0 )
                 return false
 
@@ -711,7 +711,7 @@ do
                             if IsValid( weapon )
                                 ply\DropWeapon( weapon )
 
-            if hook_Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
+            if Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
                 ply\PickupWeapon( entity, false )
                 return false
 

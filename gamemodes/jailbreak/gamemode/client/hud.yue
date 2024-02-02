@@ -1,5 +1,5 @@
 Jailbreak = Jailbreak
-hook_Run = hook.Run
+:Run = hook
 GM = GM
 
 :Colors, :VMin, :GetTeamColor, :GetTeamColorUpacked = Jailbreak
@@ -71,13 +71,13 @@ do
     Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
 
     GM.HUDPaint = =>
-        hook_Run( "HUDDrawInfo", Jailbreak.Player )
+        Run( "HUDDrawInfo", Jailbreak.Player )
 
         if TargetID\GetBool!
-            hook_Run( "HUDDrawTargetID" )
+            Run( "HUDDrawTargetID" )
 
         if DeathNotice\GetBool!
-            hook_Run( "DrawDeathNotice", 0.85, 0.04 )
+            Run( "DrawDeathNotice", 0.85, 0.04 )
 
         state = GetRoundState!
         if state == ROUND_RUNNING
@@ -1318,7 +1318,7 @@ do
                 when 3
                     materialPath = "icon16/package_green.png"
 
-            result = hook_Run( "Jailbreak::GetPickupIcon", pickupType, item, amount )
+            result = Run( "Jailbreak::GetPickupIcon", pickupType, item, amount )
             if result ~= nil
                 materialPath = result
 

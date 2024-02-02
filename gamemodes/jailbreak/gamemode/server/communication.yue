@@ -24,8 +24,8 @@ do
     :Start, :WriteUInt, :WriteBool, :WriteTable, :Send, :Broadcast = net
     isnumber = isnumber
     IsEntity = IsEntity
-    hook_Run = hook.Run
     TypeID = TypeID
+    :Run = hook
 
     TYPE_ENTITY = TYPE_ENTITY
     TYPE_RECIPIENTFILTER = TYPE_RECIPIENTFILTER
@@ -63,13 +63,13 @@ do
 
         switch TypeID( target )
             when TYPE_ENTITY
-                if hook_Run( "PlayerCanSeePlayersChat", text, isTeamChat, target, speaker ) ~= false
+                if Run( "PlayerCanSeePlayersChat", text, isTeamChat, target, speaker ) ~= false
                     Send( target )
 
             when TYPE_RECIPIENTFILTER
                 players = {}
                 for listener in *target\GetPlayers!
-                    if hook_Run( "PlayerCanSeePlayersChat", text, isTeamChat, listener, speaker ) ~= false
+                    if Run( "PlayerCanSeePlayersChat", text, isTeamChat, listener, speaker ) ~= false
                         players[] = listener
 
                 Send( players )
@@ -80,7 +80,7 @@ do
                     unless IsEntity( listener ) and listener\IsValid! and listener\IsPlayer!
                         continue
 
-                    if hook_Run( "PlayerCanSeePlayersChat", text, isTeamChat, listener, speaker ) ~= false
+                    if Run( "PlayerCanSeePlayersChat", text, isTeamChat, listener, speaker ) ~= false
                         players[] = listener
 
                 Send( players )

@@ -1,8 +1,8 @@
 Jailbreak = Jailbreak
-hook_Run = hook.Run
 IsValid = IsValid
 :Clamp = math
 drive = drive
+:Run = hook
 GM = GM
 
 Jailbreak.ViewEntity = NULL
@@ -147,7 +147,7 @@ do
             entity.TauntViewAngles = nil
 
         if ply\InVehicle!
-            return hook_Run( "CalcVehicleView", ply\GetVehicle!, ply, view )
+            return Run( "CalcVehicleView", ply\GetVehicle!, ply, view )
 
         weapon = ply\GetActiveWeapon!
         if weapon and weapon\IsValid!
@@ -211,14 +211,14 @@ GM.PostDrawViewModel = ( vm, ply, weapon ) =>
 	if not weapon\IsScripted! or weapon.UseHands
 		hands = ply\GetHands!
 		if IsValid( hands ) and IsValid( hands\GetParent! )
-			unless hook_Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
+			unless Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
 				if weapon.ViewModelFlip
                     render.CullMode( MATERIAL_CULLMODE_CW )
 
 				hands\DrawModel!
 				render.CullMode( MATERIAL_CULLMODE_CCW )
 
-			hook_Run( "PostDrawPlayerHands", hands, vm, ply, weapon )
+			Run( "PostDrawPlayerHands", hands, vm, ply, weapon )
 
     func = weapon.PostDrawViewModel
 	if func

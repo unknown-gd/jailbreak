@@ -2,8 +2,8 @@ Jailbreak = Jailbreak
 GM = GM
 
 :min, :max, :Clamp = math
-hook_Run = hook.Run
 CLIENT = CLIENT
+:Run = hook
 
 TEAM_GUARD = TEAM_GUARD
 
@@ -46,10 +46,10 @@ GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
 	ply\SetPlaybackRate( rate )
 
 	if CLIENT and not ply\IsBot!
-        hook_Run "PerformPlayerVoice", ply
+        Run "PerformPlayerVoice", ply
         if ply\Alive!
-            hook_Run "MouthMoveAnimation", ply
-            hook_Run "GrabEarAnimation", ply
+            Run "MouthMoveAnimation", ply
+            Run "GrabEarAnimation", ply
 
 -- https://wiki.facepunch.com/gmod/GM:ShouldCollide
 GM.ShouldCollide = ( entity, ply ) =>
@@ -129,7 +129,7 @@ do
             if isnumber( damageScale )
                 damageInfo\ScaleDamage( damageScale )
 
-            if CLIENT and hook_Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
+            if CLIENT and Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
                 return true
 
 -- https://wiki.facepunch.com/gmod/GM:EntityEmitSound
@@ -153,19 +153,19 @@ do
         entity = data.Entity
         if entity\IsValid!
             if entity\IsPlayer!
-                result = hook_Run( "PlayerEmitSound", entity, data )
+                result = Run( "PlayerEmitSound", entity, data )
                 if result ~= nil
                     return result
 
             else
 
-                result = hook_Run( "ValidEntityEmitSound", entity, data )
+                result = Run( "ValidEntityEmitSound", entity, data )
                 if result ~= nil
                     return result
 
         elseif entity\IsWorld!
 
-            result = hook_Run( "WorldEmitSound", entity, data )
+            result = Run( "WorldEmitSound", entity, data )
             if result ~= nil
                 return result
 
