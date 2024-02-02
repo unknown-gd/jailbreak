@@ -318,22 +318,22 @@ do
 do
 
     event = Jailbreak.RegisterEvent "hidden-angel", ->
-            prisoners = GetTeamPlayers( true, TEAM_PRISONER )[ 1 ]
+        prisoners = GetTeamPlayers( true, TEAM_PRISONER )[ 1 ]
 
-            prisonerCount = #prisoners
-            if prisonerCount == 0
-                return false, false
+        prisonerCount = #prisoners
+        if prisonerCount == 0
+            return false, false
 
-            ply = prisoners[ random( 1, prisonerCount ) ]
-            ply\AllowFlight( true )
-            SendChatText( ply, false, CHAT_SERVERMESSAGE, "#jb.event.hidden-angel.message" )
-            return true, true,
-        ->
-            for ply in *GetAll!
-                ply\AllowFlight( false )
+        ply = prisoners[ random( 1, prisonerCount ) ]
+        unless ply and ply\IsValid! and ply\Alive!
+            return false, false
+
+        ply\AllowFlight( true )
+        SendChatText( ply, false, CHAT_SERVERMESSAGE, "#jb.event.hidden-angel.message" )
+
+        return true, true
 
     event\SetStartState( ROUND_RUNNING )
-    event\SetFinishState( ROUND_WAITING_PLAYERS )
     event\SetColor( Colors.dark_white )
     event\SetType( "movement" )
     event\ConVar( 10 )

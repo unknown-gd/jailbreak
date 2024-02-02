@@ -121,6 +121,9 @@ PLAYER.SetWarden = ( bool, silent ) =>
 PLAYER.AllowFlight = ( bool ) =>
     @SetNW2Bool( "flight-allowed", bool )
 
+hook.Add "PostPlayerDeath", "Jailbreak::DisallowFlight", =>
+    @AllowFlight( false )
+
 do
 
     :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :PlayerJumpPower = Jailbreak
