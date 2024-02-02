@@ -580,6 +580,7 @@ hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
 do
 
     color = Color( 255, 255, 255, 240 )
+    :IN = SCREENFADE
 
     hook_Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
         attacker = damageInfo\GetAttacker!
@@ -590,4 +591,5 @@ do
         unless weapon and weapon\IsValid! and weapon\GetClass! == "weapon_stunstick"
             return
 
-        @ScreenFade( SCREENFADE.IN, color, 0.25, 3 )
+        @SetNW2Int( "weapon-stunstick", CurTime! + 3 )
+        @ScreenFade( IN, color, 0.25, 3 )

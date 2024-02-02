@@ -174,3 +174,15 @@ do
             act = ACT_HL2MP_IDLE + 9
 
         return act, ACT_INVALID
+
+
+do
+
+    CurTime = CurTime
+
+    hook_Add "Move", "Jailbreak::weapon_stunstick", ( mv ) =>
+        shockTime = @GetNW2Int( "shock-time" )
+        if shockTime == 0 or CurTime! > shockTime
+            return
+
+        mv\SetMaxSpeed( @GetWalkSpeed! / 4 )
