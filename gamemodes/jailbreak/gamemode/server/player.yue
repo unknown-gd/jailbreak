@@ -594,7 +594,7 @@ do
         entity\SetAngles( ang )
 
         if preSpawn ~= nil
-            preSpawn( @, entity )
+            preSpawn( entity, @ )
 
         entity\Spawn!
         entity\Activate!

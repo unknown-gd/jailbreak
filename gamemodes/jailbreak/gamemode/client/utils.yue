@@ -207,4 +207,4 @@ do
                 bodygroups: ReadString!
             }
 
-        Run( "Jailbreak::ShopItems", shopItems )
+        Run( "ShopItems", shopItems )

@@ -341,7 +341,7 @@ do
             @SendNotify( "#jb.shop.not-enough-coins", NOTIFY_ERROR, 5 )
             return
 
-        if Run( "Jailbreak::PlayerCanBuyItem", @, item ) == false
+        if Run( "PlayerCanBuyItem", @, item ) == false
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
             return
 
@@ -357,4 +357,4 @@ do
         @EmitSound( "ambient/levels/labs/coinslot1.wav", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
         @SendNotify( "#jb.shop.you-bought \"" .. item.title .. "\"", NOTIFY_GENERIC, 5 )
         Emotion( @, "#jb.chat.bought \"" .. item.title .. "\"." )
-        Run( "Jailbreak::PlayerBoughtItem", @, item )
+        Run( "PlayerBoughtItem", @, item )

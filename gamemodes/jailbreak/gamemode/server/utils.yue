@@ -203,9 +203,9 @@ do
 
         return item
 
-    Simple 0.25, ->
+    Simple 0.5, ->
         table.Empty( shopItems )
-        Run( "Jailbreak::ShopItems", Jailbreak.AddShopItem, shopItems )
+        Run( "ShopItems", Jailbreak.AddShopItem )
 
 -- Clear observe targets
 do
