@@ -101,21 +101,20 @@ do
 
 do
 
-    :Teams, :DoorsHealth, :IsRoundPreparing, :Explosion, :IsProp = Jailbreak
-    :IsValidModel, :IsInWorld, :Effect, :ScreenShake = util
-    COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
+    :Teams, :IsRoundPreparing, :IsProp = Jailbreak
+    :IsValidModel, :IsInWorld, :Effect = util
     MOVETYPE_VPHYSICS = MOVETYPE_VPHYSICS
     SOLID_VPHYSICS = SOLID_VPHYSICS
     DMG_NEVERGIB = DMG_NEVERGIB
     EffectData = EffectData
     DMG_BLAST = DMG_BLAST
-    hook_Run = hook.Run
     DMG_BURN = DMG_BURN
     isnumber = isnumber
     istable = istable
     :find = string
     :Create = ents
     :band = bit
+    :Run = hook
 
     sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
     sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
@@ -153,6 +152,20 @@ do
     cache = {}
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
+        if entity\IsWeapon!
+            className = entity\GetClass!
+            if className == "weapon_frag" and not entity.Exploded
+                entity.Exploded = true
+
+                radius = sk_fraggrenade_radius\GetInt!
+                if damageInfo\IsExplosionDamage!
+                    radius *= random( 1, 4 )
+
+                Jailbreak.Explosion( entity, damageInfo\GetAttacker!, entity\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
+                entity\Remove!
+
+            return true
+
         if damageInfo\IsExplosionDamage!
             damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
 
@@ -161,12 +174,12 @@ do
             if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
                 entity\Dissolve!
             else
-                hook_Run( "RagdollTakeDamage", entity, damageInfo, true )
+                Run( "RagdollTakeDamage", entity, damageInfo, true )
 
             return true
 
         damageType = damageInfo\GetDamageType!
-        if band( damageType, DMG_BURN ) == DMG_BURN and hook_Run( "EntityTakeFireDamage", entity, damageInfo ) == true
+        if band( damageType, DMG_BURN ) == DMG_BURN and Run( "EntityTakeFireDamage", entity, damageInfo ) == true
             return true
 
         if Jailbreak.PowerfulPlayers
@@ -175,13 +188,13 @@ do
                 damageInfo\ScaleDamage( 2 )
 
         if entity\IsRagdoll!
-            return hook_Run( "RagdollTakeDamage", entity, damageInfo, false )
+            return Run( "RagdollTakeDamage", entity, damageInfo, false )
 
         elseif entity\IsPlayer!
             if entity\Alive! and not entity\HasGodMode!
                 teamID = entity\Team!
-                if Teams[ teamID ] and hook_Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
-                    return hook_Run( "PlayerTakeDamage", entity, damageInfo, teamID )
+                if Teams[ teamID ] and Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
+                    return Run( "PlayerTakeDamage", entity, damageInfo, teamID )
 
             return true
 
@@ -296,7 +309,7 @@ do
 
                 maxHealth = entity\GetMaxHealth!
                 if maxHealth <= 1
-                    maxHealth = DoorsHealth\GetInt!
+                    maxHealth = Jailbreak.DoorsHealth\GetInt!
                     if maxHealth <= 0
                         return true
 
@@ -337,7 +350,7 @@ do
                     phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
 
                 origin = damageInfo\GetDamagePosition!
-                ScreenShake( origin, 5, 10, 0.5, 150 )
+                util.ScreenShake( origin, 5, 10, 0.5, 150 )
 
                 fx = EffectData!
                 fx\SetOrigin( origin )
@@ -346,20 +359,6 @@ do
                 fx\SetScale( 2 )
                 Effect( "Sparks", fx )
 
-                return true
-
-            when "weapon_frag"
-                if entity.Exploded
-                    return true
-
-                entity.Exploded = true
-
-                radius = sk_fraggrenade_radius\GetInt!
-                if damageInfo\IsExplosionDamage!
-                    radius *= random( 1, 4 )
-
-                Explosion( entity, damageInfo\GetAttacker!, entity\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
-                entity\Remove!
                 return true
 
             when "func_button"
@@ -455,6 +454,7 @@ GM.GetFallDamage = ( ply, speed ) =>
 do
 
     LocalToWorld = LocalToWorld
+    :BloodSplashes = Jailbreak
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo, isPlayerRagdoll ) =>
         unless isPlayerRagdoll
@@ -487,21 +487,18 @@ do
                 ragdoll.Alive = false
 
         if nextHealth > 0
-            Jailbreak.BloodSplashes( ragdoll, damageInfo, false )
+            BloodSplashes( ragdoll, damageInfo, false )
             return
 
         velocity = ragdoll\GetVelocity! + damageInfo\GetDamageForce!
-        Jailbreak.BloodSplashes( ragdoll, damageInfo, true, velocity )
+        BloodSplashes( ragdoll, damageInfo, true, velocity )
 
-        weapons = ragdoll.Weapons
-        if weapons ~= nil
+        if ragdoll.Weapons ~= nil
             origin, angles = ragdoll\WorldSpaceCenter!, ragdoll\GetAngles!
             mins, maxs = ragdoll\GetCollisionBounds!
+            mins, maxs = mins * 0.5, maxs * 0.5
 
-            mins *= 0.5
-            maxs *= 0.5
-
-            for _, weapon in pairs( weapons )
+            for weapon in *ragdoll.Weapons
                 unless weapon\IsValid!
                     continue
 
@@ -509,9 +506,9 @@ do
                 weapon\SetNoDraw( false )
                 weapon\SetNotSolid( false )
 
-                pos, ang = LocalToWorld( Vector( random( mins[ 1 ], maxs[ 1 ], random( mins[ 2 ], maxs[ 2 ] ), random( mins[ 3 ], maxs[ 3 ] ) ) ), Angle( Rand( -90, 90 ), Rand( -180, 180 ), Rand( -180, 180 ) ), origin, angles )
-                weapon\SetAngles( ang )
-                weapon\SetPos( pos )
+                origin, angles = LocalToWorld( Vector( random( mins[ 1 ], maxs[ 1 ], random( mins[ 2 ], maxs[ 2 ] ), random( mins[ 3 ], maxs[ 3 ] ) ) ), Angle( Rand( -90, 90 ), Rand( -180, 180 ), Rand( -180, 180 ) ), origin, angles )
+                weapon\SetAngles( angles )
+                weapon\SetPos( origin )
 
                 phys = weapon\GetPhysicsObject!
                 if IsValid( phys )
