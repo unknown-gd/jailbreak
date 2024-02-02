@@ -1,5 +1,6 @@
+:IsInWorld, :IsValidModel, :TraceLine = util
+NOTIFY_UNDO = NOTIFY_UNDO
 Jailbreak = Jailbreak
-:TraceLine = util
 :Create = ents
 :Run = hook
 NULL = NULL
@@ -368,7 +369,6 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 do
 
     :RagdollRemove, :FixModelPath = Jailbreak
-    :IsInWorld, :IsValidModel = util
     IsValid = IsValid
     trace = {}
 
@@ -568,30 +568,29 @@ do
 
         fixupProp( @, entity, origin, mins, maxs )
 
-    NOTIFY_ERROR = NOTIFY_ERROR
-
     PLAYER.SpawnEntity = ( className, preSpawn ) =>
         trace.start = @GetShootPos!
-        trace.endpos = trace.start + ( @GetAimVector! * 2048 )
-        trace.filter = @
-
-        traceResult = TraceLine( trace )
-        if not traceResult.Hit or traceResult.Fraction < 0.025
-            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
+        unless IsInWorld( trace.start )
             return NULL
+
+        trace.endpos = trace.start + ( @GetAimVector! * 128 )
+        trace.filter = @
 
         entity = Create( className )
         unless entity and entity\IsValid!
             return NULL
 
-        ang = @EyeAngles!
-        ang[ 1 ] = 0
-        ang[ 2 ] += 180
-        ang[ 3 ] = 0
+        traceResult = TraceLine( trace )
 
         origin = traceResult.HitPos
         entity\SetPos( origin )
-        entity\SetAngles( ang )
+
+        angles = @EyeAngles!
+        angles[ 1 ] = 0
+        angles[ 2 ] += 180
+        angles[ 3 ] = 0
+
+        entity\SetAngles( angles )
 
         if preSpawn ~= nil
             preSpawn( entity, @ )
