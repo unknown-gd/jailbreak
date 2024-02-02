@@ -3,9 +3,10 @@ Jailbreak = Jailbreak
 :Clamp, :Rand, :random, :min, :max, :floor = math
 ENTITY = FindMetaTable( "Entity" )
 :FixModelPath = Jailbreak
-hook_Add = hook.Add
+:IsValidModel = util
 CurTime = CurTime
 :Simple = timer
+:Add = hook
 GM = GM
 
 do
@@ -60,87 +61,89 @@ do
                 ply\SetEyeTarget( nextEyePos )
                 ply.LastEyePos = nextEyePos
 
-do
+Simple 0, ->
+    :Call = hook
+    for addon in *engine.GetAddons!
+        if addon.downloaded and addon.mounted
+            Call( "WorkshopItemFound", nil, addon.wsid )
 
-    EntityReplacer = EntityReplacer
+if EntityReplacer ~= nil
+    :lower, :find = string
+    isstring = isstring
+    istable = istable
 
-    if EntityReplacer ~= nil
+    global ReplaceFilterByModel = ( modelName ) ->
+        if isstring( modelName )
+            modelName = lower( modelName )
+        elseif istable( modelName )
+            tbl = {}
+            for str in *modelName
+                tbl[ lower( str ) ] = true
 
-        :lower, :find = string
-        :IsValidModel = util
+            modelName = tbl
+        else
+            return =>
+                return true
 
-        replaceFilter = nil
-        do
+        return =>
+            modelPath = @GetModel!
+            unless modelPath
+                return false
 
-            isstring = isstring
-            istable = istable
+            modelPath = FixModelPath( modelPath )
+            unless IsValidModel( modelPath )
+                return false
 
-            replaceFilter = ( modelName ) ->
-                if isstring( modelName )
-                    modelName = lower( modelName )
-                elseif istable( modelName )
-                    tbl = {}
-                    for str in *modelName
-                        tbl[ lower( str ) ] = true
+            if istable( modelName )
+                return modelName[ modelPath ]
 
-                    modelName = tbl
-                else
-                    return =>
-                        return true
+            return find( modelPath, modelName, 1, false ) ~= nil
 
-                return =>
-                    modelPath = @GetModel!
-                    unless modelPath
-                        return false
+    -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
+    Add "WorkshopItemFound", "Jailbreak::sent_soccerball - Replace", ( wsid ) ->
+        if wsid ~= "293904092"
+            return
 
-                    modelPath = FixModelPath( modelPath )
-                    unless IsValidModel( modelPath )
-                        return false
+        EntityReplacer( "^prop_physics.*", "sent_soccerball", ReplaceFilterByModel( "models/props_phx/misc/soccerball%.mdl" ) )
+        return
 
-                    if istable( modelName )
-                        return modelName[ modelPath ]
+-- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
+Add "WorkshopItemFound", "Jailbreak::sent_soccerball - Shop", ( wsid ) ->
+    if wsid ~= "293904092"
+        return
 
-                    return find( modelPath, modelName, 1, false ) ~= nil
+    Add "ShopItems", "Jailbreak::sent_soccerball", ( add ) ->
+        add "sent_soccerball", "models/props_phx/misc/soccerball.mdl", 10, =>
+            return @SpawnEntity( "sent_soccerball" )\IsValid!
 
-        entityReplaces = {
+        return
 
-            -- https://steamcommunity.com/sharedfiles/filedetails/?id=293904092
-            ["293904092"]: ->
-                EntityReplacer "^prop_physics.*", "sent_soccerball", replaceFilter( "models/props_phx/misc/soccerball%.mdl" )
+-- https://steamcommunity.com/sharedfiles/filedetails/?id=931448005
+Add "WorkshopItemFound", "Jailbreak::sent_grapplehook_bpack - Shop", ( wsid ) ->
+    if wsid ~= "931448005"
+        return
 
-        }
+    Add "ShopItems", "Jailbreak::sent_grapplehook_bpack", ( add ) ->
+        add "sent_grapplehook_bpack", "models/props_phx/wheels/magnetic_small.mdl", 25, =>
+            entity = @SpawnEntity( "sent_grapplehook_bpack", => @SetSlotName( "movement" ) )
+            if entity\IsValid!
+                entity\SetKey( KEY_B )
+                return true
 
-        -- Reading a custom replaces
-        do
+            return false
 
-            file.CreateDir( "jailbreak" )
+        return
 
-            fileName = "jailbreak/entity-replacer.json"
-            if file.Exists( fileName, "DATA" )
-                json = file.Read( fileName, "DATA" )
-                if isstring( json )
-                    data = util.JSONToTable( json )
-                    if istable( data )
-                        for key, value in pairs( data )
-                            entityReplaces[ key ] = ->
-                                return EntityReplacer value[ 1 ], value[ 2 ], replaceFilter( value[ 3 ], value[ 4 ] )
+-- https://steamcommunity.com/sharedfiles/filedetails/?id=931376012
+Add "WorkshopItemFound", "Jailbreak::sent_jetpack - Shop", ( wsid ) ->
+    if wsid ~= "931376012"
+        return
 
-            else
-                file.Write( fileName, "[]" )
+    Add "ShopItems", "Jailbreak::sent_jetpack", ( add ) ->
+        add "sent_jetpack", "models/thrusters/jetpack.mdl", 30, =>
+            return @SpawnEntity( "sent_jetpack", => @SetSlotName( "movement" ) )\IsValid!
 
-        global ReplaceFilterByModel = replaceFilter
-        Jailbreak.EntityReplaces = entityReplaces
-
-        Simple 0, ->
-            for addon in *engine.GetAddons!
-                unless addon.downloaded and addon.mounted
-                    continue
-
-                func = entityReplaces[ addon.wsid ]
-                unless func
-                    continue
-
-                func( addon )
+        return
 
 do
 
@@ -189,11 +192,10 @@ do
 
         Jailbreak.FoodModels = foodModels
 
-    hook_Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
+    Add "PostGamemodeLoaded", "Jailbreak::LoadFoodModels", ->
         for index = 1, #foodModels
             foodModels[ index ] = FixModelPath( foodModels[ index ] )
 
-    :IsValidModel = util
     cache = {}
 
     Jailbreak.IsFoodModel = ( modelName ) ->
@@ -220,7 +222,7 @@ do
     :IsFoodModel, :FoodEatingTime = Jailbreak
     CHAN_STATIC = CHAN_STATIC
 
-    hook_Add "OnEntityCreated", "Jailbreak::FoodEntities", =>
+    Add "OnEntityCreated", "Jailbreak::FoodEntities", =>
         unless @IsProp!
             return
 
@@ -230,7 +232,7 @@ do
 
     cache = {}
 
-    hook_Add "PlayerHoldUse", "Jailbreak::FoodEating", ( entity, useTime ) =>
+    Add "PlayerHoldUse", "Jailbreak::FoodEating", ( entity, useTime ) =>
         if useTime < FoodEatingTime\GetFloat! or not entity\IsProp!
             return
 
@@ -256,7 +258,7 @@ do
     lootSound = Sound( "npc/footsteps/softshoe_generic6.wav" )
     :LootRagdoll, :RagdollLootingTime = Jailbreak
 
-    hook_Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
+    Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
         if useTime < RagdollLootingTime\GetFloat!
             return
 
@@ -277,7 +279,7 @@ do
     :DeathAnimations = Jailbreak
     :band = bit
 
-    hook_Add "PlayerTakeDamage", "Jailbreak::Death Animations", ( damageInfo, teamID ) =>
+    Add "PlayerTakeDamage", "Jailbreak::Death Animations", ( damageInfo, teamID ) =>
         if not DeathAnimations\GetBool! or @GetNW2Int( "death-animation" ) == 1
             return
 
@@ -339,7 +341,7 @@ do
 
         return true
 
-    hook_Add "PlayerSpawn", "Jailbreak::Death Animations", =>
+    Add "PlayerSpawn", "Jailbreak::Death Animations", =>
         @SetNW2Int( "death-animation", 0 )
 
 -- Guard Death
@@ -347,7 +349,7 @@ do
 
     :IsRoundRunning, :PlaySound, :GetTeamPlayersCount, :GuardsDeathSound = Jailbreak
 
-    hook_Add "PlayerDeath", "Jailbreak::First Blood", =>
+    Add "PlayerDeath", "Jailbreak::First Blood", =>
         unless GuardsDeathSound\GetBool! and IsRoundRunning! and @IsGuard! and GetTeamPlayersCount( true, TEAM_GUARD )[ 1 ] ~= 0
             return
 
@@ -360,7 +362,7 @@ do
     OBS_MODE_CHASE = OBS_MODE_CHASE
     :TF2Freezecam = Jailbreak
 
-    hook_Add "PlayerDeath", "Jailbreak::TF2 Freezecam", ( _, attacker ) =>
+    Add "PlayerDeath", "Jailbreak::TF2 Freezecam", ( _, attacker ) =>
         unless TF2Freezecam\GetBool! and attacker and attacker\IsValid!
             return
 
@@ -390,14 +392,14 @@ do
     :GetInternalVariable, :GetNW2Int, :SetNW2Int = ENTITY
     :FindByClass = ents
 
-    hook_Add "Think", "Jailbreak::DoorState", ->
+    Add "Think", "Jailbreak::DoorState", ->
         for entity in *FindByClass( "prop_door_rotating" )
             state = GetInternalVariable( entity, "m_eDoorState" )
             if GetNW2Int( entity, "m_eDoorState" ) ~= state
                 SetNW2Int( entity, "m_eDoorState", state )
 
 -- Developer
-hook_Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
+Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
     if @IsBot!
         return
 
@@ -407,7 +409,7 @@ hook_Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
 -- Ultra realistic items mass
 GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
     if entity.RagdollMover
-        hook_Add "Think", entity, =>
+        Add "Think", entity, =>
             unless @IsPlayerHolding!
                 @Remove!
 
@@ -460,7 +462,7 @@ do
         weapon_rpg: 3
     }
 
-    hook_Add "OnEntityCreated", "Jailbreak::HL2AmmoFix", =>
+    Add "OnEntityCreated", "Jailbreak::HL2AmmoFix", =>
         unless clips[ @GetClass! ]
             return
 
@@ -468,7 +470,7 @@ do
             if @IsValid! and @Clip1! ~= -1
                 @SetClip1( @GetMaxClip1! )
 
-    hook_Add "WeaponEquip", "Jailbreak::HL2AmmoFix", ( ply ) =>
+    Add "WeaponEquip", "Jailbreak::HL2AmmoFix", ( ply ) =>
         className = @GetClass!
         unless clips[ className ]
             return
@@ -487,7 +489,7 @@ do
             if @IsValid!
                 @SetClip1( min( clip1, @GetMaxClip1! ) )
 
-    hook_Add "PlayerCanPickupWeapon", "Jailbreak::HL2AmmoFix", ( weapon ) =>
+    Add "PlayerCanPickupWeapon", "Jailbreak::HL2AmmoFix", ( weapon ) =>
         className = weapon\GetClass!
         if clips[ className ] == nil or not @HasWeapon( className )
             return
@@ -538,7 +540,7 @@ do
         ammos.item_ammo_357_large = ammos.item_ammo_357
         ammos.item_ammo_ar2_large = ammos.item_ammo_ar2
 
-        hook_Add "PlayerCanPickupItem", "Jailbreak::HL2AmmoFix", ( item ) =>
+        Add "PlayerCanPickupItem", "Jailbreak::HL2AmmoFix", ( item ) =>
             ammoType = ammos[ item\GetClass! ]
             if not ammoType or ammoType == -1
                 return
@@ -550,11 +552,11 @@ do
 
         grenadeAmmo = GetAmmoID( "Grenade" )
 
-        hook_Add "PlayerAmmoChanged", "Jailbreak::HL2AmmoFix", ( ammoID, old, new ) =>
+        Add "PlayerAmmoChanged", "Jailbreak::HL2AmmoFix", ( ammoID, old, new ) =>
             if ammoID == grenadeAmmo and new > 1
                 @SetAmmo( 1, ammoID )
 
-hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
+Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
     add "weapon_medkit", "models/Items/HealthKit.mdl", 20, =>
         if @HasWeapon( "weapon_medkit" )
             return false
@@ -562,8 +564,7 @@ hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
         return @Give( "weapon_medkit" )\IsValid!
 
     add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 10, =>
-        unless @SpawnEntity( "jb_paint" )\IsValid!
-            return false
+        return @SpawnEntity( "jb_paint" )\IsValid!
 
     add "weapon_physcannon", "models/weapons/w_Physics.mdl", 20, =>
         if @HasWeapon( "weapon_physcannon" )
@@ -577,7 +578,9 @@ hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_stunstick" )\IsValid!
 
-hook_Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
+    return
+
+Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
     attacker = damageInfo\GetAttacker!
     unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive!
         return

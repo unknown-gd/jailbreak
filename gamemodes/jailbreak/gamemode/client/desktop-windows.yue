@@ -231,7 +231,7 @@ Set "DesktopWindows", "warden-shop", {
     init: ( window ) =>
         window\SetTitle( "#jb.warden.shop" )
         window\SetIcon( "icon16/cart.png" )
-        window\SetSize( VMin( 60 ), VMin( 20 ) )
+        window\SetSize( VMin( 60 ), VMin( 40 ) )
         window\SetMinWidth( VMin( 40 ) )
         window\SetMinHeight( VMin( 20 ) )
         window\SetSizable( true )
