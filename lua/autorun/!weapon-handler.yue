@@ -90,6 +90,7 @@ if SERVER
         weapon = @GetParent!
         if weapon\IsValid! and weapon\IsWeapon!
             owner\PickupWeapon( weapon, false )
+
         @Remove!
 
     TemporaryWeapon.OnRemove = =>

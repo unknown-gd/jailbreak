@@ -388,9 +388,9 @@ do
 
 do
 
-    istable = istable
     :Shuffle = table
     Vector = Vector
+    NULL = NULL
 
     Jailbreak.LootRagdoll = ( ragdoll ) =>
         velocity = Vector!
@@ -413,65 +413,70 @@ do
             velocity += direction * 50
             @GiveSecurityRadio!
 
-        weapons = ragdoll.Weapons
-        if istable( weapons )
-            if next( weapons ) == nil
+        :Weapons = ragdoll
+        if Weapons ~= nil
+            count, weapon = 0, NULL
+            for index = 1, #Weapons
+                weapon = Weapons[ index ]
+                unless weapon\IsValid!
+                    continue
+
+                if weapon\GetOwner!\IsValid! or weapon\GetParent! ~= ragdoll
+                    Weapons[ index ] = NULL
+                    continue
+
+                if Run( "PlayerCanPickupWeapon", @, weapon ) == false
+                    count += 1
+                    continue
+
+                weapon\SetParent!
+                weapon\SetNoDraw( false )
+                weapon\SetNotSolid( false )
+                weapon.PickupForbidden = nil
+
+                @PickupWeapon( weapon )
+                Weapons[ index ] = NULL
+
+                velocity += direction * 200
+
+            if count == 0
                 ragdoll.Weapons = nil
-            else
-                for key, weapon in pairs( weapons )
-                    unless weapon\IsValid!
-                        weapons[ key ] = nil
-                        continue
 
-                    if weapon\GetOwner!\IsValid!
-                        weapons[ key ] = nil
-                        continue
+        :Ammo = ragdoll
+        if Ammo ~= nil
+            count, amount = 0, 0
+            for ammoType, ammoCount in pairs( Ammo )
+                amount = min( ammoCount, @GetPickupAmmoCount( ammoType ) )
+                if amount < 1
+                    continue
 
-                    if Run( "PlayerCanPickupWeapon", @, weapon ) == false
-                        continue
+                @GiveAmmo( amount, ammoType )
+                velocity += direction * 100
+                ammoCount -= amount
 
-                    weapon\SetNotSolid( false )
-                    weapon\SetNoDraw( false )
-                    weapon\SetParent!
+                if ammoCount > 0
+                    Ammo[ ammoType ] = ammoCount
+                    count += 1
+                else
+                    Ammo[ ammoType ] = nil
 
-                    weapon.PickupForbidden = nil
-                    @PickupWeapon( weapon )
-                    weapons[ key ] = nil
-
-                    velocity += direction * 200
-
-        ammo = ragdoll.Ammo
-        if istable( ammo )
-            if next( ammo ) == nil
+            if count == 0
                 ragdoll.Ammo = nil
-            else
-                for ammoType, ammoCount in pairs( ammo )
-                    amount = min( ammoCount, @GetPickupAmmoCount( ammoType ) )
-                    if amount < 1
-                        continue
-
-                    @GiveAmmo( amount, ammoType )
-                    velocity += direction * 100
-
-                    ammoCount -= amount
-                    if ammoCount > 0
-                        ammo[ ammoType ] = ammoCount
-                    else
-                        ammo[ ammoType ] = nil
 
         if velocity\Length! < 100
             return
 
         if ragdoll\IsRagdoll!
-            physParts = {}
+            physParts, length = {}, 0
             for physNum = 1, ragdoll\GetPhysicsObjectCount! - 1 do
                 phys = ragdoll\GetPhysicsObjectNum( physNum )
                 if IsValid( phys )
-                    physParts[] = phys
+                    length += 1
+                    physParts[ length ] = phys
 
             Shuffle( physParts )
 
-            for index = 1, min( #physParts, 4 )
+            for index = 1, min( length, 6 )
                 physParts[ index ]\ApplyForceCenter( velocity )
 
         else

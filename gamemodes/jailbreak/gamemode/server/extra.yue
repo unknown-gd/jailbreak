@@ -489,7 +489,7 @@ do
 
     hook_Add "PlayerCanPickupWeapon", "Jailbreak::HL2AmmoFix", ( weapon ) =>
         className = weapon\GetClass!
-        unless clips[ className ] ~= nil and @HasWeapon( className )
+        if clips[ className ] == nil or not @HasWeapon( className )
             return
 
         if className == "weapon_frag" or className == "weapon_rpg"

@@ -359,6 +359,7 @@ do
 
     :RagdollRemove, :FixModelPath = Jailbreak
     :IsInWorld, :IsValidModel = util
+    IsValid = IsValid
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
@@ -484,22 +485,25 @@ do
             ragdoll.HasFlashlight = @CanUseFlashlight!
             ragdoll.HasShockCollar = @HasShockCollar!
 
-            weapons, count = {}, 0
+            weapons, length = {}, 0
             for weapon in *@GetWeapons!
+                if #weapon\GetWeaponWorldModel! == 0
+                    continue
+
                 @DropWeapon( weapon )
+                unless weapon\IsValid!
+                    continue
 
-                if weapon\IsValid!
-                    weapon\SetPos( spawnOrigin )
-                    weapon\SetParent( ragdoll )
-                    weapon\SetNotSolid( true )
-                    weapon\SetNoDraw( true )
+                weapon.PickupForbidden = true
+                weapon\SetPos( spawnOrigin )
+                weapon\SetParent( ragdoll )
+                weapon\SetNotSolid( true )
+                weapon\SetNoDraw( true )
 
-                    weapon.PickupForbidden = true
+                length += 1
+                weapons[ length ] = weapon
 
-                    count += 1
-                    weapons[ count ] = weapon
-
-            if count ~= 0
+            if length ~= 0
                 ragdoll.Weapons = weapons
 
             ragdoll.Ammo = @GetAmmo!

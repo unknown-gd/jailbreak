@@ -732,6 +732,7 @@ do
             when "game_player_equip"
                 entity\Remove!
                 return
+
             when "func_button"
                 entity\SetNW2Bool( "is-button", true )
 
@@ -747,10 +748,6 @@ do
                 return
 
             if entity\GetOwner!\IsValid!
-                return
-
-            if entity\GetPos!\Length! <= 3
-                entity\Remove!
                 return
 
             entity\SetCollisionGroup( COLLISION_GROUP_WEAPON )
@@ -797,10 +794,7 @@ do
         Create timerName, 5, 1, ->
             Remove( timerName )
 
-            unless weapon\IsValid!
-                return
-
-            if weapon\GetOwner!\IsValid!
+            if not weapon\IsValid! or weapon\GetOwner!\IsValid! or weapon\GetParent!\IsValid!
                 return
 
             unless weapon\IsInWorld!
@@ -878,24 +872,23 @@ GM.WeaponEquip = ( weapon, owner ) =>
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
-    unless ply\Alive!
+    if not ply\Alive! or ply\HasWeapon( weapon\GetClass! )
         return false
 
-    if ply\HasWeapon( weapon\GetClass! )
-        return false
-
+    -- 0: melee, 1: tier1, 2: tier2, 3: tier3, 4: tier4, 5: tools
     slot = weapon\GetSlot!
-    if slot == 0 or slot == 5
+    if slot < 1 and slot > 4
         return true
 
     if ply\HasWeaponsInSlot( slot )
         return false
 
+    -- tier 1 is light weapons and tier 4 is heavy weapons
     if slot == 1 or slot == 4
         return true
 
-    for i = 1, 2
-        if ply\HasWeaponsInSlot( i + 1 )
-            return false
+    -- tier 2 and 3 is main weapons, so we can have only one in two slots
+    if ply\HasWeaponsInSlot( 2 ) or ply\HasWeaponsInSlot( 3 )
+        return false
 
     return true
