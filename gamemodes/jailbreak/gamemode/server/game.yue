@@ -877,7 +877,7 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
 
     -- 0: melee, 1: tier1, 2: tier2, 3: tier3, 4: tier4, 5: tools
     slot = weapon\GetSlot!
-    if slot < 1 and slot > 4
+    if slot < 1 or slot > 4
         return true
 
     if ply\HasWeaponsInSlot( slot )

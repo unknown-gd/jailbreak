@@ -555,19 +555,39 @@ do
                 @SetAmmo( 1, ammoID )
 
 hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
-    add "weapon_medkit", "models/Items/HealthKit.mdl", 25, =>
+    add "weapon_medkit", "models/Items/HealthKit.mdl", 20, =>
         if @HasWeapon( "weapon_medkit" )
             return false
 
-        @Give( "weapon_medkit" )
+        return @Give( "weapon_medkit" )\IsValid!
 
     add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 10, =>
         unless @SpawnEntity( "jb_paint" )\IsValid!
             return false
 
-    add "weapon_physcannon", "models/weapons/w_Physics.mdl", 15, =>
+    add "weapon_physcannon", "models/weapons/w_Physics.mdl", 20, =>
         if @HasWeapon( "weapon_physcannon" )
             return false
 
-        @Give( "weapon_physcannon" )
+        return @Give( "weapon_physcannon" )\IsValid!
 
+    add "weapon_stunstick", "models/weapons/w_stunbaton.mdl", 15, =>
+        if @HasWeapon( "weapon_stunstick" )
+            return false
+
+        return @Give( "weapon_stunstick" )\IsValid!
+
+do
+
+    color = Color( 255, 255, 255, 240 )
+
+    hook_Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
+        attacker = damageInfo\GetAttacker!
+        unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive!
+            return
+
+        weapon = attacker\GetActiveWeapon!
+        unless weapon and weapon\IsValid! and weapon\GetClass! == "weapon_stunstick"
+            return
+
+        @ScreenFade( SCREENFADE.IN, color, 0.25, 3 )
