@@ -89,6 +89,7 @@ do
     sv_gravity = GetConVar( "sv_gravity" )
     FrameTime = FrameTime
     Lerp = Lerp
+    :band = bit
     :abs = math
 
     hook_Add "Move", "Jailbreak::Developer", ( mv ) =>
@@ -106,30 +107,39 @@ do
             velocity = mv\GetVelocity!
             angles = mv\GetMoveAngles!
 
-            if mv\KeyDown( IN_FORWARD )
+            buttons = mv\GetButtons!
+
+            if band( buttons, IN_FORWARD ) ~= 0
                 velocity += angles\Forward! * 16
+                buttons -= IN_FORWARD
 
-            if mv\KeyDown( IN_BACK )
+            if band( buttons, IN_BACK ) ~= 0
                 velocity += angles\Forward! * -16
+                buttons -= IN_BACK
 
-            if mv\KeyDown( IN_MOVELEFT )
+            if band( buttons, IN_MOVELEFT ) ~= 0
                 velocity += angles\Right! * -16
+                buttons -= IN_MOVELEFT
 
-            if mv\KeyDown( IN_MOVERIGHT )
+            if band( buttons, IN_MOVERIGHT ) ~= 0
                 velocity += angles\Right! * 16
+                buttons -= IN_MOVERIGHT
 
-            if mv\KeyDown( IN_JUMP )
+            if band( buttons, IN_JUMP ) ~= 0
                 velocity += angles\Up! * 16
+                buttons -= IN_JUMP
 
-            if mv\KeyDown( IN_DUCK )
+            if band( buttons, IN_DUCK ) ~= 0
                 velocity += angles\Up! * -16
+                buttons -= IN_DUCK
 
             frameTime = FrameTime!
 
-            if mv\KeyDown( IN_SPEED )
+            if band( buttons, IN_SPEED ) ~= 0
                 velocity[ 1 ] = Lerp( frameTime, velocity[ 1 ], 0 )
                 velocity[ 2 ] = Lerp( frameTime, velocity[ 2 ], 0 )
                 velocity[ 3 ] = Lerp( frameTime, velocity[ 3 ], 0 )
+                buttons -= IN_SPEED
 
             if abs( velocity[ 1 ] ) < 1
                 velocity[ 1 ] = 0
@@ -140,9 +150,10 @@ do
             if abs( velocity[ 3 ] ) < 1
                 velocity[ 3 ] = 0
 
-            velocity[ 3 ] += ( @GetGravity! + 1 ) * sv_gravity\GetInt! * frameTime * 0.5
+            velocity[ 3 ] += ( @GetGravity! + 1 ) * sv_gravity\GetFloat! * 0.5 * frameTime
 
             mv\SetVelocity( velocity )
+            mv\SetButtons( buttons )
 
         elseif mv\KeyPressed( IN_JUMP )
             @SetNW2Bool( "in-flight", true )
