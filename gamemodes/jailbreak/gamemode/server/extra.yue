@@ -564,3 +564,10 @@ hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
     add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 10, =>
         unless @SpawnEntity( "jb_paint" )\IsValid!
             return false
+
+    add "weapon_physcannon", "models/weapons/w_Physics.mdl", 15, =>
+        if @HasWeapon( "weapon_physcannon" )
+            return false
+
+        @Give( "weapon_physcannon" )
+
