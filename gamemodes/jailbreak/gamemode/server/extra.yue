@@ -571,25 +571,20 @@ hook_Add "Jailbreak::ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_physcannon" )\IsValid!
 
-    add "weapon_stunstick", "models/weapons/w_stunbaton.mdl", 15, =>
+    add "weapon_stunstick", "models/weapons/w_stunbaton.mdl", 10, =>
         if @HasWeapon( "weapon_stunstick" )
             return false
 
         return @Give( "weapon_stunstick" )\IsValid!
 
-do
+hook_Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
+    attacker = damageInfo\GetAttacker!
+    unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive!
+        return
 
-    color = Color( 255, 255, 255, 240 )
-    :IN = SCREENFADE
+    weapon = attacker\GetActiveWeapon!
+    unless weapon and weapon\IsValid! and weapon\GetClass! == "weapon_stunstick"
+        return
 
-    hook_Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
-        attacker = damageInfo\GetAttacker!
-        unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive!
-            return
-
-        weapon = attacker\GetActiveWeapon!
-        unless weapon and weapon\IsValid! and weapon\GetClass! == "weapon_stunstick"
-            return
-
-        @SetNW2Int( "weapon-stunstick", CurTime! + 3 )
-        @ScreenFade( IN, color, 0.25, 3 )
+    damageInfo\ScaleDamage( 0.25 )
+    @Shock!
