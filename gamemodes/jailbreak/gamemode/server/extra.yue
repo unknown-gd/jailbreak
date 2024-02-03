@@ -145,6 +145,27 @@ Add "WorkshopItemFound", "Jailbreak::sent_jetpack - Shop", ( wsid ) ->
 
         return
 
+-- https://steamcommunity.com/sharedfiles/filedetails/?id=546392647
+Add "WorkshopItemFound", "Jailbreak::mediaplayer_tv - Shop", ( wsid ) ->
+    if wsid ~= "546392647"
+        return
+
+    Add "ShopItems", "Jailbreak::mediaplayer_tv", ( add ) ->
+        add "mediaplayer_tv", "models/gmod_tower/suitetv_large.mdl", 45, =>
+            entity = @SpawnEntity( "mediaplayer_tv" )
+            if entity\IsValid!
+                phys = entity\GetPhysicsObject!
+                if phys and phys\IsValid!
+                    phys\EnableMotion( true )
+                    phys\SetMass( 35 )
+                    phys\Wake!
+
+                return true
+
+            return false
+
+        return
+
 do
 
     foodModels = Jailbreak.FoodModels
@@ -557,24 +578,25 @@ do
                 @SetAmmo( 1, ammoID )
 
 Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
-    add "weapon_medkit", "models/Items/HealthKit.mdl", 20, =>
+    add "weapon_medkit", "models/Items/HealthKit.mdl", 10, =>
         if @HasWeapon( "weapon_medkit" )
             return false
 
         return @Give( "weapon_medkit" )\IsValid!
 
-    add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 10, =>
+    add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 5, =>
         return @SpawnEntity( "jb_paint" )\IsValid!
 
     add "jb_radio", "models/props_lab/citizenradio.mdl", 25, =>
         return @SpawnEntity( "jb_radio" )\IsValid!
 
+    add "weapon_physcannon", "models/weapons/w_Physics.mdl", 15, =>
         if @HasWeapon( "weapon_physcannon" )
             return false
 
         return @Give( "weapon_physcannon" )\IsValid!
 
-    add "weapon_stunstick", "models/weapons/w_stunbaton.mdl", 10, =>
+    add "weapon_stunstick", "models/weapons/w_stunbaton.mdl", 15, =>
         if @HasWeapon( "weapon_stunstick" )
             return false
 
