@@ -311,7 +311,7 @@
             "text"          "Doors Health"
             "help"          "The value is responsible for the health of the door."
             "type"          "Numeric"
-            "default"       "100"
+            "default"       "1000"
             "singleplayer"  "1"
         }
         35

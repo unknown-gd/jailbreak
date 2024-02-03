@@ -32,10 +32,7 @@ do
 
     GM.PlayerButtonUp = ( ply, keyCode ) =>
         bind = LookupKeyBinding( keyCode )
-        if bind and #bind ~= 0
-            return
-
-        unless IsFirstTimePredicted!
+        if ( bind and #bind ~= 0 ) or not IsFirstTimePredicted!
             return
 
         if keyCode == 17
@@ -48,12 +45,13 @@ do
             RunConsoleCommand( "pe_drop", "movement" )
 
     GM.PlayerButtonDown = ( ply, keyCode ) =>
-        if ( keyCode == 107 or keyCode == 108 ) and IsKeyDown( 81 )
+        if ( keyCode == 107 or keyCode == 108 ) and IsKeyDown( 81 ) and IsFirstTimePredicted!
             RunConsoleCommand( "marker" )
 
 do
 
     :ReadString, :ReadUInt, :ReadTable, :ReadEntity, :ReadBool = net
+    CHAN_STATIC = CHAN_STATIC
     :AddLegacy = notification
     :Translate = Jailbreak
     unpack = unpack
@@ -65,28 +63,30 @@ do
             gameName = ReadString!
             SoundHandler( gameName )
             Jailbreak.GameName = gameName
+
         [ 1 ]: ->
             Run( "HUDItemPickedUp", ReadString! )
+
         [ 2 ]: ->
             AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
+
         [ 3 ]: ->
             ply = Jailbreak.Player
-            unless ply\IsValid!
-                return
+            if ply\IsValid!
+                ply\EmitSound( ReadString!, 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
 
-            ply\EmitSound( ReadString!, 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
         [ 4 ]: ->
             entity = ReadEntity!
             if entity and entity\IsValid and entity\IsPlayer!
                 entity\AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool! )
+
         [ 5 ]: ->
             RunConsoleCommand( "jb_security_radio", "0" )
             RunConsoleCommand( "jb_megaphone", "0" )
+
     }
 
-    net.Receive "Jailbreak::Networking", ( len ) ->
+    net.Receive "Jailbreak::Networking", ->
         func = Networking[ ReadUInt( 4 ) ]
-        unless func
-            return
-
-        func( len )
+        if func ~= nil
+            func!
