@@ -301,90 +301,89 @@ do
 
             return true
 
-        switch className
-            when "prop_door_rotating"
-                model = entity\GetModel!
-                unless model and #model ~= 0 and IsValidModel( model )
-                    return true
-
-                maxHealth = entity\GetMaxHealth!
-                if maxHealth <= 1
-                    maxHealth = Jailbreak.DoorsHealth\GetInt!
-                    if maxHealth <= 0
-                        return true
-
-                    entity\SetHealth( maxHealth )
-                    entity\SetMaxHealth( maxHealth )
-
-                health = entity\Health!
-                if health < 1
-                    return true
-
-                health = max( 0, health - damageInfo\GetDamage! )
-                entity\SetHealth( health )
-
-                if health > 1
-                    return true
-
-                center = entity\OBBCenter!
-                center[ 1 ] = 0
-                center[ 2 ] = 0
-
-                origin = entity\LocalToWorld( center )
-                unless IsInWorld( origin )
-                    return true
-
-                prop = Create( "prop_physics" )
-                prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
-                prop\SetAngles( entity\GetAngles! )
-                prop\SetSkin( entity\GetSkin! )
-                prop\SetModel( model )
-                prop\SetPos( origin )
-                prop\Spawn!
-
-                prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-                entity\Remove!
-
-                phys = prop\GetPhysicsObject!
-                if IsValid( phys )
-                    phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
-
-                origin = damageInfo\GetDamagePosition!
-                util.ScreenShake( origin, 5, 10, 0.5, 150 )
-
-                fx = EffectData!
-                fx\SetOrigin( origin )
-                fx\SetMagnitude( 5 )
-                fx\SetRadius( 5 )
-                fx\SetScale( 2 )
-                Effect( "Sparks", fx )
-
+        if className == "prop_door_rotating"
+            model = entity\GetModel!
+            unless model and #model ~= 0 and IsValidModel( model )
                 return true
 
-            when "func_button"
-                if band( damageType, DMG_BLAST ) == DMG_BLAST
+            maxHealth = entity\GetMaxHealth!
+            if maxHealth <= 1
+                maxHealth = Jailbreak.DoorsHealth\GetInt!
+                if maxHealth <= 0
                     return true
 
-                attacker = damageInfo\GetAttacker!
-                if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
-                    entity\Use( attacker, attacker )
+                entity\SetMaxHealth( maxHealth )
+                entity\SetHealth( maxHealth )
 
-                    damageOrigin = damageInfo\GetDamagePosition!
-                    entity\DoElectricSparks( damageOrigin, 150 )
-
-                    if damageInfo\IsCloseRangeDamage!
-                        attacker\Ignite( 0.25, 16 )
-
-                        dir = attacker\WorldSpaceCenter! - damageOrigin
-                        dir[ 3 ] = 1
-
-                        damageInfo\SetDamage( attacker\GetMaxHealth! / Rand( 2, 3 ) )
-                        damageInfo\SetDamageForce( dir * 100 )
-                        damageInfo\SetDamageType( DMG_SHOCK )
-                        damageInfo\SetAttacker( entity )
-                        attacker\TakeDamageInfo( damageInfo )
-
+            health = entity\Health!
+            if health < 1
                 return true
+
+            health = max( 0, health - damageInfo\GetDamage! )
+            entity\SetHealth( health )
+
+            if health > 1
+                return true
+
+            center = entity\OBBCenter!
+            center[ 1 ] = 0
+            center[ 2 ] = 0
+
+            origin = entity\LocalToWorld( center )
+            unless IsInWorld( origin )
+                return true
+
+            prop = Create( "prop_physics" )
+            prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
+            prop\SetAngles( entity\GetAngles! )
+            prop\SetSkin( entity\GetSkin! )
+            prop\SetModel( model )
+            prop\SetPos( origin )
+            prop\Spawn!
+
+            prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+            entity\Remove!
+
+            phys = prop\GetPhysicsObject!
+            if IsValid( phys )
+                phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
+
+            origin = damageInfo\GetDamagePosition!
+            util.ScreenShake( origin, 5, 10, 0.5, 150 )
+
+            fx = EffectData!
+            fx\SetOrigin( origin )
+            fx\SetMagnitude( 5 )
+            fx\SetRadius( 5 )
+            fx\SetScale( 2 )
+            Effect( "Sparks", fx )
+
+            return true
+
+        if className == "func_button"
+            if band( damageType, DMG_BLAST ) == DMG_BLAST
+                return true
+
+            attacker = damageInfo\GetAttacker!
+            if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
+                entity\Use( attacker, attacker )
+
+                damageOrigin = damageInfo\GetDamagePosition!
+                entity\DoElectricSparks( damageOrigin, 150 )
+
+                if damageInfo\IsCloseRangeDamage!
+                    attacker\Ignite( 0.25, 16 )
+
+                    dir = attacker\WorldSpaceCenter! - damageOrigin
+                    dir[ 3 ] = 1
+
+                    damageInfo\SetDamage( attacker\GetMaxHealth! / Rand( 2, 3 ) )
+                    damageInfo\SetDamageForce( dir * 100 )
+                    damageInfo\SetDamageType( DMG_SHOCK )
+                    damageInfo\SetAttacker( entity )
+                    attacker\TakeDamageInfo( damageInfo )
+
+            return true
 
         inflictor = damageInfo\GetInflictor!
         if inflictor\IsValid! and inflictor\IsWeapon!
@@ -419,8 +418,12 @@ do
             damageInfo\ScaleDamage( 0.25 )
 
         isEnabled = player_old_armor\GetBool!
-        flBonus = isEnabled and 0.5 or 1 -- Each Point of Armor is worth 1/x points of health
-        flRatio = 0.2 -- Armor Takes 80% of the damage
+
+        -- Each Point of Armor is worth 1/x points of health
+        flBonus = isEnabled and 0.5 or 1
+
+        -- Armor Takes 80% of the damage
+        flRatio = 0.2
 
         damage = damageInfo\GetDamage!
         flNew = damage * flRatio
