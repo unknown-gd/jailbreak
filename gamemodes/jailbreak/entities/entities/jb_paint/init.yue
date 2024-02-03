@@ -18,10 +18,12 @@ ENT.Initialize = =>
     @DrawShadow( true )
 
 ENT.Use = ( ply ) =>
-    if ply\Alive!
-        ply\ConCommand( "jb_paint " .. @EntIndex! )
+    unless ply\Alive!
+        return
 
-concommand.Add "jb_paint_apply", ( _, args ) =>
+    ply\ConCommand( "jb_paint_entity " .. @EntIndex! )
+
+concommand.Add "jb_paint_entity_apply", ( _, args ) =>
     unless @ and @IsValid! and @Alive!
         return
 
@@ -29,7 +31,7 @@ concommand.Add "jb_paint_apply", ( _, args ) =>
     unless entity and entity\IsValid!
         return
 
-    if entity\GetPos!\Distance( @GetPos! ) > 72
+    if entity\GetClass! ~= "jb_paint" or entity\GetPos!\Distance( @GetPos! ) > 72
         return
 
     color = string.Split( args[ 2 ] or "0 0 0", " " )

@@ -232,10 +232,13 @@ Set "DesktopWindows", "warden-shop", {
         window\SetTitle( "#jb.warden.shop" )
         window\SetIcon( "icon16/cart.png" )
         window\SetSize( VMin( 60 ), VMin( 40 ) )
-        window\SetMinWidth( VMin( 40 ) )
-        window\SetMinHeight( VMin( 20 ) )
         window\SetSizable( true )
         window\Center!
+
+        window.PerformLayout = ( ... ) ->
+            window\SetMinWidth( VMin( 40 ) )
+            window\SetMinHeight( VMin( 20 ) )
+            DFrame.PerformLayout( ... )
 
         hook.Add "LanguageChanged", window, ->
             hook.Remove "LanguageChanged", window
@@ -349,39 +352,46 @@ do
             modelsTab = window\Add( "DPanel" )
             modelsTab\DockPadding( 8, 8, 8, 8 )
 
-            modelsSearch = modelsTab\Add( "DTextEntry" )
-            modelsSearch\Dock( TOP )
-            modelsSearch\DockMargin( 0, 0, 0, 8 )
-            modelsSearch\SetUpdateOnType( true )
-            modelsSearch\SetPlaceholderText( "#spawnmenu.quick_filter" )
+            modelsScrollPanel = modelsTab\Add( "DScrollPanel" )
+            modelsScrollPanel\Dock( FILL )
 
-            selectPanel = modelsTab\Add( "DPanelSelect" )
-            selectPanel\Dock( FILL )
+            models = modelsScrollPanel\Add( "DIconLayout" )
+            models\Dock( FILL )
 
-            for name, modelPath in SortedPairs( player_manager.AllValidModels! )
-                modelPath = FixModelPath( modelPath )
+            models.PerformLayout = ( ... ) ->
+                margin = VMin( 0.5 )
+                models\SetSpaceX( margin )
+                models\SetSpaceY( margin )
+                DIconLayout.PerformLayout( ... )
 
-                icon = vgui.Create( "SpawnIcon" )
-                icon\SetModel( modelPath )
-                icon\SetSize( 64, 64 )
-                icon\SetTooltip( name )
-                icon.ModelName = name
-                icon.ModelPath = modelPath
-                icon.OpenMenu = ->
+            do
+
+                selectModel = =>
+                    RunConsoleCommand( "cl_playermodel", @ModelName )
+
+                openMenu = =>
                     menu = DermaMenu!
-                    menu\AddOption( "#spawnmenu.menu.copy", ->
-                        SetClipboardText( modelPath )
-                    )\SetIcon( "icon16/page_copy.png" )
+                    menu\AddOption( "#spawnmenu.menu.copy", -> SetClipboardText( @ModelPath ) )\SetIcon( "icon16/page_copy.png" )
                     menu\Open!
 
-                selectPanel\AddPanel( icon, {
-                    cl_playermodel: name
-                } )
+                for name, modelPath in SortedPairs( player_manager.AllValidModels! )
+                    modelPath = FixModelPath( modelPath )
+
+                    icon = models\Add( "SpawnIcon" )
+                    icon\SetModel( modelPath )
+                    icon\SetSize( 64, 64 )
+                    icon\SetTooltip( name )
+
+                    icon.ModelPath = modelPath
+                    icon.ModelName = name
+
+                    icon.DoClick = selectModel
+                    icon.OpenMenu = openMenu
 
             do
 
                 updateAvalibleModels = ->
-                    unless selectPanel\IsValid! and selectPanel\IsVisible!
+                    unless models\IsValid! and models\IsVisible!
                         return
 
                     allowedPlayerModels = {}
@@ -393,18 +403,12 @@ do
                     for modelPath in *PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
                         allowedPlayerModels[ modelPath ] = true
 
-                    filter = modelsSearch\IsValid! and modelsSearch\GetValue! or ""
-                    for _, icon in pairs( selectPanel\GetItems! )
-                        allowed = AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ]
-                        unless allowed
-                            icon\SetVisible( false )
-                            continue
+                    for icon in *models\GetChildren!
+                        icon\SetVisible( AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ] )
 
-                        icon\SetVisible( find( icon.ModelName, filter, 1, true ) and find( icon.ModelPath, filter, 1, true ) )
-                    selectPanel\InvalidateLayout!
+                    models\InvalidateLayout!
 
                 timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
-                modelsSearch.OnValueChange = updateAvalibleModels
                 updateAvalibleModels!
 
             sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
@@ -413,9 +417,20 @@ do
             colorsPanel = window\Add( "DPanel" )
             colorsPanel\DockPadding( 8, 8, 8, 8 )
 
+            colorsScrollPanel = colorsPanel\Add( "DScrollPanel" )
+            colorsScrollPanel\Dock( FILL )
+
+            colorsScrollPanel.PerformLayout = ( ... ) ->
+                canvas = colorsScrollPanel\GetCanvas!
+                if IsValid( canvas )
+                    margin = VMin( 1 )
+                    canvas\DockPadding( margin, margin, margin, margin )
+
+                DScrollPanel.PerformLayout( ... )
+
             do
 
-                handsTransparency = colorsPanel\Add( "DNumSlider" )
+                handsTransparency = colorsScrollPanel\Add( "DNumSlider" )
                 handsTransparency\Dock( TOP )
                 handsTransparency\SetText( "#jb.hands-transparency" )
                 handsTransparency\SetDark( true )
@@ -431,14 +446,14 @@ do
             -- Player Color
             do
 
-                label = colorsPanel\Add( "DLabel" )
+                label = colorsScrollPanel\Add( "DLabel" )
                 label\SetText( "#smwidget.color_plr" )
                 label\SetTextColor( black )
                 label\Dock( TOP )
 
             do
 
-                playerColor = colorsPanel\Add( "DColorMixer" )
+                playerColor = colorsScrollPanel\Add( "DColorMixer" )
                 playerColor\SetAlphaBar( false )
                 playerColor\SetPalette( false )
                 playerColor\Dock( TOP )
@@ -462,7 +477,7 @@ do
             -- Weapon Color
             do
 
-                label = colorsPanel\Add( "DLabel" )
+                label = colorsScrollPanel\Add( "DLabel" )
                 label\SetText( "#smwidget.color_wep" )
                 label\SetTextColor( black )
                 label\DockMargin( 0, 32, 0, 0 )
@@ -470,7 +485,7 @@ do
 
             do
 
-                weaponColor = colorsPanel\Add( "DColorMixer" )
+                weaponColor = colorsScrollPanel\Add( "DColorMixer" )
                 weaponColor\SetAlphaBar( false )
                 weaponColor\SetPalette( false )
                 weaponColor\Dock( TOP )

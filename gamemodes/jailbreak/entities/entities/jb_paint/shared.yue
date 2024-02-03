@@ -31,7 +31,7 @@ if CLIENT
 
             button.DoClick = ->
                 color = mixer\GetColor!
-                RunConsoleCommand( "jb_paint_apply", @EntIndex or 0, color.r .. " " .. color.g .. " " .. color.b )
+                RunConsoleCommand( "jb_paint_entity_apply", @EntIndex or 0, color.r .. " " .. color.g .. " " .. color.b )
                 @Close!
 
         PANEL.PerformLayout = ( ... ) =>
@@ -54,7 +54,7 @@ if CLIENT
 
     panel = nil
 
-    concommand.Add "jb_paint", ( _, args ) =>
+    concommand.Add "jb_paint_entity", ( _, args ) =>
         if panel and panel\IsValid!
             panel\Remove!
             return
@@ -63,7 +63,7 @@ if CLIENT
         unless entity and entity\IsValid!
             return
 
-        if entity\GetPos!\Distance( @GetPos! ) > 72
+        if entity\GetClass! ~= "jb_paint" or entity\GetPos!\Distance( @GetPos! ) > 72
             return
 
         panel = vgui.Create( "Jailbreak::PaintMenu" )

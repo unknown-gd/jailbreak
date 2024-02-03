@@ -95,7 +95,7 @@ do
 
     hitGroups = {
         [ HITGROUP_GENERIC ]: 1
-        [ HITGROUP_HEAD ]: 10
+        [ HITGROUP_HEAD ]: 5
         [ HITGROUP_CHEST ]: 1
         [ HITGROUP_STOMACH ]: 1
         [ HITGROUP_LEFTARM ]: 0.25
