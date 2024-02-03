@@ -44,6 +44,8 @@ do
             RunConsoleCommand( "marker" )
         elseif keyCode == 58 or keyCode == 23
             RunConsoleCommand( "jb_showteam" )
+        elseif keyCode == 18
+            RunConsoleCommand( "pe_drop", "movement" )
 
     GM.PlayerButtonDown = ( ply, keyCode ) =>
         if ( keyCode == 107 or keyCode == 108 ) and IsKeyDown( 81 )

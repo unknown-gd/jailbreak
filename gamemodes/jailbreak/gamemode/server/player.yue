@@ -605,4 +605,5 @@ do
         entity\SetPos( origin )
 
         tryFixPosition( @, entity, origin )
+        entity\PhysWake!
         return entity

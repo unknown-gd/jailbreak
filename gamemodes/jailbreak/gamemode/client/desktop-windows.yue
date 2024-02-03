@@ -3,9 +3,9 @@ Jailbreak = Jailbreak
 :Colors, :VMin, :GameInProgress = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
-:find, :Explode = string
 :GetPhrase = language
 :PlaySound = surface
+:Explode = string
 IsValid = IsValid
 :Set = list
 
@@ -317,7 +317,6 @@ do
     :PrecacheModel = util
     tostring = tostring
     :concat = table
-    pairs = pairs
 
     Set "DesktopWindows", "player-editor", {
         title: "#smwidget.playermodel"
