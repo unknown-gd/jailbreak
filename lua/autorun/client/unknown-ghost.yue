@@ -182,12 +182,10 @@ perform = ->
 
         entity\Spawn!
 
-ug_source = CreateClientConVar( "ug_source", "https://raw.githubusercontent.com/PrikolMen/unknown-ghost/main/default-ghosts.json", true, false, "Unknown ghost's source." )
-
 requestData = ->
     HTTP {
         method: "GET"
-        url: ug_source\GetString!
+        url: "https://raw.githubusercontent.com/PrikolMen/unknown-ghost/main/default-ghosts.json"
         success: ( code, data ) ->
             if code ~= 200
                 error "Failed to load unknown ghost data: " .. code
