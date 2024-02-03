@@ -4,6 +4,7 @@ GetGlobal2Int = GetGlobal2Int
 :ceil, :min, :max = math
 CurTime = CurTime
 :GetAll = player
+:Simple = timer
 NULL = NULL
 
 TEAM_PRISONER = TEAM_PRISONER
@@ -223,14 +224,10 @@ Jailbreak.IsFemalePrison = ->
     return GetGlobal2Bool( "female-prison" )
 
 -- Delayed entity remove
-do
-
-    :Simple = timer
-
-    Jailbreak.DelayedRemove = ( delay ) =>
-        Simple delay or 0, ->
-            if @IsValid!
-                @Remove!
+Jailbreak.DelayedRemove = ( delay ) =>
+    Simple delay or 0, ->
+        if @IsValid!
+            @Remove!
 
 -- Returns converted tf2 teams to jailbreak teams
 do
@@ -313,51 +310,98 @@ do
 
 do
 
+    getCTable = ENTITY.GetCTable
+    if getCTable == nil
+        getCTable = ENTITY.GetTable
+        ENTITY.GetCTable = getCTable
+
+    cache = {}
+
+    hook.Add "EntityRemove", "Jailbreak::EntityTableCache", =>
+        Simple 0, ->
+            cache[ @ ] = nil
+
+    getTable = =>
+        result = cache[ @ ]
+        if result == nil
+            result = getCTable( @ ) or {}
+            cache[ @ ] = result
+
+        return result
+
+    ENTITY.GetTable = getTable
+
+    PLAYER.__index = ( key ) =>
+        value = PLAYER[ key ]
+        if value == nil
+            value = ENTITY[ key ]
+            if value == nil
+                return getTable( @ )[ key ]
+
+        return value
+
+    WEAPON = FindMetaTable( "Weapon" )
+
+    WEAPON.__index = ( key ) =>
+        value = WEAPON[ key ]
+        if value == nil
+            value = ENTITY[ key ]
+            if value == nil
+                return getTable( @ )[ key ]
+
+        return value
+
+do
+
     :DefaultPlayerColor = Jailbreak
 
     -- Returns player color as vector
-    getPlayerColor = nil
-    do
+    getPlayerColor = =>
+        return @m_bPlayerColorVector or DefaultPlayerColor
 
-        :GetNW2Vector = ENTITY
+    ENTITY.GetPlayerColor, PLAYER.GetPlayerColor = getPlayerColor, getPlayerColor
 
-        getPlayerColor = =>
-            return GetNW2Vector( @, "player-color", DefaultPlayerColor )
+do
 
-        ENTITY.GetPlayerColor = getPlayerColor
+    isvector = isvector
+    :Run = hook
 
-    -- Returns entity custom color
-    do
+    hook.Add "EntityNetworkedVarChanged", "Jailbreak::PlayerColor", ( key, _, value ) =>
+        if key == "player-color" and isvector( value )
+            @m_bPlayerColorVector = value
+            Run "PlayerColorChanged", @, value
 
-        :ToColor = FindMetaTable( "Vector" )
-        :GetPlayerColor = PLAYER
+-- Returns entity custom color
+do
 
-        defaultColor = ToColor( DefaultPlayerColor )
+    :ToColor = FindMetaTable( "Vector" )
+    defaultColor = ToColor( Jailbreak.DefaultPlayerColor )
 
-        ENTITY.GetModelColor = =>
-            if @IsValid!
-                return ToColor( @IsPlayer! and GetPlayerColor( @ ) or getPlayerColor( @ ) )
+    hook.Add "PlayerColorChanged", "Jailbreak::PlayerColor", ( vector ) =>
+        @m_bPlayerColor = ToColor( vector )
 
-            return defaultColor
+    ENTITY.GetModelColor = =>
+        if @IsValid!
+            return @m_bPlayerColor or defaultColor
 
-        do
+        return defaultColor
 
-            vector = DefaultPlayerColor
+    ENTITY.GetModelColorUnpacked = =>
+        if @IsValid!
+            color = @m_bPlayerColor or defaultColor
+            return color.r, color.g, color.b
 
-            ENTITY.GetModelColorUnpacked = =>
-                if @IsValid!
-                    vector = @IsPlayer! and GetPlayerColor( @ ) or getPlayerColor( @ )
-                    return vector[ 1 ] * 255, vector[ 2 ] * 255, vector[ 3 ] * 255, 255
-
-                return DefaultPlayerColor
+        return defaultColor.r, defaultColor.g, defaultColor.b
 
 -- Sets player color
 do
 
-    :SetNW2Var = ENTITY
+    :SetNW2Vector = ENTITY
 
-    ENTITY.SetPlayerColor = ( vector ) =>
-        SetNW2Var( @, "player-color", vector )
+    setPlayerColor = ( vector ) =>
+        SetNW2Vector( @, "player-color", vector )
+
+    ENTITY.SetPlayerColor, PLAYER.SetPlayerColor = setPlayerColor, setPlayerColor
 
 -- Returns true if entity is prop
 do

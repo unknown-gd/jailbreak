@@ -208,3 +208,19 @@ do
             }
 
         Run( "ShopItems", shopItems )
+
+-- Pure performance
+do
+
+    :GetPlayerColor = FindMetaTable( "Entity" )
+    :SetVector = FindMetaTable( "IMaterial" )
+
+    matproxy.Add {
+        name: "PlayerColor"
+        init: ( _, values ) =>
+            @ResultTo = values.resultvar
+
+        bind: ( material, entity ) =>
+            SetVector( material, @ResultTo, GetPlayerColor( entity ) )
+
+    }

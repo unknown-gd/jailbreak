@@ -452,6 +452,9 @@ do
         ply\SetBloodColor( ply\Armor! > 0 and BLOOD_COLOR_MECH or BLOOD_COLOR_RED )
 
 GM.GetFallDamage = ( ply, speed ) =>
+    if ply\GetNW2Bool( "in-flight" )
+        return 0
+
     return max( 0, ceil( 0.2418 * speed - 141.75 ) )
 
 do

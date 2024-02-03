@@ -1,6 +1,7 @@
 # Основное
-- попробовать заменить копирование параметров через SetKeyValue из SaveValues
+- попробовать заменить копирование параметров через SetSaveValue из SaveValues
 - переписать CalcMainActivity
+- ипрувнуть PostDrawTranslucentRenderables в статус иконках
 - провести валидацию кода
 
 # Баги лаги кирпичи
