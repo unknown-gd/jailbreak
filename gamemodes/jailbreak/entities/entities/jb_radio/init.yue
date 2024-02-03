@@ -1,0 +1,33 @@
+AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
+
+ENT.Initialize = =>
+    @SetModel( @Model )
+
+    @SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+    @SetMoveType( MOVETYPE_VPHYSICS )
+    @PhysicsInit( SOLID_VPHYSICS )
+    @SetSolid( SOLID_VPHYSICS )
+    @SetUseType( SIMPLE_USE )
+    @DrawShadow( true )
+
+ENT.Use = ( ply ) =>
+    unless ply\Alive!
+        return
+
+    ply\ConCommand( "jb_radio_entity " .. @EntIndex! )
+
+concommand.Add "jb_radio_entity_apply", ( _, args ) =>
+    unless @ and @IsValid! and @Alive!
+        return
+
+    entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
+    unless entity and entity\IsValid!
+        return
+
+    if entity\GetClass! ~= "jb_radio" or entity\GetPos!\Distance( @GetPos! ) > 72
+        return
+
+    entity\SetURL( args[ 2 ] or "" )
+    entity\SetVolume( math.Clamp( tonumber( args[ 3 ] or "0" ) or 0, 0, entity.MaxVolume or 1 ) )

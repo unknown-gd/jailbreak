@@ -1,0 +1,210 @@
+include( "shared.lua" )
+IsValid = IsValid
+
+ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
+
+do
+
+    :match = string
+
+    ENT.IsValidURL = ( str ) =>
+        return #str ~= 0 and match( str, "^https?://([%w.]+%.%w+)/?" ) ~= nil
+
+do
+
+    :VoiceChatMinDistance, :VoiceChatMaxDistance = Jailbreak
+    :PlayURL = sound
+
+    url, volume, origin, direction = "", 0, nil, nil
+
+    ENT.Think = =>
+        channel = @Channel
+        if channel == true
+            return
+
+        url = @GetURL!
+        if ( channel == false and @ChannelURL == url )
+            return
+
+        unless @IsValidURL( url )
+            @ChannelURL = url
+            @Channel = false
+
+            if IsValid( channel )
+                channel\Stop!
+
+            return
+
+        if IsValid( channel )
+            if @ChannelURL == url
+                if channel\GetState! == 0
+                    channel\Play!
+                    return
+
+                volume = @GetVolume!
+                if volume == 0
+                    channel\Pause!
+                    return
+
+                channel\Set3DFadeDistance( VoiceChatMinDistance\GetInt!, VoiceChatMaxDistance\GetInt! )
+                channel\SetVolume( volume )
+
+                direction = @GetAngles!\Forward!
+				origin = @WorldSpaceCenter! + direction * 12
+                channel\SetPos( origin, direction )
+
+                if channel\GetState! == 2
+                    channel\Play!
+
+                return
+
+            channel\Stop!
+
+        @ChannelURL = url
+        @Channel = true
+
+        PlayURL url, "3d noplay noblock", ( object ) ->
+            unless @IsValid!
+                if IsValid( object )
+                    object\Stop!
+
+                return
+
+            unless IsValid( object )
+                print( "[" .. tostring( @ ) .. "] Failed to play '" .. url .. "'" )
+                @Channel = false
+                return
+
+            @Channel = object
+            object\Set3DEnabled( true )
+            object\Play!
+
+do
+
+    :VMin = Jailbreak
+
+    PANEL = {}
+
+    PANEL.Init = =>
+        @SetTitle( "#jb.jb_radio" )
+        @SetIcon( "icon16/sound.png" )
+        @SetSize( VMin( 40 ), VMin( 20 ) )
+        @SetSizable( true )
+        @MakePopup!
+        @Center!
+
+        entry = @Add( "DTextEntry" )
+        @Entry = entry
+
+        entry\SetPlaceholderText( "Webstream URL here..." )
+        entry\Dock( FILL )
+
+        volume = @Add( "DNumSlider" )
+        @Volume = volume
+
+        volume\SetText( "#jb.volume" )
+        volume\SetMinMax( 0, 1 )
+        volume\SetDecimals( 2 )
+        volume\Dock( BOTTOM )
+        volume\SetZPos( 1000 )
+
+        volume.PerformLayout = ( ... ) ->
+            volume\DockMargin( 0, VMin( 0.5 ), 0, 0 )
+            DNumSlider.PerformLayout( ... )
+
+        button = @Add( "DButton" )
+        @Button = button
+
+        button\Dock( BOTTOM )
+        button\SetText( "#jb.apply" )
+        button\SetZPos( 10 )
+
+        button.PerformLayout = ( ... ) ->
+            button\DockMargin( 0, VMin( 0.5 ), 0, 0 )
+            DButton.PerformLayout( ... )
+
+        button.DoClick = ->
+            RunConsoleCommand( "jb_radio_entity_apply", @EntIndex or 0, entry\GetValue!, volume\GetValue! )
+            @Close!
+
+    PANEL.PerformLayout = ( width, height ) =>
+        @SetMinWidth( VMin( 20 ) )
+        @SetMinHeight( VMin( 10 ) )
+
+        entity = Entity( @EntIndex or 0 )
+        if entity and entity\IsValid!
+            entry = @Entry
+            if IsValid( entry )
+                entry\SetText( entity\GetURL! )
+
+            volume = @Volume
+            if IsValid( volume )
+                volume\SetValue( entity\GetVolume! )
+                volume\SetMax( entity.MaxVolume or 1 )
+
+        button = @Button
+        if IsValid( button )
+            button\SetTall( math.ceil( height * 0.20 ) )
+
+        DFrame.PerformLayout( @, width, height )
+
+    vgui.Register( "Jailbreak::RadioMenu", PANEL, "DFrame" )
+
+do
+
+    panel = NULL
+
+    concommand.Add "jb_radio_entity", ( _, args ) =>
+        if panel\IsValid!
+            panel\Remove!
+            return
+
+        entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
+        unless entity and entity\IsValid!
+            return
+
+        if entity\GetClass! ~= "jb_radio" or entity\GetPos!\Distance( @GetPos! ) > 72
+            return
+
+        panel = vgui.Create( "Jailbreak::RadioMenu" )
+        panel.EntIndex = entity\EntIndex!
+
+do
+
+    playing = Material( "icon16/control_play_blue.png" )
+    stopped = Material( "icon16/control_stop_blue.png" )
+    paused = Material( "icon16/control_pause_blue.png" )
+    connecting = Material( "icon16/disconnect.png" )
+    failed = Material( "icon16/exclamation.png" )
+    color_white = color_white
+
+    :DrawSprite, :SetMaterial = render
+    channel, material = nil, nil
+    origin = Vector( 0, 0, 28 )
+
+    ENT.Draw = ( flags ) =>
+        @DrawModel( flags )
+
+        channel = @Channel
+        if channel == true
+            material = connecting
+        elseif channel == false
+            material = failed
+        elseif IsValid( channel )
+            switch channel\GetState!
+                when 0
+                    material = stopped
+                when 1
+                    material = playing
+                when 2
+                    material = paused
+                when 3
+                    material = connecting
+                else
+                    material = failed
+
+        else
+            material = failed
+
+        SetMaterial( material )
+        DrawSprite( @LocalToWorld( origin ), 16, 16, color_white )

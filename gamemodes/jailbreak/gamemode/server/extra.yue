@@ -566,7 +566,9 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
     add "jb_paint", "models/props_junk/metal_paintcan001a.mdl", 10, =>
         return @SpawnEntity( "jb_paint" )\IsValid!
 
-    add "weapon_physcannon", "models/weapons/w_Physics.mdl", 20, =>
+    add "jb_radio", "models/props_lab/citizenradio.mdl", 25, =>
+        return @SpawnEntity( "jb_radio" )\IsValid!
+
         if @HasWeapon( "weapon_physcannon" )
             return false
 
