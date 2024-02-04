@@ -1,6 +1,7 @@
 :random, :max, :min, :Rand = math
 Jailbreak = Jailbreak
 IsValid = IsValid
+CurTime = CurTime
 :Simple = timer
 Vector = Vector
 :Run = hook
@@ -113,9 +114,12 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 do
 
     :RagdollRemove, :GameInProgress, :GuardsArmor = Jailbreak
+    RENDERMODE_TRANSCOLOR = RENDERMODE_TRANSCOLOR
     :white = Jailbreak.Colors
 
     GM.PlayerSpawn = ( ply, transiton ) =>
+        ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
+        ply\SetNW2Int( "spawn-time", CurTime! )
         ply\RemoveFromObserveTargets!
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
@@ -628,73 +632,79 @@ GM.PlayerSwitchFlashlight = ( ply, newState ) =>
     return ply\Alive! and ply\CanUseFlashlight!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerUse
-do
+GM.PlayerUse = ( ply, entity ) =>
+    unless ply\Alive!
+        return
 
-    CurTime = CurTime
+    if ply\IsHoldingEntity!
+        return false
 
-    GM.PlayerUse = ( ply, entity ) =>
-        unless ply\Alive!
-            return
+    weapon = ply\GetActiveWeapon!
+    if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
+        velocity = ply\GetVelocity!
+        velocity = velocity\GetNormalized! * ( velocity\Length2D! / 2 )
+        entity\SetVelocity( velocity * 2 )
+        ply\SetVelocity( -velocity )
+        return false
 
-        if ply\IsHoldingEntity!
+    curTime, lastUseTime = CurTime!, ply.LastUseTime or 0
+    ply.LastUseTime = curTime
+
+    className = entity\GetClass!
+
+    isReleased = ( curTime - lastUseTime ) > 0.025
+    if not lastUseTime or isReleased
+        ply\SetNW2Int( "start-use-time", curTime )
+        Run( "PlayerHoldUse", ply, entity, 0 )
+    else
+        startUseTime = ply\GetNW2Int( "start-use-time" )
+        if startUseTime ~= 0 and Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
+            ply\SetNW2Int( "start-use-time", 0 )
             return false
 
-        weapon = ply\GetActiveWeapon!
-        if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
-            velocity = ply\GetVelocity!
-            velocity = velocity\GetNormalized! * ( velocity\Length2D! / 2 )
-            entity\SetVelocity( velocity * 2 )
-            ply\SetVelocity( -velocity )
+    unless isReleased
+        return
+
+    if entity\IsWeapon!
+        if entity.PickupForbidden
             return false
 
-        curTime, lastUseTime = CurTime!, ply.LastUseTime or 0
-        ply.LastUseTime = curTime
-
-        className = entity\GetClass!
-
-        isReleased = ( curTime - lastUseTime ) > 0.025
-        if not lastUseTime or isReleased
-            ply\SetNW2Int( "start-use-time", curTime )
-            Run( "PlayerHoldUse", ply, entity, 0 )
-        else
-            startUseTime = ply\GetNW2Int( "start-use-time" )
-            if startUseTime ~= 0 and Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
-                ply\SetNW2Int( "start-use-time", 0 )
+        if entity.IsTemporaryWeapon
+            entity = entity\GetParent!
+            unless entity\IsValid! and entity\IsWeapon!
                 return false
 
-        unless isReleased
-            return
+        if ply\HasWeapon( className )
+            clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
+            if clip1 > 0 and clip1Type >= 0
+                canPickup = min( clip1, ply\GetPickupAmmoCount( clip1Type ) )
+                if canPickup > 0
+                    entity\SetClip1( clip1 - canPickup )
+                    ply\GiveAmmo( canPickup, clip1Type, false )
 
-        if entity\IsWeapon!
-            if entity.PickupForbidden
-                return false
+            clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
+            if clip2 > 0 and clip2Type >= 0
+                canPickup = min( clip2, ply\GetPickupAmmoCount( clip2Type ) )
+                if canPickup > 0
+                    entity\SetClip2( clip2 - canPickup )
+                    ply\GiveAmmo( canPickup, clip2Type, false )
 
-            if entity.IsTemporaryWeapon
-                entity = entity\GetParent!
-                unless entity\IsValid! and entity\IsWeapon!
-                    return false
+            return false
 
-            if ply\HasWeapon( className )
-                clip1, clip1Type = entity\Clip1!, entity\GetPrimaryAmmoType!
-                if clip1 > 0 and clip1Type >= 0
-                    canPickup = min( clip1, ply\GetPickupAmmoCount( clip1Type ) )
-                    if canPickup > 0
-                        entity\SetClip1( clip1 - canPickup )
-                        ply\GiveAmmo( canPickup, clip1Type, false )
+        slot = entity\GetSlot!
+        if slot > 0 and slot < 5
+            if slot == 1 or slot == 4
+                weapons = ply\GetWeaponsInSlot( slot )
 
-                clip2, clip2Type = entity\Clip2!, entity\GetSecondaryAmmoType!
-                if clip2 > 0 and clip2Type >= 0
-                    canPickup = min( clip2, ply\GetPickupAmmoCount( clip2Type ) )
-                    if canPickup > 0
-                        entity\SetClip2( clip2 - canPickup )
-                        ply\GiveAmmo( canPickup, clip2Type, false )
+                length = #weapons
+                if length ~= 0
+                    weapon = weapons[ length ]
+                    if IsValid( weapon )
+                        ply\DropWeapon( weapon )
 
-                return false
-
-            slot = entity\GetSlot!
-            if slot > 0 and slot < 5
-                if slot == 1 or slot == 4
-                    weapons = ply\GetWeaponsInSlot( slot )
+            else
+                for i = 1, 2
+                    weapons = ply\GetWeaponsInSlot( i + 1 )
 
                     length = #weapons
                     if length ~= 0
@@ -702,21 +712,11 @@ do
                         if IsValid( weapon )
                             ply\DropWeapon( weapon )
 
-                else
-                    for i = 1, 2
-                        weapons = ply\GetWeaponsInSlot( i + 1 )
+        if Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
+            ply\PickupWeapon( entity, false )
+            return false
 
-                        length = #weapons
-                        if length ~= 0
-                            weapon = weapons[ length ]
-                            if IsValid( weapon )
-                                ply\DropWeapon( weapon )
-
-            if Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
-                ply\PickupWeapon( entity, false )
-                return false
-
-        return true
+    return true
 
 -- https://wiki.facepunch.com/gmod/GM:OnEntityCreated
 do

@@ -607,3 +607,10 @@ do
         tryFixPosition( @, entity, origin )
         entity\PhysWake!
         return entity
+
+do
+
+    :GetNW2Int = FindMetaTable( "Entity" )
+
+    PLAYER.GetSpawnTime = =>
+        return GetNW2Int( @, "spawn-time" )

@@ -134,17 +134,37 @@ GM.PerformPlayerVoice = ( ply ) =>
         ply.m_MaxVoiceVolume = maxVoiceVolume
 
     if maxVoiceVolume > 0 and voiceVolume > 0
-        ply.m_VoiceFraction = voiceVolume / maxVoiceVolume
+        ply.m_bVoiceFraction = voiceVolume / maxVoiceVolume
         return
 
-    ply.m_VoiceFraction = 0
+    ply.m_bVoiceFraction = 0
+
+ENTITY = FindMetaTable( "Entity" )
 
 do
 
     PLAYER = FindMetaTable( "Player" )
 
+    do
+
+        Player = Player
+
+        gameevent.Listen( "player_spawn" )
+
+        hook.Add "player_spawn", "Jailbreak::SpawnEffect", ( data ) ->
+            ply = Player( data.userid )
+            if ply and ply\IsValid!
+                ply.m_bSpawnTime = CurTime! + 0.25
+
+    do
+
+        :GetNW2Int = ENTITY
+
+        PLAYER.GetSpawnTime = =>
+            return @m_bSpawnTime or GetNW2Int( @, "spawn-time" )
+
     PLAYER.VoiceFraction = =>
-        return @m_VoiceFraction or 0
+        return @m_bVoiceFraction or 0
 
     do
 
@@ -164,7 +184,6 @@ do
 
 do
 
-    ENTITY = FindMetaTable( "Entity" )
     :EntIndex = ENTITY
 
     -- Returns true if door entity is locked
