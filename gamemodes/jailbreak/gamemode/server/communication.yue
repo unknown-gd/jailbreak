@@ -439,7 +439,6 @@ do
     Distance = FindMetaTable( "Vector" ).Distance
     :IsRoundRunning, :VoiceChatSpeed = Jailbreak
     EyePos = FindMetaTable( "Entity" ).EyePos
-    player_GetHumans = player.GetHumans
     RecipientFilter = RecipientFilter
     :VoiceChatProximity = Jailbreak
     :max, :Clamp, :Round = math
@@ -456,7 +455,7 @@ do
 
     timer.Create "JB::Communication", 1 / VoiceChatSpeed\GetInt!, 0, ->
         minDistance, maxDistance = VoiceChatMinDistance\GetInt!, VoiceChatMaxDistance\GetInt!
-        players = player_GetHumans!
+        players = GetHumans!
 
         for listener in *players
             speakers = listener.AvailableSpeakers
@@ -510,7 +509,7 @@ do
                     speakers[ speaker ] = true
 
             unless proximityVoiceChat
-                return
+                continue
 
             for speaker in *players
                 if speakers[ speaker ] ~= nil or speaker\IsBot! or speaker\EntIndex! == listenerIndex
