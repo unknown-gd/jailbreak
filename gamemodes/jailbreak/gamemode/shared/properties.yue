@@ -30,37 +30,49 @@ if CLIENT
         if entity\IsValid! and ( entity\GetNoDraw! or not properties.CanBeTargeted( entity, Jailbreak.Player ) )
            entity = NULL
 
-    hook.Add "PostDrawTranslucentRenderables", "!!!Jailbreak::Properties", ( drawingDepth, drawingSkybox ) ->
-        if drawingDepth or drawingSkybox or not entity\IsValid!
-            return
+    do
 
-        render.SetStencilEnable( true )
-        render.SuppressEngineLighting( true )
-        render.SetStencilWriteMask( 1 )
-        render.SetStencilTestMask( 1 )
-        render.SetStencilReferenceValue( 1 )
+        :SuppressEngineLighting, :SetStencilEnable, :SetStencilWriteMask, :SetStencilTestMask, :SetStencilReferenceValue, :SetStencilCompareFunction, :SetStencilPassOperation, :SetStencilFailOperation, :SetStencilZFailOperation = render
+        STENCIL_ALWAYS, STENCIL_KEEP, STENCIL_REPLACE, STENCIL_EQUAL = STENCIL_ALWAYS, STENCIL_KEEP, STENCIL_REPLACE, STENCIL_EQUAL
+        :DrawModel = FindMetaTable( "Entity" )
+        :SetDrawColor, :DrawRect = surface
+        :Start2D, :End2D = cam
 
-        render.SetStencilCompareFunction( STENCIL_ALWAYS )
-        render.SetStencilPassOperation( STENCIL_REPLACE )
-        render.SetStencilFailOperation( STENCIL_KEEP )
-        render.SetStencilZFailOperation( STENCIL_KEEP )
+        hook.Add "HUDPaint3D", "Jailbreak::Properties", ->
+            unless entity\IsValid!
+                return
 
-        entity\DrawModel!
+            contextMenu = Jailbreak.ContextMenu
+            unless contextMenu and contextMenu\IsValid! and contextMenu\IsVisible!
+                return
 
-        render.SetStencilCompareFunction( STENCIL_EQUAL )
-        render.SetStencilPassOperation( STENCIL_KEEP )
+            SetStencilEnable( true )
+            SuppressEngineLighting( true )
+            SetStencilWriteMask( 1 )
+            SetStencilTestMask( 1 )
+            SetStencilReferenceValue( 1 )
 
-        cam.Start2D!
-        surface.SetDrawColor( 255, 255, 255, 5 )
-        surface.DrawRect( 0, 0, Jailbreak.ScreenWidth, Jailbreak.ScreenHeight )
-        cam.End2D!
+            SetStencilCompareFunction( STENCIL_ALWAYS )
+            SetStencilPassOperation( STENCIL_REPLACE )
+            SetStencilFailOperation( STENCIL_KEEP )
+            SetStencilZFailOperation( STENCIL_KEEP )
 
-        render.SuppressEngineLighting( false )
-        render.SetStencilEnable( false )
+            DrawModel( entity )
 
-        render.SetStencilTestMask( 0 )
-    	render.SetStencilWriteMask( 0 )
-	    render.SetStencilReferenceValue( 0 )
+            SetStencilCompareFunction( STENCIL_EQUAL )
+            SetStencilPassOperation( STENCIL_KEEP )
+
+            Start2D!
+            SetDrawColor( 255, 255, 255, 5 )
+            DrawRect( 0, 0, Jailbreak.ScreenWidth, Jailbreak.ScreenHeight )
+            End2D!
+
+            SuppressEngineLighting( false )
+            SetStencilEnable( false )
+
+            SetStencilTestMask( 0 )
+            SetStencilWriteMask( 0 )
+            SetStencilReferenceValue( 0 )
 
     -- hook.Add "PlayerButtonUp", "Jailbreak::Properties", ( key ) =>
     --     if key ~= MOUSE_LEFT or input.IsButtonDown( MOUSE_RIGHT ) or @KeyDown( IN_WALK )
