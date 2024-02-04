@@ -11,9 +11,9 @@ CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 :GetHumans = player
 tonumber = tonumber
 isstring = isstring
-hook_Add = hook.Add
 :lower = string
 :random = math
+:Add = hook
 
 -- Custom Chat Messages
 sendChatText = nil
@@ -273,7 +273,7 @@ do
 
     CHAT_CONNECT = CHAT_CONNECT
 
-    hook_Add "PlayerConnect", "Jailbreak::JoinNotification", ( nickname, ip ) ->
+    Add "PlayerConnect", "Jailbreak::JoinNotification", ( nickname, ip ) ->
         players, admins = {}, {}
 
         for ply in *GetHumans!
@@ -290,7 +290,7 @@ do
     gameevent.Listen( "player_disconnect" )
     CHAT_DISCONNECT = CHAT_DISCONNECT
 
-    hook_Add "player_disconnect", "Jailbreak::LeaveNotification", ( data ) ->
+    Add "player_disconnect", "Jailbreak::LeaveNotification", ( data ) ->
         players, admins = {}, {}
 
         for ply in *GetHumans!
@@ -312,7 +312,7 @@ do
     CHAT_NAMECHANGE = CHAT_NAMECHANGE
     Player = Player
 
-    hook_Add "player_changename", "Jailbreak::NameChangeNotification", ( data ) ->
+    Add "player_changename", "Jailbreak::NameChangeNotification", ( data ) ->
         admins = {}
         for ply in *GetHumans!
             if ply\IsAdmin!
@@ -324,7 +324,7 @@ do
 
         sendChatText( admins, false, CHAT_NAMECHANGE, data.oldname, data.newname, color )
 
-hook_Add "PlayerInitialSpawn", "Jailbreak::Communication", =>
+Add "PlayerInitialSpawn", "Jailbreak::Communication", =>
     unless @IsBot!
         @AvailableSpeakers = {}
 
@@ -354,7 +354,7 @@ do
     CHAN_STATIC = CHAN_STATIC
     CHAT_CUSTOM = CHAT_CUSTOM
 
-    hook_Add "WardenChanged", "Jailbreak::WardenNotification", ( state ) =>
+    Add "WardenChanged", "Jailbreak::WardenNotification", ( state ) =>
         sendChatText( false, false, CHAT_CUSTOM, @GetModelColor!, @Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
 
         if state and not @IsBot!
@@ -501,7 +501,7 @@ do
                     speakers[ speaker ] = true
                     continue
 
-                if proximityVoiceChat and ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone!
+                if proximityVoiceChat and ( ( hasRadio and speaker\UsingSecurityRadio! ) or speaker\UsingMegaphone! )
                     continue
 
                 volume = Round( 1 - Clamp( max( 0, Distance( origin, EyePos( speaker ) ) - minDistance ) / maxDistance, 0, 1 ), 2 )

@@ -71,7 +71,7 @@ GWEN.CreateTextureCentered = ( _xo, _yo, _wo, _ho, material_override ) ->
     width, height = texture\Width!, texture\Height!
     _x, _y, _w, _h = _xo / width, _yo / height, _wo / width, _ho / height
 
-    return ( x, y, _, __, color ) ->
+    return ( x, y, w, h, color ) ->
         if color ~= nil
             SetDrawColor( color )
         else

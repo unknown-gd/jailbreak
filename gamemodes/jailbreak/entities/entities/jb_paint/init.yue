@@ -18,9 +18,6 @@ ENT.Initialize = =>
     @DrawShadow( true )
 
 ENT.Use = ( ply ) =>
-    unless ply\Alive!
-        return
-
     ply\ConCommand( "jb_paint_entity " .. @EntIndex! )
 
 concommand.Add "jb_paint_entity_apply", ( _, args ) =>
