@@ -618,12 +618,12 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
 Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
     attacker = damageInfo\GetAttacker!
-    unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive!
+    unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive! and attacker == damageInfo\GetInflictor!
         return
 
     weapon = attacker\GetActiveWeapon!
     unless weapon and weapon\IsValid! and weapon\GetClass! == "weapon_stunstick"
         return
 
-    damageInfo\ScaleDamage( 0.25 )
+    damageInfo\ScaleDamage( max( @WaterLevel!, 0.25 ) )
     @Shock!

@@ -3,9 +3,9 @@ ErrorNoHaltWithStack = ErrorNoHaltWithStack
 hook_Remove = hook.Remove
 Jailbreak = Jailbreak
 tostring = tostring
-hook_Add = hook.Add
 xpcall = xpcall
 :gsub = string
+:Add = hook
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
@@ -156,7 +156,7 @@ do
     Models = player_manager.AllValidModels!
 
     event = Jailbreak.RegisterEvent "masquerade", ->
-            hook_Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
+            Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
                 modelPath = Random( Models )
                 if modelPath ~= nil
                     modelPath = Jailbreak.FixModelPath( modelPath )
@@ -164,7 +164,7 @@ do
                     @SetModel( modelPath )
                     return true
 
-            hook_Add "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent", =>
+            Add "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent", =>
                 if @IsBot!
                     return
 
@@ -206,11 +206,11 @@ do
 do
 
     event = Jailbreak.RegisterEvent "grass-is-lava", ->
-            hook_Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
+            Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
                 @EmitSound( "vo/npc/" .. ( Jailbreak.IsFemalePrison! and "female01" or "male01" ) .. "/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                 return true
 
-            hook_Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
+            Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
                 unless @Alive!
                     return
 
