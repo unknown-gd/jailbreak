@@ -9,7 +9,7 @@ models = {
 }
 
 ENT.Initialize = =>
-    @SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
     @SetModel( models[ random( 1, #models ) ] )
     @SetMoveType( MOVETYPE_VPHYSICS )
     @PhysicsInit( SOLID_VPHYSICS )

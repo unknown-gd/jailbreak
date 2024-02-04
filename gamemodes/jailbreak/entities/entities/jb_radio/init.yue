@@ -5,7 +5,7 @@ include( "shared.lua" )
 ENT.Initialize = =>
     @SetModel( @Model )
 
-    @SetCollisionGroup( COLLISION_GROUP_DEBRIS )
+    @SetCollisionGroup( COLLISION_GROUP_WEAPON )
     @SetMoveType( MOVETYPE_VPHYSICS )
     @PhysicsInit( SOLID_VPHYSICS )
     @SetSolid( SOLID_VPHYSICS )

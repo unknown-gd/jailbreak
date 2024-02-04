@@ -602,6 +602,9 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_stunstick" )\IsValid!
 
+    add "jb_gascan", "models/props_junk/gascan001a.mdl", 10, =>
+        return @SpawnEntity( "jb_gascan" )\IsValid!
+
     add( "weapon_physcannon.upgrade", "models/weapons/w_Physics.mdl", 40, =>
         if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_ON
             game.SetGlobalState( "super_phys_gun", GLOBAL_ON )

@@ -82,9 +82,9 @@ do
         unless entity\IsOnFire!
             return
 
-        if entity\IsWeapon!
+        unless entity\IsSolid!
             entity\Extinguish!
-            return
+            return true
 
         if entity\WaterLevel! >= 2
             entity\Extinguish!
