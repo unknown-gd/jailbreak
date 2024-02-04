@@ -602,6 +602,15 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_stunstick" )\IsValid!
 
+    add( "weapon_physcannon.upgrade", "models/weapons/w_Physics.mdl", 40, =>
+        if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_ON
+            game.SetGlobalState( "super_phys_gun", GLOBAL_ON )
+            Jailbreak.SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.weapon_physcannon.upgraded" )
+            return true
+
+        return false
+    )\SetSkin( 1 )
+
     return
 
 Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
