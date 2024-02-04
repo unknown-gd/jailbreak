@@ -325,7 +325,7 @@ do
         init: ( window ) =>
             window\SetTitle( "#smwidget.playermodel_title" )
             window\SetIcon( "icon16/user_edit.png" )
-            window\SetSize( VMin( 70 ), VMin( 40 ) )
+            window\SetSize( VMin( 80 ), VMin( 50 ) )
             window\SetMinWidth( VMin( 60 ) )
             window\SetMinHeight( VMin( 30 ) )
             window\SetSizable( true )
@@ -389,7 +389,7 @@ do
             do
 
                 updateAvalibleModels = ->
-                    unless models\IsValid! and models\IsVisible!
+                    unless models\IsValid!
                         return
 
                     allowedPlayerModels = {}
@@ -402,9 +402,11 @@ do
                         allowedPlayerModels[ modelPath ] = true
 
                     for icon in *models\GetChildren!
-                        icon\SetVisible( AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ] )
-
-                    models\InvalidateLayout!
+                        visible = AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ]
+                        if icon\IsVisible! ~= visible
+                            icon\SetVisible( visible )
+                            models\InvalidateLayout!
+                            modelsScrollPanel\InvalidateLayout!
 
                 timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
                 updateAvalibleModels!
