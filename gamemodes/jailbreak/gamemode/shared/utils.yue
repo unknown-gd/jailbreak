@@ -6,6 +6,7 @@ CurTime = CurTime
 :GetAll = player
 :Simple = timer
 NULL = NULL
+:Run = hook
 
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
@@ -364,12 +365,20 @@ do
 do
 
     isvector = isvector
-    :Run = hook
 
     hook.Add "EntityNetworkedVarChanged", "Jailbreak::PlayerColor", ( key, _, value ) =>
         if key == "player-color" and isvector( value )
             @m_bPlayerColorVector = value
-            Run "PlayerColorChanged", @, value
+            Run( "PlayerColorChanged", @, value )
+
+do
+
+    :SetForwardSpeed, :SetSideSpeed = FindMetaTable( "CMoveData" )
+
+    Add "Move", "Jailbreak::MovementBlocking", ( mv ) =>
+        if Run( "AllowPlayerMove", @, mv ) == false
+            SetForwardSpeed( mv, 0 )
+            SetSideSpeed( mv, 0 )
 
 -- Returns entity custom color
 do
