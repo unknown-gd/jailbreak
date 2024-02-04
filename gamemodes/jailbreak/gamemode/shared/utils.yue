@@ -623,6 +623,18 @@ do
     PLAYER.GetPickupAmmoCount = ( ammoType ) =>
         return max( 0, getAmmoMax( ammoType ) - GetAmmoCount( @, ammoType ) )
 
+do
+
+    :PlayerSpawnTime = Jailbreak
+
+    getAliveTime = =>
+        return CurTime! - @GetSpawnTime!
+
+    PLAYER.GetAliveTime = getAliveTime
+
+    PLAYER.IsSpawning = =>
+        return getAliveTime( @ ) <= PlayerSpawnTime\GetFloat!
+
 -- Silly spark sounds
 do
 

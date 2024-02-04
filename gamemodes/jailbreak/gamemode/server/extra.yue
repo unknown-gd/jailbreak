@@ -627,3 +627,11 @@ Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
 
     damageInfo\ScaleDamage( max( @WaterLevel!, 0.25 ) )
     @Shock!
+
+Add "PlayerCanPickupWeapon", "Jailbreak::PlayerSpawn", =>
+    if @IsSpawning!
+        return false
+
+Add "PlayerCanPickupItem", "Jailbreak::PlayerSpawn", =>
+    if @IsSpawning!
+        return false

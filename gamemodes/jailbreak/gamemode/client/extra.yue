@@ -1,17 +1,18 @@
 :UpdateRefractTexture, :PushCustomClipPlane, :SetColorModulation, :PopCustomClipPlane, :MaterialOverride, :EnableClipping, :GetDXLevel, :GetBlend, :SetBlend = render
 :LocalToWorld, :GetModelRenderBounds, :GetNW2Int = FindMetaTable( "Entity" )
-:GetPlayerColor = FindMetaTable( "Player" )
+:GetPlayerColor, :GetSpawnTime = FindMetaTable( "Player" )
 :Dot, :Normalize = FindMetaTable( "Vector" )
 LerpVector = LerpVector
 CurTime = CurTime
-:IgnoreZ = cam
 :Clamp = math
 
 material = Material( "models/wireframe" )
+:PlayerSpawnTime = Jailbreak
+
 blend, clipping, frac = 0, false, 0
 
 hook.Add "PrePlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
-    frac = 1 - Clamp( ( CurTime! - @GetSpawnTime! ) / 1, 0, 1 )
+    frac = 1 - Clamp( ( CurTime! - GetSpawnTime( @ ) ) / PlayerSpawnTime\GetFloat!, 0, 1 )
     if frac == 0
         return
 
@@ -19,7 +20,6 @@ hook.Add "PrePlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
     normal = ( mins - maxs )
     Normalize( normal )
 
-    IgnoreZ( true )
     clipping = EnableClipping( true )
     PushCustomClipPlane( normal, Dot( normal, LerpVector( frac, LocalToWorld( @, maxs ), LocalToWorld( @, mins ) ) ) )
     UpdateRefractTexture!
@@ -41,4 +41,3 @@ hook.Add "PostPlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
 
     PopCustomClipPlane!
     EnableClipping( clipping )
-    IgnoreZ( false )

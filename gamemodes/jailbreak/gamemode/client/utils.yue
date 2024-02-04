@@ -153,7 +153,13 @@ do
 
         hook.Add "player_spawn", "Jailbreak::SpawnEffect", ( data ) ->
             ply = Player( data.userid )
-            if ply and ply\IsValid!
+            unless ply and ply\IsValid!
+                return
+
+            pl = Jailbreak.Player
+            if pl\IsValid!
+                ply.m_bSpawnTime = CurTime! + pl\Ping! / 1000
+            else
                 ply.m_bSpawnTime = CurTime! + 0.25
 
     do

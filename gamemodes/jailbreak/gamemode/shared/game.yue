@@ -79,22 +79,6 @@ do
         if IsFlagSet( ply, 4 ) or Length( ply\GetVelocity! ) < PlayerSlowWalkSpeed\GetInt!
             return true
 
--- https://wiki.facepunch.com/gmod/GM:FinishMove
-do
-
-    SERVER = SERVER
-
-    GM.FinishMove = ( ply, mv ) =>
-        unless ply\Alive!
-            return
-
-        if SERVER
-            ply.LastVelocity = mv\GetVelocity!
-
-        if ply\IsPlayingTaunt!
-            mv\SetForwardSpeed( 0 )
-            mv\SetSideSpeed( 0 )
-
 -- https://wiki.facepunch.com/gmod/GM:ScalePlayerDamage
 do
 
@@ -263,7 +247,7 @@ do
                     elseif playerSpeed > 0.25
                         calcIdeal = ACT_MP_WALK
 
-                else
+                elseif not ply\IsSpawning!
                     ply\AnimRestartGesture( GESTURE_SLOT_JUMP, ACT_LAND, true )
 
             else
