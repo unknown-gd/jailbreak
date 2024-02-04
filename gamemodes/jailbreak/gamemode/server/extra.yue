@@ -578,7 +578,7 @@ do
                 @SetAmmo( 1, ammoID )
 
 Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
-    add "weapon_medkit", "models/Items/HealthKit.mdl", 10, =>
+    add "weapon_medkit", "models/Items/HealthKit.mdl", 15, =>
         if @HasWeapon( "weapon_medkit" )
             return false
 

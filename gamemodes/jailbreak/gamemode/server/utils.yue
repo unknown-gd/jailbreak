@@ -222,11 +222,9 @@ do
     timer_Create = timer.Create
     :CleanUpMap = game
 
-    filters = { "env_fire", "entityflame", "_firesmoke" }
-
     Jailbreak.SafeCleanUpMap = ->
         timer_Create "Jailbreak::CleanUpMap", 0.25, 1, ->
-            CleanUpMap( false, filters )
+            CleanUpMap( false )
 
 -- Entity metatable
 do
@@ -345,6 +343,14 @@ do
     :GetDamageType = CTakeDamageInfo
     :band, :bor = bit
 
+    -- Returns true if the damage type is burn damage
+    do
+
+        DMG_BURN = DMG_BURN
+
+        CTakeDamageInfo.IsBurnDamage = =>
+            return band( GetDamageType( @ ), DMG_BURN ) ~= 0
+
     -- Returns true if the damage type is close range
     do
 
@@ -365,10 +371,17 @@ do
     -- Returns true if the damage type is non physical
     do
 
-        DMG_NON_PHYSICAL = bor( DMG_DROWN, DMG_POISON, DMG_RADIATION, DMG_NERVEGAS, DMG_PARALYZE, DMG_SHOCK, DMG_SONIC, DMG_BURN )
+        damageTypes = { DMG_DROWN, DMG_POISON, DMG_RADIATION, DMG_NERVEGAS, DMG_PARALYZE, DMG_SHOCK, DMG_SONIC, DMG_BURN }
+        damageTypesLength = #damageTypes
+        damageType = 0
 
         CTakeDamageInfo.IsNonPhysicalDamage = =>
-            return band( GetDamageType( @ ), DMG_NON_PHYSICAL ) ~= 0
+            damageType = GetDamageType( @ )
+            for index = 1, damageTypesLength
+                if band( damageType, damageTypes[ index ] ) ~= 0
+                    return true
+
+            return false
 
     -- Returns true if the damage type is crush damage
     do
