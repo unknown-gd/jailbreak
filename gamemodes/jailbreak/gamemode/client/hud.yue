@@ -538,44 +538,40 @@ do
         :GetAll = player
 
         typingIcon = Material( "icon16/comment_edit.png", "mips" )
+        isSpeaking = false
 
-        hook.Add "PostDrawTranslucentRenderables", "Jailbreak::StatusIcons", ( drawingDepth, drawingSkybox ) ->
-            if drawingDepth or drawingSkybox or not StatusIcons\GetBool!
+        Add "PostPlayerDraw", "Jailbreak::StatusIcons", =>
+            unless StatusIcons\GetBool! and @Alive!
                 return
 
-            eyePos = EyePos!
-            for ply in *GetAll!
-                if ( ply\IsLocalPlayer! and not ply\ShouldDrawLocalPlayer! ) or not ply\Alive!
-                    continue
+            isSpeaking = @IsSpeaking!
+            unless isSpeaking or @IsTyping!
+                return
 
-                isSpeaking = ply\IsSpeaking!
-                unless isSpeaking or ply\IsTyping!
-                    continue
+            origin = nil
 
-                origin = nil
+            bone = @LookupBone( "ValveBiped.Bip01_Head1" )
+            if bone and bone >= 0
+                origin, angles = @GetBonePosition( bone )
 
-                bone = ply\LookupBone( "ValveBiped.Bip01_Head1" )
-                if bone and bone >= 0
-                    origin, angles = ply\GetBonePosition( bone )
+                hitboxset = @GetHitboxSet!
+                for hitbox = 0, @GetHitBoxCount( hitboxset )
+                    if bone == @GetHitBoxBone( hitbox, hitboxset )
+                        mins, maxs = @GetHitBoxBounds( hitbox, hitboxset )
+                        origin = LocalToWorld( ( maxs + mins ) / 2, angle_zero, origin, angles ) + angles\Forward! * ( maxs[ 3 ] - mins[ 3 ] ) * 1.5
+                        break
 
-                    hitboxset = ply\GetHitboxSet!
-                    for hitbox = 0, ply\GetHitBoxCount( hitboxset )
-                        if bone == ply\GetHitBoxBone( hitbox, hitboxset )
-                            mins, maxs = ply\GetHitBoxBounds( hitbox, hitboxset )
-                            origin = LocalToWorld( ( maxs + mins ) / 2, angle_zero, origin, angles ) + angles\Forward! * ( maxs[ 3 ] - mins[ 3 ] ) * 1.5
-                            break
+            else
+                origin = @EyePos!
+                origin[ 3 ] += 14
 
-                else
-                    origin = ply\EyePos!
-                    origin[ 3 ] += 14
+            distance = origin\Distance( EyePos! )
+            if distance > VoiceChatMaxDistance\GetInt!
+                return
 
-                distance = origin\Distance( eyePos )
-                if distance > VoiceChatMaxDistance\GetInt!
-                    continue
-
-                origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
-                render_SetMaterial( isSpeaking and speakingIcon or typingIcon )
-                render_DrawSprite( origin, 12, 12, white )
+            origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
+            render_SetMaterial( isSpeaking and speakingIcon or typingIcon )
+            render_DrawSprite( origin, 12, 12, white )
 
 Jailbreak.Font( "Jailbreak::HUD", "Roboto Mono SemiBold Italic", 2 )
 

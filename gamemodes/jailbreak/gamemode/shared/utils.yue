@@ -2,11 +2,11 @@ Jailbreak = Jailbreak
 
 GetGlobal2Int = GetGlobal2Int
 :ceil, :min, :max = math
+:Run, :Add = hook
 CurTime = CurTime
 :GetAll = player
 :Simple = timer
 NULL = NULL
-:Run = hook
 
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
@@ -318,7 +318,7 @@ do
 
     cache = {}
 
-    hook.Add "EntityRemove", "Jailbreak::EntityTableCache", =>
+    Add "EntityRemove", "Jailbreak::EntityTableCache", =>
         Simple 0, ->
             cache[ @ ] = nil
 
@@ -366,7 +366,7 @@ do
 
     isvector = isvector
 
-    hook.Add "EntityNetworkedVarChanged", "Jailbreak::PlayerColor", ( key, _, value ) =>
+    Add "EntityNetworkedVarChanged", "Jailbreak::PlayerColor", ( key, _, value ) =>
         if key == "player-color" and isvector( value )
             @m_bPlayerColorVector = value
             Run( "PlayerColorChanged", @, value )
@@ -386,7 +386,7 @@ do
     :ToColor = FindMetaTable( "Vector" )
     defaultColor = ToColor( Jailbreak.DefaultPlayerColor )
 
-    hook.Add "PlayerColorChanged", "Jailbreak::PlayerColor", ( vector ) =>
+    Add "PlayerColorChanged", "Jailbreak::PlayerColor", ( vector ) =>
         @m_bPlayerColor = ToColor( vector )
 
     ENTITY.GetModelColor = =>
