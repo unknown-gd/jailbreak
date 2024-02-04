@@ -405,6 +405,7 @@ GM.PlayerSilentDeath = ( ply ) =>
 GM.PostPlayerDeath = ( ply ) =>
     ply\AddDeaths( 1 )
     ply\ResetToggles!
+    ply\Extinguish!
     ply\DropObject!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
