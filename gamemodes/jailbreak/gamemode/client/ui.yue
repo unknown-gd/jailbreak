@@ -25,6 +25,39 @@ TEAM_GUARD = TEAM_GUARD
 :dark_grey, :black, :white, :light_grey = Colors
 
 PANEL_META = FindMetaTable( "Panel" )
+:InvalidateLayout, :GetParent = PANEL_META
+
+do
+
+    :SkinChangeIndex, :GetNamedSkin, :GetDefaultSkin, :SkinChangeIndex = derma
+
+    getSkin = =>
+        skin = nil
+
+        if SkinChangeIndex! == @m_iSkinIndex
+            skin = @m_Skin
+            if skin ~= nil
+                return skin
+
+        -- We have a default skin
+        if not skin and @m_ForceSkinName
+            skin = GetNamedSkin( @m_ForceSkinName )
+
+        -- No skin, inherit from parent
+        parent = GetParent( @ )
+        if not skin and parent and parent\IsValid!
+            skin = getSkin( parent )
+
+        -- Parent had no skin, use default
+        unless skin
+            skin = GetDefaultSkin!
+
+        -- Save skin details on us so we don't have to keep looking up
+        @m_Skin, @m_iSkinIndex = skin, SkinChangeIndex!
+        InvalidateLayout( @, false )
+        return skin
+
+    PANEL_META.GetSkin = getSkin
 
 GM.ContextMenuEnabled = ->
     return true
@@ -107,7 +140,7 @@ do
         button\SetTooltip( title )
         button.Title = title
 
-        @InvalidateLayout!
+        InvalidateLayout( @ )
 
         created = data.created
         if isfunction( created )
@@ -161,8 +194,8 @@ do
         @SetKeyboardInputEnabled( false )
         @SetMouseInputEnabled( true )
 
-        @InvalidateLayout( true )
         SetCursorPos( @CursorX, @CursorY )
+        InvalidateLayout( @, true )
 
     PANEL.Close = ( bSkipAnim ) =>
         if @GetHangOpen!
@@ -254,7 +287,7 @@ do
 
         PANEL.SetImage = ( materialPath ) =>
             @Image\SetImage( materialPath )
-            @InvalidateLayout!
+            InvalidateLayout( @ )
 
         PANEL.OnCursorEntered = =>
             unless @IsEnabled!
@@ -274,7 +307,7 @@ do
             if @Depressed
                 @Depressed = nil
                 @OnReleased!
-                @InvalidateLayout( true )
+                InvalidateLayout( @, true )
 
             if @DragMouseRelease( mousecode )
                 return
@@ -518,7 +551,7 @@ do
             title\Dock( TOP )
 
             title.PerformLayout = =>
-                parent = @GetParent!
+                parent = GetParent( @ )
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
 
@@ -538,7 +571,7 @@ do
             button.PerformLayout = =>
                 @SetWide( subPanel\GetWide! * 0.5 - 8 )
 
-            button\InvalidateLayout( true )
+            InvalidateLayout( button, true )
 
         -- TEAM_PRISONER
         do
@@ -553,7 +586,7 @@ do
             button.PerformLayout = =>
                 @SetWide( subPanel\GetWide! * 0.5 - 8 )
 
-            button\InvalidateLayout( true )
+            InvalidateLayout( button, true )
 
         -- TEAM_SPECTATOR
         do
@@ -569,11 +602,11 @@ do
             button\Dock( BOTTOM )
 
             button.PerformLayout = =>
-                parent = @GetParent!
+                parent = GetParent( @ )
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
 
-            button\InvalidateLayout( true )
+            InvalidateLayout( button, true )
 
         -- Random Team
         do
@@ -588,13 +621,13 @@ do
             button\Dock( BOTTOM )
 
             button.PerformLayout = =>
-                parent = @GetParent!
+                parent = GetParent( @ )
                 if IsValid( parent )
                     @SetTall( parent\GetTall! * 0.1 )
 
-            button\InvalidateLayout( true )
+            InvalidateLayout( button, true )
 
-        @InvalidateLayout( true )
+        InvalidateLayout( @, true )
 
     PANEL.Think = =>
         unless @IsVisible!
@@ -667,8 +700,8 @@ do
         if @IsVisible!
             return
 
+        InvalidateLayout( @, true )
         @SetVisible( true )
-        @InvalidateLayout( true )
         @MakePopup!
 
     PANEL.Paint = ( width, height ) =>
@@ -869,7 +902,7 @@ do
     PANEL.Init = =>
         @Team = TEAM_SPECTATOR
         @Dock( TOP )
-        @InvalidateLayout( true )
+        InvalidateLayout( @, true )
 
     PANEL.PerformLayout = =>
         teamID = @Team
@@ -954,7 +987,7 @@ do
         prisoners.Label = label
 
         label.Team = TEAM_PRISONER
-        label\InvalidateLayout!
+        InvalidateLayout( label )
 
         scrollPanel = prisoners\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         prisoners.ScrollPanel = scrollPanel
@@ -969,7 +1002,7 @@ do
         guards.Label = label
 
         label.Team = TEAM_GUARD
-        label\InvalidateLayout!
+        InvalidateLayout( label )
 
         scrollPanel = guards\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         guards.ScrollPanel = scrollPanel
@@ -985,7 +1018,7 @@ do
         spectators.Label = label
 
         label.Team = TEAM_SPECTATOR
-        label\InvalidateLayout!
+        InvalidateLayout( label )
 
         scrollPanel = spectators\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         spectators.ScrollPanel = scrollPanel
@@ -1095,10 +1128,10 @@ do
                 when TEAM_SPECTATOR
                     spectators\AddItem( panel )
 
-            panel\InvalidateLayout( true )
+            InvalidateLayout( panel, true )
 
     PANEL.Show = =>
-        @InvalidateLayout( true )
+        InvalidateLayout( @, true )
         @SetVisible( true )
         CloseDermaMenus!
         @AddPlayers!
@@ -1163,7 +1196,7 @@ do
             @SetMouseInputEnabled( false )
             @SetPaintedManually( true )
 
-            @InvalidateLayout( true )
+            InvalidateLayout( @, true )
             hook.Add "DrawOverlay", @, @PaintManual
 
         PANEL.Think = =>
@@ -1232,7 +1265,7 @@ do
                 if text ~= nil
                     return Translate( text )
 
-            @ = @GetParent!
+            @ = GetParent( @ )
 
     global FindTooltip = findTooltip
 
