@@ -29,6 +29,33 @@ PANEL_META = FindMetaTable( "Panel" )
 
 do
 
+    :GetText = PANEL_META
+
+    DLabel.Think = =>
+        if @m_bAutoStretchVertical
+            length = #GetText( @ )
+            if length ~= @m_LastTextLength
+                @m_LastTextLength = length
+                @SizeToContentsY!
+
+do
+
+    :dark_white = Colors
+
+    DButton.Paint = ( w, h ) =>
+        SetDrawColor( dark_white.r, dark_white.g, dark_white.b, 240 )
+        DrawRect( 0, 0, w, h )
+
+        SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 255 )
+        DrawRect( 0, 0, w, 1 )
+        DrawRect( 0, 1, 1, h - 2 )
+        DrawRect( w - 1, 1, 1, h - 2 )
+        DrawRect( 0, h - 1, w, 1 )
+
+    Button.Paint = DButton.Paint
+
+do
+
     :SkinChangeIndex, :GetNamedSkin, :GetDefaultSkin, :SkinChangeIndex = derma
 
     getSkin = =>
