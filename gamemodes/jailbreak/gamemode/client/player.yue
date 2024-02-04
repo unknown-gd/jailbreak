@@ -5,8 +5,11 @@ drive = drive
 :Run = hook
 GM = GM
 
-Jailbreak.ViewEntity = NULL
-Jailbreak.Player = NULL
+unless Jailbreak.ViewEntity
+    Jailbreak.ViewEntity = NULL
+
+unless Jailbreak.Player
+    Jailbreak.Player = NULL
 
 GM.ShouldDrawLocalPlayer = ( ply ) =>
     if ply ~= Jailbreak.ViewEntity

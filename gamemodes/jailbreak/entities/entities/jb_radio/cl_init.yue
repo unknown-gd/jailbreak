@@ -8,7 +8,7 @@ do
     :match = string
 
     ENT.IsValidURL = ( str ) =>
-        return #str ~= 0 and match( str, "^https?://([%w.]+%.%w+)/?" ) ~= nil
+        return #str ~= 0 and match( str, "^https?://(%w[%w._-]+%.%w+)/?" ) ~= nil
 
 do
 
@@ -124,14 +124,18 @@ do
             DButton.PerformLayout( ... )
 
         button.DoClick = ->
-            RunConsoleCommand( "jb_radio_entity_apply", @EntIndex or 0, entry\GetValue!, volume\GetValue! )
+            net.Start( "Jailbreak::Radio" )
+            net.WriteEntity( @Entity )
+            net.WriteString( entry\GetValue! )
+            net.WriteFloat( volume\GetValue! )
+            net.SendToServer!
             @Close!
 
     PANEL.PerformLayout = ( width, height ) =>
         @SetMinWidth( VMin( 20 ) )
         @SetMinHeight( VMin( 10 ) )
 
-        entity = Entity( @EntIndex or 0 )
+        entity = @Entity
         if entity and entity\IsValid!
             entry = @Entry
             if IsValid( entry )
@@ -154,20 +158,20 @@ do
 
     panel = NULL
 
-    concommand.Add "jb_radio_entity", ( _, args ) =>
+    net.Receive "Jailbreak::Radio", ->
         if panel\IsValid!
             panel\Remove!
             return
 
-        entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
+        entity = net.ReadEntity!
         unless entity and entity\IsValid!
             return
 
-        if entity\GetClass! ~= "jb_radio" or entity\GetPos!\Distance( @GetPos! ) > 72
+        if entity\GetClass! ~= "jb_radio" or entity\GetPos!\Distance( Jailbreak.Player\GetPos! ) > 72
             return
 
         panel = vgui.Create( "Jailbreak::RadioMenu" )
-        panel.EntIndex = entity\EntIndex!
+        panel.Entity = entity
 
 do
 

@@ -2,6 +2,8 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
+util.AddNetworkString( "Jailbreak::Radio" )
+
 ENT.Initialize = =>
     @SetModel( @Model )
 
@@ -12,19 +14,29 @@ ENT.Initialize = =>
     @SetUseType( SIMPLE_USE )
     @DrawShadow( true )
 
-ENT.Use = ( ply ) =>
-    ply\ConCommand( "jb_radio_entity " .. @EntIndex! )
+do
 
-concommand.Add "jb_radio_entity_apply", ( _, args ) =>
-    unless @ and @IsValid! and @Alive!
-        return
+    :Start, :WriteEntity, :Send = net
 
-    entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
-    unless entity and entity\IsValid!
-        return
+    ENT.Use = ( ply ) =>
+        Start( "Jailbreak::Radio" )
+        WriteEntity( @ )
+        Send( ply )
 
-    if entity\GetClass! ~= "jb_radio" or entity\GetPos!\Distance( @GetPos! ) > 72
-        return
+do
 
-    entity\SetURL( args[ 2 ] or "" )
-    entity\SetVolume( math.Clamp( tonumber( args[ 3 ] or "0" ) or 0, 0, entity.MaxVolume or 1 ) )
+    :ReadEntity, :ReadString, :ReadFloat = net
+
+    net.Receive "Jailbreak::Radio", ( _, ply ) ->
+        unless ply and ply\IsValid! and ply\Alive!
+            return
+
+        entity = ReadEntity!
+        unless entity and entity\IsValid!
+            return
+
+        if entity\GetClass! ~= "jb_radio" or entity\GetPos!\Distance( ply\GetPos! ) > 72
+            return
+
+        entity\SetURL( ReadString! )
+        entity\SetVolume( math.Clamp( ReadFloat!, 0, entity.MaxVolume or 1 ) )
