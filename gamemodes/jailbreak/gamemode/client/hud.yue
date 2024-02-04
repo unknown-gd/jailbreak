@@ -16,6 +16,7 @@ CurTime = CurTime
 IsValid = IsValid
 EyePos = EyePos
 Lerp = Lerp
+:Add = hook
 
 do
 
@@ -62,7 +63,7 @@ do
 
 do
 
-    :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams, :TargetID, :DeathNotice = Jailbreak
+    :GetRoundState, :GetRemainingTime, :GetWinningTeam, :Teams = Jailbreak
     ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
     ROUND_RUNNING = ROUND_RUNNING
     ROUND_FINISHED = ROUND_FINISHED
@@ -70,15 +71,7 @@ do
     Jailbreak.Font( "Jailbreak::Winners", "Roboto Mono Bold Italic", 4 )
     Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
 
-    GM.HUDPaint = =>
-        Run( "HUDDrawInfo", Jailbreak.Player )
-
-        if TargetID\GetBool!
-            Run( "HUDDrawTargetID" )
-
-        if DeathNotice\GetBool!
-            Run( "DrawDeathNotice", 0.85, 0.04 )
-
+    Add "HUDPaint", "Jailbreak::RoundInfo", ->
         state = GetRoundState!
         if state == ROUND_RUNNING
             return
@@ -137,6 +130,24 @@ do
             SetTextColor( r, g, b, 255 )
             SetTextPos( x, y )
             DrawText( text )
+
+do
+
+    :TargetID, :DeathNotice = Jailbreak
+    :Start3D, :End3D = cam
+
+    GM.HUDPaint = =>
+        Start3D!
+        Run( "HUDPaint3D" )
+        End3D!
+
+        if TargetID\GetBool!
+            Run( "HUDDrawTargetID" )
+
+        Run( "HUDDrawInfo", Jailbreak.Player )
+
+        if DeathNotice\GetBool!
+            Run( "DrawDeathNotice", 0.85, 0.04 )
 
 do
 
@@ -470,7 +481,7 @@ do
         Jailbreak.Font( "Jailbreak::VoiceChatIcon", "Roboto Mono Medium", 3 )
         alpha = 0
 
-        hook.Add "HUDDrawInfo", "Jailbreak::VoiceChatIcon", =>
+        Add "HUDDrawInfo", "Jailbreak::VoiceChatIcon", =>
             if @IsSpeaking!
                 if alpha < 1
                     alpha = min( 1, alpha + FrameTime! * 4 )
@@ -598,7 +609,7 @@ do
         @HealthRects = {}
         @ArmorRects = {}
 
-        hook.Add "LanguageChanged", @, @InvalidateLayout
+        Add "LanguageChanged", @, @InvalidateLayout
         @InvalidateLayout( true )
 
     PANEL.Think = =>
@@ -1041,7 +1052,7 @@ do
         @AmmoTextX, @AmmoTextY = 0, 0
         @RectHeight = 0
 
-        hook.Add "LanguageChanged", @, @InvalidateLayout
+        Add "LanguageChanged", @, @InvalidateLayout
         @InvalidateLayout( true )
 
     PANEL.Think = =>
@@ -1229,7 +1240,7 @@ do
 
     Register( "Jailbreak::HUD", PANEL, "Panel" )
 
-hook.Add "InitPostEntity", "Jailbreak::HUD", ->
+Add "InitPostEntity", "Jailbreak::HUD", ->
     if IsValid( Jailbreak.HUD )
         return
 
