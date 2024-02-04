@@ -210,18 +210,21 @@ do
                 @EmitSound( "vo/npc/" .. ( Jailbreak.IsFemalePrison! and "female01" or "male01" ) .. "/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                 return true
 
+            :TraceHull = util
+            trace = {}
+
             Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
                 unless @Alive!
                     return
 
-                pos[ 3 ] -= 1000
-                eyePos = @EyePos!
+                pos[ 3 ] -= 8
 
-                traceResult = util.TraceLine( {
-                    start: eyePos
-                    endpos: pos
-                    filter: @
-                } )
+                trace.mins, trace.maxs = @GetCollisionBounds!
+                trace.start = @EyePos!
+                trace.endpos = pos
+                trace.filter = @
+
+                traceResult = TraceHull( trace )
 
                 unless traceResult.Hit and traceResult.HitWorld
                     return
@@ -233,7 +236,7 @@ do
                     damageInfo = DamageInfo!
                     damageInfo\SetDamageType( DMG_BURN )
                     damageInfo\SetDamage( @Health! + @Armor! )
-                    damageInfo\SetDamageForce( ( eyePos - pos ) * 10 )
+                    damageInfo\SetDamageForce( ( trace.start - pos ) * 10 )
                     damageInfo\SetDamagePosition( pos )
                     damageInfo\SetAttacker( @ )
                     @TakeDamageInfo( damageInfo )
