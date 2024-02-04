@@ -1,0 +1,44 @@
+:UpdateRefractTexture, :PushCustomClipPlane, :SetColorModulation, :PopCustomClipPlane, :MaterialOverride, :EnableClipping, :GetDXLevel, :GetBlend, :SetBlend = render
+:LocalToWorld, :GetModelRenderBounds, :GetNW2Int = FindMetaTable( "Entity" )
+:GetPlayerColor = FindMetaTable( "Player" )
+:Dot, :Normalize = FindMetaTable( "Vector" )
+LerpVector = LerpVector
+CurTime = CurTime
+:IgnoreZ = cam
+:Clamp = math
+
+material = Material( "models/wireframe" )
+blend, clipping, frac = 0, false, 0
+
+hook.Add "PrePlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
+    frac = 1 - Clamp( ( CurTime! - @GetSpawnTime! ) / 1, 0, 1 )
+    if frac == 0
+        return
+
+    mins, maxs = GetModelRenderBounds( @ )
+    normal = ( mins - maxs )
+    Normalize( normal )
+
+    IgnoreZ( true )
+    clipping = EnableClipping( true )
+    PushCustomClipPlane( normal, Dot( normal, LerpVector( frac, LocalToWorld( @, maxs ), LocalToWorld( @, mins ) ) ) )
+    UpdateRefractTexture!
+
+    blend = GetBlend!
+    color = GetPlayerColor( @ )
+    SetColorModulation( color[ 1 ], color[ 2 ], color[ 3 ] )
+    material\SetFloat( "$refractamount", frac * 0.1 )
+    MaterialOverride( material )
+    SetBlend( 1 - frac )
+
+hook.Add "PostPlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
+    if frac == 0
+        return
+
+    SetColorModulation( 1, 1, 1 )
+	MaterialOverride( 0 )
+    SetBlend( blend )
+
+    PopCustomClipPlane!
+    EnableClipping( clipping )
+    IgnoreZ( false )
