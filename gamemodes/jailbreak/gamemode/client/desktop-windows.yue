@@ -305,13 +305,12 @@ Set "DesktopWindows", "warden-shop", {
 do
 
     :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
-    playerOptionsAnimations = list.Get( "PlayerOptionsAnimations" )
-    default_animations = { "idle_all_01", "menu_walk" }
     previewOffset = Vector( -100, 0, -61 )
 
     :PlayerModels, :FixModelPath = Jailbreak
     input_GetCursorPos = input.GetCursorPos
     :TranslatePlayerModel = player_manager
+    ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
     vector_origin = vector_origin
     angle_zero = angle_zero
     :PrecacheModel = util
@@ -366,7 +365,7 @@ do
             do
 
                 selectModel = =>
-                    RunConsoleCommand( "cl_playermodel", @ModelName )
+                    RunConsoleCommand( PlayerModel\GetName!, @ModelName )
 
                 openMenu = =>
                     menu = DermaMenu!
@@ -531,7 +530,7 @@ do
 
             -- Player Model
             SetupModel = ( modelName ) ->
-                unless modelPreview
+                unless modelPreview and modelPreview\IsValid!
                     return
 
                 requested = FixModelPath( TranslatePlayerModel( modelName ) )
@@ -595,11 +594,7 @@ do
                 sheet.tabScroller\InvalidateLayout!
 
                 -- Animations
-                anims = playerOptionsAnimations[ modelName ]
-                if not anims or #anims == 0
-                    anims = default_animations
-
-                sequence = previewEntity\LookupSequence( anims[ random( 1, #anims ) ] )
+                sequence = previewEntity\SelectWeightedSequence( ACT_HL2MP_IDLE )
                 if sequence > 0
                     previewEntity\ResetSequence( sequence )
 
@@ -626,32 +621,5 @@ do
                     @PressX, @PressY = mx, my
 
                 entity\SetAngles( @Angles )
+
     }
-
-Set( "PlayerOptionsAnimations", "gman", { "menu_gman" } )
-
-Set( "PlayerOptionsAnimations", "hostage01", { "idle_all_scared" } )
-Set( "PlayerOptionsAnimations", "hostage02", { "idle_all_scared" } )
-Set( "PlayerOptionsAnimations", "hostage03", { "idle_all_scared" } )
-Set( "PlayerOptionsAnimations", "hostage04", { "idle_all_scared" } )
-
-Set( "PlayerOptionsAnimations", "zombine", { "menu_zombie_01" } )
-Set( "PlayerOptionsAnimations", "corpse", { "menu_zombie_01" } )
-Set( "PlayerOptionsAnimations", "zombiefast", { "menu_zombie_01" } )
-Set( "PlayerOptionsAnimations", "zombie", { "menu_zombie_01" } )
-Set( "PlayerOptionsAnimations", "skeleton", { "menu_zombie_01" } )
-
-Set( "PlayerOptionsAnimations", "combine", { "menu_combine" } )
-Set( "PlayerOptionsAnimations", "combineprison", { "menu_combine" } )
-Set( "PlayerOptionsAnimations", "combineelite", { "menu_combine" } )
-Set( "PlayerOptionsAnimations", "police", { "menu_combine" } )
-Set( "PlayerOptionsAnimations", "policefem", { "menu_combine" } )
-
-Set( "PlayerOptionsAnimations", "css_arctic", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_gasmask", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_guerilla", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_leet", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_phoenix", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_riot", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_swat", { "pose_standing_02", "idle_fist" } )
-Set( "PlayerOptionsAnimations", "css_urban", { "pose_standing_02", "idle_fist" } )
