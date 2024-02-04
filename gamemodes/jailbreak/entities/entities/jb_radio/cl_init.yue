@@ -139,8 +139,8 @@ do
 
             volume = @Volume
             if IsValid( volume )
-                volume\SetValue( entity\GetVolume! )
                 volume\SetMax( entity.MaxVolume or 1 )
+                volume\SetValue( entity\GetVolume! )
 
         button = @Button
         if IsValid( button )
