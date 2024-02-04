@@ -90,3 +90,6 @@ do
         func = Networking[ ReadUInt( 4 ) ]
         if func ~= nil
             func!
+
+concommand.Add "jb_credits", ->
+    MsgC( unpack( Jailbreak.Credits ) )

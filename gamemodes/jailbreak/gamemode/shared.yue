@@ -37,11 +37,12 @@ local TEAM_PRISONER = TEAM_PRISONER
 local TEAM_SPECTATOR = TEAM_SPECTATOR
 ]==]
 
+Colors = nil
 do
 
     Color = Color
 
-    Jailbreak.Colors = {
+    Colors = {
 		butterfly_bush: Color( 112, 86, 154 )
         spectators: Color( 220, 220, 220 )
         dark_white: Color( 200, 200, 200 )
@@ -60,6 +61,8 @@ do
         black: Color( 0, 0, 0 )
         white: color_white
     }
+
+    Jailbreak.Colors = Colors
 
 Jailbreak.DefaultPlayerColor = Vector( 0.25, 0.35, 0.4 )
 Jailbreak.Teams = {
@@ -131,10 +134,9 @@ GuardFemaleModels = {
 do
 
     :SetUp, :SetSpawnPoint = team
-    colors = Jailbreak.Colors
 
     GM.CreateTeams = =>
-        SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, colors.prisoners, true )
+        SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, Colors.prisoners, true )
         SetSpawnPoint( TEAM_PRISONER, {
             "info_player_terrorist"
             "info_player_teamspawn"
@@ -145,7 +147,7 @@ do
             "info_player_red"
         } )
 
-        SetUp( TEAM_GUARD, "#jb.team." .. TEAM_GUARD, colors.guards, true )
+        SetUp( TEAM_GUARD, "#jb.team." .. TEAM_GUARD, Colors.guards, true )
         SetSpawnPoint( TEAM_GUARD, {
             "info_player_counterterrorist"
             "diprip_start_team_blue"
@@ -158,7 +160,7 @@ do
             "info_player_blue"
         } )
 
-        SetUp( TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, colors.spectators, true )
+        SetUp( TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, Colors.spectators, true )
 
 -- Gamemode utils & functions
 include( "shared/utils.lua" )
@@ -208,6 +210,64 @@ do
             [ false ]: malePrisoners
         }
     }
+
+Jailbreak.Credits = {
+    Colors.guards
+    "\nJail"
+
+    Colors.prisoners
+    "break\n"
+
+    Colors.light_grey
+    "\nCode Base & API\n"
+
+    Colors.white
+    "Unknown Developer\n"
+
+    Colors.light_grey
+    "\nSource Games Compability\n"
+
+    Colors.white
+    "DefaultOS\n"
+    "Unknown Developer\n"
+
+    Colors.light_grey
+    "\nTranslators\n"
+
+    Colors.white
+    "Erick Maksimets (EN, UK)\n"
+    "Unknown Developer (EN, RU)\n"
+
+    Colors.light_grey
+    "\nIcons & Logo\n"
+
+    Colors.white
+    "Gunter\n"
+    "Komi-sar\n"
+    "Unknown Developer\n"
+
+    Colors.light_grey
+    "\nDevelopment Assistance\n"
+
+    Colors.white
+    "Jaff\n"
+    "BrunH\n"
+    "Gunter\n"
+
+    Colors.light_grey
+    "\nTesters\n"
+
+    Colors.white
+    "Gunter\n"
+    "SoR_Ge\n"
+    "pojn87\n"
+    "troit5ky\n"
+    "licen777\n"
+    "Shztirlec\n"
+    "Yeah, well\n"
+    "Erick_Maksimets\n"
+
+}
 
 -- Gamemode events and functions
 include( "shared/game.lua" )
