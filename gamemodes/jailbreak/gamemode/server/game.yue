@@ -118,8 +118,6 @@ do
     :white = Jailbreak.Colors
 
     GM.PlayerSpawn = ( ply, transiton ) =>
-        ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
-        ply\SetNW2Int( "spawn-time", CurTime! )
         ply\RemoveFromObserveTargets!
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
@@ -161,10 +159,13 @@ do
             ply\GiveFlashlight!
         else
             ply\SetArmor( 0 )
-        ply\SetHealth( 100 )
 
         if RagdollRemove\GetBool!
             ply\RemoveRagdoll!
+
+        ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
+        ply\SetNW2Int( "spawn-time", CurTime! + 0.25 )
+        ply\SetHealth( 100 )
 
         unless transiton
             Run( "PlayerLoadout", ply )
@@ -893,3 +894,8 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
         return false
 
     return true
+
+-- https://wiki.facepunch.com/gmod/GM:FinishMove
+GM.FinishMove = ( ply, mv ) =>
+    if ply\Alive!
+        ply.LastVelocity = mv\GetVelocity!
