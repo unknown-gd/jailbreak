@@ -39,9 +39,6 @@ jobs:
       - name: Remove .gitignore
         run: rm .gitignore
 
-      - name: Remove .gitattributes
-        run: rm .gitattributes
-
       - name: Remove todo.md
         run: rm todo.md
 
