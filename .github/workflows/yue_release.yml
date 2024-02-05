@@ -42,6 +42,9 @@ jobs:
       - name: Remove todo.md
         run: rm todo.md
 
+      - name: Create VERSION file
+        run: echo -e ${{ github.action_ref }} > VERSION
+
       - name: Push to lua branch
         run: |
           git config user.name github-actions
@@ -66,7 +69,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         id: create_release
         with:
-          name: Release $(cat VERSION)
+          name: Release ${{ github.action_ref }}
           draft: false
           prerelease: false
           generate_release_notes: true
