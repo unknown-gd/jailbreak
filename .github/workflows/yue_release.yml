@@ -28,6 +28,9 @@ jobs:
         run: ./yue ./
 
       - name: Remove yue
+        run: rm yue
+
+      - name: Remove yue
         run: find . -type f -name '*.yue' -delete
 
       - name: Remove github dir
