@@ -619,6 +619,10 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
     return
 
+Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
+    if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_OFF
+        game.SetGlobalState( "super_phys_gun", GLOBAL_OFF )
+
 Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
     attacker = damageInfo\GetAttacker!
     unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive! and attacker == damageInfo\GetInflictor!
