@@ -43,7 +43,7 @@ jobs:
         run: rm todo.md
 
       - name: Create VERSION file
-        run: echo -e ${{ github.ref }} > VERSION
+        run: versionStr=${{ github.ref }};echo -e v${versionStr#*v} > VERSION
 
       - name: Push to lua branch
         run: |
