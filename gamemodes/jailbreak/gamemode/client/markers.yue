@@ -23,6 +23,7 @@ ImageIcon = Material( "icon16/image.png", "mips" )
 PhotoIcon = Material( "icon16/photo.png", "mips" )
 GunIcon = Material( "icon16/gun.png", "mips" )
 ErrorIcon = Material( "icon16/error.png", "mips" )
+PaintCanIcon = Material( "icon16/paintcan.png", "mips" )
 
 markers = {}
 
@@ -54,7 +55,9 @@ do
         if ReadBool!
             entity = ReadEntity!
             if entity and entity\IsValid!
-                if entity\IsWeapon!
+                if entity\IsPaintCan!
+                    material = PaintCanIcon
+                elseif entity\IsWeapon!
                     if entity\GetOwner!\IsValid!
                         return
 

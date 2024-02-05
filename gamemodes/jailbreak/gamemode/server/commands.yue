@@ -6,6 +6,7 @@ CHAN_STATIC = CHAN_STATIC
 tonumber = tonumber
 :Add = concommand
 CurTime = CurTime
+Entity = Entity
 :random = math
 :Run = hook
 
@@ -404,4 +405,32 @@ do
     hook.Add "PlayerCanCreateRagdoll", "Jailbreak::FakeDeath", =>
         ragdoll = @GetRagdollEntity!
         if ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
+            return false
+
+do
+
+    Add "jb_paint_entity_apply", ( _, args ) =>
+        unless @ and @IsValid!
+            return
+
+        unless @Alive!
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
+            return
+
+        entity = Entity( tonumber( args[ 1 ] or "0" ) or 0 )
+        unless entity and entity\IsValid! and entity\IsPaintCan!
+            return
+
+        if entity\GetPos!\Distance( @GetPos! ) > 72
+            return
+
+        color = string.Split( args[ 2 ] or "0 0 0", " " )
+        @SetColor( Color( color[ 1 ], color[ 2 ], color[ 3 ] ) )
+
+    hook.Add "PlayerUsedEntity", "Jailbreak::PaintCan", ( entity ) =>
+        if entity\IsPaintCan!
+            @ConCommand( "jb_paint_entity " .. entity\EntIndex! )
+
+    hook.Add "AllowPlayerPickup", "Jailbreak::PaintCan", ( entity ) =>
+        if entity\IsPaintCan!
             return false

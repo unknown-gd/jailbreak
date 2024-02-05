@@ -229,6 +229,9 @@ do
         elseif entity\IsWeapon!
             text = GetWeaponName( entity )
             entityType = 3
+        elseif entity\IsPaintCan!
+            text = "#jb.paint_can"
+            entityType = 6
         elseif entity\IsFood!
             text = "#jb.food"
             entityType = 4

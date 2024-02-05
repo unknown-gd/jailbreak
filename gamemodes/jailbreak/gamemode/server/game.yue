@@ -667,6 +667,9 @@ GM.PlayerUse = ( ply, entity ) =>
     unless isReleased
         return
 
+    if Run( "PlayerUsedEntity", ply, entity ) == false
+        return false
+
     if entity\IsWeapon!
         if entity.PickupForbidden
             return false

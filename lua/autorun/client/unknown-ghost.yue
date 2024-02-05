@@ -206,4 +206,3 @@ requestData = ->
 hook.Add "PostCleanupMap", addonName, requestData
 hook.Add "InitPostEntity", addonName, requestData
 concommand.Add "ug_reload", requestData
-timer.Simple 0.25, requestData

@@ -427,10 +427,22 @@ do
     classNames.prop_static = true
 
     Jailbreak.IsProp = ( className ) ->
-        return classNames[ className ]
+        return classNames[ className ] ~= nil
+
+    :GetClass = ENTITY
 
     ENTITY.IsProp = =>
-        return classNames[ @GetClass! ]
+        return classNames[ GetClass( @ ) ] ~= nil
+
+    :GetModel = ENTITY
+
+    paintCans = {
+        "models/props_junk/metal_paintcan001a.mdl": true
+    	"models/props_junk/metal_paintcan001b.mdl": true
+    }
+
+    ENTITY.IsPaintCan = =>
+        return classNames[ GetClass( @ ) ] ~= nil and paintCans[ GetModel( @ ) ] ~= nil
 
 -- Returns true if entity is button
 ENTITY.IsButton = =>

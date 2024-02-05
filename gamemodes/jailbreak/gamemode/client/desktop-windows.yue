@@ -111,7 +111,7 @@ Set "DesktopWindows", "warden-request", {
             if ply\Alive!
                 if Jailbreak.HasWarden!
                     if ply\IsWarden!
-                        image = "icon16/user.png"
+                        image = "icon16/user_go.png"
                         if @GetImage! ~= image
                             @SetImage( image )
 
