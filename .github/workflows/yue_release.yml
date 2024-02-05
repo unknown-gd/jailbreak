@@ -15,35 +15,26 @@ jobs:
       - name: Change directory
         run: cd $GITHUB_WORKSPACE
 
-      - name: Download Yuescript
-        run: wget https://github.com/pigpigyyy/Yuescript/releases/download/v0.21.8/yue-linux-x86_64.zip
-
-      - name: Unzip Yuescript
-        run: unzip yue-linux-x86_64.zip
-
-      - name: Remove yue-linux-x86_64.zip
-        run: rm yue-linux-x86_64.zip
-
-      - name: Build Lua
-        run: ./yue ./
-
-      - name: Remove yue
-        run: rm yue
-
-      - name: Remove yue
-        run: find . -type f -name '*.yue' -delete
-
-      - name: Remove github dir
-        run: rm -rf .github
-
-      - name: Remove .gitignore
-        run: rm .gitignore
-
-      - name: Remove todo.md
-        run: rm todo.md
+      - name: Remove unused files and folders
+        run: |
+          rm .gitignore
+          rm -rf .github
+          rm todo.md
 
       - name: Create VERSION file
         run: echo -e ${{ github.ref_name }} > VERSION
+
+      - name: Download Yuescript and unzip yue
+        run: |
+          wget https://github.com/pigpigyyy/Yuescript/releases/download/v0.21.8/yue-linux-x86_64.zip
+          unzip yue-linux-x86_64.zip
+          rm yue-linux-x86_64.zip
+
+      - name: Build .lua and remove .yue
+        run: |
+          ./yue ./
+          rm yue
+          find . -type f -name '*.yue' -delete
 
       - name: Push to lua branch
         run: |
