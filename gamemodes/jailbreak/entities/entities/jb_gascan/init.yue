@@ -17,7 +17,7 @@ ENT.Initialize = =>
     @DrawShadow( true )
 
 ENT.Use = ( ply ) =>
-    if @Exploded
+    if @Exploded or @WaterLevel! > 1
         return
 
     @Exploded = true
