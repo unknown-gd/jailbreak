@@ -1,5 +1,8 @@
-:UpdateRefractTexture, :PushCustomClipPlane, :SetColorModulation, :PopCustomClipPlane, :MaterialOverride, :EnableClipping, :GetDXLevel, :GetBlend, :SetBlend = render
-:LocalToWorld, :GetModelRenderBounds, :GetNW2Bool = FindMetaTable( "Entity" )
+if render.GetDXLevel! < 80
+    return
+
+:UpdateRefractTexture, :PushCustomClipPlane, :SetColorModulation, :PopCustomClipPlane, :MaterialOverride, :EnableClipping, :GetBlend, :SetBlend = render
+:LocalToWorld, :GetModelRenderBounds = FindMetaTable( "Entity" )
 :GetPlayerColor, :GetSpawnTime = FindMetaTable( "Player" )
 :Dot, :Normalize = FindMetaTable( "Vector" )
 LerpVector = LerpVector
@@ -41,22 +44,3 @@ hook.Add "PostPlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
 
     PopCustomClipPlane!
     EnableClipping( clipping )
-
-do
-
-    view, attachmentID, ragdoll = {}, 0, NULL
-
-    hook.Add "CalcView", "Jailbreak::FakeDeath", =>
-        unless @Alive!
-            return
-
-        ragdoll = @GetRagdollEntity!
-        if ragdoll and ragdoll\IsValid! and GetNW2Bool( ragdoll, "fake-death" )
-            attachmentID = ragdoll\LookupAttachment( "eyes" )
-            if attachmentID < 1
-                return
-
-            attachment = ragdoll\GetAttachment( attachmentID )
-            view.origin = attachment.Pos
-            view.angles = attachment.Ang
-            return view

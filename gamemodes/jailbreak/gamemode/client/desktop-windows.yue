@@ -32,13 +32,48 @@ do
 
                 if @IsVisible!
                     return
+
+                @InvalidateParent!
                 @Show!
+
             elseif @IsVisible!
+                @InvalidateParent!
                 @Hide!
 
         click: =>
             securityRadio\SetBool( not securityRadio\GetBool! )
     }
+
+Set "DesktopWindows", "player-fake-death", {
+    title: "#jb.player-fake-death"
+    icon: "icon16/user_delete.png"
+    order: 2500
+    think: =>
+        ply = Jailbreak.Player
+        unless GameInProgress! and ply\IsValid! and ply\Alive!
+            if @IsVisible!
+                @InvalidateParent!
+                @Hide!
+
+            return
+
+        unless @IsVisible!
+            @InvalidateParent!
+            @Show!
+
+        ragdoll = ply\GetRagdollEntity!
+        unless ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
+            if @GetImage! ~= "icon16/user_delete.png"
+                @SetImage( "icon16/user_delete.png" )
+
+            return
+
+        if @GetImage! ~= "icon16/user.png"
+            @SetImage( "icon16/user.png" )
+
+    click: =>
+        RunConsoleCommand( "jb_fake_death" )
+}
 
 do
 
@@ -55,9 +90,11 @@ do
                     @SetImage( image )
 
                 unless @IsVisible!
+                    @InvalidateParent!
                     @Show!
 
             elseif @IsVisible!
+                @InvalidateParent!
                 @Hide!
 
         click: =>
@@ -84,6 +121,7 @@ Set "DesktopWindows", "warden-request", {
                             @SetTooltip( text )
 
                         unless @IsVisible!
+                            @InvalidateParent!
                             @Show!
 
                         return
@@ -99,11 +137,13 @@ Set "DesktopWindows", "warden-request", {
                         @SetTooltip( text )
 
                     unless @IsVisible!
+                        @InvalidateParent!
                         @Show!
 
                     return
 
         if @IsVisible!
+            @InvalidateParent!
             @Hide!
 
     click: =>
@@ -125,11 +165,13 @@ Set "DesktopWindows", "shock-collars", {
                     @SetImage( image )
 
                 unless @IsVisible!
+                    @InvalidateParent!
                     @Show!
 
                 return
 
         if @IsVisible!
+            @InvalidateParent!
             @Hide!
 
     click: =>
@@ -218,11 +260,13 @@ Set "DesktopWindows", "warden-shop", {
             ply = Jailbreak.Player
             if ply\IsWarden! and ply\Alive!
                 unless @IsVisible!
+                    @InvalidateParent!
                     @Show!
 
                 return
 
         if @IsVisible!
+            @InvalidateParent!
             @Hide!
 
         if IsValid( @Window )
@@ -407,6 +451,7 @@ do
                             icon\SetVisible( visible )
                             models\InvalidateLayout!
                             modelsScrollPanel\InvalidateLayout!
+                            modelsScrollPanel\InvalidateParent!
 
                 timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
                 updateAvalibleModels!
@@ -552,6 +597,7 @@ do
                 if IsValid( bodygroupsTab )
                     if bodygroupsTab\IsVisible!
                         bodygroupsTab\SetVisible( false )
+                        bodygroupsTab\InvalidateParent!
 
                     -- Skin
                     skinCount = previewEntity\SkinCount! - 1
@@ -569,6 +615,7 @@ do
 
                         unless bodygroupsTab\IsVisible!
                             bodygroupsTab\SetVisible( true )
+                            bodygroupsTab\InvalidateParent!
 
                     -- Bodygroups
                     groups = Explode( " ", PlayerBodyGroups\GetString! )
@@ -592,6 +639,7 @@ do
 
                         unless bodygroupsTab\IsVisible!
                             bodygroupsTab\SetVisible( true )
+                            bodygroupsTab\InvalidateParent!
 
                 sheet.tabScroller\InvalidateLayout!
 

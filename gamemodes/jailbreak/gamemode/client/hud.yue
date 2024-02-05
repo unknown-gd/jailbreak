@@ -535,7 +535,6 @@ do
         render_DrawSprite = render.DrawSprite
         LocalToWorld = LocalToWorld
         angle_zero = angle_zero
-        :GetAll = player
 
         typingIcon = Material( "icon16/comment_edit.png", "mips" )
         isSpeaking = false

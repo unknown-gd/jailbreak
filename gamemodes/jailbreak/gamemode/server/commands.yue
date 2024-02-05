@@ -39,7 +39,7 @@ do
             return
 
         if @IsWarden!
-            @WardenDelay = CurTime! + 10
+            @WardenDelay = CurTime! + 5
             @SetWarden( false )
             return
 
@@ -47,7 +47,7 @@ do
             @SendNotify( "#jb.error.warden-exists", NOTIFY_ERROR, 10 )
             return
 
-        @WardenDelay = CurTime! + 5
+        @WardenDelay = CurTime! + 3
         @SetWarden( true )
 
     Add "jb_shock_collars", ( _, args ) =>
@@ -373,12 +373,15 @@ do
             Run( "PlayerSpawnFromRagdoll", @, ragdoll )
             @SetNotSolid( false )
             @SetNoDraw( false )
+            @UnSpectate!
             ragdoll\Remove!
             return
 
         ragdoll = @CreateRagdoll( true )
         if ragdoll and ragdoll\IsValid!
             ragdoll\SetNW2Bool( "fake-death", true )
+            @Spectate( OBS_MODE_CHASE )
+            @SpectateEntity( ragdoll )
             @SetNotSolid( true )
             @SetNoDraw( true )
 
