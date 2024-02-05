@@ -309,7 +309,7 @@ do
             return NULL
 
         weapon = Create( className )
-        unless IsValid( weapon )
+        unless weapon and weapon\IsValid!
             return NULL
 
         weapon\SetAngles( @GetAngles! )
@@ -372,7 +372,6 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 do
 
     :RagdollRemove, :FixModelPath = Jailbreak
-    IsValid = IsValid
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
@@ -458,7 +457,7 @@ do
             velocity = @LastVelocity
             for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
                 phys = ragdoll\GetPhysicsObjectNum( physNum )
-                unless IsValid( phys )
+                unless phys and phys\IsValid!
                     continue
 
                 bone = ragdoll\TranslatePhysBoneToBone( physNum )
@@ -484,8 +483,9 @@ do
                 phys\Wake!
 
         else
+
             phys = ragdoll\GetPhysicsObject!
-            if IsValid( phys )
+            if phys and phys\IsValid!
                 phys\SetVelocity( @LastVelocity )
                 phys\Wake!
 
@@ -619,9 +619,11 @@ do
         entity\PhysWake!
         return entity
 
+ENTITY = FindMetaTable( "Entity" )
+
 do
 
-    :GetNW2Int = FindMetaTable( "Entity" )
+    :GetNW2Int = ENTITY
 
     PLAYER.GetSpawnTime = =>
         return GetNW2Int( @, "spawn-time" )

@@ -44,36 +44,36 @@ do
             securityRadio\SetBool( not securityRadio\GetBool! )
     }
 
-Set "DesktopWindows", "player-fake-death", {
-    title: "#jb.player-fake-death"
-    icon: "icon16/user_delete.png"
-    order: 2500
-    think: =>
-        ply = Jailbreak.Player
-        unless GameInProgress! and ply\IsValid! and ply\Alive!
-            if @IsVisible!
-                @InvalidateParent!
-                @Hide!
+-- Set "DesktopWindows", "player-fake-death", {
+--     title: "#jb.player-fake-death"
+--     icon: "icon16/user_delete.png"
+--     order: 2500
+--     think: =>
+--         ply = Jailbreak.Player
+--         unless GameInProgress! and ply\IsValid! and ply\Alive!
+--             if @IsVisible!
+--                 @InvalidateParent!
+--                 @Hide!
 
-            return
+--             return
 
-        unless @IsVisible!
-            @InvalidateParent!
-            @Show!
+--         unless @IsVisible!
+--             @InvalidateParent!
+--             @Show!
 
-        ragdoll = ply\GetRagdollEntity!
-        unless ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
-            if @GetImage! ~= "icon16/user_delete.png"
-                @SetImage( "icon16/user_delete.png" )
+--         ragdoll = ply\GetRagdollEntity!
+--         unless ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
+--             if @GetImage! ~= "icon16/user_delete.png"
+--                 @SetImage( "icon16/user_delete.png" )
 
-            return
+--             return
 
-        if @GetImage! ~= "icon16/user.png"
-            @SetImage( "icon16/user.png" )
+--         if @GetImage! ~= "icon16/user.png"
+--             @SetImage( "icon16/user.png" )
 
-    click: =>
-        RunConsoleCommand( "jb_fake_death" )
-}
+--     click: =>
+--         RunConsoleCommand( "jb_fake_death" )
+-- }
 
 do
 

@@ -151,9 +151,3 @@ Add "AllowPlayerMove", "Jailbreak::Taunts", =>
     if @IsPlayingTaunt!
         return false
 
--- Block player movement while ragdolled
-Add "StartCommand", "Jailbreak::FakeDeath", ( cmd ) =>
-    ragdoll = @GetRagdollEntity!
-    if ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
-    	cmd\ClearMovement!
-    	cmd\ClearButtons!

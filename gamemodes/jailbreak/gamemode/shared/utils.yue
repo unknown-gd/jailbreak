@@ -374,12 +374,12 @@ do
 
 do
 
-    :SetForwardSpeed, :SetSideSpeed = FindMetaTable( "CMoveData" )
+    :ClearMovement, :ClearButtons = FindMetaTable( "CUserCmd" )
 
-    Add "Move", "Jailbreak::MovementBlocking", ( mv ) =>
-        if Run( "AllowPlayerMove", @, mv ) == false
-            SetForwardSpeed( mv, 0 )
-            SetSideSpeed( mv, 0 )
+    Add "StartCommand", "Jailbreak::MovementBlocking", ( cmd ) =>
+        if Run( "AllowPlayerMove", @, cmd ) == false
+            ClearMovement( cmd )
+            ClearButtons( cmd )
 
 -- Returns entity custom color
 do

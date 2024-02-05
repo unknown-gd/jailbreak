@@ -7,6 +7,7 @@ IsValid = IsValid
 Vector = Vector
 Angle = Angle
 pairs = pairs
+:Run = hook
 GM = GM
 
 do
@@ -118,7 +119,6 @@ do
     :find = string
     :Create = ents
     :band = bit
-    :Run = hook
 
     sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
     sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
@@ -173,12 +173,12 @@ do
         if damageInfo\IsExplosionDamage!
             damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
 
-        if entity\IsPlayerRagdoll!
+        if entity\IsPlayerRagdoll! or entity\IsRagdoll!
             inflictor = damageInfo\GetInflictor!
             if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
                 entity\Dissolve!
             else
-                Run( "RagdollTakeDamage", entity, damageInfo, true )
+                Run( "RagdollTakeDamage", entity, damageInfo )
 
             return true
 
@@ -190,9 +190,6 @@ do
             attacker = damageInfo\GetAttacker!
             if attacker\IsValid! or attacker\IsPlayer!
                 damageInfo\ScaleDamage( 2 )
-
-        if entity\IsRagdoll!
-            return Run( "RagdollTakeDamage", entity, damageInfo, false )
 
         elseif entity\IsPlayer!
             if entity\Alive! and not entity\HasGodMode!
@@ -466,12 +463,9 @@ do
     LocalToWorld = LocalToWorld
     :BloodSplashes = Jailbreak
 
-    GM.RagdollTakeDamage = ( ragdoll, damageInfo, isPlayerRagdoll ) =>
-        unless isPlayerRagdoll
-            return
-
+    GM.RagdollTakeDamage = ( ragdoll, damageInfo ) =>
         if damageInfo\IsCrushDamage!
-            return true
+            damageInfo\ScaleDamage( 0.25 )
 
         armor = ragdoll.Armor
         if armor ~= nil and armor > 0
@@ -481,6 +475,8 @@ do
             damageInfo\ScaleDamage( 0.25 )
         else
             damageInfo\ScaleDamage( 0.025 )
+
+        damageInfo\SetDamage( ceil( damageInfo\GetDamage! ) )
 
         health = ragdoll\Health!
         nextHealth = floor( health - damageInfo\GetDamage! )
@@ -492,9 +488,11 @@ do
                 startHealth = health
                 ragdoll.StartHealth = startHealth
 
-            if nextHealth / startHealth < 0.5
+            if ( nextHealth / startHealth ) < 0.75
                 ragdoll\EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                 ragdoll.Alive = false
+
+        Run( "PostRagdollTakeDamage", ragdoll, damageInfo )
 
         if nextHealth > 0
             BloodSplashes( ragdoll, damageInfo, false )
