@@ -16,7 +16,7 @@ jobs:
         run: cd $GITHUB_WORKSPACE
 
       - name: Download Yuescript
-        run: wget https://github.com/pigpigyyy/Yuescript/releases/download/v0.21.3/yue-linux-x86_64.zip
+        run: wget https://github.com/pigpigyyy/Yuescript/releases/download/v0.21.8/yue-linux-x86_64.zip
 
       - name: Unzip Yuescript
         run: unzip yue-linux-x86_64.zip
