@@ -1,13 +1,13 @@
 Jailbreak = Jailbreak
 
-:HasWarden, :Emotion = Jailbreak
+:HasWarden, :Emotion, :GameInProgress = Jailbreak
 NOTIFY_ERROR = NOTIFY_ERROR
 CHAN_STATIC = CHAN_STATIC
 tonumber = tonumber
-IsValid = IsValid
 :Add = concommand
 CurTime = CurTime
 :random = math
+:Run = hook
 
 do
 
@@ -27,7 +27,7 @@ do
     :IsRoundRunning, :SetShockCollars, :IsShockCollarsActive = Jailbreak
 
     Add "jb_warden", ( _, args ) =>
-        unless IsValid( @ )
+        unless @ and @IsValid!
             return
 
         unless IsRoundRunning! and @IsGuard! and @Alive!
@@ -51,7 +51,7 @@ do
         @SetWarden( true )
 
     Add "jb_shock_collars", ( _, args ) =>
-        unless IsValid( @ )
+        unless @ and @IsValid!
             return
 
         unless IsRoundRunning! and @Alive! and @IsWarden!
@@ -76,7 +76,7 @@ do
     :Clamp = math
 
     Add "jb_force_round", ( _, args ) =>
-        if IsValid( @ ) and not @IsSuperAdmin!
+        if @ and @IsValid! and not @IsSuperAdmin!
             return
 
         index = args[ 1 ]
@@ -87,7 +87,7 @@ do
             SetRoundTime( 0 )
 
 Add "jb_respawn", ( _, args ) =>
-    if IsValid( @ ) and not @IsSuperAdmin!
+    if @ and @IsValid! and not @IsSuperAdmin!
         return
 
     if #args == 0
@@ -103,7 +103,7 @@ Add "jb_respawn", ( _, args ) =>
         ply\Spawn!
 
 Add "jb_move_player", ( _, args ) =>
-    if IsValid( @ ) and not @IsSuperAdmin!
+    if @ and @IsValid! and not @IsSuperAdmin!
         return
 
     index = tonumber( args[ 1 ] )
@@ -123,7 +123,7 @@ Add "jb_move_player", ( _, args ) =>
             ply\Spawn!
 
 Add "jb_kick_player", ( _, args ) =>
-    if IsValid( @ ) and not @IsSuperAdmin!
+    if @ and @IsValid! and not @IsSuperAdmin!
         return
 
     index = tonumber( args[ 1 ] )
@@ -147,7 +147,7 @@ do
             return
 
         droppedWeapon = @GetActiveWeapon!
-        unless IsValid( droppedWeapon )
+        unless droppedWeapon and droppedWeapon\IsValid!
             return
 
         model = droppedWeapon\GetWeaponWorldModel!
@@ -180,7 +180,7 @@ do
                 nextWeapon = weapon
                 maxWeight = weight
 
-        unless IsValid( nextWeapon )
+        unless nextWeapon and nextWeapon\IsValid!
             return
 
         @SelectWeapon( nextWeapon\GetClass! )
@@ -205,7 +205,7 @@ do
     }
 
     Add "marker", =>
-        unless Markers\GetBool! and IsValid( @ ) and @Alive!
+        unless Markers\GetBool! and @ and @IsValid! and @Alive!
             return
 
         if @NextMarker and CurTime! < @NextMarker
@@ -243,7 +243,7 @@ do
         @NextMarker = CurTime! + ( MarkersLifetime\GetInt! / MarkersCount\GetInt! )
 
         entity = traceResult.Entity
-        isValid = IsValid( entity )
+        isValid = entity and entity\IsValid!
 
         Start( "Jailbreak::Markers" )
         WriteEntity( @ )
@@ -318,19 +318,18 @@ do
                 Emotion( @, "#jb.chat.pointed-at \"#jb.ceiling\"." )
 
 Add "jb_reload_localization", =>
-    if IsValid( @ ) and not @IsListenServerHost!
+    if @ and @IsValid! and not @IsListenServerHost!
         return
 
     Jailbreak.ReloadLocalization!
 
 do
 
-    :ShopItems, :TakeWardenCoins, :CanWardenAfford, :GameInProgress = Jailbreak
+    :ShopItems, :TakeWardenCoins, :CanWardenAfford = Jailbreak
     NOTIFY_GENERIC = NOTIFY_GENERIC
-    :Run = hook
 
     Add "jb_buy", ( _, args ) =>
-        unless GameInProgress! and IsValid( @ ) and @Alive! and @IsWarden!
+        unless GameInProgress! and @ and @IsValid! and @Alive! and @IsWarden!
             return
 
         item = ShopItems[ args[ 1 ] ]
@@ -358,3 +357,48 @@ do
         @SendNotify( "#jb.shop.you-bought \"" .. item.title .. "\"", NOTIFY_GENERIC, 5 )
         Emotion( @, "#jb.chat.bought \"" .. item.title .. "\"." )
         Run( "PlayerBoughtItem", @, item )
+
+do
+
+    Add "jb_fake_death", =>
+        unless @ and @IsValid!
+            return
+
+        unless GameInProgress! and @Alive! and util.IsInWorld( @EyePos! )
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
+            return
+
+        ragdoll = @GetRagdollEntity!
+        if ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
+            Run( "PlayerSpawnFromRagdoll", @, ragdoll )
+            @SetNotSolid( false )
+            @SetNoDraw( false )
+            ragdoll\Remove!
+            return
+
+        ragdoll = @CreateRagdoll( true )
+        if ragdoll and ragdoll\IsValid!
+            ragdoll\SetNW2Bool( "fake-death", true )
+            @SetNotSolid( true )
+            @SetNoDraw( true )
+
+    hook.Add "EntityTakeDamage", "Jailbreak::FakeDeath", ( damageInfo ) =>
+        unless @IsPlayerRagdoll! and @GetNW2Bool( "fake-death" )
+            return
+
+        ply = @GetRagdollOwner!
+        if ply and ply\IsValid! and ply\Alive!
+            ply\TakeDamageInfo( damageInfo )
+
+            if ply\Alive!
+                @Alive = true
+            else
+                @SetNW2Bool( "fake-death", false )
+                @Alive = false
+
+            return true
+
+    hook.Add "PlayerCanCreateRagdoll", "Jailbreak::FakeDeath", =>
+        ragdoll = @GetRagdollEntity!
+        if ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
+            return false

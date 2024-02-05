@@ -310,7 +310,7 @@ do
                     continue
 
                 unless ply\HasWeapon( "weapon_knife" )
-                    ply\Give( "weapon_knife" )
+                    ply\Give( "weapon_knife", false, true )
 
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( nil )

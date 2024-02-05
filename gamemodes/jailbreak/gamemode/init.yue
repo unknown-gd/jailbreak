@@ -101,6 +101,7 @@ do
 
         -- Localization initialization
         timer.Simple 0, Jailbreak.ReloadLocalization
+        return
 
 -- Console commands and extra stuff
 include( "server/commands.lua" )

@@ -185,7 +185,7 @@ perform = ->
 ug_source = CreateClientConVar( "ug_source", "https://raw.githubusercontent.com/PrikolMen/unknown-ghost/main/default-ghosts.json", true, false, "Unknown ghost's source." )
 
 requestData = ->
-    HTTP {
+    HTTP( {
         method: "GET"
         url: ug_source\GetString!
         success: ( code, data ) ->
@@ -199,8 +199,11 @@ requestData = ->
             table.Merge( addonData, tbl )
             print "[UG] Unknown ghost data received!"
             perform!
-    }
+    } )
 
-hook.Add "InitPostEntity", addonName, perform
+    return
+
+hook.Add "PostCleanupMap", addonName, requestData
+hook.Add "InitPostEntity", addonName, requestData
 concommand.Add "ug_reload", requestData
 timer.Simple 0.25, requestData

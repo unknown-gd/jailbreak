@@ -105,7 +105,7 @@ GM.PlayerSpawnFromRagdoll = ( ply, ragdoll ) =>
 
     Jailbreak.LootRagdoll( ply, ragdoll )
 
-    ply\Give( "jb_hands" )
+    ply\Give( "jb_hands", false, true )
     ply\SelectWeapon( "jb_hands" )
 
     Run( "TeamPlayerSpawn", ply, teamID )
@@ -839,11 +839,11 @@ GM.PlayerLoadout = ( ply ) =>
                     continue
 
                 gived[ className ] = true
-                ply\Give( className )
+                ply\Give( className, false, true )
                 count -= 1
 
     -- Giving hands
-    ply\Give( "jb_hands" )
+    ply\Give( "jb_hands", false, true )
     ply\SelectWeapon( "jb_hands" )
 
 hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", =>

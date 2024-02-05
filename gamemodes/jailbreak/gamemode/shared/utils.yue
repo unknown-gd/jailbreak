@@ -370,6 +370,7 @@ do
         if key == "player-color" and isvector( value )
             @m_bPlayerColorVector = value
             Run( "PlayerColorChanged", @, value )
+            return
 
 do
 

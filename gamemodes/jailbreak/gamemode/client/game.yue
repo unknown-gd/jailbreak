@@ -16,6 +16,8 @@ GM.InitPostEntity = =>
         RunConsoleCommand( "jb_showteam" )
         RunConsoleCommand( "dsp_room", "1" )
 
+    return
+
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
 

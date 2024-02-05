@@ -300,7 +300,7 @@ do
 
     WeaponHandlers = WeaponHandlers or {}
 
-    PLAYER.Give = ( className, noAmmo ) =>
+    PLAYER.Give = ( className, noAmmo, force ) =>
         handler = WeaponHandlers[ className ]
         if handler
             className = handler.Alternative or className
@@ -321,7 +321,7 @@ do
         unless weapon\IsWeapon!
             return weapon
 
-        if Run( "PlayerCanPickupWeapon", @, weapon ) == false
+        if not force and Run( "PlayerCanPickupWeapon", @, weapon ) == false
             weapon\Remove!
             return NULL
 
@@ -376,6 +376,9 @@ do
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
+        if Run( "PlayerCanCreateRagdoll", @, putItems ) == false
+            return NULL
+
         if RagdollRemove\GetBool!
             @RemoveRagdoll!
 
@@ -494,9 +497,16 @@ do
 
         if putItems ~= false
             ragdoll.HasSecurityRadio = @HasSecurityRadio!
+            @TakeSecurityRadio!
+
             ragdoll.HasSecurityKeys = @HasSecurityKeys!
+            @TakeSecurityKeys!
+
             ragdoll.HasFlashlight = @CanUseFlashlight!
+            @TakeFlashlight!
+
             ragdoll.HasShockCollar = @HasShockCollar!
+            @TakeShockCollar!
 
             weapons, length = {}, 0
             for weapon in *@GetWeapons!
@@ -520,6 +530,7 @@ do
                 ragdoll.Weapons = weapons
 
             ragdoll.Ammo = @GetAmmo!
+            @RemoveAllAmmo!
 
         if ragdoll\IsValidObserveTarget!
             ragdoll\AddToObserveTargets!
