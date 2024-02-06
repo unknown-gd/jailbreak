@@ -303,8 +303,12 @@ do
 
         -- Add the entity to the list of observe targets
         ENTITY.AddToObserveTargets = =>
-            removeAsObserveTarget( @ )
-            ObserveTargets[] = @
+            if @IsValidObserveTarget!
+                removeAsObserveTarget( @ )
+                ObserveTargets[] = @
+                return true
+
+            return false
 
     -- Returns true if door entity is locked
     ENTITY.IsDoorLocked = =>
@@ -313,6 +317,10 @@ do
     -- Returns door entity state
     ENTITY.GetDoorState = =>
         return @GetInternalVariable( "m_eDoorState" )
+
+    -- Set entity team
+    ENTITY.SetTeam = ( teamID ) =>
+        @SetNW2Int( "player-team", teamID )
 
     -- Electric shock effect
     do
@@ -398,104 +406,6 @@ do
 
         CTakeDamageInfo.IsShockDamage = =>
             return band( GetDamageType( @ ), DMG_SHOCK ) == DMG_SHOCK
-
-do
-
-    :Shuffle = table
-    Vector = Vector
-    NULL = NULL
-
-    Jailbreak.LootRagdoll = ( ragdoll ) =>
-        velocity = Vector!
-
-        direction = @EyePos! - ragdoll\WorldSpaceCenter!
-        direction\Normalize!
-
-        if ragdoll.HasFlashlight and not @HasFlashlight!
-            ragdoll.HasFlashlight = nil
-            velocity += direction * 150
-            @GiveFlashlight!
-
-        if ragdoll.HasSecurityKeys and not @HasSecurityKeys!
-            ragdoll.HasSecurityKeys = nil
-            velocity += direction * 50
-            @GiveSecurityKeys!
-
-        if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
-            ragdoll.HasSecurityRadio = nil
-            velocity += direction * 50
-            @GiveSecurityRadio!
-
-        :Weapons = ragdoll
-        if Weapons ~= nil
-            count, weapon = 0, NULL
-            for index = 1, #Weapons
-                weapon = Weapons[ index ]
-                unless weapon\IsValid!
-                    continue
-
-                if weapon\GetOwner!\IsValid! or weapon\GetParent! ~= ragdoll
-                    Weapons[ index ] = NULL
-                    continue
-
-                if Run( "PlayerCanPickupWeapon", @, weapon ) == false
-                    count += 1
-                    continue
-
-                weapon\SetParent!
-                weapon\SetNoDraw( false )
-                weapon\SetNotSolid( false )
-                weapon.PickupForbidden = nil
-
-                @PickupWeapon( weapon )
-                Weapons[ index ] = NULL
-
-                velocity += direction * 200
-
-            if count == 0
-                ragdoll.Weapons = nil
-
-        :Ammo = ragdoll
-        if Ammo ~= nil
-            count, amount = 0, 0
-            for ammoType, ammoCount in pairs( Ammo )
-                amount = min( ammoCount, @GetPickupAmmoCount( ammoType ) )
-                if amount < 1
-                    continue
-
-                @GiveAmmo( amount, ammoType )
-                velocity += direction * 100
-                ammoCount -= amount
-
-                if ammoCount > 0
-                    Ammo[ ammoType ] = ammoCount
-                    count += 1
-                else
-                    Ammo[ ammoType ] = nil
-
-            if count == 0
-                ragdoll.Ammo = nil
-
-        if velocity\Length! < 100
-            return
-
-        if ragdoll\IsRagdoll!
-            physParts, length = {}, 0
-            for physNum = 1, ragdoll\GetPhysicsObjectCount! - 1 do
-                phys = ragdoll\GetPhysicsObjectNum( physNum )
-                if IsValid( phys )
-                    length += 1
-                    physParts[ length ] = phys
-
-            Shuffle( physParts )
-
-            for index = 1, min( length, 6 )
-                physParts[ index ]\ApplyForceCenter( velocity )
-
-        else
-            phys = ragdoll\GetPhysicsObject!
-            if IsValid( phys )
-                phys\ApplyForceCenter( velocity )
 
 do
 

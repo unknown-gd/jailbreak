@@ -83,7 +83,7 @@ do
 -- Perform a round state change
 do
 
-    :SafeCleanUpMap, :Colors, :RunEvents, :SetShockCollars, :ClearObserveTargets, :TeamIsJoinable, :GetWarden, :PermanentGuards, :SetWardenCoins, :WardenCoins = Jailbreak
+    :SafeCleanUpMap, :Colors, :RunEvents, :SetShockCollars, :ClearObserveTargets, :TeamIsJoinable, :PermanentGuards, :SetWardenCoins, :WardenCoins = Jailbreak
 
     GM.RoundStateChanged = ( old, new ) =>
         RunEvents( new )
@@ -171,6 +171,7 @@ do
 
                 setRoundTime( PrepareTime\GetInt! )
                 PlaySound( "ambient/alarms/warningbell1.wav" )
+                Run( "GameFinished" )
 
 -- Called when a in game player dies
 GM.TeamPlayerDeath = ( ply, teamID ) =>
@@ -193,11 +194,9 @@ do
 
     :IsWaitingPlayers = Jailbreak
 
-    GM.TeamPlayerSpawn = ( ply, teamID ) =>
-        ply\SetNoCollideWithTeammates( teamID == TEAM_GUARD or Jailbreak.GameName == "tf" )
-
-        if ply\IsValidObserveTarget!
-            ply\AddToObserveTargets!
+    GM.PostPlayerSpawn = ( ply ) =>
+        ply\SetNW2Int( "spawn-time", CurTime! + 0.25 )
+        ply\AddToObserveTargets!
 
         if IsWaitingPlayers!
             teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )

@@ -8,6 +8,7 @@ CurTime = CurTime
 :Simple = timer
 NULL = NULL
 
+TEAM_SPECTATOR = TEAM_SPECTATOR
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
@@ -231,19 +232,15 @@ Jailbreak.DelayedRemove = ( delay ) =>
             @Remove!
 
 -- Returns converted tf2 teams to jailbreak teams
-do
+Jailbreak.TF2Team = ( teamID ) ->
+    switch teamID
+        when 2
+            return TEAM_PRISONER
 
-    TEAM_SPECTATOR = TEAM_SPECTATOR
+        when 3
+            return TEAM_GUARD
 
-    Jailbreak.TF2Team = ( teamID ) ->
-        switch teamID
-            when 2
-                return TEAM_PRISONER
-
-            when 3
-                return TEAM_GUARD
-
-        return TEAM_SPECTATOR
+    return TEAM_SPECTATOR
 
 ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
@@ -452,6 +449,13 @@ ENTITY.IsButton = =>
 -- Returns true if entity is food
 ENTITY.IsFood = =>
     return GetNW2Bool( @, "is-food" )
+
+-- Returns player team
+ENTITY.Team = =>
+    return GetNW2Int( @, "player-team", TEAM_SPECTATOR )
+
+ENTITY.Alive = =>
+    return GetNW2Bool( @, "alive" ) and @Health! >= 1
 
 -- Returns player team color
 do
