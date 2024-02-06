@@ -828,22 +828,23 @@ do
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
 GM.PlayerLoadout = ( ply ) =>
-    teamID = ply\Team!
-    if teamID == TEAM_GUARD
-        -- Giving weapons if not cstrike
-        if Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
-            avaliableWeapons = @AvaliableWeapons
-            count = #avaliableWeapons / 4
-            gived = {}
+    -- Giving weapons if not cstrike map
+    if ply\IsGuard! and Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
+        avaliableWeapons = @AvaliableWeapons
+        count = #avaliableWeapons / 4
+        gived = {}
 
-            while count > 0
-                className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
-                if ply\HasWeapon( className ) or gived[ className ]
-                    continue
+        for i = 1, 32
+            if count == 0
+                break
 
-                gived[ className ] = true
-                ply\Give( className, false, true )
-                count -= 1
+            className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
+            if ply\HasWeapon( className ) or gived[ className ] == true
+                continue
+
+            ply\Give( className, false, true )
+            gived[ className ] = true
+            count -= 1
 
     -- Giving hands
     ply\Give( "jb_hands", false, true )
