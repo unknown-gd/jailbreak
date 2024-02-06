@@ -59,7 +59,7 @@
             "text"          "Allow Player Models."
             "help"          "Allow custom player models."
             "type"          "CheckBox"
-            "default"       "1"
+            "default"       "0"
             "singleplayer"  "1"
         }
         7
