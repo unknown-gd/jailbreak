@@ -2,7 +2,7 @@ Jailbreak = Jailbreak
 GM = GM
 
 :PlaySound, :DrawRect, :SetDrawColor, :DrawText, :SetTextColor, :SetTextPos, :GetTextSize, :SetFont = surface
-:TeamIsJoinable, :ChangeTeam, :Colors, :VMin, :Translate, :GetTeamColor = Jailbreak
+:TeamIsJoinable, :ChangeTeam, :Colors, :VMin, :Translate, :GetTeamColor, :GetTeamPlayersCount = Jailbreak
 :ceil, :min, :max, :floor, :log, :Clamp = math
 :IsGameUIVisible, :HideGameUI = gui
 :Create, :Register = vgui
@@ -484,7 +484,7 @@ do
 
         PlaySound( "garrysmod/ui_click.wav" )
 
-        teamID = @Team
+        teamID = @TeamID
         if teamID
             ChangeTeam( teamID )
         else
@@ -506,7 +506,7 @@ do
         PANEL_META.SetText( @, Translate( str ) )
 
     PANEL.Think = =>
-        teamID = @Team
+        teamID = @TeamID
         unless teamID
             enabled = false
             for i = 1, 2
@@ -523,7 +523,7 @@ do
         unless @Color
             @Color = GetTeamColor( teamID )
 
-        count = team.NumPlayers( teamID )
+        count = GetTeamPlayersCount( nil, teamID )[ 1 ]
         if count ~= @Count
             @SetText( "#jb.team." .. teamID .. " x" .. count )
             @Count = count
@@ -592,7 +592,7 @@ do
             button = subPanel\Add( "Jailbreak::TeamSelect - Button" )
             @Guards = button
 
-            button.Team = TEAM_GUARD
+            button.TeamID = TEAM_GUARD
             button.MainPanel = @
             button\Dock( LEFT )
 
@@ -607,7 +607,7 @@ do
             button = subPanel\Add( "Jailbreak::TeamSelect - Button" )
             @Prisoners = button
 
-            button.Team = TEAM_PRISONER
+            button.TeamID = TEAM_PRISONER
             button.MainPanel = @
             button\Dock( RIGHT )
 
@@ -623,7 +623,7 @@ do
             @Spectators = button
 
             button\SetText( "#jb.spectate" )
-            button.Team = TEAM_SPECTATOR
+            button.TeamID = TEAM_SPECTATOR
             button.MainPanel = @
 
             button\SetTextColor( dark_grey )
@@ -928,12 +928,12 @@ do
     PANEL = {}
 
     PANEL.Init = =>
-        @Team = TEAM_SPECTATOR
+        @TeamID = TEAM_SPECTATOR
         @Dock( TOP )
         InvalidateLayout( @, true )
 
     PANEL.PerformLayout = =>
-        teamID = @Team
+        teamID = @TeamID
         @Color = GetTeamColor( teamID )
         text = "#jb.team." .. teamID
         @SetTooltip( text )
@@ -947,7 +947,7 @@ do
         height = margin + textHeight + margin
         @SetTall( height )
 
-        if @Team == TEAM_SPECTATOR
+        if @TeamID == TEAM_SPECTATOR
             @TextPosX, @TextPosY = ( width - textWidth ) / 2, ( height - textHeight ) / 2
             @RectX, @RectWidth = 0, width
             return
@@ -968,7 +968,7 @@ do
         SetFont( "Jailbreak::Scoreboard - Header" )
         SetDrawColor( @Color )
 
-        if @Team ~= TEAM_SPECTATOR
+        if @TeamID ~= TEAM_SPECTATOR
             DrawRect( 0, 0, @ScoreSize, height )
             SetTextPos( @ScoreX, @ScoreY )
             DrawText( @Score )
@@ -1014,7 +1014,7 @@ do
         label = prisoners\Add( "Jailbreak::Scoreboard - Header" )
         prisoners.Label = label
 
-        label.Team = TEAM_PRISONER
+        label.TeamID = TEAM_PRISONER
         InvalidateLayout( label )
 
         scrollPanel = prisoners\Add( "Jailbreak::Scoreboard - ScrollPanel" )
@@ -1029,7 +1029,7 @@ do
         label = guards\Add( "Jailbreak::Scoreboard - Header" )
         guards.Label = label
 
-        label.Team = TEAM_GUARD
+        label.TeamID = TEAM_GUARD
         InvalidateLayout( label )
 
         scrollPanel = guards\Add( "Jailbreak::Scoreboard - ScrollPanel" )
@@ -1045,7 +1045,7 @@ do
         label = spectators\Add( "Jailbreak::Scoreboard - Header" )
         spectators.Label = label
 
-        label.Team = TEAM_SPECTATOR
+        label.TeamID = TEAM_SPECTATOR
         InvalidateLayout( label )
 
         scrollPanel = spectators\Add( "Jailbreak::Scoreboard - ScrollPanel" )
@@ -1123,7 +1123,7 @@ do
 
         playerCount = @PlayerCount
         if IsValid( playerCount )
-            teams = Jailbreak.GetTeamPlayersCount( nil, TEAM_PRISONER, TEAM_GUARD )
+            teams = GetTeamPlayersCount( nil, TEAM_PRISONER, TEAM_GUARD )
             playerCount\SetText( format( GetPhrase( "jb.scoreboard.players-online" ), player.GetCount!, teams[ 1 ], teams[ 2 ] ) )
             playerCount\SizeToContentsY!
 
