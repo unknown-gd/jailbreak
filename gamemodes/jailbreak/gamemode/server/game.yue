@@ -194,37 +194,38 @@ GM.SetupMove = ( ply, _, cmd ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetModel
 do
 
-    :AllowCustomPlayerModels, :AllowCustomPlayerColors, :AllowCustomWeaponColors, :FixModelPath, :PlayerModels, :IsFemalePrison, :DefaultTeamColors = Jailbreak
+    :AllowCustomPlayerModels, :PlayerModels, :IsFemalePrison = Jailbreak
     :TranslatePlayerModel = player_manager
-    :PrecacheModel, :IsValidModel = util
-    :Explode, :match = string
-    tonumber = tonumber
+    :match = string
 
     GM.PlayerSetModel = ( ply ) =>
-        teamID = ply\Team!
+        requested = TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
+        if AllowCustomPlayerModels\GetBool! and ply\SetModel( requested )
+            return
 
-        requested = FixModelPath( TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) ) )
-        if AllowCustomPlayerModels\GetBool! and IsValidModel( requested )
-            PrecacheModel( requested )
-            ply\SetModel( requested )
-        else
+        models = PlayerModels[ ply\Team! ][ IsFemalePrison! ]
+        length = #models
 
-            models = PlayerModels[ teamID ][ IsFemalePrison! ]
-            if #models == 1
-                ply\SetModel( models[ 1 ] )
-            else
+        if length == 1
+            ply\SetModel( models[ 1 ] )
+            return
 
-                playerModel = nil
+        requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
+        for index = 1, length
+            if ( models[ index ] == requested or match( models[ index ], "([%w%_%-]+)%.mdl$" ) == requestedName ) and ply\SetModel( models[ index ] )
+                return
 
-                if IsValidModel( requested )
-                    requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
-                    for modelPath in *models
-                        if modelPath == requested or match( modelPath, "([%w%_%-]+)%.mdl$" ) == requestedName
-                            playerModel = modelPath
-                            break
+        ply\SetModel( models[ random( 1, #models ) ] )
 
-                ply\SetModel( playerModel or models[ random( 1, #models ) ] )
+do
 
+    :AllowCustomPlayerColors, :AllowCustomWeaponColors, :DefaultTeamColors = Jailbreak
+    tonumber = tonumber
+    :Explode = string
+
+    defaultWeaponColor = Vector( 0.001, 0.001, 0.001 )
+
+    GM.PlayerModelChanged = ( ply ) =>
         isBot = ply\IsBot!
         if isBot
             ply\SetSkin( random( 0, ply\SkinCount! ) )
@@ -242,24 +243,22 @@ do
 
         -- Player color setup
         unless AllowCustomPlayerColors\GetBool!
-            ply\SetPlayerColor( DefaultTeamColors[ teamID ] )
+            ply\SetPlayerColor( DefaultTeamColors[ ply\Team! ] )
         elseif isBot
             ply\SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
         else
             ply\SetPlayerColor( Vector( ply\GetInfo( "cl_playercolor" ) ) )
 
         unless AllowCustomWeaponColors\GetBool!
-            ply\SetWeaponColor( DefaultTeamColors[ teamID ] )
+            ply\SetWeaponColor( DefaultTeamColors[ ply\Team! ] )
         elseif isBot
             ply\SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
         else
             weaponColor = Vector( ply\GetInfo( "cl_weaponcolor" ) )
             if weaponColor\Length! < 0.001
-                weaponColor = Vector( 0.001, 0.001, 0.001 )
+                weaponColor = defaultWeaponColor
 
             ply\SetWeaponColor( weaponColor )
-
-        ply\SetupHands!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetHandsModel
 do
@@ -268,13 +267,11 @@ do
 
     GM.PlayerSetHandsModel = ( ply, hands ) =>
         info = TranslatePlayerHands( TranslateToPlayerModelName( ply\GetModel! ) )
-        unless info
-            return
-
-        hands\SetModel( info.model )
-        hands\SetBodyGroups( info.body )
-        hands\SetPlayerColor( ply\GetPlayerColor! )
-        hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
+        if info ~= nil
+            hands\SetModel( info.model )
+            hands\SetBodyGroups( info.body )
+            hands\SetPlayerColor( ply\GetPlayerColor! )
+            hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
 
 -- https://wiki.facepunch.com/gmod/GM:DoPlayerDeath
 do

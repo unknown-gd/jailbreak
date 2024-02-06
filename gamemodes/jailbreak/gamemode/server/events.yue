@@ -1,13 +1,11 @@
 ErrorNoHaltWithStack = ErrorNoHaltWithStack
 :random, :Clamp, :Rand = math
-hook_Remove = hook.Remove
 Jailbreak = Jailbreak
+:Add, :Remove = hook
 tostring = tostring
 xpcall = xpcall
 :gsub = string
-:Add = hook
 
-ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_FINISHED = ROUND_FINISHED
 
@@ -149,22 +147,19 @@ do
 -- Masquerade
 do
 
-    :PrecacheModel = util
+    playerModels = player_manager.AllValidModels!
     Vector = Vector
     :Random = table
 
-    Models = player_manager.AllValidModels!
-
     event = Jailbreak.RegisterEvent "masquerade", ->
             Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
-                modelPath = Random( Models )
-                if modelPath ~= nil
-                    modelPath = Jailbreak.FixModelPath( modelPath )
-                    PrecacheModel( modelPath )
-                    @SetModel( modelPath )
-                    return true
+                modelPath = Random( playerModels )
+                if modelPath == nil
+                    return
 
-            Add "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent", =>
+                return @SetModel( modelPath )
+
+            Add "PlayerModelChanged", "Jailbreak::MasqueradeEvent", =>
                 if @IsBot!
                     return
 
@@ -175,10 +170,12 @@ do
                 for bodygroup in *@GetBodyGroups!
                     @SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
 
+                return true
+
             return true, true,
         ->
-            hook_Remove "TeamPlayerSpawn", "Jailbreak::MasqueradeEvent"
-            hook_Remove "PlayerSetModel", "Jailbreak::MasqueradeEvent"
+            Remove "PlayerModelChanged", "Jailbreak::MasqueradeEvent"
+            Remove "PlayerSetModel", "Jailbreak::MasqueradeEvent"
 
     event\SetFinishState( ROUND_FINISHED )
     event\SetType( "playermodel" )
@@ -244,8 +241,8 @@ do
 
             return true, false,
         ->
-            hook_Remove "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent"
-            hook_Remove "PlayerFootstep", "Jailbreak::GrassIsLavaEvent"
+            Remove "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent"
+            Remove "PlayerFootstep", "Jailbreak::GrassIsLavaEvent"
 
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( ROUND_FINISHED )
