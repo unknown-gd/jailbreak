@@ -374,10 +374,17 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
-    :RagdollRemove, :FixModelPath = Jailbreak
+    :RagdollRemove, :RagdollHealth, :GetRoundState = Jailbreak
+    ROUND_PREPARING = ROUND_PREPARING
+    ROUND_FINISHED = ROUND_FINISHED
+
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
+        roundState = GetRoundState!
+        if roundState == ROUND_PREPARING or roundState == ROUND_FINISHED
+            return NULL
+
         if Run( "PlayerCanCreateRagdoll", @, putItems ) == false
             return NULL
 
@@ -402,27 +409,18 @@ do
         ragdoll\SetPos( spawnOrigin )
         ragdoll\Spawn!
 
-        ragdoll.Team = @Team!
+        ragdoll\SetHealth( RagdollHealth\GetInt! )
+        ragdoll\SetMaxHealth( ragdoll\Health! )
+        ragdoll\SetTeam( @Team! )
 
         if @Alive!
-            ragdoll.Alive = true
-
-            angles = @EyeAngles!
-            angles[ 1 ] = 0
-            angles[ 3 ] = 0
-            ragdoll.PlayerAngles = angles
-
-            ragdoll\SetMaxHealth( @GetMaxHealth! )
-            ragdoll\SetHealth( @Health! )
-
+            ragdoll\SetNW2Bool( "alive", true )
             ragdoll.MaxArmor = @GetMaxArmor!
             ragdoll.Armor = @Armor!
-        else
-            ragdoll.Alive = false
 
-            health = @GetMaxHealth!
-            ragdoll\SetMaxHealth( health )
-            ragdoll\SetHealth( health )
+            angles = @EyeAngles!
+            angles[ 1 ], angles[ 3 ] = 0, 0
+            ragdoll.PlayerAngles = angles
 
         for bodygroup in *@GetBodyGroups!
             ragdoll\SetBodygroup( bodygroup.id, @GetBodygroup( bodygroup.id ) )
@@ -535,8 +533,7 @@ do
             ragdoll.Ammo = @GetAmmo!
             @RemoveAllAmmo!
 
-        if ragdoll\IsValidObserveTarget!
-            ragdoll\AddToObserveTargets!
+        ragdoll\AddToObserveTargets!
 
         return ragdoll
 
