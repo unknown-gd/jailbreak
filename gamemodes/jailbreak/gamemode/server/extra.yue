@@ -277,7 +277,7 @@ do
 do
 
     lootSound = Sound( "npc/footsteps/softshoe_generic6.wav" )
-    :LootRagdoll, :RagdollLootingTime = Jailbreak
+    :RagdollLootingTime = Jailbreak
 
     Add "PlayerHoldUse", "Jailbreak::RagdollLooting", ( entity, useTime ) =>
         if useTime < RagdollLootingTime\GetFloat!
@@ -287,7 +287,7 @@ do
             return
 
         entity\EmitSound( lootSound, 60, random( 80, 120 ), Rand( 0.7, 1 ), CHAN_STATIC, 0, 1 )
-        LootRagdoll( @, entity )
+        @LootRagdoll( entity )
         return true
 
 -- Silly death animations

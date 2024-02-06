@@ -6,7 +6,6 @@ DMG_SHOCK = DMG_SHOCK
 IsValid = IsValid
 Vector = Vector
 Angle = Angle
-pairs = pairs
 :Run = hook
 GM = GM
 
@@ -116,7 +115,6 @@ do
     DMG_BURN = DMG_BURN
     isnumber = isnumber
     istable = istable
-    :find = string
     :Create = ents
     :band = bit
 
@@ -482,7 +480,7 @@ do
         nextHealth = floor( health - damageInfo\GetDamage! )
         ragdoll\SetHealth( nextHealth )
 
-        if ragdoll.Alive
+        if ragdoll\Alive!
             startHealth = ragdoll.StartHealth
             unless startHealth
                 startHealth = health
@@ -490,7 +488,8 @@ do
 
             if ( nextHealth / startHealth ) < 0.75
                 ragdoll\EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-                ragdoll.Alive = false
+                ragdoll\SetNW2Bool( "alive", false )
+                Run( "RagdollDeath", ragdoll )
 
         Run( "PostRagdollTakeDamage", ragdoll, damageInfo )
 
