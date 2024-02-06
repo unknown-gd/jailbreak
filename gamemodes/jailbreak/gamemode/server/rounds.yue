@@ -56,10 +56,6 @@ do
     lastPrisonersCount = 0
 
     playerChangedTeam = =>
-        isWarden = @IsWarden!
-        if isWarden
-            @SetWarden( false, true )
-
         teamID = @Team!
         Create "Jailbreak::TeamPlayerCountChanged", 0.25, 1, ->
             switch GetRoundState!
@@ -77,9 +73,6 @@ do
                             PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
 
                         lastPrisonersCount = teams[ 2 ]
-
-                        if isWarden and @IsValid!
-                            Run( "WardenChanged", @, false )
 
     Jailbreak.PlayerChangedTeam = playerChangedTeam
 
@@ -175,10 +168,6 @@ do
                 else
                     SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. ".0", Colors.dark_white )
                     setWinningTeam( 0 )
-
-                warden = GetWarden!
-                if warden and warden\IsValid!
-                    warden\SetWarden( false, true )
 
                 setRoundTime( PrepareTime\GetInt! )
                 PlaySound( "ambient/alarms/warningbell1.wav" )

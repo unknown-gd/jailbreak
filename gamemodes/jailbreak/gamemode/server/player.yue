@@ -117,6 +117,9 @@ PLAYER.SetWarden = ( bool, silent ) =>
 
     Run( "WardenChanged", @, bool )
 
+hook.Add "PostPlayerDeath", "Jailbreak::WardenDeath", =>
+    @SetWarden( false )
+
 -- Allows player use of flight
 PLAYER.AllowFlight = ( bool ) =>
     @SetNW2Bool( "flight-allowed", bool )
