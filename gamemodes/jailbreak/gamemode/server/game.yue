@@ -724,47 +724,46 @@ GM.PlayerUse = ( ply, entity ) =>
     return true
 
 -- https://wiki.facepunch.com/gmod/GM:OnEntityCreated
+GM.OnEntityCreated = ( entity ) =>
+    if entity\IsPlayer!
+        Run( "OnPlayerCreated", entity )
+        return
+
+    -- Fuck 'game_player_equip'
+    className = entity\GetClass!
+    if className == "game_player_equip"
+        entity\Remove!
+        return
+
+    if className == "func_button"
+        entity\SetNW2Bool( "is-button", true )
+        return
+
+    entity\AddToObserveTargets!
+
+    if entity\IsWeapon!
+        Run( "OnWeaponCreated", entity )
+        return
+
 do
 
     COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
     :FindInSphere = ents
 
-    GM.OnEntityCreated = ( entity ) =>
-        if entity\IsPlayer!
-            return
-
-        switch entity\GetClass!
-            -- Fuck 'game_player_equip'
-            when "game_player_equip"
-                entity\Remove!
-                return
-
-            when "func_button"
-                entity\SetNW2Bool( "is-button", true )
-
-        if entity\IsValidObserveTarget!
-            entity\AddToObserveTargets!
-            return
-
-        unless entity\IsWeapon!
-            return
-
+    GM.OnWeaponCreated = ( weapon ) =>
         Simple 0.025, ->
-            unless entity\IsValid!
+            if not weapon\IsValid! or weapon\GetOwner!\IsValid!
                 return
 
-            if entity\GetOwner!\IsValid!
-                return
+            weapon\SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
-            entity\SetCollisionGroup( COLLISION_GROUP_WEAPON )
-
-            phys = entity\GetPhysicsObject!
-            unless IsValid( phys ) and phys\IsMotionEnabled!
+            phys = weapon\GetPhysicsObject!
+            unless phys and phys\IsValid! and phys\IsMotionEnabled!
                 return
 
             counter = 0
-            for other in *FindInSphere( entity\GetPos!, 32 )
-                if other\IsWeapon! and not IsValid( other\GetOwner! )
+            for other in *FindInSphere( weapon\GetPos!, 32 )
+                if other\IsWeapon! and not other\GetOwner!\IsValid!
                     counter = counter + 1
                     if counter >= 5
                         phys\EnableMotion( false )
