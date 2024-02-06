@@ -412,12 +412,16 @@ do
 
     :GetInternalVariable, :GetNW2Int, :SetNW2Int = ENTITY
     :FindByClass = ents
+    ipairs = ipairs
+    state = 0
 
-    Add "Think", "Jailbreak::DoorState", ->
-        for entity in *FindByClass( "prop_door_rotating" )
+    timer.Create "Jailbreak::DoorState", 0.25, 0, ->
+        for _, entity in ipairs( FindByClass( "prop_door_rotating" ) )
             state = GetInternalVariable( entity, "m_eDoorState" )
             if GetNW2Int( entity, "m_eDoorState" ) ~= state
                 SetNW2Int( entity, "m_eDoorState", state )
+                if state ~= 0 and entity\IsDoorLocked!
+                    entity\Fire( "unlock" )
 
 -- Developer
 Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
