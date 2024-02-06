@@ -750,10 +750,9 @@ GM.PlayerLoadout = ( ply ) =>
     -- Giving weapons if not cstrike map
     if ply\IsGuard! and Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
         avaliableWeapons = @AvaliableWeapons
-        count = #avaliableWeapons / 4
-        gived = {}
+        gived, count = {}, 4
 
-        for i = 1, 32
+        for i = 1, 8
             if count == 0
                 break
 
@@ -761,9 +760,9 @@ GM.PlayerLoadout = ( ply ) =>
             if ply\HasWeapon( className ) or gived[ className ] == true
                 continue
 
-            ply\Give( className, false, true )
-            gived[ className ] = true
-            count -= 1
+            if ply\Give( className, false )\IsValid!
+                gived[ className ] = true
+                count -= 1
 
     -- Giving hands
     ply\Give( "jb_hands", false, true )
