@@ -7,6 +7,7 @@ GM = GM
 :VoiceChatMinDistance, :VoiceChatMaxDistance, :GameInProgress = Jailbreak
 :white, :red, :dark_white = Jailbreak.Colors
 CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
+CHAT_OOC = CHAT_OOC
 
 :GetHumans = player
 tonumber = tonumber
@@ -54,6 +55,10 @@ do
             return
 
         unless target
+            if messageType == CHAT_OOC
+                Broadcast!
+                return
+
             target = GetHumans!
 
         unless isstring( text )
@@ -185,15 +190,10 @@ do
             "#jb.chat.command.roll"
 
 -- Out of Character ( OOC )
-ooc = nil
-do
+ooc = ( text, isTeamChat ) =>
+    sendChatText( false, @, CHAT_OOC, text, @Nick!, @Alive!, isTeamChat and @Team! or false )
 
-    CHAT_OOC = CHAT_OOC
-
-    ooc = ( text, isTeamChat ) =>
-        sendChatText( false, @, CHAT_OOC, text, @Nick!, @Alive!, isTeamChat and @Team! or false )
-
-    Jailbreak.OOC = ooc
+Jailbreak.OOC = ooc
 
 do
 
