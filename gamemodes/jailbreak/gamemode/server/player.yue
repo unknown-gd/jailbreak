@@ -623,6 +623,23 @@ ENTITY = FindMetaTable( "Entity" )
 
 do
 
+    :PrecacheModel, :IsValidModel = util
+    :SetupHands = PLAYER
+    :SetModel = ENTITY
+
+    PLAYER.SetModel = ( modelPath ) =>
+        modelPath = FixModelPath( modelPath )
+        if IsValidModel( modelPath )
+            PrecacheModel( modelPath )
+            SetModel( @, modelPath )
+            Run( "PlayerModelChanged", @, modelPath )
+            SetupHands( @ )
+            return true
+
+        return false
+
+do
+
     :GetNW2Int = ENTITY
 
     PLAYER.GetSpawnTime = =>
