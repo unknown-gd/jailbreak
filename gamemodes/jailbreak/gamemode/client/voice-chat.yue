@@ -62,11 +62,16 @@ do
         @SetTall( height )
 
     PANEL.Setup = ( ply ) =>
-        label = @Label
-        label\SetTextColor( ply\GetModelColor! )
-        label\SetText( ply\Nick! )
-        @Player = ply
+        unless ply\IsValid!
+            @Remove!
+            return
 
+        label = @Label
+        if label and label\IsValid!
+            label\SetTextColor( ply\GetModelColor! )
+            label\SetText( ply\Nick! )
+
+        @Player = ply
         @InvalidateLayout!
 
     do
