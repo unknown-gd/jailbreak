@@ -20,126 +20,48 @@ OBS_MODE_CHASE = OBS_MODE_CHASE
 GM.ShowTeam = ( ply ) =>
     ply\ConCommand( "jb_showteam" )
 
--- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
-GM.PlayerInitialSpawn = ( ply, transiton ) =>
-    ragdoll = ply\GetRagdollEntity!
-    if ragdoll\IsValid!
-        ragdoll\SetNW2Entity( "ragdoll-owner", ply )
-    else
-        ply\SetTeam( ply\IsBot! and TEAM_PRISONER or TEAM_SPECTATOR )
-        ply\KillSilent!
+do
 
-    ply.InitialSpawn = true
+    RENDERMODE_TRANSCOLOR = RENDERMODE_TRANSCOLOR
 
--- Player spawn from ragdoll
-GM.PlayerSpawnFromRagdoll = ( ply, ragdoll, ignoreHealth ) =>
-    teamID = ragdoll.Team
-    if not ragdoll.Alive or not teamID or ragdoll\Health! < 1
-        ply\SetTeam( teamID or TEAM_SPECTATOR )
-        ply\KillSilent!
+    -- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
+    GM.PlayerInitialSpawn = ( ply, transiton ) =>
+        ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
+        ply\SetNoCollideWithTeammates( true )
+        ply\SetAvoidPlayers( true )
+        ply\SetCanZoom( false )
 
-        Simple 0, ->
-            if not ply\IsValid! or ply\Alive!
-                return
+        ragdoll = ply\GetRagdollEntity!
+        if ragdoll\IsValid!
+            ragdoll\SetNW2Entity( "ragdoll-owner", ply )
+        else
+            ply\SetTeam( ply\IsBot! and TEAM_PRISONER or TEAM_SPECTATOR )
 
-            if ragdoll\IsValid!
-                ply\Spectate( OBS_MODE_CHASE )
-                ply\SpectateEntity( ragdoll )
-            else
-                ply\Spectate( OBS_MODE_ROAMING )
-
-        return true
-
-    ply\SetTeam( teamID )
-
-    ply\SetEyeAngles( ragdoll.PlayerAngles )
-    ply\SetPos( ragdoll\WorldSpaceCenter! )
-    ply\SetModel( ragdoll\GetModel! )
-
-    if ignoreHealth ~= true
-        ply\SetHealth( ply\GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
-        ply\SetArmor( ply\GetMaxArmor! * ( ragdoll.Armor / ragdoll.MaxArmor ) )
-
-    ply\SetPlayerColor( ragdoll\GetPlayerColor! )
-    ply\SetMaterial( ragdoll\GetMaterial! )
-    ply\SetColor( ragdoll\GetColor! )
-    ply\SetSkin( ragdoll\GetSkin! )
-
-    for bodygroup in *ply\GetBodyGroups!
-        ply\SetBodygroup( bodygroup.id, ragdoll\GetBodygroup( bodygroup.id ) )
-
-    for index = 1, #ply\GetMaterials!
-        materialPath = ragdoll\GetSubMaterial( index )
-        if materialPath ~= ""
-            ply\SetSubMaterial( index, materialPath )
-
-    if ragdoll\IsOnFire!
-        ply\Ignite( 5, 16 )
-        ragdoll\Extinguish!
-
-    for bone = 0, ply\GetBoneCount! - 1
-        ply\ManipulateBonePosition( bone, ragdoll\GetManipulateBonePosition( bone ) )
-        ply\ManipulateBoneAngles( bone, ragdoll\GetManipulateBoneAngles( bone ) )
-        ply\ManipulateBoneJiggle( bone, ragdoll\GetManipulateBoneJiggle( bone ) )
-        ply\ManipulateBoneScale( bone, ragdoll\GetManipulateBoneScale( bone ) )
-
-    if ragdoll\IsRagdoll!
-        velocity = Vector!
-
-        count = ragdoll\GetPhysicsObjectCount!
-        for physNum = 0, count - 1
-            phys = ragdoll\GetPhysicsObjectNum( physNum )
-            if IsValid( phys )
-                velocity += phys\GetVelocity!
-
-        velocity /= count
-        ply\SetVelocity( velocity )
-    else
-        phys = ragdoll\GetPhysicsObject!
-        if IsValid( phys )
-            ply\SetVelocity( phys\GetVelocity! )
-
-    if ragdoll.HasShockCollar
-        ply\GiveShockCollar!
-
-    ragdoll.HasShockCollar = nil
-
-    Jailbreak.LootRagdoll( ply, ragdoll )
-
-    ply\Give( "jb_hands", false, true )
-    ply\SelectWeapon( "jb_hands" )
-
-    Run( "TeamPlayerSpawn", ply, teamID )
+        ply.m_bInitialSpawn = true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
     :RagdollRemove, :GameInProgress, :GuardsArmor = Jailbreak
-    RENDERMODE_TRANSCOLOR = RENDERMODE_TRANSCOLOR
     :white = Jailbreak.Colors
 
     GM.PlayerSpawn = ( ply, transiton ) =>
         ply\RemoveFromObserveTargets!
-        ply\SetAvoidPlayers( true )
-        ply\SetCanZoom( false )
-        ply\SetWarden( false )
         ply\SetColor( white )
         ply\SetupMovement!
         ply\RemoveAllAmmo!
         ply\StripWeapons!
         ply\UnSpectate!
 
-        ply\SetMaxHealth( 100 )
-        ply\SetMaxArmor( 100 )
-
-        if ply.InitialSpawn ~= nil
-            ply.InitialSpawn = nil
+        if ply.m_bInitialSpawn ~= nil
+            ply.m_bInitialSpawn = nil
 
             ragdoll = ply\GetRagdollEntity!
             if ragdoll\IsValid!
-                unless Run( "PlayerSpawnFromRagdoll", ply, ragdoll )
-                    ragdoll\Remove!
+                if ply\SpawnFromRagdoll( ragdoll )
+                    Run( "PostPlayerSpawn", ply )
 
+                ragdoll\Remove!
                 return
 
             if GameInProgress!
@@ -151,6 +73,14 @@ do
             ply\KillSilent!
             return
 
+        if RagdollRemove\GetBool!
+            ply\RemoveRagdoll!
+
+        Run( "PlayerSetModel", ply )
+
+        ply\SetMaxHealth( 100 )
+        ply\SetHealth( 100 )
+
         if teamID == TEAM_GUARD
             armor = GuardsArmor\GetInt!
             ply\SetMaxArmor( max( 100, armor ) )
@@ -159,20 +89,13 @@ do
             ply\GiveSecurityKeys!
             ply\GiveFlashlight!
         else
+            ply\SetMaxArmor( 100 )
             ply\SetArmor( 0 )
-
-        if RagdollRemove\GetBool!
-            ply\RemoveRagdoll!
-
-        ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
-        ply\SetNW2Int( "spawn-time", CurTime! + 0.25 )
-        ply\SetHealth( 100 )
 
         unless transiton
             Run( "PlayerLoadout", ply )
 
-        Run( "PlayerSetModel", ply )
-        Run( "TeamPlayerSpawn", ply, teamID )
+        Run( "PostPlayerSpawn", ply )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSelectSpawn
 do
@@ -222,7 +145,6 @@ do
 -- https://wiki.facepunch.com/gmod/GM:IsSpawnpointSuitable
 do
 
-    :TF2Team = Jailbreak
     :TraceHull = util
 
     trace = {
