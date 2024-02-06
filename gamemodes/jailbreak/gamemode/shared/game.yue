@@ -68,7 +68,7 @@ GM.ShouldCollide = ( entity, ply ) =>
         return
 
     if entity\GetClass! == "func_respawnroomvisualizer" and not entity\IsDisabled!
-        return ply\Team! ~= entity\GetNW2Int( "team" )
+        return ply\Team! ~= entity\Team!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerFootstep
 do

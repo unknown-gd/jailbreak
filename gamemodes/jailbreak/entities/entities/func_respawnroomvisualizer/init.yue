@@ -16,15 +16,16 @@ ENT.KeyValue = ( key, value ) =>
         when "respawnroomname"
             @RoomName = value
 
-            timer.Simple 0.5, ->
+            timer.Simple 0.25, ->
                 unless @IsValid!
                     return
 
-                for entity in *ents.FindByName( value )
-                    teamID = entity.Team
-                    if teamID
-                        @SetNW2Int( "team", Jailbreak.TF2Team( tonumber( teamID ) or 0 ) )
-                        break
+                entities = ents.FindByName( value )
+                if #entities == 0
+                    return
+
+                @SetTeam( entities[ 1 ]\Team! )
+
         when "StartDisabled"
             @SetDisabled( tobool( value ) )
 

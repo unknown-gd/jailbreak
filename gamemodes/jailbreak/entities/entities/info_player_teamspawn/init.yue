@@ -21,7 +21,7 @@ do
     ENT.KeyValue = ( key, value ) =>
         switch key
             when "TeamNum"
-                @Team = TF2Team( tonumber( value ) or 0)
+                @SetTeam( TF2Team( tonumber( value ) or 0 ) )
 
             when "StartDisabled"
                 @Disabled = tobool( value )

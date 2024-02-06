@@ -1,4 +1,5 @@
 ENT.Type = "brush"
+:TF2Team = Jailbreak
 
 -- ENT.Initialize = =>
 -- 	@SetTrigger( true )
@@ -30,6 +31,6 @@ ENT.KeyValue = ( key, value ) =>
 		when "targetname"
 			@Targets = value
 		when "TeamNum"
-        	@Team = tonumber( value ) or 0
+			@SetTeam( TF2Team( tonumber( value ) or 0 ) )
 		when "StartDisabled"
         	@Disabled = tobool( value )

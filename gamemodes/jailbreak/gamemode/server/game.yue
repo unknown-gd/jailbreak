@@ -158,7 +158,7 @@ do
         unless Teams[ teamID ]
             return true
 
-        if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or entity.Team ~= teamID )
+        if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or entity\Team! ~= teamID )
             return false
 
         start = entity\GetPos!
