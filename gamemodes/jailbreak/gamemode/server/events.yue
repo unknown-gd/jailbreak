@@ -270,12 +270,18 @@ do
     event = Jailbreak.RegisterEvent "powerful-players", ->
             Jailbreak.PowerfulPlayers = true
 
+            Add "EntityTakeDamage", "Jailbreak::PowerfulPlayers", ( damageInfo )=>
+                attacker = damageInfo\GetAttacker!
+                if attacker\IsValid! or attacker\IsPlayer!
+                    damageInfo\ScaleDamage( 2 )
+
             for ply in *GetAll!
                 if ply\Alive!
                     ply\AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_TAUNT_ZOMBIE, true )
 
             return true, false,
         ->
+            Remove "EntityTakeDamage", "Jailbreak::PowerfulPlayers"
             Jailbreak.PowerfulPlayers = false
 
     event\SetStartState( ROUND_RUNNING )

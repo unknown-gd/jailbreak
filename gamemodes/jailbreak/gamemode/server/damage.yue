@@ -2,9 +2,9 @@ Jailbreak = Jailbreak
 
 :ceil, :random, :max, :floor, :Rand = math
 CHAN_STATIC = CHAN_STATIC
-DMG_SHOCK = DMG_SHOCK
 IsValid = IsValid
 Vector = Vector
+:Create = ents
 Angle = Angle
 :Run = hook
 GM = GM
@@ -64,62 +64,246 @@ do
 
 do
 
-    unflamableMaterials = {
-        [ MAT_METAL ]: true
-        [ MAT_GRATE ]: true
-        [ MAT_TILE ]: true
-        [ MAT_SAND ]: true
-        [ MAT_VENT ]: true
-        [ MAT_CONCRETE ]: true
-        [ MAT_SNOW ]: true
-        [ MAT_GLASS ]: true
-        [ MAT_DEFAULT ]: true
-    }
+    unflamableMaterials = Jailbreak.UnflamableMaterials
 
-    Jailbreak.UnflamableMaterials = unflamableMaterials
+    unless unflamableMaterials
+        unflamableMaterials = {
+            [ MAT_METAL ]: true
+            [ MAT_GRATE ]: true
+            [ MAT_TILE ]: true
+            [ MAT_SAND ]: true
+            [ MAT_VENT ]: true
+            [ MAT_CONCRETE ]: true
+            [ MAT_SNOW ]: true
+            [ MAT_GLASS ]: true
+            [ MAT_DEFAULT ]: true
+        }
 
-    GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
-        unless entity\IsOnFire!
-            return
+        Jailbreak.UnflamableMaterials = unflamableMaterials
 
-        unless entity\IsSolid!
+    GM.AllowEntityExtinguish = ( entity ) =>
+        if unflamableMaterials[ entity\GetMaterialType! ]
+            return true
+
+GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
+    unless entity\IsOnFire!
+        return
+
+    unless entity\IsSolid!
+        entity\Extinguish!
+        return true
+
+    if entity\WaterLevel! >= 2
+        entity\Extinguish!
+        return
+
+    if entity\IsPlayer!
+        unless entity\Alive!
             entity\Extinguish!
             return true
 
-        if entity\WaterLevel! >= 2
-            entity\Extinguish!
-            return
-
-        if entity\IsPlayer!
-            unless entity\Alive!
-                entity\Extinguish!
-                return true
-
-            if entity\GetVelocity!\Length! > 800
-                entity\Extinguish!
-                return true
-
-        elseif unflamableMaterials[ entity\GetMaterialType! ]
+        if entity\GetVelocity!\Length! > 800
             entity\Extinguish!
             return true
+
+    elseif Run( "AllowEntityExtinguish", entity ) ~= false
+        entity\Extinguish!
+        return true
 
 do
 
-    :Teams, :IsRoundPreparing, :IsProp = Jailbreak
-    :IsValidModel, :IsInWorld, :Effect = util
-    MOVETYPE_VPHYSICS = MOVETYPE_VPHYSICS
-    SOLID_VPHYSICS = SOLID_VPHYSICS
+    :IsRoundPreparing, :IsProp = Jailbreak
     DMG_NEVERGIB = DMG_NEVERGIB
-    EffectData = EffectData
-    DMG_BLAST = DMG_BLAST
-    DMG_BURN = DMG_BURN
-    isnumber = isnumber
-    istable = istable
-    :Create = ents
     :band = bit
+
+    GM.EntityTakeDamage = ( entity, damageInfo ) =>
+        if damageInfo\IsBurnDamage! and Run( "EntityTakeFireDamage", entity, damageInfo ) == true
+            return true
+
+        className = entity\GetClass!
+        if IsRoundPreparing!
+            if className == "func_button"
+                return
+
+            return true
+
+        if entity\IsPlayer!
+            if Run( "CanPlayerTakeDamage", entity, damageInfo, entity\Team! ) ~= false
+                return Run( "PlayerTakeDamage", entity, damageInfo, entity\Team! )
+
+            return true
+
+        if className == "func_button"
+            return Run( "ButtonTakeDamage", entity, damageInfo )
+
+        if band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
+            return
+
+        if entity\IsWeapon!
+            return Run( "WeaponTakeDamage", entity, damageInfo )
+
+        if entity\IsRagdoll!
+            inflictor = damageInfo\GetInflictor!
+            if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
+                entity\Dissolve!
+                return true
+
+            return Run( "RagdollTakeDamage", entity, damageInfo )
+
+        if IsProp( className )
+            return Run( "PropTakeDamage", entity, damageInfo )
+
+        if className == "prop_door_rotating"
+            return Run( "DoorTakeDamage", entity, damageInfo )
+
+GM.PostEntityTakeDamage = ( entity, damageInfo, took ) =>
+    unless took
+        return
+
+    if damageInfo\IsExplosionDamage!
+        damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
+
+    inflictor = damageInfo\GetInflictor!
+    if inflictor\IsValid! and inflictor\IsWeapon!
+        if not inflictor\IsScripted! and entity\IsPlayer!
+            return
+
+        if damageInfo\IsCloseRangeDamage! and inflictor\GetClass! ~= "jb_hands"
+            return
+
+    velocity = damageInfo\GetDamageForce!
+    if velocity\Length! < 1
+        return
+
+    origin = damageInfo\GetDamagePosition!
+    for physNum = 0, entity\GetPhysicsObjectCount! - 1
+        phys = entity\GetPhysicsObjectNum( physNum )
+        if phys and phys\IsValid! and phys\IsMoveable! and phys\IsMotionEnabled!
+            phys\ApplyForceOffset( velocity, origin )
+            phys\Wake!
+
+do
 
     sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
     sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
+    :Explosion = Jailbreak
+
+    GM.WeaponTakeDamage = ( weapon, damageInfo ) =>
+        switch weapon\GetClass!
+            when "weapon_frag"
+                if weapon.Exploded
+                    return true
+
+                weapon.Exploded = true
+
+                radius = sk_fraggrenade_radius\GetInt!
+                if damageInfo\IsExplosionDamage!
+                    radius *= random( 1, 4 )
+
+                Explosion( weapon, damageInfo\GetAttacker!, weapon\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
+                weapon\Remove!
+
+        return true
+
+do
+
+    :IsValidModel, :IsInWorld = util
+    :DoorsHealth = Jailbreak
+
+    GM.DoorTakeDamage = ( door, damageInfo ) =>
+        model = door\GetModel!
+        if #model == 0 or not IsValidModel( model )
+            return true
+
+        maxHealth = door\GetMaxHealth!
+        if maxHealth == 1
+            maxHealth = DoorsHealth\GetInt!
+            if maxHealth <= 0
+                return true
+
+            door\SetMaxHealth( maxHealth )
+            door\SetHealth( maxHealth )
+
+        health = max( 0, door\Health! - damageInfo\GetDamage! )
+        door\SetHealth( health )
+
+        if health >= 1
+            return true
+
+        center = door\OBBCenter!
+        center[ 1 ], center[ 2 ] = 0, 0
+
+        origin = door\LocalToWorld( center )
+        unless IsInWorld( origin )
+            door\Remove!
+            return true
+
+        prop = Create( "prop_physics" )
+        prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        prop\SetAngles( door\GetAngles! )
+        prop\SetSkin( door\GetSkin! )
+        prop\SetModel( model )
+        prop\SetPos( origin )
+        prop\Spawn!
+
+        prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        door\Remove!
+
+        phys = prop\GetPhysicsObject!
+        if phys and phys\IsValid!
+            phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
+            phys\Wake!
+
+        origin = damageInfo\GetDamagePosition!
+        util.ScreenShake( origin, 5, 10, 0.5, 150 )
+        prop\DoElectricSparks( origin, nil, true )
+        return true
+
+do
+
+    DMG_SHOCK = DMG_SHOCK
+
+    GM.ButtonTakeDamage = ( button, damageInfo ) =>
+        if damageInfo\IsExplosionDamage!
+            return true
+
+        attacker = damageInfo\GetAttacker!
+        unless attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
+            return true
+
+        button\DoElectricSparks( damageInfo\GetDamagePosition!, 150 )
+        button\Use( attacker, attacker )
+
+        unless damageInfo\IsCloseRangeDamage!
+            return true
+
+        attacker\Ignite( 0.5, 16 )
+
+        dir = attacker\WorldSpaceCenter! - damageInfo\GetDamagePosition!
+        dir[ 3 ] = 1
+
+        damageInfo\SetDamage( attacker\GetMaxHealth! / Rand( 2, 3 ) )
+        damageInfo\SetDamageForce( dir * 100 )
+        damageInfo\SetDamageType( DMG_SHOCK )
+        damageInfo\SetAttacker( button )
+        attacker\TakeDamageInfo( damageInfo )
+        return true
+
+do
+
+    MOVETYPE_VPHYSICS = MOVETYPE_VPHYSICS
+    SOLID_VPHYSICS = SOLID_VPHYSICS
+    isnumber = isnumber
+    istable = istable
+
+    dropList = {
+        ["models/props/de_inferno/crate_fruit_break.mdl"]: {
+            ["Models"]: "models/props/cs_italy/orange.mdl"
+            ["Count"]: { 16, 32 }
+        }
+    }
+
+    Jailbreak.BreakDropList = dropList
 
     materials = {
         [ MAT_GLASS ]: 0.5
@@ -142,74 +326,12 @@ do
 
     Jailbreak.DamageMaterials = materials
 
-    dropList = {
-        ["models/props/de_inferno/crate_fruit_break.mdl"]: {
-            ["Models"]: "models/props/cs_italy/orange.mdl"
-            ["Count"]: { 16, 32 }
-        }
-    }
-
-    Jailbreak.BreakDropList = dropList
-
     cache = {}
 
-    GM.EntityTakeDamage = ( entity, damageInfo ) =>
-        if entity\IsWeapon!
-            className = entity\GetClass!
-            if className == "weapon_frag" and not entity.Exploded
-                entity.Exploded = true
 
-                radius = sk_fraggrenade_radius\GetInt!
-                if damageInfo\IsExplosionDamage!
-                    radius *= random( 1, 4 )
-
-                Jailbreak.Explosion( entity, damageInfo\GetAttacker!, entity\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
-                entity\Remove!
-
-            return true
-
-        if damageInfo\IsExplosionDamage!
-            damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
-
-        if entity\IsPlayerRagdoll! or entity\IsRagdoll!
-            inflictor = damageInfo\GetInflictor!
-            if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
-                entity\Dissolve!
-            else
-                Run( "RagdollTakeDamage", entity, damageInfo )
-
-            return true
-
-        damageType = damageInfo\GetDamageType!
-        if band( damageType, DMG_BURN ) == DMG_BURN and Run( "EntityTakeFireDamage", entity, damageInfo ) == true
-            return true
-
-        if Jailbreak.PowerfulPlayers
-            attacker = damageInfo\GetAttacker!
-            if attacker\IsValid! or attacker\IsPlayer!
-                damageInfo\ScaleDamage( 2 )
-
-        elseif entity\IsPlayer!
-            if entity\Alive! and not entity\HasGodMode!
-                teamID = entity\Team!
-                if Teams[ teamID ] and Run( "CanPlayerTakeDamage", entity, damageInfo, teamID ) ~= false
-                    return Run( "PlayerTakeDamage", entity, damageInfo, teamID )
-
-            return true
-
-        className = entity\GetClass!
-        if IsRoundPreparing!
-            if className == "func_button"
-                return
-
-            return true
-
-        if band( damageType, DMG_NEVERGIB ) == DMG_NEVERGIB
-            return
-
-        if IsProp( className )
-            maxHealth = entity\GetMaxHealth!
-            if maxHealth <= 1 and entity\Health! < 1
+    GM.PropTakeDamage = ( entity, damageInfo ) =>
+        if entity.CustomHealth == nil
+            if entity\GetMaxHealth! == 1 and entity\Health! == 0
                 health = cache[ entity\GetModel! ]
                 unless health
                     mins, maxs = entity\GetCollisionBounds!
@@ -218,47 +340,15 @@ do
 
                 entity\SetHealth( health )
                 entity\SetMaxHealth( health )
-                return
+                entity.CustomHealth = true
+            else
+                entity.CustomHealth = false
 
-            health = max( 0, entity\Health! - damageInfo\GetDamage! )
-            if health > 1
-                entity\SetHealth( health )
+        unless entity.CustomHealth
+            return
 
-                if ( health / maxHealth ) > 0.5
-                    return true
-
-                changed = false
-                if entity\GetMoveType! ~= MOVETYPE_VPHYSICS
-                    entity\SetMoveType( MOVETYPE_VPHYSICS )
-                    changed = true
-
-                phys = entity\GetPhysicsObject!
-                if IsValid( phys )
-                    if phys\IsMoveable!
-                        unless phys\IsMotionEnabled!
-                            phys\EnableMotion( true )
-                            changed = true
-
-                        if phys\IsAsleep!
-                            phys\Wake!
-
-                    else
-                        entity\PhysicsInit( SOLID_VPHYSICS )
-                        entity\PhysWake!
-                        changed = true
-
-                if changed
-                    fx = EffectData!
-                    fx\SetOrigin( entity\WorldSpaceCenter! )
-                    fx\SetMagnitude( 5 )
-                    fx\SetRadius( 5 )
-                    fx\SetScale( 2 )
-                    Effect( "Sparks", fx )
-
-                    entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-
-                return true
-
+        health = max( 0, entity\Health! - damageInfo\GetDamage! )
+        if health < 1
             velocity = entity\GetVelocity! + damageInfo\GetDamageForce!
             if entity\PrecacheGibs! > 0
                 entity\GibBreakClient( velocity )
@@ -297,110 +387,36 @@ do
                             phys\ApplyForceCenter( Vector( random( -1, 1 ), random( -1, 1 ), random( -1, 1 ) ) * speed )
 
             entity\Remove!
-
             return true
 
-        if className == "prop_door_rotating"
-            model = entity\GetModel!
-            unless model and #model ~= 0 and IsValidModel( model )
-                return true
+        entity\SetHealth( health )
 
-            maxHealth = entity\GetMaxHealth!
-            if maxHealth <= 1
-                maxHealth = Jailbreak.DoorsHealth\GetInt!
-                if maxHealth <= 0
-                    return true
-
-                entity\SetMaxHealth( maxHealth )
-                entity\SetHealth( maxHealth )
-
-            health = entity\Health!
-            if health < 1
-                return true
-
-            health = max( 0, health - damageInfo\GetDamage! )
-            entity\SetHealth( health )
-
-            if health > 1
-                return true
-
-            center = entity\OBBCenter!
-            center[ 1 ] = 0
-            center[ 2 ] = 0
-
-            origin = entity\LocalToWorld( center )
-            unless IsInWorld( origin )
-                return true
-
-            prop = Create( "prop_physics" )
-            prop\SetCollisionGroup( COLLISION_GROUP_WEAPON )
-            prop\SetAngles( entity\GetAngles! )
-            prop\SetSkin( entity\GetSkin! )
-            prop\SetModel( model )
-            prop\SetPos( origin )
-            prop\Spawn!
-
-            prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-            entity\Remove!
-
-            phys = prop\GetPhysicsObject!
-            if IsValid( phys )
-                phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
-
-            origin = damageInfo\GetDamagePosition!
-            util.ScreenShake( origin, 5, 10, 0.5, 150 )
-
-            fx = EffectData!
-            fx\SetOrigin( origin )
-            fx\SetMagnitude( 5 )
-            fx\SetRadius( 5 )
-            fx\SetScale( 2 )
-            Effect( "Sparks", fx )
-
-            return true
-
-        if className == "func_button"
-            if band( damageType, DMG_BLAST ) == DMG_BLAST
-                return true
-
-            attacker = damageInfo\GetAttacker!
-            if attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
-                entity\Use( attacker, attacker )
-
-                damageOrigin = damageInfo\GetDamagePosition!
-                entity\DoElectricSparks( damageOrigin, 150 )
-
-                if damageInfo\IsCloseRangeDamage!
-                    attacker\Ignite( 0.25, 16 )
-
-                    dir = attacker\WorldSpaceCenter! - damageOrigin
-                    dir[ 3 ] = 1
-
-                    damageInfo\SetDamage( attacker\GetMaxHealth! / Rand( 2, 3 ) )
-                    damageInfo\SetDamageForce( dir * 100 )
-                    damageInfo\SetDamageType( DMG_SHOCK )
-                    damageInfo\SetAttacker( entity )
-                    attacker\TakeDamageInfo( damageInfo )
-
-            return true
-
-        inflictor = damageInfo\GetInflictor!
-        if inflictor\IsValid! and inflictor\IsWeapon!
-            unless inflictor\IsScripted!
-                return
-
-            if damageInfo\IsCloseRangeDamage! and inflictor\GetClass! ~= "jb_hands"
-                return
-
-        velocity = damageInfo\GetDamageForce!
-        if velocity\Length! < 1
+        if ( health / entity\GetMaxHealth! ) > 0.5
             return
 
-        origin = damageInfo\GetDamagePosition!
-        for physNum = 0, entity\GetPhysicsObjectCount! - 1
-            phys = entity\GetPhysicsObjectNum( physNum )
-            if IsValid( phys )
-                phys\ApplyForceOffset( velocity, origin )
+        changed = false
+        if entity\GetMoveType! ~= MOVETYPE_VPHYSICS
+            entity\SetMoveType( MOVETYPE_VPHYSICS )
+            changed = true
+
+        phys = entity\GetPhysicsObject!
+        if phys and phys\IsValid!
+            if phys\IsMoveable!
+                unless phys\IsMotionEnabled!
+                    phys\EnableMotion( true )
+                    changed = true
+
+                if phys\IsAsleep!
+                    phys\Wake!
+
+            else
+                entity\PhysicsInit( SOLID_VPHYSICS )
+                entity\PhysWake!
+                changed = true
+
+        if changed
+            entity\DoElectricSparks( entity\WorldSpaceCenter! )
+            entity\EmitSound( "physics/metal/metal_box_break" .. random( 1, 2 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
 do
 
@@ -458,10 +474,14 @@ GM.GetFallDamage = ( ply, speed ) =>
 
 do
 
+    vector_origin = vector_origin
     LocalToWorld = LocalToWorld
     :BloodSplashes = Jailbreak
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo ) =>
+        unless damageInfo\GetInflictor!\IsValid!
+            damageInfo\SetDamageForce( vector_origin )
+
         if damageInfo\IsCrushDamage!
             damageInfo\ScaleDamage( 0.25 )
 

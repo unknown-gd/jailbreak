@@ -15,6 +15,9 @@ do
     :IsRoundPreparing, :GuardsFriendlyFire = Jailbreak
 
     GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
+        if ply\HasGodMode! or not ply\Alive!
+            return false
+
         attacker = damageInfo\GetAttacker!
         unless IsValid( attacker ) and attacker\IsPlayer!
             return true
