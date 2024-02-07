@@ -700,3 +700,32 @@ Add "PlayerUsedEntity", "Jailbreak::PaintCan", ( entity ) =>
 Add "AllowPlayerPickup", "Jailbreak::PaintCan", ( entity ) =>
     if entity\IsPaintCan!
         return false
+
+Add "PlayerCanCreateRagdoll", "Jailbreak::AliveRagdoll", =>
+    ragdoll = @GetRagdollEntity!
+    if ragdoll\IsValid! and ragdoll\Alive! and not @Alive!
+        return false
+
+Add "PostEntityTakeDamage", "Jailbreak::AliveRagdoll", ( damageInfo, isRealDamage ) =>
+    unless isRealDamage and @IsPlayerRagdoll! and @Alive!
+        return
+
+    ply = @GetRagdollOwner!
+    if ply\IsValid! and ply\Alive!
+        ply\TakeDamageInfo( damageInfo )
+
+Add "PostPlayerDeath", "Jailbreak::AliveRagdoll", =>
+    ragdoll = @GetRagdollEntity!
+    if ragdoll\IsValid! and ragdoll\Alive!
+        ragdoll\SetAlive( false )
+
+Add "RagdollDeath", "Jailbreak::AliveRagdoll", =>
+    ply = @GetRagdollOwner!
+    if ply\IsValid! and ply\Alive!
+        ply\KillSilent!
+
+Add "EntityRemoved", "Jailbreak::AliveRagdoll", =>
+    if @IsPlayerRagdoll! and @Alive!
+        ply = @GetRagdollOwner!
+        if ply\IsValid! and ply\Alive!
+            ply\KillSilent!
