@@ -106,9 +106,10 @@ do
     :GetSpawnPoint = team
     :FindByClass = ents
 
-    cache = {}
+    cache, lastIndex, length, teamID = {}, 0, 0, 0
     hook.Add "PostCleanupMap", "Jailbreak::ClearSpawnPointCache", ->
         Empty( cache )
+        lastIndex = 0
 
     GM.PlayerSelectSpawn = ( ply, transition ) =>
         if transiton
@@ -118,71 +119,33 @@ do
         unless Teams[ teamID ]
             teamID = random( 1, 2 )
 
-        for className in *GetSpawnPoint( teamID )
-            spawnPoints = cache[ className ]
-            if spawnPoints == nil
-                spawnPoints = FindByClass( className ) or false
-                cache[ className ] = spawnPoints
+        spawnPoints = cache[ teamID ]
+        unless spawnPoints
+            spawnPoints, length = {}, 0
+            for className in *GetSpawnPoint( teamID )
+                for entity in *FindByClass( className )
+                    length += 1
+                    spawnPoints[ length ] = entity
 
-            unless spawnPoints
-                continue
-
-            length = #spawnPoints
-            if length == 0
-                continue
-
-            if length ~= 1
+            if length > 1
                 Shuffle( spawnPoints )
 
-            killLength = length - length * 0.25
+            cache[ teamID ] = spawnPoints
 
-            for index = 1, length
-                entity = spawnPoints[ index ]
-                if entity\IsValid! and Run( "IsSpawnpointSuitable", ply, entity, index >= killLength )
-                    return entity
+        length = #spawnPoints
+        if length ~= 0
+            if length == 1
+                return spawnPoints[ 1 ]
+
+            lastIndex = lastIndex + 1
+            if lastIndex > length
+                lastIndex = 1
+
+            spawnPoint = spawnPoints[ lastIndex ]
+            if spawnPoint and spawnPoint\IsValid!
+                return spawnPoint
 
         ply\SetPos( vector_origin )
-
--- https://wiki.facepunch.com/gmod/GM:IsSpawnpointSuitable
-do
-
-    :TraceHull = util
-
-    trace = {
-        mask: MASK_PLAYERSOLID
-        filter: =>
-            return @IsPlayer!
-    }
-
-    GM.IsSpawnpointSuitable = ( ply, entity, makeSuitable ) =>
-        teamID = ply\Team!
-        unless Teams[ teamID ]
-            return true
-
-        if entity\GetClass! == "info_player_teamspawn" and ( entity.Disabled or entity\Team! ~= teamID )
-            return false
-
-        start = entity\GetPos!
-        trace.start = start
-        trace.endpos = start
-        trace.mins, trace.maxs = ply\GetCollisionBounds!
-
-        traceResult = TraceHull( trace )
-        unless traceResult.Hit
-            return true
-
-        traceEntity = traceResult.Entity
-        unless traceEntity\IsValid!
-            return true
-
-        if traceEntity\IsPlayer! and traceEntity\Alive!
-            if makeSuitable
-                traceEntity\Kill!
-                return true
-
-            return false
-
-        return true
 
 -- https://wiki.facepunch.com/gmod/GM:SetupMove
 GM.SetupMove = ( ply, _, cmd ) =>
