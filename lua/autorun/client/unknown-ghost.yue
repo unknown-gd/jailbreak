@@ -101,6 +101,12 @@ scripted_ents.Register( {
         if @GetNoDraw!
             return
 
+        if @m_bOrigin
+            @SetPos( @m_bOrigin )
+
+        if @m_bAngles
+            @SetAngles( @m_bAngles )
+
         @FrameAdvance!
 
         unless @Spectate
@@ -158,10 +164,10 @@ perform = ->
         entity.ModelPath = data.modelpath
 
         if data.origin
-            entity\SetPos( data.origin )
+            entity.m_bOrigin = data.origin
 
         if data.angles
-            entity\SetAngles( data.angles )
+            entity.m_bAngles = data.angles
 
         if data.act
             entity.Act = data.act
