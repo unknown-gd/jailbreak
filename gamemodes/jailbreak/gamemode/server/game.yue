@@ -124,8 +124,9 @@ do
             spawnPoints, length = {}, 0
             for className in *GetSpawnPoint( teamID )
                 for entity in *FindByClass( className )
-                    length += 1
-                    spawnPoints[ length ] = entity
+                    if className ~= "info_player_teamspawn" or ( not entity.Disabled and entity\Team! == teamID )
+                        length += 1
+                        spawnPoints[ length ] = entity
 
             if length > 1
                 Shuffle( spawnPoints )
