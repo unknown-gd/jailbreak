@@ -24,19 +24,19 @@ Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
     if @GetNW2Int( "death-animation" ) ~= 0
         return false
 
--- TF2 Double Jump
-Add "Move", "Jailbreak::TF2 Double Jump", ( mv ) =>
-    if Jailbreak.GameName ~= "tf" or @WaterLevel! > 1
-        return
+-- -- TF2 Double Jump
+-- Add "Move", "Jailbreak::TF2 Double Jump", ( mv ) =>
+--     if Jailbreak.GameName ~= "tf" or @WaterLevel! > 1
+--         return
 
-    if @IsOnGround!
-        @HasDoubleJump = true
-    elseif @HasDoubleJump and mv\KeyPressed( IN_JUMP )
-        @HasDoubleJump = false
+--     if @IsOnGround!
+--         @HasDoubleJump = true
+--     elseif @HasDoubleJump and mv\KeyPressed( IN_JUMP )
+--         @HasDoubleJump = false
 
-        velocity = mv\GetVelocity!
-        velocity[ 3 ] = @GetJumpPower! * 2
-        mv\SetVelocity( velocity )
+--         velocity = mv\GetVelocity!
+--         velocity[ 3 ] = @GetJumpPower! * 2
+--         mv\SetVelocity( velocity )
 
 -- Player can't take damage in death animation
 Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
