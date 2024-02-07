@@ -134,10 +134,11 @@ do
 do
 
     :TargetID, :DeathNotice = Jailbreak
-    :Start3D, :End3D = cam
+    :Start, :End3D = cam
+    view = { "type": "3D" }
 
     GM.HUDPaint = =>
-        Start3D!
+        Start( view )
         Run( "HUDPaint3D" )
         End3D!
 
