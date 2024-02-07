@@ -380,10 +380,39 @@ do
         color = string.Split( args[ 2 ] or "0 0 0", " " )
         @SetColor( Color( color[ 1 ], color[ 2 ], color[ 3 ] ) )
 
-    hook.Add "PlayerUsedEntity", "Jailbreak::PaintCan", ( entity ) =>
-        if entity\IsPaintCan!
-            @ConCommand( "jb_paint_entity " .. entity\EntIndex! )
+Add "jb_lose_consciousness", =>
+    unless @ and @IsValid!
+        return
 
-    hook.Add "AllowPlayerPickup", "Jailbreak::PaintCan", ( entity ) =>
-        if entity\IsPaintCan!
-            return false
+    unless @Alive!
+        @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
+        return
+
+    if ( @m_bLoseConsciousnessDelay or 0 ) > CurTime!
+        @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
+        return
+
+    @m_bLoseConsciousnessDelay = CurTime! + 3
+
+    ragdoll = @GetRagdollEntity!
+    if ragdoll\IsValid! and ragdoll\Alive!
+        @SpawnFromRagdoll( ragdoll, true, true )
+        @SpectateEntity!
+        @SetObserverMode( OBS_MODE_NONE )
+        @SetNoDraw( false )
+        @DrawWorldModel( true )
+        @SetNotSolid( false )
+        @SetMoveType( MOVETYPE_WALK )
+        ragdoll\SetAlive( false )
+        ragdoll\Remove!
+        return
+
+    ragdoll = @CreateRagdoll( true )
+    if ragdoll\IsValid!
+        @DropObject!
+        @SetMoveType( MOVETYPE_NONE )
+        @DrawWorldModel( false )
+        @SetNoDraw( true )
+        @SetNotSolid( true )
+        @SetObserverMode( OBS_MODE_CHASE )
+        @SpectateEntity( ragdoll )

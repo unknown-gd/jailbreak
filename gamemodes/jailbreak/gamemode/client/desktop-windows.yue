@@ -44,36 +44,46 @@ do
             securityRadio\SetBool( not securityRadio\GetBool! )
     }
 
--- Set "DesktopWindows", "player-fake-death", {
---     title: "#jb.player-fake-death"
---     icon: "icon16/user_delete.png"
---     order: 2500
---     think: =>
---         ply = Jailbreak.Player
---         unless GameInProgress! and ply\IsValid! and ply\Alive!
---             if @IsVisible!
---                 @InvalidateParent!
---                 @Hide!
+Set "DesktopWindows", "lose-consciousness", {
+    title: "#jb.player.lose-consciousness"
+    icon: "icon16/user_delete.png"
+    order: 2500
+    think: =>
+        ply = Jailbreak.Player
+        unless GameInProgress! and ply\IsValid! and ply\Alive!
+            if @IsVisible!
+                @InvalidateParent!
+                @Hide!
 
---             return
+            return
 
---         unless @IsVisible!
---             @InvalidateParent!
---             @Show!
+        unless @IsVisible!
+            @InvalidateParent!
+            @Show!
 
---         ragdoll = ply\GetRagdollEntity!
---         unless ragdoll and ragdoll\IsValid! and ragdoll\GetNW2Bool( "fake-death" )
---             if @GetImage! ~= "icon16/user_delete.png"
---                 @SetImage( "icon16/user_delete.png" )
+        ragdoll = ply\GetRagdollEntity!
+        unless ragdoll\IsValid! and ragdoll\Alive!
+            if @GetImage! ~= "icon16/user_delete.png"
+                @SetImage( "icon16/user_delete.png" )
 
---             return
+            text = GetPhrase( "jb.player.lose-consciousness" )
+            if @Label\GetText! ~= text
+                @Label\SetText( text )
+                @SetTooltip( text )
 
---         if @GetImage! ~= "icon16/user.png"
---             @SetImage( "icon16/user.png" )
+            return
 
---     click: =>
---         RunConsoleCommand( "jb_fake_death" )
--- }
+        if @GetImage! ~= "icon16/user_add.png"
+            @SetImage( "icon16/user_add.png" )
+
+        text = GetPhrase( "jb.player.wake-up" )
+        if @Label\GetText! ~= text
+            @Label\SetText( text )
+            @SetTooltip( text )
+
+    click: =>
+        RunConsoleCommand( "jb_lose_consciousness" )
+}
 
 do
 
