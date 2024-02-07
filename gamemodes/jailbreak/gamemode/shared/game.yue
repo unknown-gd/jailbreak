@@ -2,7 +2,7 @@ ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
 Jailbreak = Jailbreak
 GM = GM
 
-:GetTable, :WaterLevel, :IsOnGround, :IsValid, :GetNW2Bool, :IsFlagSet = ENTITY
+:GetClass, :GetTable, :WaterLevel, :IsOnGround, :IsValid, :GetNW2Bool, :IsFlagSet = ENTITY
 :Length = FindMetaTable( "Vector" )
 CLIENT = CLIENT
 :Run = hook
@@ -67,7 +67,7 @@ GM.ShouldCollide = ( entity, ply ) =>
     unless ply\IsPlayer! and ply\Alive!
         return
 
-    if entity\GetClass! == "func_respawnroomvisualizer" and not entity\IsDisabled!
+    if GetClass( entity ) == "func_respawnroomvisualizer" and not entity\IsDisabled!
         return ply\Team! ~= entity\Team!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerFootstep
@@ -183,8 +183,8 @@ do
 
     do
 
-        :InVehicle, :GetWalkSpeed, :GetRunSpeed, :GetActiveWeapon, :IsPrisoner = PLAYER
-        :GetMoveType, :LookupSequence = ENTITY
+        :InVehicle, :GetWalkSpeed, :GetRunSpeed, :GetActiveWeapon, :IsPrisoner, :GetVehicle, :GetAllowWeaponsInVehicle = PLAYER
+        :GetMoveType, :LookupSequence, :GetParent, :GetModel = ENTITY
         ACT_HL2MP_RUN_PANICKED = ACT_HL2MP_RUN_PANICKED
         :Length2DSqr = FindMetaTable( "Vector" )
         :GetHoldType = FindMetaTable( "Weapon" )
@@ -203,14 +203,52 @@ do
 
         isSwimming, isNoclipping, isOnGround = false, false, false
         calcIdeal, seqOverride, playerSpeed = 0, 0, 0
+        vehicles = list.GetForEdit( "Vehicles" )
 
         GM.CalcMainActivity = ( ply, velocity ) =>
             calcIdeal, seqOverride = ACT_MP_STAND_IDLE, -1
             isOnGround = IsOnGround( ply )
             tbl = GetTable( ply )
 
+            if InVehicle( ply ) and IsValid( GetParent( ply ) )
+                vehicle = GetVehicle( ply )
+
+                if vehicle.HandleAnimation == nil
+                    data = vehicles[ vehicle\GetVehicleClass! ]
+                    if data and data.Members and data.Members.HandleAnimation
+                        vehicle.HandleAnimation = data.Members.HandleAnimation
+                    else
+                        vehicle.HandleAnimation = true
+
+                if vehicle.HandleAnimation ~= true
+                    seqOverride = vehicle\HandleAnimation( ply ) or seqOverride
+                    if seqOverride ~= -1
+                        goto finish
+
+                className = GetClass( vehicle )
+                if className == "prop_vehicle_jeep"
+                    seqOverride = LookupSequence( ply, "drive_jeep" )
+
+                elseif className == "prop_vehicle_airboat"
+                    seqOverride = LookupSequence( ply, "drive_airboat" )
+
+                elseif className == "prop_vehicle_prisoner_pod" and GetModel( vehicle ) == "models/vehicles/prisoner_pod_inner.mdl"
+                    seqOverride = LookupSequence( ply, "drive_pd" )
+
+                else
+
+                    if GetAllowWeaponsInVehicle( ply )
+                        weapon = GetActiveWeapon( ply )
+                        if IsValid( weapon )
+                            holdtype = GetHoldType( weapon )
+                            seqOverride = LookupSequence( ply, holdtype == "smg" and "sit_smg1" or ( "sit_" .. holdtype ) )
+
+                    calcIdeal = ACT_HL2MP_SIT
+
+                goto finish
+
             -- Player noclip & swimming
-            isNoclipping, isSwimming = GetMoveType( ply ) == MOVETYPE_NOCLIP and not InVehicle( ply ), WaterLevel( ply ) > 1
+            isNoclipping, isSwimming = GetMoveType( ply ) == MOVETYPE_NOCLIP, WaterLevel( ply ) > 1
             if isNoclipping or isSwimming or GetNW2Bool( ply, "in-flight" )
                 calcIdeal = ACT_MP_SWIM
                 goto finish
