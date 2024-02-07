@@ -327,7 +327,7 @@ do
 
         CHAN_STATIC = CHAN_STATIC
 
-        ENTITY.DoElectricSparks = ( origin, pitch ) =>
+        ENTITY.DoElectricSparks = ( origin, pitch, noSound ) =>
             unless origin
                 bone = @LookupBone( "ValveBiped.Bip01_Head1" )
                 if bone and bone >= 0
@@ -343,7 +343,8 @@ do
             fx\SetRadius( random( 1, 5 ) )
             Effect( "ElectricSpark", fx )
 
-            @EmitSound( "Jailbreak.ElectricSpark", random( 50, 90 ), pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+            if noSound ~= true
+                @EmitSound( "Jailbreak.ElectricSpark", random( 50, 90 ), pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
 do
 

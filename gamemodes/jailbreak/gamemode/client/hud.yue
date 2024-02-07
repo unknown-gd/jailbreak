@@ -241,8 +241,13 @@ do
         else
             className = entity\GetClass!
             if IsProp( className )
-                text = "#jb.prop_physics"
                 entityType = 6
+
+                if entity\GetModel! == "models/props_junk/gascan001a.mdl"
+                    text = "#jb.gas_can"
+                else
+                    text = "#jb.prop_physics"
+
             elseif targetIDClasses[ className ]
                 entityType = 7
 

@@ -617,8 +617,11 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_stunstick", false, true )\IsValid!
 
-    add "jb_gascan", "models/props_junk/gascan001a.mdl", 10, =>
-        return @SpawnEntity( "jb_gascan" )\IsValid!
+    add "gas_can", "models/props_junk/gascan001a.mdl", 10, =>
+        return @SpawnEntity( "prop_physics", =>
+            @SetModel( "models/props_junk/gascan001a.mdl" )
+            @SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        )\IsValid!
 
     add( "weapon_physcannon.upgrade", "models/weapons/w_Physics.mdl", 40, =>
         if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_ON
@@ -654,3 +657,38 @@ Add "PlayerCanPickupWeapon", "Jailbreak::PlayerSpawn", =>
 Add "PlayerCanPickupItem", "Jailbreak::PlayerSpawn", =>
     if @IsSpawning!
         return false
+
+do
+
+    :FindInSphere = ents
+    teamID = 0
+
+    Add "PropBreak", "Jailbreak::GasCan", ( ply, prop ) ->
+        if prop\GetModel! ~= "models/props_junk/gascan001a.mdl"
+            return
+
+        if ply\IsValid! and ply\IsPlayer!
+            teamID = ply\Team!
+        else
+            teamID = prop\Team!
+
+        for entity in *FindInSphere( prop\WorldSpaceCenter!, 64 )
+            if entity == prop or not entity\IsSolid! or entity\Health! < 1
+                continue
+
+            if entity\IsPlayer!
+                unless entity\Alive!
+                    continue
+
+                if entity\Team! == teamID and random( 1, 100 ) > 2
+                    continue
+
+            entity\Ignite( 300, 48 )
+
+Add "AllowEntityExtinguish", "Jailbreak::GasCan", =>
+    if @GetModel! == "models/props_junk/gascan001a.mdl"
+        return false
+
+Add "PropTakeDamage", "Jailbreak::GasCan", ( damageInfo ) =>
+    if @WaterLevel! > 1 and @GetModel! == "models/props_junk/gascan001a.mdl"
+        return true
