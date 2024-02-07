@@ -18,3 +18,8 @@ ENT.Initialize = =>
             entityMass = ragdoll\GetPhysicsMass!
             @SetNW2Int( "mass", entityMass )
             phys\SetMass( entityMass )
+
+ENT.OnRemove = =>
+    owner = @GetOwner!
+    if owner\IsValid! and owner\IsPlayer! and owner\Alive!
+        owner\DropObject!

@@ -431,8 +431,10 @@ Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
     if @SteamID64! == "76561198100459279"
         @SetNW2Bool( "is-developer", true )
 
--- Ultra realistic items mass
-GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
+-- Realistic items mass
+Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
+    entity.Holder = @
+
     if entity.RagdollMover
         Add "Think", entity, =>
             unless @IsPlayerHolding!
@@ -444,17 +446,23 @@ GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
 
     entityMass = 1 / entity\GetPhysicsMass!
 
-    slowWalkSpeed = ply\GetSlowWalkSpeed!
-    ply\SetSlowWalkSpeed( Clamp( entityMass * slowWalkSpeed, 32, slowWalkSpeed ) )
+    slowWalkSpeed = @GetSlowWalkSpeed!
+    @SetSlowWalkSpeed( Clamp( entityMass * slowWalkSpeed, 32, slowWalkSpeed ) )
 
-    walkSpeed = ply\GetWalkSpeed!
-    ply\SetWalkSpeed( Clamp( entityMass * walkSpeed, 64, walkSpeed ) )
+    walkSpeed = @GetWalkSpeed!
+    @SetWalkSpeed( Clamp( entityMass * walkSpeed, 64, walkSpeed ) )
 
-    runSpeed = ply\GetRunSpeed!
-    ply\SetRunSpeed( Clamp( entityMass * runSpeed, 64, runSpeed ) )
+    runSpeed = @GetRunSpeed!
+    @SetRunSpeed( Clamp( entityMass * runSpeed, 64, runSpeed ) )
 
-GM.OnPlayerPhysicsDrop = ( ply, entity, thrown ) =>
-    ply\SetupMovement!
+Add "EntityRemoved", "Jailbreak::PhysicsDropFix", ( entity ) ->
+    holder = entity.Holder
+    if holder and holder\IsValid! and holder\IsPlayer! and holder\Alive!
+        holder\DropObject!
+
+Add "OnPlayerPhysicsDrop", "Jailbreak::RealisticItemMass", ( entity, thrown ) =>
+    entity.Holder = nil
+    @SetupMovement!
 
     unless thrown
         return
@@ -472,7 +480,7 @@ GM.OnPlayerPhysicsDrop = ( ply, entity, thrown ) =>
     if force == 0
         return
 
-    ply\SetVelocity( ply\GetAimVector! * force )
+    @SetVelocity( @GetAimVector! * force )
 
 do
 
