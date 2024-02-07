@@ -42,10 +42,11 @@ do
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :RagdollRemove, :GameInProgress, :GuardsArmor = Jailbreak
+    :RagdollRemove, :GameInProgress, :GuardsArmor, :AllowWeaponsInVehicle = Jailbreak
     :white = Jailbreak.Colors
 
     GM.PlayerSpawn = ( ply, transiton ) =>
+        ply\SetAllowWeaponsInVehicle( AllowWeaponsInVehicle\GetBool! )
         ply\RemoveFromObserveTargets!
         ply\SetColor( white )
         ply\SetupMovement!
