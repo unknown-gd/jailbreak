@@ -180,7 +180,6 @@ GM.TeamPlayerDeath = ( ply, teamID ) =>
     ply\TakeSecurityKeys!
     ply\TakeShockCollar!
     ply\TakeFlashlight!
-    ply\UnSpectate!
 
 -- Called when a player disconnected
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>

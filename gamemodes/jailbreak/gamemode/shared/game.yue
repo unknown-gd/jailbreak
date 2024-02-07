@@ -115,14 +115,18 @@ do
     do
 
         isnumber = isnumber
+        damageScale = 0
 
-        GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
+        GM.ScaleHitGroupDamage = ( hitGroup, damageInfo ) =>
             damageScale = hitGroups[ hitGroup ]
             if isnumber( damageScale )
                 damageInfo\ScaleDamage( damageScale )
 
-            if CLIENT and Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
-                return true
+    GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
+        Run( "ScaleHitGroupDamage", hitGroup, damageInfo )
+
+        if CLIENT and Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
+            return true
 
 -- https://wiki.facepunch.com/gmod/GM:EntityEmitSound
 do

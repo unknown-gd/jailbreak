@@ -141,13 +141,32 @@ Add "PlayerEmitSound", "Jailbreak::SilentDeath", ( data ) =>
     unless @Alive!
         return false
 
+PLAYER = FindMetaTable( "Player" )
+
 -- Block player movement while spawning
-Add "AllowPlayerMove", "Jailbreak::PlayerSpawning", =>
-    if @IsSpawning!
-        return false
+do
+
+    :IsSpawning = PLAYER
+
+    Add "AllowPlayerMove", "Jailbreak::PlayerSpawning", =>
+        if IsSpawning( @ )
+            return false
 
 -- Block player movement while taunting
-Add "AllowPlayerMove", "Jailbreak::Taunts", =>
-    if @IsPlayingTaunt!
-        return false
+do
 
+    :IsPlayingTaunt = PLAYER
+
+    Add "AllowPlayerMove", "Jailbreak::Taunts", =>
+        if IsPlayingTaunt( @ )
+            return false
+
+-- Block player movement while player in spectator mode
+do
+
+    :Alive, :GetObserverMode = PLAYER
+    OBS_MODE_NONE = OBS_MODE_NONE
+
+    Add "AllowPlayerMove", "Jailbreak::AliveSpectator", =>
+        if Alive( @ ) and GetObserverMode( @ ) ~= OBS_MODE_NONE
+            return false

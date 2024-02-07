@@ -417,7 +417,8 @@ do
         ragdoll\SetTeam( @Team! )
 
         if @Alive!
-            ragdoll\SetNW2Bool( "alive", true )
+            ragdoll\SetAlive( true )
+
             ragdoll.MaxArmor = @GetMaxArmor!
             ragdoll.Armor = @Armor!
 
@@ -663,7 +664,7 @@ do
         @SetPos( ragdoll\WorldSpaceCenter! )
         @SetEyeAngles( ragdoll.PlayerAngles or angle_zero )
 
-        if ignoreHealth ~= false
+        if ignoreHealth ~= true
             @SetHealth( @GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
             @SetArmor( @GetMaxArmor! * ( ragdoll.Armor / ragdoll.MaxArmor ) )
 

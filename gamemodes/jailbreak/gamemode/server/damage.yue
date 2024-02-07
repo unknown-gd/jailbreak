@@ -156,8 +156,8 @@ do
         if className == "prop_door_rotating"
             return Run( "DoorTakeDamage", entity, damageInfo )
 
-GM.PostEntityTakeDamage = ( entity, damageInfo, took ) =>
-    unless took
+GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
+    unless isRealDamage
         return
 
     if damageInfo\IsExplosionDamage!
@@ -511,10 +511,8 @@ do
 
             if ( nextHealth / startHealth ) < 0.75
                 ragdoll\EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-                ragdoll\SetNW2Bool( "alive", false )
+                ragdoll\SetAlive( false )
                 Run( "RagdollDeath", ragdoll )
-
-        Run( "PostRagdollTakeDamage", ragdoll, damageInfo )
 
         if nextHealth > 0
             BloodSplashes( ragdoll, damageInfo, false )

@@ -371,13 +371,31 @@ do
 
 do
 
-    :ClearMovement, :ClearButtons = FindMetaTable( "CUserCmd" )
     :Call = hook
 
-    Add "StartCommand", "Jailbreak::MovementBlocking", ( cmd ) =>
-        if Call( "AllowPlayerMove", nil, @, cmd ) == false
-            ClearMovement( cmd )
-            ClearButtons( cmd )
+    do
+
+        :ClearMovement, :ClearButtons = FindMetaTable( "CUserCmd" )
+
+        Add "StartCommand", "Jailbreak::MovementBlocking", ( cmd ) =>
+            if Call( "AllowPlayerMove", nil, @ ) == false
+                ClearMovement( cmd )
+                ClearButtons( cmd )
+
+    do
+
+        :GetVelocity, :SetVelocity = FindMetaTable( "CMoveData" )
+        FrameTime = FrameTime
+        Lerp = Lerp
+
+        velocity, frameTime = vector_origin, 0
+
+        Add "Move", "Jailbreak::MovementBlocking", ( mv ) =>
+            if Call( "AllowPlayerMove", nil, @ ) == false
+                velocity, frameTime = GetVelocity( mv ), FrameTime!
+                velocity[ 1 ] = Lerp( frameTime, velocity[ 1 ], 0 )
+                velocity[ 2 ] = Lerp( frameTime, velocity[ 2 ], 0 )
+                SetVelocity( mv, velocity )
 
 -- Returns entity custom color
 do

@@ -322,6 +322,9 @@ do
     ENTITY.SetTeam = ( teamID ) =>
         @SetNW2Int( "player-team", teamID )
 
+    ENTITY.SetAlive = ( alive ) =>
+        @SetNW2Bool( "alive", alive )
+
     -- Electric shock effect
     do
 
