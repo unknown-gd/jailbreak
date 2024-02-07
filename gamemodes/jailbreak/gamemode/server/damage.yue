@@ -296,38 +296,41 @@ do
     isnumber = isnumber
     istable = istable
 
-    dropList = {
-        ["models/props/de_inferno/crate_fruit_break.mdl"]: {
-            ["Models"]: "models/props/cs_italy/orange.mdl"
-            ["Count"]: { 16, 32 }
+    dropList = Jailbreak.PropsDropList
+    unless dropList
+        dropList = {
+            ["models/props/de_inferno/crate_fruit_break.mdl"]: {
+                ["Models"]: "models/props/cs_italy/orange.mdl"
+                ["Count"]: { 16, 32 }
+            }
         }
-    }
 
-    Jailbreak.BreakDropList = dropList
+        Jailbreak.PropsDropList = dropList
 
-    materials = {
-        [ MAT_GLASS ]: 0.5
-        [ MAT_CONCRETE ]: 5
-        [ MAT_SLOSH ]: 0.25
-        [ MAT_GRATE ]: 8
-        [ MAT_DIRT ]: 3
-        [ MAT_TILE ]: 2
-        [ MAT_FOLIAGE ]: 1.5
-        [ MAT_VENT ]: 0.25
-        [ MAT_WOOD ]: 3
-        [ MAT_COMPUTER ]: 0.25
-        [ MAT_METAL ]: 8
-        [ MAT_PLASTIC ]: 1.25
-        [ MAT_GRASS ]: 0.25
-        [ MAT_DEFAULT ]: 16
-        [ MAT_FLESH ]: 0.5
-        [ MAT_BLOODYFLESH ]: 0.25
-    }
+    materials = Jailbreak.PropDamageMaterials
+    unless materials
+        materials = {
+            [ MAT_GLASS ]: 0.5
+            [ MAT_CONCRETE ]: 5
+            [ MAT_SLOSH ]: 0.25
+            [ MAT_GRATE ]: 8
+            [ MAT_DIRT ]: 3
+            [ MAT_TILE ]: 2
+            [ MAT_FOLIAGE ]: 1.5
+            [ MAT_VENT ]: 0.25
+            [ MAT_WOOD ]: 3
+            [ MAT_COMPUTER ]: 0.25
+            [ MAT_METAL ]: 8
+            [ MAT_PLASTIC ]: 1.25
+            [ MAT_GRASS ]: 0.25
+            [ MAT_DEFAULT ]: 16
+            [ MAT_FLESH ]: 0.5
+            [ MAT_BLOODYFLESH ]: 0.25
+        }
 
-    Jailbreak.DamageMaterials = materials
+        Jailbreak.PropDamageMaterials = materials
 
     cache = {}
-
 
     GM.PropTakeDamage = ( entity, damageInfo ) =>
         if entity.CustomHealth == nil

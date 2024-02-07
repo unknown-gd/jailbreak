@@ -382,6 +382,8 @@ do
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
+        putItems = putItems ~= false
+
         roundState = GetRoundState!
         if roundState == ROUND_PREPARING or roundState == ROUND_FINISHED
             return NULL
@@ -497,7 +499,7 @@ do
 
         Run( "PlayerRagdollCreated", @, ragdoll )
 
-        if putItems ~= false
+        if putItems
             ragdoll.HasSecurityRadio = @HasSecurityRadio!
             @TakeSecurityRadio!
 
@@ -541,6 +543,7 @@ do
 do
 
     :Shuffle = table
+    :min = math
 
     PLAYER.LootRagdoll = ( ragdoll ) =>
         velocity = vector_origin
@@ -565,18 +568,12 @@ do
 
         :Weapons = ragdoll
         if Weapons ~= nil
-            count, weapon = 0, NULL
+            spawnOrigin = @WorldSpaceCenter!
+            weapon = NULL
+
             for index = 1, #Weapons
                 weapon = Weapons[ index ]
-                unless weapon\IsValid!
-                    continue
-
-                if weapon\GetOwner!\IsValid! or weapon\GetParent! ~= ragdoll
-                    Weapons[ index ] = NULL
-                    continue
-
-                if Run( "PlayerCanPickupWeapon", @, weapon ) == false
-                    count += 1
+                if not weapon\IsValid! or weapon\GetOwner!\IsValid! or weapon\GetParent! ~= ragdoll
                     continue
 
                 weapon\SetParent!
@@ -584,13 +581,14 @@ do
                 weapon\SetNotSolid( false )
                 weapon.PickupForbidden = nil
 
-                @PickupWeapon( weapon )
-                Weapons[ index ] = NULL
+                if Run( "PlayerCanPickupWeapon", @, weapon ) == false
+                    weapon\SetPos( spawnOrigin )
+                else
+                    @PickupWeapon( weapon )
 
                 velocity += direction * 200
 
-            if count == 0
-                ragdoll.Weapons = nil
+            ragdoll.Weapons = nil
 
         :Ammo = ragdoll
         if Ammo ~= nil
@@ -644,8 +642,8 @@ do
     PLAYER.SpawnFromRagdoll = ( ragdoll, ignoreHealth ) =>
         @SetTeam( ragdoll\Team! )
 
-        if ragdoll\Alive!
-            if ply\Alive!
+        unless ragdoll\Alive!
+            if @Alive!
                 @KillSilent!
 
             Simple 0, ->

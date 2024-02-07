@@ -692,3 +692,11 @@ Add "AllowEntityExtinguish", "Jailbreak::GasCan", =>
 Add "PropTakeDamage", "Jailbreak::GasCan", ( damageInfo ) =>
     if @WaterLevel! > 1 and @GetModel! == "models/props_junk/gascan001a.mdl"
         return true
+
+Add "PlayerUsedEntity", "Jailbreak::PaintCan", ( entity ) =>
+    if entity\IsPaintCan!
+        @ConCommand( "jb_paint_entity " .. entity\EntIndex! )
+
+Add "AllowPlayerPickup", "Jailbreak::PaintCan", ( entity ) =>
+    if entity\IsPaintCan!
+        return false

@@ -521,14 +521,17 @@ PLAYER.GetCountWeaponsInSlot = ( slot ) =>
     return count
 
 -- Returns player ragdoll as entity
+PLAYER.GetRagdollEntity = =>
+    return GetNW2Entity( @, "player-ragdoll" )
+
 do
 
     :FindByClass = ents
 
-    PLAYER.GetRagdollEntity = =>
-        value = GetNW2Entity( @, "player-ragdoll" )
-        if value\IsValid!
-            return value
+    PLAYER.FindRagdollEntity = =>
+        entity = GetNW2Entity( @, "player-ragdoll" )
+        if entity\IsValid!
+            return entity
 
         isBot = @IsBot!
         sid64 = isBot and @Nick! or @SteamID64!

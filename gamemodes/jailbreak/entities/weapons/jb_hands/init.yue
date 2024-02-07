@@ -62,7 +62,11 @@ do
     NULL = NULL
 
     SWEP.HitEntity = ( entity, owner, origin ) =>
-        hit, anim = false, @GetSequenceName( owner\GetViewModel!\GetSequence! )
+        vm = owner\GetViewModel!
+        unless vm\IsValid!
+            return
+
+        hit, anim = false, @GetSequenceName( vm\GetSequence! )
 
         if IsValid( entity )
             scale = phys_pushscale\GetFloat!

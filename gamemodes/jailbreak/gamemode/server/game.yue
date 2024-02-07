@@ -31,7 +31,7 @@ do
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
 
-        ragdoll = ply\GetRagdollEntity!
+        ragdoll = ply\FindRagdollEntity!
         if ragdoll\IsValid!
             ragdoll\SetNW2Entity( "ragdoll-owner", ply )
         else
@@ -57,7 +57,7 @@ do
         if ply.m_bInitialSpawn ~= nil
             ply.m_bInitialSpawn = nil
 
-            ragdoll = ply\GetRagdollEntity!
+            ragdoll = ply\FindRagdollEntity!
             if ragdoll\IsValid!
                 if ply\SpawnFromRagdoll( ragdoll )
                     Run( "PostPlayerSpawn", ply )
@@ -669,45 +669,9 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
 do
 
     COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
-    :Create, :Remove = timer
-    :TraceHull = util
-    IsValid = IsValid
-
-    trace = {
-        mask: MASK_SOLID_BRUSHONLY
-    }
 
     GM.PlayerDroppedWeapon = ( ply, weapon ) =>
-        timerName = "Jailbreak:PlayerDroppedWeapon #" .. weapon\EntIndex!
-        Create timerName, 5, 1, ->
-            Remove( timerName )
-
-            if not weapon\IsValid! or weapon\GetOwner!\IsValid! or weapon\GetParent!\IsValid!
-                return
-
-            unless weapon\IsInWorld!
-                weapon\Remove!
-                return
-
-            phys = weapon\GetPhysicsObject!
-            unless IsValid( phys )
-                weapon\Remove!
-                return
-
-            start = weapon\WorldSpaceCenter!
-            trace.start = start
-
-            mins, maxs = weapon\GetCollisionBounds!
-            trace.mins, trace.maxs = mins, maxs
-
-            trace.endpos = start + Vector( 0, 0, mins[ 3 ] - 2 )
-
-            if TraceHull( trace ).Hit
-                weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
-                phys\EnableMotion( false )
-                return
-
-            @PlayerDroppedWeapon( ply, weapon )
+        weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
 GM.PlayerLoadout = ( ply ) =>

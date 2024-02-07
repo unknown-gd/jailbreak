@@ -42,7 +42,11 @@ SWEP.SetupDataTables = =>
     @NetworkVar( "Int", 2, "Combo" )
 
 SWEP.GetViewModel = =>
-    return @GetOwner!\GetViewModel!
+    owner = @GetOwner!
+    if owner\IsValid!
+        return owner\GetViewModel!
+
+    return NULL
 
 SWEP.PlaySequence = ( sequenceName, onFinish ) =>
     @SequenceFinished = false
@@ -52,6 +56,8 @@ SWEP.PlaySequence = ( sequenceName, onFinish ) =>
         return
 
     vm = owner\GetViewModel!
+    unless vm\IsValid!
+        return
 
     seqid = vm\LookupSequence( sequenceName )
     unless seqid and seqid > 0
@@ -156,7 +162,10 @@ SWEP.DealDamage = =>
     owner\LagCompensation( false )
 
 SWEP.Show = =>
-    @GetViewModel!\SetNoDraw( false )
+    vm = @GetViewModel!
+    if vm\IsValid!
+        vm\SetNoDraw( false )
+
     @SetHoldType( "fist" )
 
     @PrintName = "#jb.fists"
@@ -184,7 +193,9 @@ SWEP.Deploy = =>
     @SetNextIdle( 0 )
 
     if @GetHoldType! == "normal"
-        @GetViewModel!\SetNoDraw( true )
+        vm = @GetViewModel!
+        if vm\IsValid!
+            vm\SetNoDraw( true )
     else
         @Show!
 
