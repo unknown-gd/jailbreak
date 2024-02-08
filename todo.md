@@ -6,6 +6,5 @@
 
 # Дополнительное
 - заменить derma
-- поддержка aqs
 - custom kill feed
 - custom weapon selector
