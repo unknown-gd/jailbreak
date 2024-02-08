@@ -407,6 +407,10 @@ Add "jb_lose_consciousness", =>
         ragdoll\Remove!
         return
 
+    unless GameInProgress!
+        @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
+        return
+
     ragdoll = @CreateRagdoll( true )
     if ragdoll\IsValid!
         @DropObject!
