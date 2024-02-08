@@ -204,7 +204,7 @@ do
 
     event = Jailbreak.RegisterEvent "grass-is-lava", ->
             Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
-                @EmitSound( "vo/npc/" .. ( Jailbreak.IsFemalePrison! and "female01" or "male01" ) .. "/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+                @EmitSound( "vo/npc/" .. ( @IsFemaleModel! and "fe" or "" ) .. "male01/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                 return true
 
             :TraceHull = util

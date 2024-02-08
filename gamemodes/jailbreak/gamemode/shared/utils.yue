@@ -6,6 +6,7 @@ GetGlobal2Int = GetGlobal2Int
 CurTime = CurTime
 :GetAll = player
 :Simple = timer
+:lower = string
 NULL = NULL
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
@@ -71,7 +72,7 @@ do
 -- Returns fixed model path
 do
 
-    :gsub, :lower = string
+    :gsub = string
 
     Jailbreak.FixModelPath = ( modelPath ) ->
         return gsub( lower( modelPath ), "[\\/]+", "/" )
@@ -452,6 +453,25 @@ do
 
     :GetModel = ENTITY
 
+    do
+
+        models = nil
+
+        Simple 0, ->
+            models = Jailbreak.PlayerModels
+
+        ENTITY.IsFemaleModel = =>
+            teamModels = models[ @Team! ]
+            unless teamModels
+                return false
+
+            model = lower( GetModel( @ ) )
+            for modelPath in *teamModels[ true ]
+                if modelPath == model
+                    return true
+
+            return false
+
     paintCans = {
         "models/props_junk/metal_paintcan001a.mdl": true
     	"models/props_junk/metal_paintcan001b.mdl": true
@@ -690,13 +710,47 @@ do
 
     sounds = {}
 
-    for number = 1, 6 do
+    for number = 1, 6
         sounds[ number ] = "ambient/energy/spark" .. number .. ".wav"
 
     sound.Add {
         name: "Jailbreak.ElectricSpark"
         channel: CHAN_WEAPON
         level: SNDLVL_70dB
+        sound: sounds
+        pitch: 100
+        volume: 1
+    }
+
+-- Male Pain sounds
+do
+
+    sounds = {}
+
+    for number = 1, 6
+        sounds[ number ] = "vo/npc/male01/pain0" .. number .. ".wav"
+
+    sound.Add {
+        name: "Jailbreak.Male.Pain"
+        channel: CHAN_STATIC
+        level: SNDLVL_TALKING
+        sound: sounds
+        pitch: 100
+        volume: 1
+    }
+
+-- Female Pain sounds
+do
+
+    sounds = {}
+
+    for number = 1, 6
+        sounds[ number ] = "vo/npc/female01/pain0" .. number .. ".wav"
+
+    sound.Add {
+        name: "Jailbreak.Female.Pain"
+        channel: CHAN_STATIC
+        level: SNDLVL_TALKING
         sound: sounds
         pitch: 100
         volume: 1
