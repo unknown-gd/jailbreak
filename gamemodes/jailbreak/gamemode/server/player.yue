@@ -375,18 +375,16 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
-    :RagdollRemove, :RagdollHealth, :GetRoundState = Jailbreak
-    ROUND_PREPARING = ROUND_PREPARING
-    ROUND_FINISHED = ROUND_FINISHED
+    :RagdollRemove, :RagdollHealth, :IsRoundPreparing = Jailbreak
+
+    hook.Add "PlayerCanCreateRagdoll", "Jailbreak::NoRagdollsOnPreparing", =>
+        if IsRoundPreparing!
+            return false
 
     trace = {}
 
     PLAYER.CreateRagdoll = ( putItems ) =>
         putItems = putItems ~= false
-
-        roundState = GetRoundState!
-        if roundState == ROUND_PREPARING or roundState == ROUND_FINISHED
-            return NULL
 
         if Run( "PlayerCanCreateRagdoll", @, putItems ) == false
             return NULL
