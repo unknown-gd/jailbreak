@@ -622,6 +622,12 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
         return false
     )\SetSkin( 1 )
 
+    add "jb_russian_roulette", "models/weapons/w_357.mdl", 10, =>
+        if @HasWeapon( "jb_russian_roulette" )
+            return false
+
+        return @Give( "jb_russian_roulette", false, true )\IsValid!
+
     return
 
 Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
