@@ -14,7 +14,11 @@ do
             if entity.RagdollMover
                 return true
 
-            frameTime = FrameTime! * ( 50 / entity\GetNW2Int( "mass", 80 ) )
+            frameTime = entity\GetNW2Int( "entity-mass", 0 )
+            if frameTime < 1
+                frameTime = 1
+
+            frameTime = FrameTime! / frameTime
             viewAngles[ 1 ] += y * frameTime
             viewAngles[ 2 ] -= x * frameTime
             cmd\SetViewAngles( viewAngles )

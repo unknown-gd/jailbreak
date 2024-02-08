@@ -6,15 +6,16 @@ GM = GM
 GM.InitPostEntity = =>
     Jailbreak.PlayingTaunt = false
 
-    do
-        ply = LocalPlayer!
-        Jailbreak.Player = ply
-        Jailbreak.PlayerIndex = ply\EntIndex!
+    ply = LocalPlayer!
+    Jailbreak.Player = ply
+    Jailbreak.PlayerIndex = ply\EntIndex!
 
-    timer.Simple 0.5, ->
-        RunConsoleCommand( "r_flushlod" )
-        RunConsoleCommand( "jb_showteam" )
+    timer.Simple 0.25, ->
         RunConsoleCommand( "dsp_room", "1" )
+        RunConsoleCommand( "jb_showteam" )
+
+    timer.Simple 1, ->
+        RunConsoleCommand( "r_flushlod" )
 
     return
 

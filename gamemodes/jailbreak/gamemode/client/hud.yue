@@ -1110,29 +1110,27 @@ do
             @WeaponName = weaponName
             @InvalidateLayout!
 
-        primaryAmmoType, primaryAmmoCount, clip1 = weapon\GetPrimaryAmmoType!, -1, -1
-        if primaryAmmoType >= 0
-            primaryAmmoCount, clip1 = entity\GetAmmoCount( primaryAmmoType ), weapon\Clip1!
-
-        @PrimaryType = primaryAmmoType
-
+        clip1 = weapon\Clip1!
         if @Clip1 ~= clip1
             @Clip1 = clip1
             @InvalidateLayout!
+
+        clip2 = weapon\Clip2!
+        if @Clip2 ~= clip2
+            @Clip2 = clip2
+            @InvalidateLayout!
+
+        primaryAmmoType, primaryAmmoCount = weapon\GetPrimaryAmmoType!, -1
+        if primaryAmmoType >= 0
+            primaryAmmoCount = entity\GetAmmoCount( primaryAmmoType )
 
         if @PrimaryCount ~= primaryAmmoCount
             @PrimaryCount = primaryAmmoCount
             @InvalidateLayout!
 
-        secondaryAmmoType, secondaryAmmoCount, clip2 = weapon\GetSecondaryAmmoType!, -1, -1
+        secondaryAmmoType, secondaryAmmoCount = weapon\GetSecondaryAmmoType!, -1
         if secondaryAmmoType >= 0
-            secondaryAmmoCount, clip2 = entity\GetAmmoCount( secondaryAmmoType ), weapon\Clip2!
-
-        @SecondaryType = secondaryAmmoType
-
-        if @Clip2 ~= clip2
-            @Clip2 = clip2
-            @InvalidateLayout!
+            secondaryAmmoCount = entity\GetAmmoCount( secondaryAmmoType )
 
         if @SecondaryCount ~= secondaryAmmoCount
             @SecondaryCount = secondaryAmmoCount

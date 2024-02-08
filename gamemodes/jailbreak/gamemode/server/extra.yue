@@ -442,7 +442,9 @@ Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
         unless entity\IsValid!
             return
 
-    entityMass = 1 / entity\GetPhysicsMass!
+    entityMass = entity\GetPhysicsMass!
+    entity\SetNW2Int( "entity-mass", entityMass )
+    entityMass = 1 / entityMass
 
     slowWalkSpeed = @GetSlowWalkSpeed!
     @SetSlowWalkSpeed( Clamp( entityMass * slowWalkSpeed, 32, slowWalkSpeed ) )

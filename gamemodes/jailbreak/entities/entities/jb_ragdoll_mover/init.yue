@@ -12,12 +12,10 @@ ENT.Initialize = =>
     @PhysicsInitBox( mins, maxs, "dirt" )
 
     phys = @GetPhysicsObject!
-    if IsValid( phys )
+    if phys and phys\IsValid!
         ragdoll = @Ragdoll
-        if IsValid( ragdoll )
-            entityMass = ragdoll\GetPhysicsMass!
-            @SetNW2Int( "mass", entityMass )
-            phys\SetMass( entityMass )
+        if ragdoll and ragdoll\IsValid!
+            phys\SetMass( ragdoll\GetPhysicsMass! )
 
 ENT.OnRemove = =>
     owner = @GetOwner!
