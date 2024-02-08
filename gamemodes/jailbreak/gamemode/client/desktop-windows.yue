@@ -3,10 +3,9 @@ Jailbreak = Jailbreak
 :Colors, :VMin, :GameInProgress = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
+:sub, :upper, :Explode = string
 :GetPhrase = language
 :PlaySound = surface
-:Explode = string
-IsValid = IsValid
 :Set = list
 
 :black = Colors
@@ -188,6 +187,8 @@ Set "DesktopWindows", "shock-collars", {
         RunConsoleCommand( "jb_shock_collars" )
 }
 
+margin = 0
+
 do
 
     Jailbreak.Font( "Jailbreak::Coins", "Roboto Mono Bold", 1.8 )
@@ -279,7 +280,7 @@ Set "DesktopWindows", "warden-shop", {
             @InvalidateParent!
             @Hide!
 
-        if IsValid( @Window )
+        if @Window and @Window\IsValid!
             @Window\Remove!
 
     init: ( window ) =>
@@ -358,27 +359,27 @@ Set "DesktopWindows", "warden-shop", {
 
 do
 
-    :AllowCustomPlayerModels, :HandsTransparency, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
+    :AllowCustomPlayerModels, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
     previewOffset = Vector( -100, 0, -61 )
 
     :PlayerModels, :FixModelPath = Jailbreak
-    input_GetCursorPos = input.GetCursorPos
+    :GetCursorPos = input
     :TranslatePlayerModel = player_manager
     ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
     vector_origin = vector_origin
     angle_zero = angle_zero
-    :PrecacheModel = util
     tostring = tostring
     :concat = table
+    Model = Model
 
-    Set "DesktopWindows", "player-editor", {
-        title: "#smwidget.playermodel"
-        icon: "icon64/playermodel.png"
+    Set "DesktopWindows", "player-options", {
+        title: "#jb.player.options"
+        icon: "icon16/group_gear.png"
         onewindow: true
         order: 200
-        init: ( window ) =>
-            window\SetTitle( "#smwidget.playermodel_title" )
-            window\SetIcon( "icon16/user_edit.png" )
+        init: ( _, window ) ->
+            window\SetTitle( "#jb.player.options" )
+            window\SetIcon( "icon16/group_gear.png" )
             window\SetSize( VMin( 80 ), VMin( 50 ) )
             window\SetMinWidth( VMin( 60 ) )
             window\SetMinHeight( VMin( 30 ) )
@@ -396,276 +397,8 @@ do
             modelPreview.Angles = angle_zero
             modelPreview\SetLookAt( Vector( -100, 0, -22 ) )
 
-            sheet = window\Add( "DPropertySheet" )
-            sheet\Dock( RIGHT )
-            sheet\SetSize( 430, 0 )
-
-            -- Models Tab
-            modelsTab = window\Add( "DPanel" )
-            modelsTab\DockPadding( 8, 8, 8, 8 )
-
-            modelsScrollPanel = modelsTab\Add( "DScrollPanel" )
-            modelsScrollPanel\Dock( FILL )
-
-            models = modelsScrollPanel\Add( "DIconLayout" )
-            models\Dock( FILL )
-
-            models.PerformLayout = ( ... ) ->
-                margin = VMin( 0.5 )
-                models\SetSpaceX( margin )
-                models\SetSpaceY( margin )
-                DIconLayout.PerformLayout( ... )
-
-            do
-
-                selectModel = =>
-                    RunConsoleCommand( PlayerModel\GetName!, @ModelName )
-
-                openMenu = =>
-                    menu = DermaMenu!
-                    menu\AddOption( "#spawnmenu.menu.copy", -> SetClipboardText( @ModelPath ) )\SetIcon( "icon16/page_copy.png" )
-                    menu\Open!
-
-                for name, modelPath in SortedPairs( player_manager.AllValidModels! )
-                    modelPath = FixModelPath( modelPath )
-
-                    icon = models\Add( "SpawnIcon" )
-                    icon\SetModel( modelPath )
-                    icon\SetSize( 64, 64 )
-                    icon\SetTooltip( name )
-
-                    icon.ModelPath = modelPath
-                    icon.ModelName = name
-
-                    icon.DoClick = selectModel
-                    icon.OpenMenu = openMenu
-
-            do
-
-                updateAvalibleModels = ->
-                    unless models\IsValid!
-                        return
-
-                    allowedPlayerModels = {}
-                    isFemalePrison = Jailbreak.IsFemalePrison!
-
-                    for modelPath in *PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
-                        allowedPlayerModels[ modelPath ] = true
-
-                    for modelPath in *PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
-                        allowedPlayerModels[ modelPath ] = true
-
-                    for icon in *models\GetChildren!
-                        visible = AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ]
-                        if icon\IsVisible! ~= visible
-                            icon\SetVisible( visible )
-                            models\InvalidateLayout!
-                            modelsScrollPanel\InvalidateLayout!
-                            modelsScrollPanel\InvalidateParent!
-
-                timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
-                updateAvalibleModels!
-
-            sheet\AddSheet( "#smwidget.model", modelsTab, "icon16/user.png" )
-
-            -- Player Colors Tab
-            colorsPanel = window\Add( "DPanel" )
-            colorsPanel\DockPadding( 8, 8, 8, 8 )
-
-            colorsScrollPanel = colorsPanel\Add( "DScrollPanel" )
-            colorsScrollPanel\Dock( FILL )
-
-            colorsScrollPanel.PerformLayout = ( ... ) ->
-                canvas = colorsScrollPanel\GetCanvas!
-                if IsValid( canvas )
-                    margin = VMin( 1 )
-                    canvas\DockPadding( margin, margin, margin, margin )
-
-                DScrollPanel.PerformLayout( ... )
-
-            do
-
-                handsTransparency = colorsScrollPanel\Add( "DNumSlider" )
-                handsTransparency\Dock( TOP )
-                handsTransparency\SetText( "#jb.hands-transparency" )
-                handsTransparency\SetDark( true )
-                handsTransparency\SetTall( 50 )
-                handsTransparency\SetDecimals( 2 )
-                handsTransparency\SetMax( 1 )
-
-                handsTransparency\SetValue( HandsTransparency\GetFloat! )
-
-                handsTransparency.OnValueChanged = ( value ) =>
-                    HandsTransparency\SetFloat( value )
-
-            -- Player Color
-            do
-
-                label = colorsScrollPanel\Add( "DLabel" )
-                label\SetText( "#smwidget.color_plr" )
-                label\SetTextColor( black )
-                label\Dock( TOP )
-
-            do
-
-                playerColor = colorsScrollPanel\Add( "DColorMixer" )
-                playerColor\SetAlphaBar( false )
-                playerColor\SetPalette( false )
-                playerColor\Dock( TOP )
-                playerColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
-
-                playerColor.ValueChanged = =>
-                    vector = @GetVector!
-
-                    entity = modelPreview.Entity
-                    if IsValid( entity )
-                        entity\SetPlayerColor( vector )
-                    else
-                        timer.Simple 0, ->
-                            if playerColor\IsValid!
-                                playerColor\ValueChanged!
-
-                    PlayerColor\SetString( tostring( vector ) )
-
-                playerColor\SetVector( Vector( PlayerColor\GetString! ) )
-
-            -- Weapon Color
-            do
-
-                label = colorsScrollPanel\Add( "DLabel" )
-                label\SetText( "#smwidget.color_wep" )
-                label\SetTextColor( black )
-                label\DockMargin( 0, 32, 0, 0 )
-                label\Dock( TOP )
-
-            do
-
-                weaponColor = colorsScrollPanel\Add( "DColorMixer" )
-                weaponColor\SetAlphaBar( false )
-                weaponColor\SetPalette( false )
-                weaponColor\Dock( TOP )
-                weaponColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
-
-                weaponColor.ValueChanged = =>
-                    PlayerWeaponColor\SetString( tostring( @GetVector! ) )
-
-                weaponColor\SetVector( Vector( PlayerWeaponColor\GetString! ) )
-
-            sheet\AddSheet( "#smwidget.colors", colorsPanel, "icon16/color_wheel.png" )
-
-            -- Bodygroups Tab
-            bodygroupsPanel = window\Add( "DPanel" )
-            bodygroupsPanel\DockPadding( 8, 8, 8, 8 )
-
-            bodygroupsList = bodygroupsPanel\Add( "DPanelList" )
-            bodygroupsList\EnableVerticalScrollbar( true )
-            bodygroupsList\Dock( FILL )
-
-            bodygroupsSheet = sheet\AddSheet( "#smwidget.bodygroups", bodygroupsPanel, "icon16/cog.png" )
-
-            UpdateBodyGroups = ( pnl, value ) ->
-                previewEntity = modelPreview.Entity
-                if previewEntity
-                    previewEntity\SetBodygroup( pnl.typenum, Round( value ) )
-
-                str = Explode( " ", PlayerBodyGroups\GetString! )
-                if #str < pnl.typenum + 1
-                    for index = 1, pnl.typenum + 1
-                        str[ index ] = str[ index ] or 0
-
-                str[ pnl.typenum + 1 ] = Round( value )
-                PlayerBodyGroups\SetString( concat( str, " " ) )
-
-            SetSkin = ( value ) =>
-                value = floor( value )
-
-                previewEntity = modelPreview.Entity
-                if previewEntity
-                    previewEntity\SetSkin( value )
-
-                PlayerSkin\SetString( value )
-
-            -- Player Model
-            SetupModel = ( modelName ) ->
-                unless modelPreview and modelPreview\IsValid!
-                    return
-
-                requested = FixModelPath( TranslatePlayerModel( modelName ) )
-                PrecacheModel( requested )
-                modelPreview\SetModel( requested )
-
-                bodygroupsList\Clear!
-
-                previewEntity = modelPreview.Entity
-                unless previewEntity
-                    return
-
-                previewEntity\SetPos( previewOffset )
-                previewEntity\SetPlayerColor( Vector( PlayerColor\GetString! ) )
-
-                bodygroupsTab = bodygroupsSheet.Tab
-                if IsValid( bodygroupsTab )
-                    if bodygroupsTab\IsVisible!
-                        bodygroupsTab\SetVisible( false )
-                        bodygroupsTab\InvalidateParent!
-
-                    -- Skin
-                    skinCount = previewEntity\SkinCount! - 1
-                    if skinCount > 0
-                        skins = vgui.Create( "DNumSlider" )
-                        skins\Dock( TOP )
-                        skins\SetText( "#jb.skin" )
-                        skins\SetDark( true )
-                        skins\SetTall( 50 )
-                        skins\SetDecimals( 0 )
-                        skins\SetMax( skinCount )
-                        skins\SetValue( PlayerSkin\GetInt! )
-                        skins.OnValueChanged = SetSkin
-                        bodygroupsList\AddItem( skins )
-
-                        unless bodygroupsTab\IsVisible!
-                            bodygroupsTab\SetVisible( true )
-                            bodygroupsTab\InvalidateParent!
-
-                    -- Bodygroups
-                    groups = Explode( " ", PlayerBodyGroups\GetString! )
-                    for index = 0, previewEntity\GetNumBodyGroups! - 1
-                        if previewEntity\GetBodygroupCount( index ) <= 1
-                            continue
-
-                        bodygroup = vgui.Create( "DNumSlider" )
-                        bodygroup\Dock( TOP )
-                        bodygroup\SetText( previewEntity\GetBodygroupName( index ) )
-                        bodygroup\SetDark( true )
-                        bodygroup\SetTall( 50 )
-                        bodygroup\SetDecimals( 0 )
-                        bodygroup.typenum = index
-                        bodygroup\SetMax( previewEntity\GetBodygroupCount( index ) - 1 )
-                        bodygroup\SetValue( groups[ index + 1 ] or 0 )
-                        bodygroup.OnValueChanged = UpdateBodyGroups
-                        bodygroupsList\AddItem( bodygroup )
-
-                        previewEntity\SetBodygroup( index, groups[ index + 1 ] or 0 )
-
-                        unless bodygroupsTab\IsVisible!
-                            bodygroupsTab\SetVisible( true )
-                            bodygroupsTab\InvalidateParent!
-
-                sheet.tabScroller\InvalidateLayout!
-
-                -- Animations
-                sequence = previewEntity\SelectWeightedSequence( ACT_HL2MP_IDLE )
-                if sequence > 0
-                    previewEntity\ResetSequence( sequence )
-
-            cvars.AddChangeCallback( PlayerModel\GetName!, ( _, __, modelName ) ->
-                SetupModel( modelName )
-            "player-editor" )
-
-            SetupModel( PlayerModel\GetString! )
-
             modelPreview.DragMousePress = =>
-                @PressX, @PressY = input_GetCursorPos!
+                @PressX, @PressY = GetCursorPos!
                 @Pressed = true
 
             modelPreview.DragMouseRelease = =>
@@ -676,10 +409,320 @@ do
                     @RunAnimation!
 
                 if @Pressed
-                    mx, my = input_GetCursorPos!
-                    @Angles[ 2 ] = @Angles[ 2 ] - ( ( @PressX or mx ) - mx ) / 2
-                    @PressX, @PressY = mx, my
+                    x, y = GetCursorPos!
+                    @Angles[ 2 ] = @Angles[ 2 ] - ( ( @PressX or x ) - x ) / 2
+                    @PressX, @PressY = x, y
 
                 entity\SetAngles( @Angles )
+
+            sheet = window\Add( "DPropertySheet" )
+            sheet\Dock( RIGHT )
+            sheet\SetSize( 430, 0 )
+
+            -- Models Tab
+            do
+
+                panel = window\Add( "DPanel" )
+                panel\DockPadding( 8, 8, 8, 8 )
+
+                scrollPanel = panel\Add( "DScrollPanel" )
+                scrollPanel\Dock( FILL )
+
+                icons = scrollPanel\Add( "DIconLayout" )
+                icons\Dock( FILL )
+
+                icons.PerformLayout = ( ... ) ->
+                    margin = VMin( 0.5 )
+                    icons\SetSpaceX( margin )
+                    icons\SetSpaceY( margin )
+                    DIconLayout.PerformLayout( ... )
+
+                do
+
+                    selectModel = =>
+                        RunConsoleCommand( PlayerModel\GetName!, @ModelName )
+
+                    openMenu = =>
+                        menu = DermaMenu!
+                        menu\AddOption( "#spawnmenu.menu.copy", -> SetClipboardText( @ModelPath ) )\SetIcon( "icon16/page_copy.png" )
+                        menu\Open!
+
+                    for name, modelPath in SortedPairs( player_manager.AllValidModels! )
+                        modelPath = FixModelPath( modelPath )
+
+                        icon = icons\Add( "SpawnIcon" )
+                        icon\SetModel( modelPath )
+                        icon\SetSize( 64, 64 )
+                        icon\SetTooltip( name )
+
+                        icon.ModelPath = modelPath
+                        icon.ModelName = name
+
+                        icon.DoClick = selectModel
+                        icon.OpenMenu = openMenu
+
+                do
+
+                    updateAvalibleModels = ->
+                        unless icons\IsValid!
+                            return
+
+                        allowedPlayerModels = {}
+                        isFemalePrison = Jailbreak.IsFemalePrison!
+
+                        for modelPath in *PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+                            allowedPlayerModels[ modelPath ] = true
+
+                        for modelPath in *PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+                            allowedPlayerModels[ modelPath ] = true
+
+                        for icon in *icons\GetChildren!
+                            visible = AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ]
+                            if icon\IsVisible! ~= visible
+                                icon\SetVisible( visible )
+                                icons\InvalidateLayout!
+
+                    timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
+                    updateAvalibleModels!
+
+                sheet\AddSheet( "#smwidget.model", panel, "icon16/user_edit.png" )
+
+            -- Colors Tab
+            do
+
+                panel = window\Add( "DPanel" )
+                panel\DockPadding( 8, 8, 8, 8 )
+
+                scrollPanel = panel\Add( "DScrollPanel" )
+                scrollPanel\Dock( FILL )
+
+                scrollPanel.PerformLayout = ( ... ) ->
+                    canvas = scrollPanel\GetCanvas!
+                    if canvas and canvas\IsValid!
+                        margin = VMin( 1 )
+                        canvas\DockPadding( margin, margin, margin, margin )
+
+                    DScrollPanel.PerformLayout( ... )
+
+                -- Player Color
+                do
+
+                    label = scrollPanel\Add( "DLabel" )
+                    label\SetText( "#smwidget.color_plr" )
+                    label\SetTextColor( black )
+                    label\Dock( TOP )
+
+                    playerColor = scrollPanel\Add( "DColorMixer" )
+                    playerColor\SetAlphaBar( false )
+                    playerColor\SetPalette( false )
+                    playerColor\Dock( TOP )
+                    playerColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
+
+                    playerColor.ValueChanged = =>
+                        vector = @GetVector!
+
+                        entity = modelPreview.Entity
+                        if entity and entity\IsValid!
+                            entity\SetPlayerColor( vector )
+                        else
+                            timer.Simple 0, ->
+                                if playerColor\IsValid!
+                                    playerColor\ValueChanged!
+
+                        PlayerColor\SetString( tostring( vector ) )
+
+                    playerColor\SetVector( Vector( PlayerColor\GetString! ) )
+
+                -- Weapon Color
+                do
+
+                    label = scrollPanel\Add( "DLabel" )
+                    label\SetText( "#smwidget.color_wep" )
+                    label\DockMargin( 0, 32, 0, 0 )
+                    label\SetTextColor( black )
+                    label\Dock( TOP )
+
+                    weaponColor = scrollPanel\Add( "DColorMixer" )
+                    weaponColor\SetAlphaBar( false )
+                    weaponColor\SetPalette( false )
+                    weaponColor\Dock( TOP )
+                    weaponColor\SetSize( 200, min( window\GetTall! / 3, 260 ) )
+
+                    weaponColor.ValueChanged = =>
+                        PlayerWeaponColor\SetString( tostring( @GetVector! ) )
+
+                    weaponColor\SetVector( Vector( PlayerWeaponColor\GetString! ) )
+
+                sheet\AddSheet( "#smwidget.colors", panel, "icon16/paintcan.png" )
+
+            -- Bodygroups Tab
+            do
+
+                panel = window\Add( "DPanel" )
+                panel\DockPadding( 8, 8, 8, 8 )
+
+                scrollPanel = panel\Add( "DScrollPanel" )
+                scrollPanel\Dock( FILL )
+
+                scrollPanel.PerformLayout = ( ... ) ->
+                    canvas = scrollPanel\GetCanvas!
+                    if canvas and canvas\IsValid!
+                        margin = VMin( 1 )
+                        canvas\DockPadding( margin, margin, margin, margin )
+
+                    DScrollPanel.PerformLayout( ... )
+
+                bodygroupsSheet = sheet\AddSheet( "#smwidget.bodygroups", panel, "icon16/text_list_bullets.png" )
+
+                UpdateBodyGroups = ( pnl, value ) ->
+                    previewEntity = modelPreview.Entity
+                    if previewEntity
+                        previewEntity\SetBodygroup( pnl.BodygroupID, Round( value ) )
+
+                    str = Explode( " ", PlayerBodyGroups\GetString! )
+                    if #str < pnl.BodygroupID + 1
+                        for index = 1, pnl.BodygroupID + 1
+                            str[ index ] = str[ index ] or 0
+
+                    str[ pnl.BodygroupID + 1 ] = Round( value )
+                    PlayerBodyGroups\SetString( concat( str, " " ) )
+
+                SetSkin = ( value ) =>
+                    value = floor( value )
+
+                    previewEntity = modelPreview.Entity
+                    if previewEntity
+                        previewEntity\SetSkin( value )
+
+                    PlayerSkin\SetString( value )
+
+                -- Player Model
+                SetupModel = ( modelName ) ->
+                    scrollPanel\Clear!
+
+                    unless modelPreview\IsValid!
+                        return
+
+                    modelPreview\SetModel( Model( FixModelPath( TranslatePlayerModel( modelName ) ) ) )
+
+                    previewEntity = modelPreview.Entity
+                    unless previewEntity
+                        return
+
+                    previewEntity\SetPos( previewOffset )
+                    previewEntity\SetPlayerColor( Vector( PlayerColor\GetString! ) )
+
+                    bodygroupsTab = bodygroupsSheet.Tab
+                    if bodygroupsTab and bodygroupsTab\IsValid!
+                        if bodygroupsTab\IsVisible!
+                            bodygroupsTab\SetVisible( false )
+                            bodygroupsTab\InvalidateParent!
+
+                        -- Skin
+                        skinCount = previewEntity\SkinCount! - 1
+                        if skinCount > 0
+                            skins = scrollPanel\Add( "DNumSlider" )
+                            skins\Dock( TOP )
+                            skins\SetText( "#jb.skin" )
+                            skins\SetDark( true )
+                            skins\SetTall( 50 )
+                            skins\SetDecimals( 0 )
+                            skins\SetMax( skinCount )
+                            skins\SetValue( PlayerSkin\GetInt! )
+                            skins.OnValueChanged = SetSkin
+
+                            unless bodygroupsTab\IsVisible!
+                                bodygroupsTab\SetVisible( true )
+                                bodygroupsTab\InvalidateParent!
+
+                        -- Bodygroups
+                        groups = Explode( " ", PlayerBodyGroups\GetString! )
+                        for index = 0, previewEntity\GetNumBodyGroups! - 1
+                            if previewEntity\GetBodygroupCount( index ) <= 1
+                                continue
+
+                            bodygroup = scrollPanel\Add( "DNumSlider" )
+                            bodygroup\Dock( TOP )
+
+                            str = previewEntity\GetBodygroupName( index )
+                            bodygroup\SetText( upper( sub( str, 1, 1 ) ) .. sub( str, 2 ) )
+
+                            bodygroup\SetDark( true )
+                            bodygroup\SetTall( 50 )
+                            bodygroup\SetDecimals( 0 )
+                            bodygroup.BodygroupID = index
+                            bodygroup\SetMax( previewEntity\GetBodygroupCount( index ) - 1 )
+                            bodygroup\SetValue( groups[ index + 1 ] or 0 )
+                            bodygroup.OnValueChanged = UpdateBodyGroups
+
+                            previewEntity\SetBodygroup( index, groups[ index + 1 ] or 0 )
+
+                            unless bodygroupsTab\IsVisible!
+                                bodygroupsTab\SetVisible( true )
+                                bodygroupsTab\InvalidateParent!
+
+                    sheet.tabScroller\InvalidateLayout!
+
+                    -- Animations
+                    sequence = previewEntity\SelectWeightedSequence( ACT_HL2MP_IDLE )
+                    if sequence > 0
+                        previewEntity\ResetSequence( sequence )
+
+                cvars.AddChangeCallback( PlayerModel\GetName!, ( _, __, modelName ) ->
+                    SetupModel( modelName )
+                "player-editor" )
+
+                SetupModel( PlayerModel\GetString! )
+
+            -- Options Tab
+            do
+
+                panel = window\Add( "DPanel" )
+                panel\DockPadding( 8, 8, 8, 8 )
+
+                scrollPanel = panel\Add( "DScrollPanel" )
+                scrollPanel\Dock( FILL )
+
+                scrollPanel.PerformLayout = ( ... ) ->
+                    canvas = scrollPanel\GetCanvas!
+                    if canvas and canvas\IsValid!
+                        margin = VMin( 1 )
+                        canvas\DockPadding( margin, margin, margin, margin )
+
+                    DScrollPanel.PerformLayout( ... )
+
+                do
+
+                    handsTransparency = scrollPanel\Add( "DNumSlider" )
+                    handsTransparency\Dock( TOP )
+                    handsTransparency\SetText( "#jb.hands-transparency" )
+                    handsTransparency\SetDark( true )
+                    handsTransparency\SetTall( 50 )
+                    handsTransparency\SetDecimals( 2 )
+                    handsTransparency\SetMax( 1 )
+
+                    handsTransparency\SetValue( Jailbreak.HandsTransparency\GetFloat! )
+
+                    handsTransparency.OnValueChanged = ( value ) =>
+                        Jailbreak.HandsTransparency\SetFloat( value )
+
+                do
+
+                    notifyLifetime = scrollPanel\Add( "DNumSlider" )
+                    notifyLifetime\Dock( TOP )
+                    notifyLifetime\SetText( "#jb.pickup-notify-lifetime" )
+                    notifyLifetime\SetDecimals( 0 )
+                    notifyLifetime\SetDark( true )
+                    notifyLifetime\SetTall( 50 )
+                    notifyLifetime\SetMax( 60 )
+
+                    notifyLifetime\SetValue( Jailbreak.PickupNotifyLifetime\GetInt! )
+
+                    notifyLifetime.OnValueChanged = ( value ) =>
+                        Jailbreak.PickupNotifyLifetime\SetInt( value )
+
+                hook.Call( "ClientOptionsLoaded", nil, scrollPanel )
+
+                sheet\AddSheet( "#jb.options", panel, "icon16/cog.png" )
 
     }
