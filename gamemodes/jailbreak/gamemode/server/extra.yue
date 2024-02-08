@@ -433,8 +433,6 @@ Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
 
 -- Realistic items mass
 Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
-    entity.Holder = @
-
     if entity.RagdollMover
         Add "Think", entity, =>
             unless @IsPlayerHolding!
@@ -455,15 +453,7 @@ Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
     runSpeed = @GetRunSpeed!
     @SetRunSpeed( Clamp( entityMass * runSpeed, 64, runSpeed ) )
 
-Add "EntityRemoved", "Jailbreak::PhysicsDropFix", ( entity ) ->
-    holder = entity.Holder
-    if holder and holder\IsValid! and holder\IsPlayer! and holder\Alive!
-        holder\DropObject!
-
 Add "OnPlayerPhysicsDrop", "Jailbreak::RealisticItemMass", ( entity, thrown ) =>
-    entity.Holder = nil
-    @SetupMovement!
-
     unless thrown
         return
 

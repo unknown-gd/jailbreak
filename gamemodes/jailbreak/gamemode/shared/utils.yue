@@ -645,8 +645,10 @@ do
         return false
 
     PLAYER.IsHoldingEntity = =>
-        entity = @GetEntityInUse!
-        return entity ~= NULL and entity\IsValid!
+        return GetNW2Entity( @, "holding-entity" )\IsValid!
+
+    PLAYER.GetHoldingEntity = =>
+        return GetNW2Entity( @, "holding-entity" )
 
     PLAYER.GetUseTime = =>
         unless KeyDown( @, IN_USE )

@@ -1,13 +1,3 @@
 include( "shared.lua" )
+
 ENT.Draw = ->
-
-ENT.Initialize = =>
-    unless @GetOwner!\IsLocalPlayer!
-        return
-
-    hook.Add "InputMouseApply", @, ( cmd, x, y, viewAngles ) =>
-        frameTime = FrameTime! * ( 50 / @GetNW2Int( "mass", 80 ) )
-        viewAngles[ 1 ] += y * frameTime
-        viewAngles[ 2 ] -= x * frameTime
-        cmd\SetViewAngles( viewAngles )
-        return true

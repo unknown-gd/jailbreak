@@ -1,3 +1,25 @@
+Jailbreak = Jailbreak
+
+do
+
+    FrameTime = FrameTime
+
+    hook.Add "InputMouseApply", "Jailbreak::jb_ragdoll_mover", ( cmd, x, y, viewAngles ) ->
+        ply = Jailbreak.Player
+        unless ply\IsValid! and ply\Alive!
+            return
+
+        entity = ply\GetHoldingEntity!
+        if entity and entity\IsValid!
+            if entity.RagdollMover
+                return true
+
+            frameTime = FrameTime! * ( 50 / entity\GetNW2Int( "mass", 80 ) )
+            viewAngles[ 1 ] += y * frameTime
+            viewAngles[ 2 ] -= x * frameTime
+            cmd\SetViewAngles( viewAngles )
+            return true
+
 do
 
     :VMin = Jailbreak

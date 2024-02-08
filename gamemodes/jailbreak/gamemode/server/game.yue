@@ -750,3 +750,21 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
 GM.FinishMove = ( ply, mv ) =>
     if ply\Alive!
         ply.LastVelocity = mv\GetVelocity!
+
+GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
+    ply\SetNW2Entity( "holding-entity", entity )
+    entity.Holder = ply
+
+do
+
+    NULL = NULL
+
+    GM.OnPlayerPhysicsDrop = ( ply, entity ) =>
+        ply\SetNW2Entity( "holding-entity", NULL )
+        entity.Holder = nil
+        ply\SetupMovement!
+
+hook.Add "EntityRemoved", "Jailbreak::PhysicsDropFix", ( entity ) ->
+    holder = entity.Holder
+    if holder and holder\IsValid! and holder\IsPlayer! and holder\Alive!
+        holder\DropObject!
