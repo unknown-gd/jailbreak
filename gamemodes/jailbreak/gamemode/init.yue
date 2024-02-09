@@ -94,7 +94,6 @@ do
         RunConsoleCommand( "sv_defaultdeployspeed", "1" )
         RunConsoleCommand( "mp_show_voice_icons", "0" )
         RunConsoleCommand( "sv_gravity", "800" )
-        RunConsoleCommand( "dsp_player", "1" )
 
         if #FindByClass( "info_player_teamspawn" ) ~= 0
             @TF2Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0

@@ -11,6 +11,7 @@ GM.InitPostEntity = =>
     Jailbreak.PlayerIndex = ply\EntIndex!
 
     timer.Simple 0.25, ->
+        RunConsoleCommand( "dsp_player", "1" )
         RunConsoleCommand( "dsp_room", "1" )
         RunConsoleCommand( "jb_showteam" )
 
