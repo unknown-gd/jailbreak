@@ -196,11 +196,13 @@ requestData = ->
         url: ug_source\GetString!
         success: ( code, data ) ->
             if code ~= 200
-                error "Failed to load unknown ghost data: " .. code
+                print "Failed to load unknown ghost data: " .. code
+                return
 
             tbl = util.JSONToTable( data )
             unless tbl
-                error "Failed to parse unknown ghost data. [" .. data .. "]"
+                print "Failed to parse unknown ghost data. [" .. data .. "]"
+                return
 
             table.Merge( addonData, tbl )
             print "[UG] Unknown ghost data received!"
