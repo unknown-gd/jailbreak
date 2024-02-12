@@ -272,14 +272,14 @@ altrenativeWeapons = {
             "arc9_go_nade_smoke"
             "arc9_fas_m18"
             "arccw_nade_smoke"
-            "weapon_crowbar"
+            "weapon_frag"
         }
 
         weapon_flashbang: {
             "arc9_go_nade_flashbang"
             "arc9_fas_m84"
             "arccw_nade_flash"
-            "weapon_crowbar"
+            "weapon_frag"
         }
 
         weapon_c4: {
