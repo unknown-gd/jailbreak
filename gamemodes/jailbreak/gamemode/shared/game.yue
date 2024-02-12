@@ -190,7 +190,7 @@ do
 
     do
 
-        :InVehicle, :GetWalkSpeed, :GetRunSpeed, :GetActiveWeapon, :IsPrisoner, :GetVehicle, :GetAllowWeaponsInVehicle, :IsInNoclip = PLAYER
+        :InVehicle, :GetWalkSpeed, :GetRunSpeed, :GetActiveWeapon, :IsPrisoner, :GetVehicle, :GetAllowWeaponsInVehicle, :InNoclip = PLAYER
         :LookupSequence, :GetParent, :GetModel = ENTITY
         ACT_HL2MP_RUN_PANICKED = ACT_HL2MP_RUN_PANICKED
         :Length2DSqr = FindMetaTable( "Vector" )
@@ -254,7 +254,7 @@ do
                 goto finish
 
             -- Player noclip & swimming
-            isNoclipping, isSwimming = IsInNoclip( ply ), WaterLevel( ply ) > 1
+            isNoclipping, isSwimming = InNoclip( ply ), WaterLevel( ply ) > 1
             if isNoclipping or isSwimming or GetNW2Bool( ply, "in-flight" )
                 calcIdeal = ACT_MP_SWIM
                 goto finish

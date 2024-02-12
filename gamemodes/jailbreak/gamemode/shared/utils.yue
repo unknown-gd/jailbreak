@@ -667,11 +667,11 @@ do
     MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
     :GetMoveType = ENTITY
 
-    PLAYER.IsInNoclip = =>
+    PLAYER.InNoclip = =>
         return GetMoveType( @ ) == MOVETYPE_NOCLIP
 
     PLAYER.SetNoclip = ( desiredState, force ) =>
-        if desiredState == @IsInNoclip!
+        if desiredState == @InNoclip!
             return true
 
         if not force and Run( "PlayerNoClip", @, desiredState ) == false

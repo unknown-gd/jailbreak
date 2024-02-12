@@ -488,7 +488,7 @@ do
     MOVETYPE_WALK = MOVETYPE_WALK
 
     GM.PlayerShouldTaunt = ( ply ) =>
-        if ply\Alive! and ply\IsOnGround! and not ply\Crouching! and ply\GetMoveType! == MOVETYPE_WALK and ply\WaterLevel! < 2
+        if ply\Alive! and ply\IsOnGround! and not ply\Crouching! and ply\GetMoveType! == MOVETYPE_WALK and ply\WaterLevel! < 2 and not ply\InVehicle!
             return true
 
         ply\SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 2 )
