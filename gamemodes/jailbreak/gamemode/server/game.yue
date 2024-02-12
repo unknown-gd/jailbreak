@@ -35,7 +35,7 @@ do
         if ragdoll\IsValid!
             ragdoll\SetNW2Entity( "ragdoll-owner", ply )
         else
-            ply\SetTeam( ply\IsBot! and TEAM_PRISONER or TEAM_SPECTATOR )
+            ply\SetTeam( TEAM_PRISONER )
 
         ply.m_bInitialSpawn = true
 
@@ -750,7 +750,7 @@ GM.FinishMove = ( ply, mv ) =>
 
 GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
     ply\SetNW2Entity( "holding-entity", entity )
-    entity.Holder = ply
+    entity.m_eHolder = ply
 
 do
 
@@ -758,10 +758,10 @@ do
 
     GM.OnPlayerPhysicsDrop = ( ply, entity ) =>
         ply\SetNW2Entity( "holding-entity", NULL )
-        entity.Holder = nil
+        entity.m_eHolder = nil
         ply\SetupMovement!
 
 hook.Add "EntityRemoved", "Jailbreak::PhysicsDropFix", ( entity ) ->
-    holder = entity.Holder
-    if holder and holder\IsValid! and holder\IsPlayer! and holder\Alive!
-        holder\DropObject!
+    holder = entity.m_eHolder
+    if holder and holder\IsValid! and holder\IsPlayer!
+        Run( "OnPlayerPhysicsDrop", holder, entity )
