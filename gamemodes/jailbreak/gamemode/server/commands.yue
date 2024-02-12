@@ -69,7 +69,7 @@ do
         else
             SetShockCollars( not IsShockCollarsActive! )
 
-        @m_fShockCollarsDelay = CurTime! + 3
+        @m_fShockCollarsDelay = CurTime! + 1.5
 
 do
 
