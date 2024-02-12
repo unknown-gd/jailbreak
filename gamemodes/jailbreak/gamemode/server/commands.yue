@@ -380,43 +380,47 @@ do
         color = string.Split( args[ 2 ] or "0 0 0", " " )
         @SetColor( Color( color[ 1 ], color[ 2 ], color[ 3 ] ) )
 
-Add "jb_lose_consciousness", =>
-    unless @ and @IsValid!
-        return
+do
 
-    unless @Alive!
-        @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
-        return
+    :AllowPlayersLoseConsciousness = Jailbreak
 
-    if ( @m_bLoseConsciousnessDelay or 0 ) > CurTime!
-        @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
-        return
+    Add "jb_lose_consciousness", =>
+        unless @ and @IsValid!
+            return
 
-    @m_bLoseConsciousnessDelay = CurTime! + 3
+        unless @Alive!
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
+            return
 
-    ragdoll = @GetRagdollEntity!
-    if ragdoll\IsValid! and ragdoll\Alive!
-        @SpawnFromRagdoll( ragdoll, true, true )
-        @SpectateEntity!
-        @SetObserverMode( OBS_MODE_NONE )
-        @SetNoDraw( false )
-        @DrawWorldModel( true )
-        @SetNotSolid( false )
-        @SetMoveType( MOVETYPE_WALK )
-        ragdoll\SetAlive( false )
-        ragdoll\Remove!
-        return
+        if ( @m_fLoseConsciousnessDelay or 0 ) > CurTime!
+            @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
+            return
 
-    unless GameInProgress!
-        @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
-        return
+        @m_fLoseConsciousnessDelay = CurTime! + 3
 
-    ragdoll = @CreateRagdoll( true )
-    if ragdoll\IsValid!
-        @DropObject!
-        @SetMoveType( MOVETYPE_NONE )
-        @DrawWorldModel( false )
-        @SetNoDraw( true )
-        @SetNotSolid( true )
-        @SetObserverMode( OBS_MODE_CHASE )
-        @SpectateEntity( ragdoll )
+        ragdoll = @GetRagdollEntity!
+        if ragdoll\IsValid! and ragdoll\Alive!
+            @SpawnFromRagdoll( ragdoll, true, true )
+            @SpectateEntity!
+            @SetObserverMode( OBS_MODE_NONE )
+            @SetNoDraw( false )
+            @DrawWorldModel( true )
+            @SetNotSolid( false )
+            @SetMoveType( MOVETYPE_WALK )
+            ragdoll\SetAlive( false )
+            ragdoll\Remove!
+            return
+
+        unless GameInProgress! and AllowPlayersLoseConsciousness\GetBool!
+            @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
+            return
+
+        ragdoll = @CreateRagdoll( true )
+        if ragdoll\IsValid!
+            @DropObject!
+            @SetMoveType( MOVETYPE_NONE )
+            @DrawWorldModel( false )
+            @SetNoDraw( true )
+            @SetNotSolid( true )
+            @SetObserverMode( OBS_MODE_CHASE )
+            @SpectateEntity( ragdoll )

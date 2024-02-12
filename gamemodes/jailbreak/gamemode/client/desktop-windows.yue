@@ -43,46 +43,57 @@ do
             securityRadio\SetBool( not securityRadio\GetBool! )
     }
 
-Set "DesktopWindows", "lose-consciousness", {
-    title: "#jb.player.lose-consciousness"
-    icon: "icon16/user_delete.png"
-    order: 2500
-    think: =>
-        ply = Jailbreak.Player
-        unless GameInProgress! and ply\IsValid! and ply\Alive!
-            if @IsVisible!
+do
+
+    :AllowPlayersLoseConsciousness = Jailbreak
+
+    Set "DesktopWindows", "lose-consciousness", {
+        title: "#jb.player.lose-consciousness"
+        icon: "icon16/user_delete.png"
+        order: 2500
+        think: =>
+            unless AllowPlayersLoseConsciousness\GetBool!
+                if @IsVisible!
+                    @InvalidateParent!
+                    @Hide!
+
+                return
+
+            ply = Jailbreak.Player
+            unless GameInProgress! and ply\IsValid! and ply\Alive!
+                if @IsVisible!
+                    @InvalidateParent!
+                    @Hide!
+
+                return
+
+            unless @IsVisible!
                 @InvalidateParent!
-                @Hide!
+                @Show!
 
-            return
+            ragdoll = ply\GetRagdollEntity!
+            unless ragdoll\IsValid! and ragdoll\Alive!
+                if @GetImage! ~= "icon16/user_delete.png"
+                    @SetImage( "icon16/user_delete.png" )
 
-        unless @IsVisible!
-            @InvalidateParent!
-            @Show!
+                text = GetPhrase( "jb.player.lose-consciousness" )
+                if @Label\GetText! ~= text
+                    @Label\SetText( text )
+                    @SetTooltip( text )
 
-        ragdoll = ply\GetRagdollEntity!
-        unless ragdoll\IsValid! and ragdoll\Alive!
-            if @GetImage! ~= "icon16/user_delete.png"
-                @SetImage( "icon16/user_delete.png" )
+                return
 
-            text = GetPhrase( "jb.player.lose-consciousness" )
+            if @GetImage! ~= "icon16/user_add.png"
+                @SetImage( "icon16/user_add.png" )
+
+            text = GetPhrase( "jb.player.wake-up" )
             if @Label\GetText! ~= text
                 @Label\SetText( text )
                 @SetTooltip( text )
 
-            return
-
-        if @GetImage! ~= "icon16/user_add.png"
-            @SetImage( "icon16/user_add.png" )
-
-        text = GetPhrase( "jb.player.wake-up" )
-        if @Label\GetText! ~= text
-            @Label\SetText( text )
-            @SetTooltip( text )
-
-    click: =>
-        RunConsoleCommand( "jb_lose_consciousness" )
-}
+        click: =>
+            RunConsoleCommand( "jb_lose_consciousness" )
+    }
 
 do
 

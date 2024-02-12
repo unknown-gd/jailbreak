@@ -110,6 +110,7 @@ do
     Jailbreak.MarkersLifetime = CreateConVar( "jb_markers_lifetime", "10", FCVAR_SHARED, "Marker lifetime in seconds.", 0, 300 )
 
     -- Extra Stuff
+    Jailbreak.AllowPlayersLoseConsciousness = CreateConVar( "jb_allow_players_lose_consciousness", "1", FCVAR_SHARED, "Allow players to lose consciousness.", 0, 1 )
     Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "4", FCVAR_SHARED, "Time to looting a ragdoll in seconds.", 0, 300 )
     Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "2.5", FCVAR_SHARED, "Time to eat food in seconds.", 0, 300 )
 
