@@ -114,30 +114,37 @@ do
             fontData.font, fontData.size = data.font, VMin( data.size )
             CreateFont data.fontName, fontData
 
-GM.PerformPlayerVoice = ( ply ) =>
-    voiceVolume = ply\IsSpeaking! and ply\VoiceVolume! or 0
+do
 
-    lastVoiceVolume = ply.m_fLastVoiceVolume
-    unless lastVoiceVolume
-        lastVoiceVolume = voiceVolume
+    voiceVolume = 0
 
-    if lastVoiceVolume > 0
-        voiceVolume = lastVoiceVolume + ( voiceVolume - lastVoiceVolume ) / 4
-        if voiceVolume < 0.01
+    GM.PerformPlayerVoice = ( ply ) =>
+        if ply\IsSpeaking!
+            voiceVolume = ply\VoiceVolume!
+        else
             voiceVolume = 0
 
-    ply.m_fLastVoiceVolume = voiceVolume
+        lastVoiceVolume = ply.m_fLastVoiceVolume
+        unless lastVoiceVolume
+            lastVoiceVolume = voiceVolume
 
-    maxVoiceVolume = ply.m_fMaxVoiceVolume
-    if not maxVoiceVolume or maxVoiceVolume < voiceVolume
-        maxVoiceVolume = voiceVolume
-        ply.m_fMaxVoiceVolume = maxVoiceVolume
+        if lastVoiceVolume > 0
+            voiceVolume = lastVoiceVolume + ( voiceVolume - lastVoiceVolume ) / 4
+            if voiceVolume < 0.01
+                voiceVolume = 0
 
-    if maxVoiceVolume > 0 and voiceVolume > 0
-        ply.m_fVoiceFraction = voiceVolume / maxVoiceVolume
-        return
+        ply.m_fLastVoiceVolume = voiceVolume
 
-    ply.m_fVoiceFraction = 0
+        maxVoiceVolume = ply.m_fMaxVoiceVolume
+        if not maxVoiceVolume or maxVoiceVolume < voiceVolume
+            maxVoiceVolume = voiceVolume
+            ply.m_fMaxVoiceVolume = maxVoiceVolume
+
+        if maxVoiceVolume > 0 and voiceVolume > 0
+            ply.m_fVoiceFraction = voiceVolume / maxVoiceVolume
+            return
+
+        ply.m_fVoiceFraction = 0
 
 ENTITY = FindMetaTable( "Entity" )
 
