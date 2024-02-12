@@ -254,28 +254,26 @@ do
         "right_part"
         "left_part"
 
-        "jaw_drop"
-
         "right_mouth_drop"
         "left_mouth_drop"
 
+        "jaw_drop"
+
         "smile"
         "lower_lip"
-
-        -- "corner_depressor"
     }
 
     mults = {
-        right_cheek_raiser: 0.25
-        left_cheek_raiser: 0.25
-        -- right_mouth_drop: 0.5
-        -- left_mouth_drop: 0.5
-        lower_lip: 0.05
+        right_corner_puller: 0.125
+        left_corner_puller: 0.125
+        right_cheek_raiser: 0.125
+        left_cheek_raiser: 0.125
+        lower_lip: 0.5
         jaw_drop: 0.5
-        smile: 0.05
+        smile: 0.25
     }
 
-    cache, found = {}, false
+    cache, found, flexCount = {}, false, 0
 
     GM.MouthMoveAnimation = ( ply ) =>
         flexes = cache[ ply\GetModel! ]
@@ -306,13 +304,12 @@ do
 
         if flexes and not VoiceForceFlexLess\GetBool!
             fraction = ply\VoiceFraction!
-            ply\SetFlexScale( 2 )
 
             flexCount = #flexes
             for i = 1, flexCount
                 if fraction > 0
                     data = flexes[ i ]
-                    ply\SetFlexWeight( data[ 1 ], Clamp( abs( sin( data[ 1 ] * ( 1 / flexCount ) + CurTime! ) ) * fraction + fraction, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) )
+                    ply\SetFlexWeight( data[ 1 ], Clamp( abs( sin( data[ 1 ] * ( 1 / flexCount ) + CurTime! ) ) * fraction + fraction, data[ 3 ], data[ 4 ] ) * ( mults[ data[ 2 ] ] or 1 ) * 2 )
                 else
                     ply\SetFlexWeight( flexes[ i ][ 1 ], 0 )
 
