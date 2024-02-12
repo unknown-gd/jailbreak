@@ -662,6 +662,24 @@ do
     PLAYER.IsSpawning = =>
         return getAliveTime( @ ) <= PlayerSpawnTime\GetFloat!
 
+do
+
+    MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
+    :GetMoveType = ENTITY
+
+    PLAYER.IsInNoclip = =>
+        return GetMoveType( @ ) == MOVETYPE_NOCLIP
+
+    PLAYER.SetNoclip = ( desiredState, force ) =>
+        if desiredState == @IsInNoclip!
+            return true
+
+        if not force and Run( "PlayerNoClip", @, desiredState ) == false
+            return false
+
+        @SetMoveType( desiredState and MOVETYPE_NOCLIP or MOVETYPE_WALK )
+        return true
+
 -- Silly spark sounds
 do
 

@@ -190,14 +190,13 @@ do
 
     do
 
-        :InVehicle, :GetWalkSpeed, :GetRunSpeed, :GetActiveWeapon, :IsPrisoner, :GetVehicle, :GetAllowWeaponsInVehicle = PLAYER
-        :GetMoveType, :LookupSequence, :GetParent, :GetModel = ENTITY
+        :InVehicle, :GetWalkSpeed, :GetRunSpeed, :GetActiveWeapon, :IsPrisoner, :GetVehicle, :GetAllowWeaponsInVehicle, :IsInNoclip = PLAYER
+        :LookupSequence, :GetParent, :GetModel = ENTITY
         ACT_HL2MP_RUN_PANICKED = ACT_HL2MP_RUN_PANICKED
         :Length2DSqr = FindMetaTable( "Vector" )
         :GetHoldType = FindMetaTable( "Weapon" )
         ACT_HL2MP_RUN_FAST = ACT_HL2MP_RUN_FAST
         GESTURE_SLOT_JUMP = GESTURE_SLOT_JUMP
-        MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 
         singleHandHoldTypes = {
             grenade: true
@@ -255,7 +254,7 @@ do
                 goto finish
 
             -- Player noclip & swimming
-            isNoclipping, isSwimming = GetMoveType( ply ) == MOVETYPE_NOCLIP, WaterLevel( ply ) > 1
+            isNoclipping, isSwimming = IsInNoclip( ply ), WaterLevel( ply ) > 1
             if isNoclipping or isSwimming or GetNW2Bool( ply, "in-flight" )
                 calcIdeal = ACT_MP_SWIM
                 goto finish
