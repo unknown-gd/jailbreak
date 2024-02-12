@@ -275,24 +275,31 @@ do
         smile: 0.05
     }
 
-    cache = {}
+    cache, found = {}, false
 
     GM.MouthMoveAnimation = ( ply ) =>
         flexes = cache[ ply\GetModel! ]
         if flexes == nil
             flexes = {}
-            for flex = 0, ply\GetFlexNum!
-                flexName, found = ply\GetFlexName( flex ), false
+            length = 0
+
+            for flexID = 0, ply\GetFlexNum! - 1
+                flexName = ply\GetFlexName( flexID )
+                unless flexName
+                    continue
+
+                found = false
+
                 for index = 1, #patterns
-                    pattern = patterns[ index ]
-                    if flexName == pattern or find( flexName, pattern, 1, false ) ~= nil
+                    if flexName == patterns[ index ] or find( flexName, patterns[ index ], 1, false ) ~= nil
                         found = true
                         break
 
                 if found
-                    flexes[] = { flex, flexName, ply\GetFlexBounds( flex ) }
+                    length += 1
+                    flexes[ length ] = { flexID, flexName, ply\GetFlexBounds( flexID ) }
 
-            if #flexes == 0
+            if length == 0
                 flexes = false
 
             cache[ ply\GetModel! ] = flexes
