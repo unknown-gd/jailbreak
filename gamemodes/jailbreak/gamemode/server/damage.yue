@@ -402,20 +402,18 @@ do
             entity\SetMoveType( MOVETYPE_VPHYSICS )
             changed = true
 
+        if entity\GetClass! == "prop_dynamic"
+            entity\PhysicsInit( SOLID_VPHYSICS )
+            changed = true
+
         phys = entity\GetPhysicsObject!
         if phys and phys\IsValid!
-            if phys\IsMoveable!
-                unless phys\IsMotionEnabled!
-                    phys\EnableMotion( true )
-                    changed = true
-
-                if phys\IsAsleep!
-                    phys\Wake!
-
-            else
-                entity\PhysicsInit( SOLID_VPHYSICS )
-                entity\PhysWake!
+            unless phys\IsMotionEnabled!
+                phys\EnableMotion( true )
                 changed = true
+
+            if phys\IsAsleep!
+                phys\Wake!
 
         if changed
             entity\DoElectricSparks( entity\WorldSpaceCenter! )
