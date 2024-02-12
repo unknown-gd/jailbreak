@@ -483,8 +483,16 @@ do
         return true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerShouldTaunt
-GM.PlayerShouldTaunt = ( ply ) =>
-    return ply\Alive!
+do
+
+    MOVETYPE_WALK = MOVETYPE_WALK
+
+    GM.PlayerShouldTaunt = ( ply ) =>
+        if ply\Alive! and ply\IsOnGround! and not ply\Crouching! and ply\GetMoveType! == MOVETYPE_WALK and ply\WaterLevel! < 2
+            return true
+
+        ply\SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 2 )
+        return false
 
 -- https://wiki.facepunch.com/gmod/GM:AllowPlayerPickup
 GM.AllowPlayerPickup = ( ply, entity ) =>
