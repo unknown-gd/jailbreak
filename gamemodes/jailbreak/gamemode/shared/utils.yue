@@ -309,49 +309,6 @@ do
 
 do
 
-    getCTable = ENTITY.GetCTable
-    if getCTable == nil
-        getCTable = ENTITY.GetTable
-        ENTITY.GetCTable = getCTable
-
-    cache = {}
-
-    Add "EntityRemove", "Jailbreak::EntityTableCache", =>
-        Simple 0, ->
-            cache[ @ ] = nil
-
-    getTable = =>
-        result = cache[ @ ]
-        if result == nil
-            result = getCTable( @ ) or {}
-            cache[ @ ] = result
-
-        return result
-
-    ENTITY.GetTable = getTable
-
-    PLAYER.__index = ( key ) =>
-        value = PLAYER[ key ]
-        if value == nil
-            value = ENTITY[ key ]
-            if value == nil
-                return getTable( @ )[ key ]
-
-        return value
-
-    WEAPON = FindMetaTable( "Weapon" )
-
-    WEAPON.__index = ( key ) =>
-        value = WEAPON[ key ]
-        if value == nil
-            value = ENTITY[ key ]
-            if value == nil
-                return getTable( @ )[ key ]
-
-        return value
-
-do
-
     :DefaultPlayerColor = Jailbreak
 
     -- Returns player color as vector
