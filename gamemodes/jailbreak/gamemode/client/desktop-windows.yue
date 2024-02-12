@@ -1,6 +1,6 @@
 Jailbreak = Jailbreak
 
-:Colors, :VMin, :GameInProgress = Jailbreak
+:Colors, :VMin, :GameInProgress, :VoiceChatProximity = Jailbreak
 RunConsoleCommand = RunConsoleCommand
 :min, :floor, :random, :Round = math
 :sub, :upper, :Explode = string
@@ -22,6 +22,13 @@ do
         icon: "icon16/phone.png"
         order: 500
         think: =>
+            unless VoiceChatProximity\GetBool!
+                if @IsVisible!
+                    @InvalidateParent!
+                    @Hide!
+
+                return
+
             if Jailbreak.Player\HasSecurityRadio!
                 state = securityRadio\GetBool!
 
@@ -104,6 +111,13 @@ do
         icon: "icon16/sound_mute.png"
         order: 500
         think: =>
+            unless VoiceChatProximity\GetBool!
+                if @IsVisible!
+                    @InvalidateParent!
+                    @Hide!
+
+                return
+
             if Jailbreak.Player\IsWarden!
                 image = Megaphone\GetBool! and "icon16/sound.png" or "icon16/sound_mute.png"
                 if @GetImage! ~= image

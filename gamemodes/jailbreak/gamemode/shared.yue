@@ -94,6 +94,7 @@ do
     Jailbreak.VoiceChatMinDistance = CreateConVar( "jb_voice_distance_min", "256", FCVAR_SHARED, "The minimum value at which the player can be heard.", 32, 16384 )
     Jailbreak.VoiceChatMaxDistance = CreateConVar( "jb_voice_distance_max", "2048", FCVAR_SHARED, "The maximum value at which a player can be heard.", 128, 65536 )
     Jailbreak.VoiceChatNotifications = CreateConVar( "jb_voice_chat_notifications", "1", FCVAR_SHARED, "Show voice chat notifications.", 0, 1 )
+    Jailbreak.VoiceChatProximity = CreateConVar( "jb_voice_chat_proximity", "0", FCVAR_SHARED, "Enable proximity voice chat.", 0, 1 )
 
     -- Voice Chat - Animations
     Jailbreak.VoiceFlexLess = CreateConVar( "jb_voice_flex_less", "1", FCVAR_SHARED, "Flex less animations mode.", 0, 10 )

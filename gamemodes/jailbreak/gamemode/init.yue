@@ -47,7 +47,6 @@ do
     -- Voice Chat
     Jailbreak.VoiceChatUDP = CreateConVar( "jb_voice_chat_udp", "1", FCVAR_SERVER, "Use faster udp voice chat packets instead of tcp.", 0, 1 )
     Jailbreak.VoiceChatSpeed = CreateConVar( "jb_voice_chat_speed", "4", FCVAR_SERVER, "Speed of voice chat packets sending.", 0, 10 )
-    Jailbreak.VoiceChatProximity = CreateConVar( "jb_voice_chat_proximity", "0", FCVAR_SHARED, "Enable proximity voice chat.", 0, 1 )
 
     -- Rounds
     Jailbreak.PrepareTime = CreateConVar( "jb_prepare_time", "10", FCVAR_SERVER, "The time before the start of the round that is given for preparation.", 5, 2 * 60 * 60 )

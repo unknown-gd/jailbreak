@@ -436,11 +436,10 @@ do
 
             Send( listener )
 
+    :IsRoundRunning, :VoiceChatSpeed, :VoiceChatProximity = Jailbreak
     Distance = FindMetaTable( "Vector" ).Distance
-    :IsRoundRunning, :VoiceChatSpeed = Jailbreak
     EyePos = FindMetaTable( "Entity" ).EyePos
     RecipientFilter = RecipientFilter
-    :VoiceChatProximity = Jailbreak
     :max, :Clamp, :Round = math
     :Empty = table
 
