@@ -371,9 +371,6 @@ do
 
             return
 
-        if ply\GetInfo( "jb_spectator_controls" ) == "0"
-            return
-
         if MovementKeys[ key ]
             if ply\GetObserverMode! == OBS_MODE_ROAMING
                 return

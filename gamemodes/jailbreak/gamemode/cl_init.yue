@@ -18,7 +18,6 @@ do
 
     -- Extra Stuff
     Jailbreak.HandsTransparency = CreateConVar( "jb_hands_transparency", "0", FCVAR_CLIENT, "The firstperson hands transparency value 0-1", 0, 1 )
-    Jailbreak.SpectatorControls = CreateConVar( "jb_spectator_controls", "1", FCVAR_NETWORKED, "Enable spectator controls, wasd and mouse." )
 
 do
 
