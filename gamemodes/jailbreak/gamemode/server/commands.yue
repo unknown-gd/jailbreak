@@ -35,12 +35,12 @@ do
             @SendNotify( "#jb.error.warden-failure", NOTIFY_ERROR, 10 )
             return
 
-        if ( @m_bWardenDelay or 0 ) > CurTime!
+        if ( @m_fWardenDelay or 0 ) > CurTime!
             @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
             return
 
         if @IsWarden!
-            @m_bWardenDelay = CurTime! + 5
+            @m_fWardenDelay = CurTime! + 5
             @SetWarden( false )
             return
 
@@ -48,7 +48,7 @@ do
             @SendNotify( "#jb.error.warden-exists", NOTIFY_ERROR, 10 )
             return
 
-        @m_bWardenDelay = CurTime! + 3
+        @m_fWardenDelay = CurTime! + 3
         @SetWarden( true )
 
     Add "jb_shock_collars", ( _, args ) =>
@@ -59,7 +59,7 @@ do
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 10 )
             return
 
-        if ( @m_bShockCollarsDelay or 0 ) > CurTime!
+        if ( @m_fShockCollarsDelay or 0 ) > CurTime!
             @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
             return
 
@@ -69,7 +69,7 @@ do
         else
             SetShockCollars( not IsShockCollarsActive! )
 
-        @m_bShockCollarsDelay = CurTime! + 3
+        @m_fShockCollarsDelay = CurTime! + 3
 
 do
 
@@ -209,7 +209,7 @@ do
         unless Markers\GetBool! and @ and @IsValid! and @Alive!
             return
 
-        if ( @m_bNextMarkerDelay or 0 ) > CurTime!
+        if ( @m_fNextMarker or 0 ) > CurTime!
             @SendNotify( "#jb.please-wait", NOTIFY_ERROR, 3 )
             return
 
@@ -242,7 +242,7 @@ do
         unless traceResult.Hit
             return
 
-        @m_bNextMarkerDelay = CurTime! + ( MarkersLifetime\GetInt! / MarkersCount\GetInt! )
+        @m_fNextMarker = CurTime! + ( MarkersLifetime\GetInt! / MarkersCount\GetInt! )
 
         entity = traceResult.Entity
         isValid = entity and entity\IsValid!

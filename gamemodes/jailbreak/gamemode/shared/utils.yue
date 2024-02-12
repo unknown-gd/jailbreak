@@ -356,7 +356,7 @@ do
 
     -- Returns player color as vector
     getPlayerColor = =>
-        return @m_bPlayerColorVector or DefaultPlayerColor
+        return @m_vPlayerColor or DefaultPlayerColor
 
     ENTITY.GetPlayerColor, PLAYER.GetPlayerColor = getPlayerColor, getPlayerColor
 
@@ -366,7 +366,7 @@ do
 
     Add "EntityNetworkedVarChanged", "Jailbreak::PlayerColor", ( key, _, value ) =>
         if key == "player-color" and isvector( value )
-            @m_bPlayerColorVector = value
+            @m_vPlayerColor = value
             Run( "PlayerColorChanged", @, value )
             return
 
@@ -405,17 +405,17 @@ do
     defaultColor = ToColor( Jailbreak.DefaultPlayerColor )
 
     Add "PlayerColorChanged", "Jailbreak::PlayerColor", ( vector ) =>
-        @m_bPlayerColor = ToColor( vector )
+        @m_cPlayerColor = ToColor( vector )
 
     ENTITY.GetModelColor = =>
         if @IsValid!
-            return @m_bPlayerColor or defaultColor
+            return @m_cPlayerColor or defaultColor
 
         return defaultColor
 
     ENTITY.GetModelColorUnpacked = =>
         if @IsValid!
-            color = @m_bPlayerColor or defaultColor
+            color = @m_cPlayerColor or defaultColor
             return color.r, color.g, color.b
 
         return defaultColor.r, defaultColor.g, defaultColor.b

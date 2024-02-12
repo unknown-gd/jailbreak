@@ -34,8 +34,8 @@ do
     DLabel.Think = =>
         if @m_bAutoStretchVertical
             length = #GetText( @ )
-            if length ~= @m_LastTextLength
-                @m_LastTextLength = length
+            if length ~= @m_iLastTextLength
+                @m_iLastTextLength = length
                 @SizeToContentsY!
 
 do

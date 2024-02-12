@@ -117,7 +117,7 @@ do
 GM.PerformPlayerVoice = ( ply ) =>
     voiceVolume = ply\IsSpeaking! and ply\VoiceVolume! or 0
 
-    lastVoiceVolume = ply.m_LastVoiceVolume
+    lastVoiceVolume = ply.m_fLastVoiceVolume
     unless lastVoiceVolume
         lastVoiceVolume = voiceVolume
 
@@ -126,18 +126,18 @@ GM.PerformPlayerVoice = ( ply ) =>
         if voiceVolume < 0.01
             voiceVolume = 0
 
-    ply.m_LastVoiceVolume = voiceVolume
+    ply.m_fLastVoiceVolume = voiceVolume
 
-    maxVoiceVolume = ply.m_MaxVoiceVolume
+    maxVoiceVolume = ply.m_fMaxVoiceVolume
     if not maxVoiceVolume or maxVoiceVolume < voiceVolume
         maxVoiceVolume = voiceVolume
-        ply.m_MaxVoiceVolume = maxVoiceVolume
+        ply.m_fMaxVoiceVolume = maxVoiceVolume
 
     if maxVoiceVolume > 0 and voiceVolume > 0
-        ply.m_bVoiceFraction = voiceVolume / maxVoiceVolume
+        ply.m_fVoiceFraction = voiceVolume / maxVoiceVolume
         return
 
-    ply.m_bVoiceFraction = 0
+    ply.m_fVoiceFraction = 0
 
 ENTITY = FindMetaTable( "Entity" )
 
@@ -158,19 +158,19 @@ do
 
             pl = Jailbreak.Player
             if pl\IsValid!
-                ply.m_bSpawnTime = CurTime! + pl\Ping! / 1000
+                ply.m_fSpawnTime = CurTime! + pl\Ping! / 1000
             else
-                ply.m_bSpawnTime = CurTime! + 0.25
+                ply.m_fSpawnTime = CurTime! + 0.25
 
     do
 
         :GetNW2Int = ENTITY
 
         PLAYER.GetSpawnTime = =>
-            return @m_bSpawnTime or GetNW2Int( @, "spawn-time" )
+            return @m_fSpawnTime or GetNW2Int( @, "spawn-time" )
 
     PLAYER.VoiceFraction = =>
-        return @m_bVoiceFraction or 0
+        return @m_fVoiceFraction or 0
 
     do
 
