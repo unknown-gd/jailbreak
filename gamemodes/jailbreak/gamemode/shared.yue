@@ -234,6 +234,12 @@ Jailbreak.Credits = {
     "Unknown Developer\n"
 
     Colors.light_grey
+    "\nBackgrounds, Maps & Workshop Icon\n"
+
+    Colors.white
+    "Erick Maksimets\n"
+
+    Colors.light_grey
     "\nTranslators\n"
 
     Colors.white
@@ -255,6 +261,7 @@ Jailbreak.Credits = {
     "Jaff\n"
     "BrunH\n"
     "Gunter\n"
+    "Erick Maksimets\n"
 
     Colors.light_grey
     "\nTesters\n"
