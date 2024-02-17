@@ -85,6 +85,7 @@ do
     -- Guards
     Jailbreak.GuardsDiff = CreateConVar( "jb_guards_diff", "4", FCVAR_SHARED, "Number of prisoners per guard.", 0, 1000 )
     Jailbreak.GuardsFriendlyFire = CreateConVar( "jb_guards_friendly_fire", "0", FCVAR_SHARED, "If enabled, guards can hurt themselves.", 0, 1 )
+    Jailbreak.AllowJoinToGuards = CreateConVar( "jb_allow_join_to_guards", "1", FCVAR_SHARED, "If enabled, players can join as guards.", 0, 1 )
 
     -- Chat
     Jailbreak.MinWhisperDistance = CreateConVar( "jb_chat_whisper_distance_min", "40", FCVAR_SERVER, "Minimal distance for damaging whisper messages.", 16, 65536 )

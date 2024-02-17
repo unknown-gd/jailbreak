@@ -15,7 +15,7 @@ TEAM_GUARD = TEAM_GUARD
 
 do
 
-    guardsDiff = Jailbreak.GuardsDiff
+    :AllowJoinToGuards, :GuardsDiff = Jailbreak
     :Joinable = team
 
     -- Returns true if team is joinable
@@ -39,13 +39,16 @@ do
                     return guardCount ~= 0
 
                 when TEAM_GUARD
+                    unless AllowJoinToGuards\GetBool!
+                        return false
+
                     if guardCount == 0
                         return true
 
                     if prisonerCount == 0
                         return false
 
-                    return guardCount < ceil( prisonerCount / guardsDiff\GetInt! )
+                    return guardCount < ceil( prisonerCount / GuardsDiff\GetInt! )
 
             return true
 
