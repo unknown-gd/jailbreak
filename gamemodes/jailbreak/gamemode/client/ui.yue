@@ -539,6 +539,30 @@ do
 
     Register( "Jailbreak::TeamSelect - Button", PANEL, "DButton" )
 
+do
+
+    closeKeys = {
+        [ 107 ]: true
+        [ 108 ]: true
+        [ 109 ]: true
+    }
+
+    Add "PlayerButtonDown", "Jailbreak::TeamSelect", ( key ) =>
+        if key == 70
+            panel = Jailbreak.TeamSelect
+            if IsValid( panel ) and panel\IsVisible!
+                HideGameUI!
+                panel\Hide!
+
+            return
+
+        if closeKeys[ key ] == nil
+            return
+
+        panel = Jailbreak.TeamSelect
+        if IsValid( panel ) and not ( panel.Hovered or panel\IsChildHovered! )
+            panel\Hide!
+
 -- Main Panel
 do
 
@@ -546,24 +570,9 @@ do
 
     PANEL = {}
 
-    PANEL.OnRemove = =>
-        hook.Remove "PlayerButtonDown", @
-
-    PANEL.CloseKeys = {
-        [ 107 ]: true
-        [ 108 ]: true
-        [ 109 ]: true
-    }
-
     PANEL.Init = =>
-        @SetVisible( false )
-
-        Add "PlayerButtonDown", @, ( ply, key ) =>
-            if ( @CloseKeys[ key ] and not ( @Hovered or @IsChildHovered! ) ) or key == 70
-                @Hide!
-
-    	@MakePopup!
 	    @SetKeyboardInputEnabled( false )
+        @SetVisible( false )
 
         -- Title Text
         do
@@ -865,12 +874,27 @@ do
 
     PANEL.Think = =>
         ply = @Player
-        unless ply
+        if ply == nil
             return
 
-        unless ply\IsValid!
+        if not ply\IsValid! or ply\Team! ~= @TeamID
+            Jailbreak.ScoreBoard\Perform!
             @Remove!
             return
+
+        alive = ply\Alive!
+        if alive ~= @Alive
+            @Alive = alive
+            @Color = ply\Alive! and ply\GetTeamColor! or light_grey
+
+        text = ply\Nick!
+        if text ~= @Text
+            @Text = text
+
+            nickname = @Nickname
+            if IsValid( nickname )
+                nickname\SetTooltip( text )
+                nickname\SetText( text )
 
         ping, pingStr = @Ping, tostring( ply\Ping! or 0 ) .. "ms"
         if IsValid( ping ) and ping\GetText! ~= pingStr
@@ -891,20 +915,12 @@ do
 
         ply = @Player
         if IsValid( ply )
-            @Color = ply\Alive! and ply\GetTeamColor! or light_grey
-
-            text = ply\Nick!
-
             SetFont( "Jailbreak::Scoreboard - Player" )
-            height = max( height, margin + select( 2, GetTextSize( text ) ) + margin )
+            height = max( height, margin + select( 2, GetTextSize( ply\Nick! ) ) + margin )
 
             nickname = @Nickname
             if IsValid( nickname )
                 nickname\DockMargin( margin, 0, 0, 0 )
-                nickname\SetTooltip( text )
-
-                if nickname\GetText! ~= text
-                    nickname\SetText( text )
 
             avatar = @Avatar
             if IsValid( avatar )
@@ -982,11 +998,30 @@ do
 
 do
 
+    :GetTeamPlayers = Jailbreak
+
     PANEL = {}
 
     PANEL.Paint = ( width, height ) =>
         SetDrawColor( black.r, black.g, black.b, 100 )
         DrawRect( 0, 0, width, height )
+
+    PANEL.Build = =>
+        @Clear!
+
+        teamID = @TeamID
+        if teamID ~= nil
+            for ply in *GetTeamPlayers( nil, teamID )[ 1 ]
+                panel = @Add( "Jailbreak::Scoreboard - Player" )
+                panel.TeamID = teamID
+                panel.Player = ply
+
+    PANEL.PerformLayout = ( width, height ) =>
+        DScrollPanel.PerformLayout( @, width, height )
+
+        parent = @GetParent!
+        if IsValid( parent )
+            parent\InvalidateParent!
 
     Register( "Jailbreak::Scoreboard - ScrollPanel", PANEL, "DScrollPanel" )
 
@@ -1019,6 +1054,7 @@ do
 
         scrollPanel = prisoners\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         prisoners.ScrollPanel = scrollPanel
+        scrollPanel.TeamID = TEAM_PRISONER
         scrollPanel\Dock( FILL )
 
         guards = @Add( "EditablePanel" )
@@ -1034,6 +1070,7 @@ do
 
         scrollPanel = guards\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         guards.ScrollPanel = scrollPanel
+        scrollPanel.TeamID = TEAM_GUARD
         scrollPanel\Dock( FILL )
 
         spectators = @Add( "EditablePanel" )
@@ -1050,6 +1087,7 @@ do
 
         scrollPanel = spectators\Add( "Jailbreak::Scoreboard - ScrollPanel" )
         spectators.ScrollPanel = scrollPanel
+        scrollPanel.TeamID = TEAM_SPECTATOR
         scrollPanel\Dock( FILL )
 
         playerCount = @Add( "DLabel" )
@@ -1129,41 +1167,12 @@ do
 
         @DockPadding( padding, padding, padding, padding )
 
-    PANEL.ClearPlayers = =>
-        scrollPanel = @Prisoners.ScrollPanel
-        if IsValid( scrollPanel )
-            scrollPanel\Clear!
-
-        scrollPanel = @Guards.ScrollPanel
-        if IsValid( scrollPanel )
-            scrollPanel\Clear!
-
-        scrollPanel = @Spectators.ScrollPanel
-        if IsValid( scrollPanel )
-            scrollPanel\Clear!
-
-    PANEL.AddPlayers = =>
-        prisoners, guards, spectators = @Prisoners.ScrollPanel, @Guards.ScrollPanel, @Spectators.ScrollPanel
-        for ply in *GetAll!
-            panel = Create( "Jailbreak::Scoreboard - Player" )
-            panel.Player = ply
-
-            switch ply\Team!
-                when TEAM_PRISONER
-                    prisoners\AddItem( panel )
-                when TEAM_GUARD
-                    guards\AddItem( panel )
-                when TEAM_SPECTATOR
-                    spectators\AddItem( panel )
-
-            InvalidateLayout( panel, true )
-
     PANEL.Show = =>
         InvalidateLayout( @, true )
         @SetVisible( true )
         CloseDermaMenus!
-        @AddPlayers!
         @MakePopup!
+        @Perform!
 
     PANEL.Hide = =>
         CloseDermaMenus!
@@ -1172,8 +1181,34 @@ do
             @Remove!
             return
 
-        @ClearPlayers!
         @SetVisible( false )
+        @Cleanup!
+
+    PANEL.Perform = =>
+        scrollPanel = @Guards.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Build!
+
+        scrollPanel = @Prisoners.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Build!
+
+        scrollPanel = @Spectators.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Build!
+
+    PANEL.Cleanup = =>
+        scrollPanel = @Guards.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Clear!
+
+        scrollPanel = @Prisoners.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Clear!
+
+        scrollPanel = @Spectators.ScrollPanel
+        if IsValid( scrollPanel )
+            scrollPanel\Clear!
 
     PANEL.Paint = ( width, height ) =>
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
@@ -1182,16 +1217,16 @@ do
     Register( "Jailbreak::Scoreboard", PANEL )
 
 GM.ScoreboardShow = =>
-    scoreboard = @ScoreBoard
+    scoreboard = Jailbreak.ScoreBoard
     unless IsValid( scoreboard )
         scoreboard = Create( "Jailbreak::Scoreboard" )
-        @ScoreBoard = scoreboard
+        Jailbreak.ScoreBoard = scoreboard
 
     scoreboard\Show!
     return false
 
 GM.ScoreboardHide = =>
-    scoreboard = @ScoreBoard
+    scoreboard = Jailbreak.ScoreBoard
     if IsValid( scoreboard )
         scoreboard\Hide!
 
