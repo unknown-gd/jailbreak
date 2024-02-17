@@ -178,6 +178,12 @@ do
 
         Jailbreak.TargetIDClasses = targetIDClasses
 
+    models = {
+        "models/props_junk/metal_paintcan001a.mdl": "#jb.paint_can"
+        "models/props_junk/metal_paintcan001b.mdl": "#jb.paint_can"
+        "models/props_junk/gascan001a.mdl": "#jb.gas_can"
+    }
+
     GM.HUDDrawTargetID = =>
         ply = Jailbreak.Player
         unless ply\IsValid!
@@ -230,9 +236,6 @@ do
         elseif entity\IsWeapon!
             text = GetWeaponName( entity )
             entityType = 3
-        elseif entity\IsPaintCan!
-            text = "#jb.paint_can"
-            entityType = 6
         elseif entity\IsFood!
             text = "#jb.food"
             entityType = 4
@@ -242,20 +245,15 @@ do
         else
             className = entity\GetClass!
             if IsProp( className )
-                entityType = 6
-
-                if entity\GetModel! == "models/props_junk/gascan001a.mdl"
-                    text = "#jb.gas_can"
-                else
-                    text = "#jb.prop_physics"
+                text, entityType = models[ entity\GetModel! ], 6
 
             elseif targetIDClasses[ className ]
-                entityType = 7
-
                 placeholder = "jb." .. className
                 text = GetPhrase( placeholder )
                 if text == placeholder
                     return
+
+                entityType = 7
 
         if entityType == 0 or text == nil
             return
