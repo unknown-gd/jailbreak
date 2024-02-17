@@ -34,36 +34,40 @@ do
         return true
 
 -- https://wiki.facepunch.com/gmod/GM:UpdateAnimation
-GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
-	speed = Length( velocity )
-	rate = 1.0
+do
 
-    if GetTable( ply ).m_bWasNoclipping or GetNW2Bool( ply, "in-flight" )
-        rate = speed < 32 and 0.25 or 0
-    elseif WaterLevel( ply ) > 1
-        rate = 0.5
-    else
+    :SetPlaybackRate = ENTITY
 
-        if speed > 0.2
-            rate = speed / maxSeqGroundSpeed
+    GM.UpdateAnimation = ( ply, velocity, maxSeqGroundSpeed ) =>
+        speed = Length( velocity )
+        rate = 1.0
 
-        if rate > 2
-            rate = 2
+        if GetTable( ply ).m_bWasNoclipping or GetNW2Bool( ply, "in-flight" )
+            rate = speed < 32 and 0.25 or 0
+        elseif WaterLevel( ply ) > 1
+            rate = 0.5
+        else
 
-        if WaterLevel( ply ) >= 2
-            if rate < 0.5
-                rate = 0.5
+            if speed > 0.2
+                rate = speed / maxSeqGroundSpeed
 
-        elseif not IsOnGround( ply ) and speed >= 1000
-            rate = 0.1
+            if rate > 2
+                rate = 2
 
-	ply\SetPlaybackRate( rate )
+            if WaterLevel( ply ) >= 2
+                if rate < 0.5
+                    rate = 0.5
 
-	if CLIENT and not ply\IsBot!
-        Run "PerformPlayerVoice", ply
-        if ply\Alive!
-            Run "MouthMoveAnimation", ply
-            Run "GrabEarAnimation", ply
+            elseif not IsOnGround( ply ) and speed >= 1000
+                rate = 0.1
+
+        SetPlaybackRate( ply, rate )
+
+        if CLIENT and not ply\IsBot!
+            Run "PerformPlayerVoice", ply
+            if ply\Alive!
+                Run "MouthMoveAnimation", ply
+                Run "GrabEarAnimation", ply
 
 -- https://wiki.facepunch.com/gmod/GM:ShouldCollide
 GM.ShouldCollide = ( entity, ply ) =>
