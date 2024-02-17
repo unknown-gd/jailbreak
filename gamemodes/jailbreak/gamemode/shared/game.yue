@@ -295,9 +295,6 @@ do
                     elseif playerSpeed > 0.25
                         calcIdeal = ACT_MP_WALK
 
-                elseif not ply\IsSpawning!
-                    ply\AnimRestartGesture( GESTURE_SLOT_JUMP, ACT_LAND, true )
-
             else
                 calcIdeal = ACT_MP_JUMP
 

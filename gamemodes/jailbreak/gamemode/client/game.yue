@@ -13,7 +13,6 @@ GM.InitPostEntity = =>
     timer.Simple 0.25, ->
         RunConsoleCommand( "dsp_player", "1" )
         RunConsoleCommand( "dsp_room", "1" )
-        RunConsoleCommand( "jb_showteam" )
 
     timer.Simple 1, ->
         RunConsoleCommand( "r_flushlod" )
