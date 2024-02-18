@@ -7,7 +7,6 @@ Vector = Vector
 :Run = hook
 GM = GM
 
-TEAM_SPECTATOR = TEAM_SPECTATOR
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
@@ -636,15 +635,16 @@ GM.OnEntityCreated = ( entity ) =>
 
 do
 
-    COLLISION_GROUP_WEAPON = COLLISION_GROUP_WEAPON
+    :FreezeWeaponsOnSpawn = Jailbreak
     :FindInSphere = ents
 
     GM.OnWeaponCreated = ( weapon ) =>
-        Simple 0.025, ->
+        unless FreezeWeaponsOnSpawn\GetBool!
+            return
+
+        Simple 0, ->
             if not weapon\IsValid! or weapon\GetOwner!\IsValid!
                 return
-
-            weapon\SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
             phys = weapon\GetPhysicsObject!
             unless phys and phys\IsValid! and phys\IsMotionEnabled!
@@ -670,14 +670,6 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
         weld = entity.Weld
         if IsValid( weld )
             weld\Remove!
-
--- https://wiki.facepunch.com/gmod/GM:PlayerDroppedWeapon
-do
-
-    COLLISION_GROUP_DEBRIS = COLLISION_GROUP_DEBRIS
-
-    GM.PlayerDroppedWeapon = ( ply, weapon ) =>
-        weapon\SetCollisionGroup( COLLISION_GROUP_DEBRIS )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
 GM.PlayerLoadout = ( ply ) =>
