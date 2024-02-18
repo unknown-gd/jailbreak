@@ -639,9 +639,6 @@ do
     :FindInSphere = ents
 
     GM.OnWeaponCreated = ( weapon ) =>
-        unless FreezeWeaponsOnSpawn\GetBool!
-            return
-
         Simple 0, ->
             if not weapon\IsValid! or weapon\GetOwner!\IsValid!
                 return
@@ -655,7 +652,11 @@ do
                 if other\IsWeapon! and not other\GetOwner!\IsValid!
                     counter = counter + 1
                     if counter >= 5
-                        phys\EnableMotion( false )
+                        if FreezeWeaponsOnSpawn\GetBool!
+                            phys\EnableMotion( false )
+                        else
+                            phys\Sleep!
+
                         return
 
 -- https://wiki.facepunch.com/gmod/GM:EntityRemoved
