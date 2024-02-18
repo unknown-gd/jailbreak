@@ -828,6 +828,35 @@ do
 
         menu\Open!
 
+    do
+
+        :GetFriendStatus = FindMetaTable( "Player" )
+        :DrawTexturedRect, :SetMaterial = surface
+        :Material = Jailbreak
+
+        default = Material( "icon16/user.png", "mips" )
+        statuses = {
+            "friend": Material( "icon16/user_green.png", "mips" )
+            "blocked": Material( "icon16/user_delete.png", "mips" )
+            "requesting": Material( "icon16/user_add.png", "mips" )
+        }
+
+        PANEL.AvatarPaintOver = ( width, height ) =>
+            ply, material = @m_ePlayer, nil
+            if ply and ply\IsValid! and not ply\IsLocalPlayer!
+                if ply\IsWarden!
+                    material = Material( "icon16/user_suit.png", "mips" )
+
+                elseif ply\IsBot!
+                    material = Material( "icon16/tux.png", "mips" )
+
+                else
+                    material = statuses[ GetFriendStatus( ply ) ]
+
+            SetDrawColor( 255, 255, 255 )
+            SetMaterial( material or default )
+            DrawTexturedRect( -8, height - 8, 16, 16 )
+
     PANEL.Init = =>
         @Dock( TOP )
 
@@ -835,8 +864,16 @@ do
         @Avatar = avatar
 
         avatar\Dock( LEFT )
+        avatar\NoClipping( true )
         avatar.OnMousePressed = ->
             @ToggleMenu!
+
+        avatar.PaintOver = @AvatarPaintOver
+        :SetPlayer = avatar
+
+        avatar.SetPlayer = ( ply, ... ) =>
+            SetPlayer( @, ply, ... )
+            @m_ePlayer = ply
 
         nickname = @Add( "DLabel" )
         nickname\Dock( FILL )

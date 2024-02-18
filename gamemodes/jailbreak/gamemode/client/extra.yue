@@ -94,6 +94,14 @@ do
         panel = vgui.Create( "Jailbreak::PaintMenu" )
         panel.EntIndex = entity\EntIndex!
 
+hook.Add "NotifyShouldTransmit", "Jailbreak::AutoMute", ( entity, shouldTransmit ) ->
+    if not shouldTransmit or not entity\IsPlayer! or entity.m_bBlacklistMuted
+        return
+
+    if not entity\IsMuted! and entity\GetFriendStatus! == "blocked"
+        entity.m_bBlacklistMuted = true
+        entity\SetMuted( true )
+
 if render.GetDXLevel! < 80
     return
 
