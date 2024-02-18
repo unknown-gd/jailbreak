@@ -41,7 +41,7 @@ do
 
     -- Chat
     Jailbreak.EmotionDistance = CreateConVar( "jb_chat_emotion_distance", "300", FCVAR_SERVER, "Distance of emotion messages.", 32, 65536 )
-    Jailbreak.OutOfCharacter = CreateConVar( "jb_chat_ooc", "0", FCVAR_SERVER, "Allows non-game global chat to be used by everyone.", 0, 1 )
+    Jailbreak.OutOfCharacter = CreateConVar( "jb_chat_ooc", "1", FCVAR_SERVER, "Allows non-game global chat to be used by everyone.", 0, 1 )
     Jailbreak.AllowTeamChat = CreateConVar( "jb_chat_allow_team_chat", "0", FCVAR_SERVER, "Allows team chat.", 0, 1 )
 
     -- Voice Chat

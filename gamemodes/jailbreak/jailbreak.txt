@@ -176,7 +176,7 @@
             "text"          "Chat OOC"
             "help"          "Allows non-game global chat to be used by everyone."
             "type"          "CheckBox"
-            "default"       "0"
+            "default"       "1"
             "singleplayer"  "1"
         }
         20

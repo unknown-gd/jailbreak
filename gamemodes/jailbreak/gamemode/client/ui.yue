@@ -784,7 +784,7 @@ do
         do
 
             isMuted = ply\IsMuted!
-            option = menu\AddOption "#jb.user.mute", ->
+            option = menu\AddOption "#jb.user." .. ( isMuted and "un" or "" ) .. "mute", ->
                 if ply\IsValid!
                     ply\SetMuted( not isMuted )
 
