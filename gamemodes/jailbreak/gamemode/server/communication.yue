@@ -43,7 +43,7 @@ do
         if hasSpeaker
             WriteUInt( speaker\EntIndex!, 8 )
 
-        WriteUInt( messageType, 4 )
+        WriteUInt( messageType, 5 )
         WriteTable( { text, nickname, isDead, isTeamChat, ... }, true )
 
         unless hasSpeaker
@@ -206,6 +206,7 @@ do
             return
 
         ooc( @, text )
+        return
 
     setChatCommand "ooc", func, "#jb.chat.command.ooc"
     setChatCommand "/", func, "#jb.chat.command.ooc"

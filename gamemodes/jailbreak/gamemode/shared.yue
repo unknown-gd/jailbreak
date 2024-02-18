@@ -24,6 +24,7 @@ global CHAT_LOOC = 7
 global CHAT_OOC = 8
 global CHAT_EMOTION = 9
 global CHAT_WHISPER = 10
+global CHAT_ACHIEVEMENT = 11
 
 macro lua = ( code ) -> {
     :code
@@ -44,6 +45,7 @@ do
 
     Colors = {
 		butterfly_bush: Color( 112, 86, 154 )
+        vivid_orange: Color( 255, 200, 50 )
         spectators: Color( 220, 220, 220 )
         dark_white: Color( 200, 200, 200 )
         light_grey: Color( 180, 180, 180 )

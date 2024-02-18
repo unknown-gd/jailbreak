@@ -1,6 +1,7 @@
 Jailbreak = Jailbreak
+:Colors = Jailbreak
 
-:asparagus, :au_chico, :blue, :butterfly_bush, :dark_white, :horizon, :light_grey, :turquoise, :white = Jailbreak.Colors
+:blue, :butterfly_bush, :dark_white, :white = Colors
 isstring = isstring
 string = string
 
@@ -34,10 +35,11 @@ do
     :ReadBool, :ReadUInt, :ReadTable = net
     TEXT_FILTER_CHAT = TEXT_FILTER_CHAT
     :AddText, :PlaySound = chat
+    :light_grey = Colors
     :FilterText = util
+    :Run, :Call = hook
     Entity = Entity
     unpack = unpack
-    :Run = hook
     NULL = NULL
     :band = bit
     :date = os
@@ -56,9 +58,9 @@ do
         unless handler
             return false
 
-        if speaker\IsValid! and speaker\IsPlayer!
+        if speaker\IsValid! and speaker\IsPlayer! and isstring( data[ 1 ] )
             data[ 1 ] = FilterText( data[ 1 ], ( band( cl_chatfilters\GetInt!, 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
-            if Run( "OnPlayerChat", speaker, data[ 1 ], false, speaker\Alive! )
+            if Call( "OnPlayerChat", nil, speaker, data[ 1 ], false, speaker\Alive! )
                 return false
 
         listener = Jailbreak.Player
@@ -78,6 +80,10 @@ do
         return true
 
     Jailbreak.PerformChatMessage = performChatMessage
+
+    GM.OnAchievementAchieved = ( ply, achievementID ) =>
+        performChatMessage( ply, CHAT_ACHIEVEMENT, { achievementID, ply\Nick! } )
+        return
 
     do
 
@@ -104,7 +110,8 @@ do
             return
 
     net.Receive "Jailbreak::Chat", ->
-        performChatMessage( ReadBool! and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 4 ), ReadTable( true ) )
+        performChatMessage( ReadBool! and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 5 ), ReadTable( true ) )
+        return
 
 GM.OnPlayerChat = =>
     return true
@@ -173,56 +180,62 @@ do
 :GetTeamColor, :Translate = Jailbreak
 :GetPhrase = language
 
-messageHandlers[ CHAT_TEXT ] = ( listener, speaker, data ) ->
-    if data[ 3 ]
-        insert( dark_white )
-        insert( GetPhrase( "jb.chat.dead" ), "[]", true )
+do
 
-    teamID = data[ 4 ]
-    if teamID
-        insert( GetTeamColor( teamID ) )
-        insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
+    :horizon = Colors
 
-    if data[ 5 ]
-        insert( horizon )
-        insert( GetPhrase( "jb.walkie-talkie" ), "[]", true )
+    messageHandlers[ CHAT_TEXT ] = ( listener, speaker, data ) ->
+        if data[ 3 ]
+            insert( dark_white )
+            insert( GetPhrase( "jb.chat.dead" ), "[]", true )
 
-    text, nickname, isMuted = data[ 1 ], data[ 2 ], false
+        teamID = data[ 4 ]
+        if teamID
+            insert( GetTeamColor( teamID ) )
+            insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
 
-    if speaker\IsValid!
-        if speaker\IsPlayer!
-            if speaker\IsDeveloper!
-                insert( butterfly_bush )
-                insert( "/", "<>", true )
+        if data[ 5 ]
+            insert( horizon )
+            insert( GetPhrase( "jb.walkie-talkie" ), "[]", true )
 
-            insert( speaker\GetModelColor! )
-            insert( nickname or speaker\Nick! )
+        text, nickname, isMuted = data[ 1 ], data[ 2 ], false
 
-            if speaker\IsMuted!
-                text, isMuted = GetPhrase( "jb.chat.muted" ), true
+        if speaker\IsValid!
+            if speaker\IsPlayer!
+                if speaker\IsDeveloper!
+                    insert( butterfly_bush )
+                    insert( "/", "<>", true )
 
-    elseif nickname
-        insert( dark_white )
-        insert( nickname )
+                insert( speaker\GetModelColor! )
+                insert( nickname or speaker\Nick! )
 
-    else
-        insert( butterfly_bush )
-        insert( GetPhrase( "jb.chat.console" ) )
+                if speaker\IsMuted!
+                    text, isMuted = GetPhrase( "jb.chat.muted" ), true
 
-    insert( white )
-    insert( " " .. GetPhrase( "jb.chat.says" ) .. ": \"" )
+        elseif nickname
+            insert( dark_white )
+            insert( nickname )
 
-    if isMuted
-        insert( dark_white )
+        else
+            insert( butterfly_bush )
+            insert( GetPhrase( "jb.chat.console" ) )
 
-    insert( text )
-
-    if isMuted
         insert( white )
+        insert( " " .. GetPhrase( "jb.chat.says" ) .. ": \"" )
 
-    insert( "\"" )
+        if isMuted
+            insert( dark_white )
+
+        insert( text )
+
+        if isMuted
+            insert( white )
+
+        insert( "\"" )
 
 do
+
+    :turquoise = Colors
 
     OOCHandler = ( listener, speaker, data, isLocal ) ->
         if isLocal
@@ -410,58 +423,66 @@ messageHandlers[ CHAT_CONNECTED ] = ( _, __, data ) ->
     insert( white )
     insert( " " .. GetPhrase( "jb.chat.player.connected" ) )
 
-messageHandlers[ CHAT_CONNECT ] = ( _, __, data ) ->
-    insert( white )
-    insert( GetPhrase( "jb.player" ) .. " " )
+do
 
-    insert( asparagus )
-    insert( data[ 1 ] )
+    :asparagus = Colors
 
-    address = data[ 2 ]
-    if address
+    messageHandlers[ CHAT_CONNECT ] = ( _, __, data ) ->
         insert( white )
-        insert( " ( " )
+        insert( GetPhrase( "jb.player" ) .. " " )
 
-        insert( blue )
-        insert( address )
+        insert( asparagus )
+        insert( data[ 1 ] )
 
-        insert( white )
-        insert( " )" )
+        address = data[ 2 ]
+        if address
+            insert( white )
+            insert( " ( " )
 
-    insert( white )
-    insert( " " .. GetPhrase( "jb.chat.player.connecting" ) )
+            insert( blue )
+            insert( address )
 
-messageHandlers[ CHAT_DISCONNECT ] = ( _, __, data ) ->
-    insert( white )
-    insert( GetPhrase( "jb.player" ) .. " " )
-
-    insert( au_chico )
-    insert( data[ 1 ] )
-
-    steamID = data[ 2 ]
-    if steamID
-        insert( white )
-        insert( " ( " )
-
-        insert( blue )
-        insert( steamID )
+            insert( white )
+            insert( " )" )
 
         insert( white )
-        insert( " )" )
+        insert( " " .. GetPhrase( "jb.chat.player.connecting" ) )
 
-    insert( white )
+do
 
-    reason = data[ 3 ]
-    if reason ~= nil
-        insert( " " .. GetPhrase( "jb.chat.player.disconnected_with_reason" ) .. ": \"" )
+    :au_chico = Colors
 
-        insert( dark_white )
-        insert( reason )
+    messageHandlers[ CHAT_DISCONNECT ] = ( _, __, data ) ->
+        insert( white )
+        insert( GetPhrase( "jb.player" ) .. " " )
+
+        insert( au_chico )
+        insert( data[ 1 ] )
+
+        steamID = data[ 2 ]
+        if steamID
+            insert( white )
+            insert( " ( " )
+
+            insert( blue )
+            insert( steamID )
+
+            insert( white )
+            insert( " )" )
 
         insert( white )
-        insert( "\"" )
-    else
-        insert( " " .. GetPhrase( "jb.chat.player.disconnected" ) )
+
+        reason = data[ 3 ]
+        if reason ~= nil
+            insert( " " .. GetPhrase( "jb.chat.player.disconnected_with_reason" ) .. ": \"" )
+
+            insert( dark_white )
+            insert( reason )
+
+            insert( white )
+            insert( "\"" )
+        else
+            insert( " " .. GetPhrase( "jb.chat.player.disconnected" ) )
 
 messageHandlers[ CHAT_NAMECHANGE ] = ( _, __, data ) ->
     insert( white )
@@ -480,3 +501,28 @@ messageHandlers[ CHAT_NAMECHANGE ] = ( _, __, data ) ->
 
     insert( white )
     insert( "." )
+
+do
+
+    :GetName = achievements
+    :vivid_orange = Colors
+
+    messageHandlers[ CHAT_ACHIEVEMENT ] = ( _, speaker, data ) ->
+        insert( white )
+        insert( GetPhrase( "jb.player" ) .. " " )
+
+        if speaker\IsValid! and speaker\IsPlayer!
+            insert( speaker\GetModelColor!)
+            insert( speaker\Nick! )
+        else
+            insert( white )
+            insert( data[ 2 ] )
+
+        insert( white )
+        insert( " " .. GetPhrase( "jb.chat.got_achievement" ) .. " " )
+
+        insert( vivid_orange )
+        if isstring( data[ 1 ] )
+            insert( data[ 1 ] )
+        else
+            insert( GetName( isnumber( data[ 1 ] ) and data[ 1 ] or 2 ) )
