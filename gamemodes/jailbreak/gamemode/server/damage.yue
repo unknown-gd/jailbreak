@@ -180,7 +180,9 @@ GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
         phys = entity\GetPhysicsObjectNum( physNum )
         if phys and phys\IsValid! and phys\IsMoveable! and phys\IsMotionEnabled!
             phys\ApplyForceOffset( velocity, origin )
-            phys\Wake!
+
+            if phys\IsAsleep!
+                phys\Wake!
 
 do
 
@@ -201,12 +203,7 @@ do
             weapon\Remove!
             return true
 
-        phys = weapon\GetPhysicsObject!
-        if phys and phys\IsValid!
-            phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
-
-        return true
-
+        return
 do
 
     :IsValidModel, :IsInWorld = util
