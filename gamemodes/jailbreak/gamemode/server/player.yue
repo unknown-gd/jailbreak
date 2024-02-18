@@ -375,7 +375,7 @@ COLLISION_GROUP_PASSABLE_DOOR = COLLISION_GROUP_PASSABLE_DOOR
 
 do
 
-    :RagdollRemove, :RagdollHealth, :IsRoundPreparing = Jailbreak
+    :RagdollRemove, :RagdollHealth, :IsRoundPreparing, :DropActiveWeaponOnDeath = Jailbreak
 
     hook.Add "PlayerCanCreateRagdoll", "Jailbreak::NoRagdollsOnPreparing", =>
         if IsRoundPreparing!
@@ -499,6 +499,9 @@ do
         Run( "PlayerRagdollCreated", @, ragdoll )
 
         if putItems
+            if DropActiveWeaponOnDeath\GetBool!
+                @DropWeapon!
+
             ragdoll.HasSecurityRadio = @HasSecurityRadio!
             @TakeSecurityRadio!
 

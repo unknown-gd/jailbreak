@@ -65,6 +65,7 @@ do
     Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
 
     -- Extra Stuff
+    Jailbreak.DropActiveWeaponOnDeath = CreateConVar( "jb_drop_active_weapon_on_death", "1", FCVAR_SERVER, "If enabled, the active weapon will be dropped on player death.", 0, 1 )
     Jailbreak.AllowWeaponsInVehicle = CreateConVar( "jb_allow_weapons_in_vehicle", "0", FCVAR_SERVER, "Allows players to use weapons in vehicles.", 0, 1 )
     Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "0", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
     Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 style freezecam on death.", 0, 1 )
