@@ -349,10 +349,10 @@ do
         FrameTime = FrameTime
         Lerp = Lerp
 
-        velocity, frameTime = vector_origin, 0
+        velocity, frameTime = Vector!, 0
 
-        Add "Move", "Jailbreak::MovementBlocking", ( mv ) =>
-            if Call( "AllowPlayerMove", nil, @ ) == false
+        GM.Move = ( ply, mv ) =>
+            if Call( "AllowPlayerMove", nil, ply ) == false
                 velocity, frameTime = GetVelocity( mv ), FrameTime!
                 velocity[ 1 ] = Lerp( frameTime, velocity[ 1 ], 0 )
                 velocity[ 2 ] = Lerp( frameTime, velocity[ 2 ], 0 )
