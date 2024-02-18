@@ -189,19 +189,21 @@ do
     :Explosion = Jailbreak
 
     GM.WeaponTakeDamage = ( weapon, damageInfo ) =>
-        switch weapon\GetClass!
-            when "weapon_frag"
-                if weapon.Exploded
-                    return true
+        className = weapon\GetClass!
+        if className == "weapon_frag" and not weapon.Exploded
+            weapon.Exploded = true
 
-                weapon.Exploded = true
+            radius = sk_fraggrenade_radius\GetInt!
+            if damageInfo\IsExplosionDamage!
+                radius *= random( 1, 4 )
 
-                radius = sk_fraggrenade_radius\GetInt!
-                if damageInfo\IsExplosionDamage!
-                    radius *= random( 1, 4 )
+            Explosion( weapon, damageInfo\GetAttacker!, weapon\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
+            weapon\Remove!
+            return true
 
-                Explosion( weapon, damageInfo\GetAttacker!, weapon\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
-                weapon\Remove!
+        phys = weapon\GetPhysicsObject!
+        if phys and phys\IsValid!
+            phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
 
         return true
 
