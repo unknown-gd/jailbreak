@@ -54,16 +54,18 @@ do
 
         handler = messageHandlers[ messageType ]
         unless handler
-            return
+            return false
 
         if speaker\IsValid! and speaker\IsPlayer!
             data[ 1 ] = FilterText( data[ 1 ], ( band( cl_chatfilters\GetInt!, 64 ) ~= 0 ) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
+            if Run( "OnPlayerChat", speaker, data[ 1 ], false, speaker\Alive! )
+                return false
 
         listener = Jailbreak.Player
         Run( "OnChatText", listener, speaker, data )
 
         if handler( listener, speaker, data )
-            return
+            return false
 
         if chatTime\GetBool!
             AddText( light_grey, date( "[%H:%M:%S] " ), unpack( message ) )
@@ -72,6 +74,8 @@ do
 
         if chatSound\GetBool!
             PlaySound!
+
+        return true
 
     Jailbreak.PerformChatMessage = performChatMessage
 
@@ -97,6 +101,7 @@ do
             buffer[ 1 ] = text
             buffer[ 2 ] = white
             performChatMessage( NULL, CHAT_SERVERMESSAGE, buffer )
+            return
 
     net.Receive "Jailbreak::Chat", ->
         performChatMessage( ReadBool! and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 4 ), ReadTable( true ) )
