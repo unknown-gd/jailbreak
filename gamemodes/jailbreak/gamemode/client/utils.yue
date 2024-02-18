@@ -154,9 +154,8 @@ do
 
     do
 
-        Player = Player
-
         gameevent.Listen( "player_spawn" )
+        Player = Player
 
         hook.Add "player_spawn", "Jailbreak::SpawnEffect", ( data ) ->
             ply = Player( data.userid )
@@ -168,6 +167,8 @@ do
                 ply.m_fSpawnTime = CurTime! + pl\Ping! / 1000
             else
                 ply.m_fSpawnTime = CurTime! + 0.25
+
+            Run( "PlayerSpawn", ply )
 
     do
 
@@ -256,3 +257,14 @@ do
             SetVector( material, @ResultTo, GetPlayerColor( entity ) )
 
     }
+
+do
+
+    Material = Material
+    materials = {}
+
+    Jailbreak.Material = ( materialPath, parameters ) ->
+        if materials[ materialPath ] == nil
+            materials[ materialPath ] = Material( materialPath, parameters )
+
+        return materials[ materialPath ]
