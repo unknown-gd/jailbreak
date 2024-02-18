@@ -14,13 +14,17 @@ do
     :white = Jailbreak.Colors
 
     GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
-        if new >= 2
-            if entity\IsOnFire!
-                entity\Extinguish!
+        if new < 2
+            return
 
-            if old < new and new == 3 and entity\IsPlayer! and entity\Alive!
+        if entity\IsOnFire!
+            entity\Extinguish!
+
+        if old < new and new == 3
+            if entity\IsPlayer! and entity\Alive!
                 entity.DrownDamageTime = CurTime! + random( 15, 45 )
-                entity\SetColor( white )
+
+            entity\SetColor( white )
 
 do
 
