@@ -191,11 +191,17 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
 
 do
 
-    :IsWaitingPlayers = Jailbreak
+    :IsWaitingPlayers, :PlayerSpawnTime = Jailbreak
+    :Simple = timer
 
     GM.PostPlayerSpawn = ( ply ) =>
         ply\SetNW2Int( "spawn-time", CurTime! + 0.25 )
+        ply\SetNW2Bool( "is-spawning", true )
         ply\AddToObserveTargets!
+
+        Simple PlayerSpawnTime\GetFloat!, ->
+            if ply\IsValid!
+                ply\SetNW2Bool( "is-spawning", false )
 
         if IsWaitingPlayers!
             teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )

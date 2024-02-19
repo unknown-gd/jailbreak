@@ -825,3 +825,6 @@ do
 
     PLAYER.GetSpawnTime = =>
         return GetNW2Int( @, "spawn-time" )
+
+    PLAYER.GetAliveTime = =>
+        return CurTime! - GetNW2Int( @, "spawn-time" )

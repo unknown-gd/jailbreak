@@ -13,6 +13,9 @@ TEAM_SPECTATOR = TEAM_SPECTATOR
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
+PLAYER = FindMetaTable( "Player" )
+:Alive, :Team = PLAYER
+
 do
 
     :AllowJoinToGuards, :GuardsDiff = Jailbreak
@@ -25,7 +28,7 @@ do
 
             guardCount, prisonerCount = 0, 0
             for ply in *GetAll!
-                teamID = ply\Team!
+                teamID = Team( ply )
                 if teamID == TEAM_GUARD
                     guardCount += 1
                 elseif teamID == TEAM_PRISONER
@@ -84,10 +87,10 @@ do
 Jailbreak.GetPlayersCount = ( teamID, alive ) ->
     count = 0
     for ply in *GetAll!
-        if teamID ~= nil and ply\Team! ~= teamID
+        if teamID ~= nil and Team( ply ) ~= teamID
             continue
 
-        if alive ~= nil and ply\Alive! ~= alive
+        if alive ~= nil and Alive( ply ) ~= alive
             continue
 
         count += 1
@@ -105,10 +108,10 @@ do
             tbl, length = {}, 0
 
             for ply in *players
-                if ply\Team! ~= teamID
+                if Team( ply ) ~= teamID
                     continue
 
-                if alive ~= nil and ply\Alive! ~= alive
+                if alive ~= nil and Alive( ply ) ~= alive
                     continue
 
                 length += 1
@@ -124,10 +127,10 @@ do
         for index, teamID in ipairs( teams )
             count = 0
             for ply in *players
-                if ply\Team! ~= teamID
+                if Team( ply ) ~= teamID
                     continue
 
-                if alive ~= nil and ply\Alive! ~= alive
+                if alive ~= nil and Alive( ply ) ~= alive
                     continue
 
                 count += 1
@@ -141,7 +144,7 @@ do
     -- Returns warden as player
     getWarden = ->
         warden = Jailbreak.Warden
-        if warden and warden\IsValid! and warden\IsWarden! and warden\Alive!
+        if warden and warden\IsValid! and warden\IsWarden! and Alive( warden )
             return warden
 
         for ply in *GetAll!
@@ -156,7 +159,7 @@ do
     -- Returns true if warden is exists
     Jailbreak.HasWarden = ->
         warden = getWarden!
-        return warden\IsValid! and warden\Alive!
+        return warden\IsValid! and Alive( warden )
 
 -- Round states
 do
@@ -246,7 +249,7 @@ Jailbreak.TF2Team = ( teamID ) ->
 
     return TEAM_SPECTATOR
 
-ENTITY, PLAYER = FindMetaTable( "Entity" ), FindMetaTable( "Player" )
+ENTITY = FindMetaTable( "Entity" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 
 -- Returns true if player is jailbreak developer
@@ -476,8 +479,6 @@ do
 
     Jailbreak.GetTeamColorUpacked = getTeamColorUpacked
 
-    :Team = PLAYER
-
     PLAYER.GetTeamColor = =>
         return getTeamColor( Team( @ ) )
 
@@ -548,11 +549,11 @@ do
 
 -- Returns true if player is guard
 PLAYER.IsGuard = =>
-    return @Team! == TEAM_GUARD
+    return Team( @ ) == TEAM_GUARD
 
 -- Returns true if player is prisoner
 PLAYER.IsPrisoner = =>
-    return @Team! == TEAM_PRISONER
+    return Team( @ ) == TEAM_PRISONER
 
 -- Returns true if player is warden
 PLAYER.IsWarden = =>
@@ -589,7 +590,7 @@ do
     PLAYER.GetNearPlayers = ( distance, isTeam, noSpeaker ) =>
         teamID = false
         if isTeam
-            teamID = @Team!
+            teamID = Team( @ )
 
         players = {}
         for ply in *FindInSphere( @EyePos!, distance )
@@ -599,7 +600,7 @@ do
             if noSpeaker and ply == @
                 continue
 
-            if isTeam and ply\Team! ~= teamID
+            if isTeam and Team( ply ) ~= teamID
                 continue
 
             players[] = ply
@@ -653,17 +654,8 @@ do
     PLAYER.GetPickupAmmoCount = ( ammoType ) =>
         return max( 0, getAmmoMax( ammoType ) - GetAmmoCount( @, ammoType ) )
 
-do
-
-    :PlayerSpawnTime = Jailbreak
-
-    getAliveTime = =>
-        return CurTime! - @GetSpawnTime!
-
-    PLAYER.GetAliveTime = getAliveTime
-
-    PLAYER.IsSpawning = =>
-        return getAliveTime( @ ) <= PlayerSpawnTime\GetFloat!
+PLAYER.IsSpawning = =>
+    return Alive( @ ) and GetNW2Bool( @, "is-spawning" )
 
 do
 
