@@ -25,8 +25,8 @@ do
 
     -- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
     GM.PlayerInitialSpawn = ( ply, transiton ) =>
+        ply\SetNoCollideWithTeammates( Jailbreak.GameName == "tf" )
         ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
-        ply\SetNoCollideWithTeammates( true )
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
 
