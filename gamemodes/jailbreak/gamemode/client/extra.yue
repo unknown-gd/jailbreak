@@ -1,10 +1,12 @@
 Jailbreak = Jailbreak
+:Add = hook
+
 
 do
 
     FrameTime = FrameTime
 
-    hook.Add "InputMouseApply", "Jailbreak::jb_ragdoll_mover", ( cmd, x, y, viewAngles ) ->
+    Add "InputMouseApply", "Jailbreak::jb_ragdoll_mover", ( cmd, x, y, viewAngles ) ->
         ply = Jailbreak.Player
         unless ply\IsValid! and ply\Alive!
             return
@@ -94,7 +96,7 @@ do
         panel = vgui.Create( "Jailbreak::PaintMenu" )
         panel.EntIndex = entity\EntIndex!
 
-hook.Add "NotifyShouldTransmit", "Jailbreak::AutoMute", ( entity, shouldTransmit ) ->
+Add "NotifyShouldTransmit", "Jailbreak::AutoMute", ( entity, shouldTransmit ) ->
     if not shouldTransmit or not entity\IsPlayer! or entity.m_bBlacklistMuted
         return
 
@@ -118,7 +120,7 @@ material = Material( "models/wireframe" )
 
 blend, clipping, frac = 0, false, 0
 
-hook.Add "PrePlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
+Add "PrePlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
     frac = 1 - Clamp( ( CurTime! - GetSpawnTime( @ ) ) / PlayerSpawnTime\GetFloat!, 0, 1 )
     if frac == 0
         return
@@ -138,7 +140,7 @@ hook.Add "PrePlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
     MaterialOverride( material )
     SetBlend( 1 - frac )
 
-hook.Add "PostPlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
+Add "PostPlayerDraw", "Jailbreak::SpawnEffect", ( flags ) =>
     if frac == 0
         return
 

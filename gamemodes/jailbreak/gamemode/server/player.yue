@@ -828,3 +828,26 @@ do
 
     PLAYER.GetAliveTime = =>
         return CurTime! - GetNW2Int( @, "spawn-time" )
+
+do
+
+    :AvaliableWeapons = Jailbreak
+    :Give, :HasWeapon = PLAYER
+    :Random = table
+
+    PLAYER.GiveRandomWeapons = ( count ) =>
+        unless count
+            count = 4
+
+        gived = {}
+        for i = 1, count * 2
+            if count == 0
+                break
+
+            className = Random( AvaliableWeapons, true )
+            if HasWeapon( @, className ) or gived[ className ] == true
+                continue
+
+            if Give( @, className, false )\IsValid!
+                gived[ className ] = true
+                count -= 1

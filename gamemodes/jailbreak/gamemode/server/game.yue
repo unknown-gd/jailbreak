@@ -676,20 +676,7 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
 GM.PlayerLoadout = ( ply ) =>
     -- Giving weapons if not cstrike map
     if ply\IsGuard! and Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
-        avaliableWeapons = @AvaliableWeapons
-        gived, count = {}, 4
-
-        for i = 1, 8
-            if count == 0
-                break
-
-            className = avaliableWeapons[ random( 1, #avaliableWeapons ) ]
-            if ply\HasWeapon( className ) or gived[ className ] == true
-                continue
-
-            if ply\Give( className, false )\IsValid!
-                gived[ className ] = true
-                count -= 1
+        ply\GiveRandomWeapons( 4 )
 
     -- Giving hands
     ply\Give( "jb_hands", false, true )

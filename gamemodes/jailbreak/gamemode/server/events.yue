@@ -9,6 +9,9 @@ xpcall = xpcall
 ROUND_RUNNING = ROUND_RUNNING
 ROUND_FINISHED = ROUND_FINISHED
 
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
+
 :Colors, :SendChatText, :GetTeamPlayers, :IsRoundRunning = Jailbreak
 CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 CHAT_CUSTOM = CHAT_CUSTOM
@@ -110,7 +113,7 @@ class JailbreakEvent
 
         return stopEvents or false
 
-Jailbreak.RegisterEvent = ( name, init, finish ) ->
+registerEvent = ( name, init, finish ) ->
     for event in *events
         if event.name == name
             event.init = init
@@ -118,6 +121,8 @@ Jailbreak.RegisterEvent = ( name, init, finish ) ->
             return event
 
     return JailbreakEvent( name, init, finish )
+
+Jailbreak.RegisterEvent = registerEvent
 
 Jailbreak.RunEvents = ( state ) ->
     stoppedTypes = {}
@@ -133,7 +138,7 @@ Jailbreak.RunEvents = ( state ) ->
 -- Female prison
 do
 
-    event = Jailbreak.RegisterEvent "female-prison", ->
+    event = registerEvent "female-prison", ->
             Jailbreak.SetFemalePrison( true )
             return true, true,
         ->
@@ -151,7 +156,7 @@ do
     Vector = Vector
     :Random = table
 
-    event = Jailbreak.RegisterEvent "masquerade", ->
+    event = registerEvent "masquerade", ->
             Add "PlayerSetModel", "Jailbreak::MasqueradeEvent", =>
                 modelPath = Random( playerModels )
                 if modelPath == nil
@@ -202,7 +207,7 @@ do
 -- Grass is lava
 do
 
-    event = Jailbreak.RegisterEvent "grass-is-lava", ->
+    event = registerEvent "grass-is-lava", ->
             Add "PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", =>
                 @EmitSound( "vo/npc/" .. ( @IsFemaleModel! and "fe" or "" ) .. "male01/ohno.wav", 90, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
                 return true
@@ -267,7 +272,7 @@ do
 -- Powerful players
 do
 
-    event = Jailbreak.RegisterEvent "powerful-players", ->
+    event = registerEvent "powerful-players", ->
             Jailbreak.PowerfulPlayers = true
 
             Add "EntityTakeDamage", "Jailbreak::PowerfulPlayers", ( damageInfo )=>
@@ -293,11 +298,10 @@ do
 -- Random knife
 do
 
-    TEAM_PRISONER = TEAM_PRISONER
     timer_Simple = timer.Simple
     :ceil = math
 
-    event = Jailbreak.RegisterEvent "random-knife", ->
+    event = registerEvent "random-knife", ->
         timer_Simple 0, ->
             unless IsRoundRunning!
                 return
@@ -323,7 +327,7 @@ do
 -- Hidden Angel
 do
 
-    event = Jailbreak.RegisterEvent "hidden-angel", ->
+    event = registerEvent "hidden-angel", ->
         prisoners = GetTeamPlayers( true, TEAM_PRISONER )[ 1 ]
 
         prisonerCount = #prisoners
@@ -342,4 +346,5 @@ do
     event\SetStartState( ROUND_RUNNING )
     event\SetColor( Colors.dark_white )
     event\SetType( "movement" )
-    event\ConVar( 10 )
+    event\ConVar( 25 )
+

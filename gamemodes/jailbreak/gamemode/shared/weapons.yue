@@ -1,9 +1,7 @@
-GM = GM
-
-avaliableWeapons = GM.AvaliableWeapons
+avaliableWeapons = Jailbreak.AvaliableWeapons
 unless istable( avaliableWeapons )
     avaliableWeapons = {}
-    GM.AvaliableWeapons = avaliableWeapons
+    Jailbreak.AvaliableWeapons = avaliableWeapons
 
 WeaponHandler = WeaponHandler
 unless WeaponHandler
