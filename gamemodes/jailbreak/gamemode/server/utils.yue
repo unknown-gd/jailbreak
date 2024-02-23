@@ -267,7 +267,7 @@ do
 
         dissolver\Fire( "dissolve", temporaryName, 0 )
 
-        Simple 0, ->
+        timer.Create "Jailbreak::Dissolver", 0.25, 1, ->
             if @IsValid!
                 @SetName( "" )
 
