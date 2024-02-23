@@ -1,6 +1,71 @@
 Jailbreak = Jailbreak
 :Add = hook
 
+do
+
+    DrawColorModify = DrawColorModify
+    GetGlobal2Bool = GetGlobal2Bool
+    DrawSunbeams = DrawSunbeams
+    DrawSharpen = DrawSharpen
+    DrawToyTown = DrawToyTown
+    DrawBloom = DrawBloom
+
+    heaven = {
+        "$pp_colour_addr": 0
+        "$pp_colour_addg": 0
+        "$pp_colour_addb": 0
+        "$pp_colour_brightness": 0.05
+        "$pp_colour_contrast": 1.25
+        "$pp_colour_colour": 1.25
+        "$pp_colour_mulr": 0.025
+        "$pp_colour_mulg": 0.025
+        "$pp_colour_mulb": 0
+    }
+
+    hell = {
+        "$pp_colour_addr": 0.05
+        "$pp_colour_addg": 0
+        "$pp_colour_addb": 0
+        "$pp_colour_brightness": -0.05
+        "$pp_colour_contrast": 1.25
+        "$pp_colour_colour": 0.8
+        "$pp_colour_mulr": 1.5
+        "$pp_colour_mulg": 0
+        "$pp_colour_mulb": 0
+    }
+
+    Add "RenderScreenspaceEffects", "Jailbreak::Heaven & Hell", ->
+        if GetGlobal2Bool( "Jailbreak::Heaven" )
+            DrawColorModify( heaven )
+            DrawToyTown( 2, Jailbreak.ScreenHeight / 2 )
+            DrawSunbeams( 0.1, 0.013, 0.14, 0.2, 0.6 )
+            DrawBloom( 1, 1, 8, 8, 1, 1, 1, 1, 1 )
+            return
+
+        if GetGlobal2Bool( "Jailbreak::Hell" )
+            DrawColorModify( hell )
+            DrawBloom( 1, 1, 8, 8, 1, 1, 1, 1, 1 )
+            DrawSharpen( 0.8, 0.8 )
+            return
+
+    :FogStart, :FogEnd, :FogMode, :FogMaxDensity, :FogColor = render
+
+    Add "SetupWorldFog", "Jailbreak::Heaven & Hell", ->
+        if GetGlobal2Bool( "Jailbreak::Heaven" )
+            FogStart( 512 )
+            FogEnd( 2048 )
+            FogMode( 1 )
+            FogMaxDensity( 0.5 )
+            FogColor( 255, 255, 255 )
+            return true
+
+        if GetGlobal2Bool( "Jailbreak::Hell" )
+            FogStart( 256 )
+            FogEnd( 1048 )
+            FogMode( 1 )
+            FogMaxDensity( 1 )
+            FogColor( 33, 33, 33 )
+            return true
 
 do
 
