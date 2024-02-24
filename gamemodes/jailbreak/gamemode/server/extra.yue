@@ -634,6 +634,12 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "jb_russian_roulette", false, true )\IsValid!
 
+    add "defibrillator", "models/weapons/w_slam.mdl", 60, =>
+        if @HasWeapon( "jb_defibrillator" )
+            return false
+
+        return @Give( "jb_defibrillator", false, true )\IsValid!
+
     return
 
 Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
