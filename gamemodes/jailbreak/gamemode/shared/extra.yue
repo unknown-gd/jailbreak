@@ -157,9 +157,12 @@ do
 
     :IsPlayingTaunt = PLAYER
 
-    Add "AllowPlayerMove", "Jailbreak::Taunts", =>
+    Add( "Move", "Jailbreak::Taunts", ( mv ) =>
         if IsPlayingTaunt( @ )
-            return false
+            mv\SetSideSpeed( 0 )
+            mv\SetUpSpeed( 0 )
+
+    POST_HOOK )
 
 -- Block player movement while player in spectator mode
 do
