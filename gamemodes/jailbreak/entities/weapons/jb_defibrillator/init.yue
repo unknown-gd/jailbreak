@@ -9,7 +9,7 @@ CurTime = CurTime
 :random = math
 trace = {}
 
-jb_defibrillator_usages = CreateConVar( "jb_defibrillator_usages", "5", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "Determines maximum number of defibrillator usages before it fails." )
+jb_defibrillator_usages = CreateConVar( "jb_defibrillator_usages", "3", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ), "Determines maximum number of defibrillator usages before it fails." )
 
 SWEP.Initialize = =>
     @SetHoldType( "duel" )
