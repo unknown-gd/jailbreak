@@ -5,6 +5,7 @@ timer_Simple = timer.Simple
 CurTime = CurTime
 
 SWEP.PrintName = "#jb.hands"
+SWEP.Spawnable = false
 
 if CLIENT
     SWEP.WepSelectIcon = surface.GetTextureID( "weapons/jb_hands" )
@@ -12,8 +13,6 @@ if CLIENT
 SWEP.Slot = 0
 SWEP.SlotPos = 4
 SWEP.Weight = -5
-
-SWEP.Spawnable = true
 
 SWEP.ViewModel = Model( "models/weapons/c_arms.mdl" )
 SWEP.WorldModel = ""
@@ -29,7 +28,7 @@ SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 
 SWEP.DrawWeaponInfoBox = false
-SWEP.ViewModelFOV = 54
+SWEP.ViewModelFOV = 60
 SWEP.DrawAmmo = false
 SWEP.UseHands = true
 
