@@ -84,7 +84,7 @@ do
 
             return view
 
-        isPlayingTaunt = Jailbreak.PlayingTaunt
+        isPlayingTaunt = ply\IsPlayingTaunt!
 
         tauntFraction = entity.TauntFraction
         unless tauntFraction
@@ -179,7 +179,6 @@ do
 
         Jailbreak.PlayingTaunt = true
 
-        -- FrameTime!
         tauntViewAngles = ply.TauntViewAngles
         if tauntViewAngles
             tauntViewAngles[ 1 ] += cmd\GetMouseY! * 0.01
