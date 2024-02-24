@@ -651,7 +651,7 @@ do
             button = @Add( "Jailbreak::TeamSelect - Button" )
             @Random = button
 
-            button\SetText( "#jb.select_random_team" )
+            button\SetText( "#jb.select-random-team" )
             button.Color = Colors.asparagus
             button.MainPanel = @
 

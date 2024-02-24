@@ -97,7 +97,7 @@ do
     PANEL = {}
 
     PANEL.Init = =>
-        @SetTitle( "#jb.paint_can" )
+        @SetTitle( "#jb.paint-can" )
         @SetIcon( "icon16/paintcan.png" )
 
         @SetSizable( true )

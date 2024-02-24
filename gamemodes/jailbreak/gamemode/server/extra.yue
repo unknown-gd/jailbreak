@@ -592,7 +592,7 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_medkit", false, true )\IsValid!
 
-    add "paint_can", "models/props_junk/metal_paintcan001a.mdl", 5, =>
+    add "paint-can", "models/props_junk/metal_paintcan001a.mdl", 5, =>
         return @SpawnEntity( "prop_physics", =>
             @SetModel( "models/props_junk/metal_paintcan001a.mdl" )
             @SetCollisionGroup( COLLISION_GROUP_WEAPON )
@@ -613,7 +613,7 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return @Give( "weapon_stunstick", false, true )\IsValid!
 
-    add "gas_can", "models/props_junk/gascan001a.mdl", 10, =>
+    add "gas-can", "models/props_junk/gascan001a.mdl", 10, =>
         return @SpawnEntity( "prop_physics", =>
             @SetModel( "models/props_junk/gascan001a.mdl" )
             @SetCollisionGroup( COLLISION_GROUP_WEAPON )

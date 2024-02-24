@@ -114,7 +114,7 @@ do
             return
 
         unless isstring( description )
-            description = "#jb.chat.command.no_description"
+            description = "#jb.chat.command.no-description"
 
         chatCommands[ lower( str ) ] = { func, description }
 
@@ -356,7 +356,7 @@ do
     CHAT_CUSTOM = CHAT_CUSTOM
 
     Add "WardenChanged", "Jailbreak::WardenNotification", ( state ) =>
-        sendChatText( false, false, CHAT_CUSTOM, @GetModelColor!, @Nick!, white, state and " #jb.alert.warden_join" or " #jb.alert.warden_leave" )
+        sendChatText( false, false, CHAT_CUSTOM, @GetModelColor!, @Nick!, white, state and " #jb.alert.warden-join" or " #jb.alert.warden-leave" )
 
         if state and not @IsBot!
             @SendShopItems!

@@ -474,7 +474,7 @@ do
 
         reason = data[ 3 ]
         if reason ~= nil
-            insert( " " .. GetPhrase( "jb.chat.player.disconnected_with_reason" ) .. ": \"" )
+            insert( " " .. GetPhrase( "jb.chat.player.disconnected-with-reason" ) .. ": \"" )
 
             insert( dark_white )
             insert( reason )
@@ -494,7 +494,7 @@ messageHandlers[ CHAT_NAMECHANGE ] = ( _, __, data ) ->
     insert( data[ 1 ] )
 
     insert( white )
-    insert( " " .. GetPhrase( "jb.chat.player.changed_name" ) .. " " )
+    insert( " " .. GetPhrase( "jb.chat.player.changed-name" ) .. " " )
 
     insert( color )
     insert( data[ 2 ] )
@@ -519,7 +519,7 @@ do
             insert( data[ 2 ] )
 
         insert( white )
-        insert( " " .. GetPhrase( "jb.chat.got_achievement" ) .. " " )
+        insert( " " .. GetPhrase( "jb.chat.got-achievement" ) .. " " )
 
         insert( vivid_orange )
         if isstring( data[ 1 ] )

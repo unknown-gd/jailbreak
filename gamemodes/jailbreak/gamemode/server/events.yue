@@ -163,7 +163,8 @@ do
                 if modelPath == nil
                     return
 
-                return @SetModel( modelPath )
+                @SetModel( modelPath )
+                return true
 
             Add "PlayerModelChanged", "Jailbreak::MasqueradeEvent", =>
                 if @IsBot!
@@ -345,7 +346,7 @@ do
 
     event\SetStartState( ROUND_RUNNING )
     event\SetColor( Colors.dark_white )
-    event\SetType( "world" )
+    event\SetType( "movement" )
     event\ConVar( 25 )
 
 do
@@ -410,6 +411,47 @@ do
 
     event\SetStartState( ROUND_RUNNING )
     event\SetFinishState( ROUND_FINISHED )
-    event\SetColor( Colors.dark_white )
+    event\SetColor( Colors.red )
     event\SetType( "world" )
     event\ConVar( 5 )
+
+do
+
+    event = registerEvent "moon-gravity", ->
+        Jailbreak.__oldGravity = cvars.String( "sv_gravity" )
+        RunConsoleCommand( "sv_gravity", "200" )
+        return true, true,
+        ->
+            RunConsoleCommand( "sv_gravity", Jailbreak.__oldGravity or "800" )
+
+    event\SetStartState( ROUND_RUNNING )
+    event\SetFinishState( ROUND_FINISHED )
+    event\SetColor( Colors.dark_white )
+    event\SetType( "world" )
+    event\ConVar( 10 )
+
+do
+
+    event = registerEvent "spooky-scary-skeletons", ->
+        Add "PlayerSetModel", "Jailbreak::SpookySkeletonsEvent", =>
+            @SetModel( "models/player/skeleton.mdl" )
+            return true
+
+        Add "PlayerModelChanged", "Jailbreak::SpookySkeletonsEvent", =>
+            @SetSkin( @IsPrisoner! and 2 or 1 )
+            return true
+
+        Add "PostPlayerSpawn", "Jailbreak::SpookySkeletonsEvent", =>
+            @SetMaxHealth( 50 )
+            @SetHealth( 50 )
+
+        return true, true,
+        ->
+            Remove "PlayerSetModel", "Jailbreak::SpookySkeletonsEvent"
+            Remove "PlayerModelChanged", "Jailbreak::SpookySkeletonsEvent"
+            Remove "PostPlayerSpawn", "Jailbreak::SpookySkeletonsEvent"
+
+    event\SetFinishState( ROUND_FINISHED )
+    event\SetColor( Colors.dark_white )
+    event\SetType( "playermodel" )
+    event\ConVar( 8 )

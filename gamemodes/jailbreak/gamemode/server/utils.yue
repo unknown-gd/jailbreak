@@ -325,30 +325,6 @@ do
     ENTITY.SetAlive = ( alive ) =>
         @SetNW2Bool( "alive", alive )
 
-    -- Electric shock effect
-    do
-
-        CHAN_STATIC = CHAN_STATIC
-
-        ENTITY.DoElectricSparks = ( origin, pitch, noSound ) =>
-            unless origin
-                bone = @LookupBone( "ValveBiped.Bip01_Head1" )
-                if bone and bone >= 0
-                    origin = @GetBonePosition( bone )
-
-                unless origin
-                    origin = @EyePos!
-
-            fx = EffectData!
-            fx\SetScale( 0.5 )
-            fx\SetOrigin( origin )
-            fx\SetMagnitude( random( 3, 5 ) )
-            fx\SetRadius( random( 1, 5 ) )
-            Effect( "ElectricSpark", fx )
-
-            if noSound ~= true
-                @EmitSound( "Jailbreak.ElectricSpark", random( 50, 90 ), pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
-
 do
 
     CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )

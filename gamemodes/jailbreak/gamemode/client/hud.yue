@@ -179,9 +179,9 @@ do
         Jailbreak.TargetIDClasses = targetIDClasses
 
     models = {
-        "models/props_junk/metal_paintcan001a.mdl": "#jb.paint_can"
-        "models/props_junk/metal_paintcan001b.mdl": "#jb.paint_can"
-        "models/props_junk/gascan001a.mdl": "#jb.gas_can"
+        "models/props_junk/metal_paintcan001a.mdl": "#jb.paint-can"
+        "models/props_junk/metal_paintcan001b.mdl": "#jb.paint-can"
+        "models/props_junk/gascan001a.mdl": "#jb.gas-can"
     }
 
     GM.HUDDrawTargetID = =>
@@ -314,7 +314,7 @@ do
                 r, g, b = GetTeamColorUpacked( teamID )
 
             else
-                text = "#jb.player.corpse"
+                text = entity\Alive! and "#jb.player.lost-consciousness" or "#jb.player.dead"
                 r, g, b = dark_white.r, dark_white.g, dark_white.b
 
             SetFont( "Jailbreak::TargetID - Team" )
@@ -350,7 +350,7 @@ do
                 elseif frac < 0.25
                     text = "#jb.player.health.half-dead"
                 elseif frac < 0.5
-                    text = "#jb.player.health.badly_wounded"
+                    text = "#jb.player.health.badly-wounded"
                 elseif frac < 0.75
                     text = "#jb.player.health.wounded"
                 elseif frac < 0.90
@@ -407,33 +407,33 @@ do
                 text = GetPhrase( "jb.player.search" )
 
             elseif entityType == 5
-                text = "#jb.player.press_button"
+                text = "#jb.player.press-button"
 
             elseif entityType == 3
                 if ply\HasWeapon( entity\GetClass! )
                     if ( entity\Clip1! > 0 or entity\Clip2! > 0 ) and ( ply\GetPickupAmmoCount( entity\GetPrimaryAmmoType! ) > 1 or ply\GetPickupAmmoCount( entity\GetSecondaryAmmoType! ) ~= 0 )
-                        text = "#jb.player.pickup_ammo"
+                        text = "#jb.player.pickup-ammo"
 
                 else
-                    text = "#jb.player.pickup_weapon"
+                    text = "#jb.player.pickup-weapon"
 
             elseif entityType == 4
                 useTime = ply\GetUseTime!
                 if useTime ~= 0
                     progress = Clamp( useTime / FoodEatingTime\GetInt!, 0, 1 )
 
-                text = GetPhrase( "jb.player.eat_food" )
+                text = GetPhrase( "jb.player.eat" )
 
             else
 
                 className = entity\GetClass!
                 if className == "prop_door_rotating"
                     if entity\IsDoorLocked!
-                        text = "#jb.player.door_locked"
+                        text = "#jb.player.door-locked"
                     elseif entity\GetDoorState! == 0
-                        text = "#jb.player.door_open"
+                        text = "#jb.player.door-open"
                     else
-                        text = "#jb.player.door_close"
+                        text = "#jb.player.door-close"
 
             if text ~= nil
                 keyName = upper( keyName )
@@ -1099,6 +1099,8 @@ do
             text = GetPhrase( "jb.unknown" )
             if @AmmoText ~= text
                 @AmmoText = text
+                @Clip1, @Clip2 = -1, -1
+                @PrimaryCount, @SecondaryCount = -1, -1
                 @InvalidateLayout!
 
             return

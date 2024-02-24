@@ -357,7 +357,7 @@ Set "DesktopWindows", "warden-shop", {
             other\AddOption "#jb.shop.buy.random", ->
                 item = ShopItems[ random( 1, #ShopItems ) ]
                 unless item
-                    MsgN( "#jb.shop.no_items" )
+                    MsgN( "#jb.shop.no-items" )
                     return
 
                 RunConsoleCommand( "jb_buy", item.name )
