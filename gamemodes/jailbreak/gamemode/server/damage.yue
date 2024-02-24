@@ -164,11 +164,15 @@ GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
         damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
 
     inflictor = damageInfo\GetInflictor!
-    if inflictor\IsValid! and inflictor\IsWeapon!
-        if not inflictor\IsScripted! and entity\IsPlayer!
-            return
+    if inflictor\IsValid!
+        if inflictor\IsWeapon!
+            if not inflictor\IsScripted! and entity\IsPlayer!
+                return
 
-        if damageInfo\IsCloseRangeDamage! and inflictor\GetClass! ~= "jb_hands"
+            if damageInfo\IsCloseRangeDamage! and inflictor\GetClass! ~= "jb_hands"
+                return
+
+        elseif inflictor\IsRagdoll!
             return
 
     velocity = damageInfo\GetDamageForce!
@@ -248,15 +252,11 @@ do
         prop\EmitSound( "physics/wood/wood_crate_break" .. random( 1, 5 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
         door\Remove!
 
-        phys = prop\GetPhysicsObject!
-        if phys and phys\IsValid!
-            phys\ApplyForceOffset( damageInfo\GetDamageForce!, damageInfo\GetDamagePosition! )
-            phys\Wake!
-
         origin = damageInfo\GetDamagePosition!
         util.ScreenShake( origin, 5, 10, 0.5, 150 )
         prop\DoElectricSparks( origin, nil, true )
-        return true
+        prop\TakeDamageInfo( damageInfo )
+        return
 
 do
 

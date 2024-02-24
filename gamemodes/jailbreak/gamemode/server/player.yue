@@ -4,9 +4,9 @@ Jailbreak = Jailbreak
 :IsInWorld, :IsValidModel, :TraceLine = util
 vector_origin = vector_origin
 :FixModelPath = Jailbreak
+:Add, :Run = hook
 :Simple = timer
 :Create = ents
-:Run = hook
 
 OBS_MODE_ROAMING = OBS_MODE_ROAMING
 OBS_MODE_CHASE = OBS_MODE_CHASE
@@ -124,14 +124,14 @@ PLAYER.SetWarden = ( bool, silent ) =>
 
     Run( "WardenChanged", @, bool )
 
-hook.Add "PostPlayerDeath", "Jailbreak::WardenDeath", =>
+Add "PostPlayerDeath", "Jailbreak::WardenDeath", =>
     @SetWarden( false )
 
 -- Allows player use of flight
 PLAYER.AllowFlight = ( bool ) =>
     @SetNW2Bool( "flight-allowed", bool )
 
-hook.Add "PostPlayerDeath", "Jailbreak::DisallowFlight", =>
+Add "PostPlayerDeath", "Jailbreak::DisallowFlight", =>
     @AllowFlight( false )
 
 do
@@ -377,7 +377,7 @@ do
 
     :RagdollRemove, :RagdollHealth, :IsRoundPreparing, :DropActiveWeaponOnDeath = Jailbreak
 
-    hook.Add "PlayerCanCreateRagdoll", "Jailbreak::NoRagdollsOnPreparing", =>
+    Add "PlayerCanCreateRagdoll", "Jailbreak::NoRagdollsOnPreparing", =>
         if IsRoundPreparing!
             return false
 
@@ -642,7 +642,8 @@ do
     angle_zero = angle_zero
 
     PLAYER.SpawnFromRagdoll = ( ragdoll, ignoreHealth ) =>
-        @SetTeam( ragdoll\Team! )
+        if @Team! ~= ragdoll\Team!
+            @SetTeam( ragdoll\Team! )
 
         unless ragdoll\Alive!
             if @Alive!
@@ -667,7 +668,7 @@ do
 
         if ignoreHealth ~= true
             @SetHealth( @GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
-            @SetArmor( @GetMaxArmor! * ( ragdoll.Armor / ragdoll.MaxArmor ) )
+            @SetArmor( @GetMaxArmor! * ( ( ragdoll.Armor or 0 ) / ( ragdoll.MaxArmor or 100 ) ) )
 
         @SetPlayerColor( ragdoll\GetPlayerColor! )
         @SetMaterial( ragdoll\GetMaterial! )
@@ -717,6 +718,14 @@ do
         @Give( "jb_hands", false, true )
         @LootRagdoll( ragdoll )
         return true
+
+Add "PlayerSelectSpawn", "Jailbreak::AliveRagdoll", ( transition ) =>
+    if transition
+        return
+
+    ragdoll = @GetRagdollEntity!
+    if ragdoll\IsValid! and ragdoll\Alive!
+        return ragdoll
 
 do
 

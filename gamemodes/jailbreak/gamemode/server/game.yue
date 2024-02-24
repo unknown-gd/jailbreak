@@ -53,18 +53,22 @@ do
         ply\StripWeapons!
         ply\UnSpectate!
 
-        if ply.m_bInitialSpawn ~= nil
-            ply.m_bInitialSpawn = nil
-
-            ragdoll = ply\FindRagdollEntity!
-            if ragdoll\IsValid!
-                if ply\SpawnFromRagdoll( ragdoll )
-                    Run( "PostPlayerSpawn", ply )
-
+        ragdoll = ply\FindRagdollEntity!
+        if ragdoll\IsValid!
+            if ragdoll\Alive!
+                ply\SpawnFromRagdoll( ragdoll )
+                Run( "PostPlayerSpawn", ply )
+                ragdoll\SetAlive( false )
                 ragdoll\Remove!
                 return
 
+        if ply.m_bInitialSpawn ~= nil
+            ply.m_bInitialSpawn = nil
+
             if GameInProgress!
+                if ragdoll\IsValid!
+                    ply\SpawnFromRagdoll( ragdoll )
+
                 ply\KillSilent!
                 return
 
