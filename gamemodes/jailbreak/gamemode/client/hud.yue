@@ -492,9 +492,11 @@ do
         Add "HUDDrawInfo", "Jailbreak::VoiceChatIcon", =>
             if @IsSpeaking!
                 if alpha < 1
-                    alpha = min( 1, alpha + FrameTime! * 4 )
+                    alpha = min( 1, alpha + FrameTime! )
             elseif alpha > 0
-                alpha = max( 0, alpha - FrameTime! * 4 )
+                alpha = max( 0, alpha - FrameTime! )
+                if alpha < 0.01
+                    alpha = 0
 
             if alpha == 0
                 return
