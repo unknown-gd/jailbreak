@@ -12,8 +12,9 @@ OBS_MODE_ROAMING = OBS_MODE_ROAMING
 OBS_MODE_CHASE = OBS_MODE_CHASE
 NULL = NULL
 
-PLAYER = FindMetaTable( "Player" )
+PLAYER, ENTITY = FindMetaTable( "Player" ), FindMetaTable( "Entity" )
 PLAYER.ChangeTeam = Jailbreak.ChangeTeam
+:SetNW2Bool = ENTITY
 
 -- Flashlight
 PLAYER.HasFlashlight = PLAYER.CanUseFlashlight
@@ -47,7 +48,7 @@ PLAYER.GiveSecurityKeys = ( silent ) =>
     if @HasSecurityKeys!
         return
 
-    @SetNW2Bool( "security-keys", true )
+    SetNW2Bool( @, "security-keys", true )
 
     unless @IsBot! or silent
         @SendPickupNotify( "jb.security.keys" )
@@ -56,7 +57,7 @@ PLAYER.TakeSecurityKeys = ( silent ) =>
     unless @HasSecurityKeys!
         return
 
-    @SetNW2Bool( "security-keys", false )
+    SetNW2Bool( @, "security-keys", false )
 
     unless @IsBot! or silent
         @SendNotify( "#jb.security.keys.lost", NOTIFY_UNDO, 5 )
@@ -66,7 +67,7 @@ PLAYER.GiveSecurityRadio = ( silent ) =>
     if @HasSecurityRadio!
         return
 
-    @SetNW2Bool( "security-radio", true )
+    SetNW2Bool( @, "security-radio", true )
 
     unless @IsBot! or silent
         @SendPickupNotify( "jb.walkie-talkie" )
@@ -75,7 +76,7 @@ PLAYER.TakeSecurityRadio = ( silent ) =>
     unless @HasSecurityRadio!
         return
 
-    @SetNW2Bool( "security-radio", false )
+    SetNW2Bool( @, "security-radio", false )
 
     unless @IsBot! or silent
         @SendNotify( "#jb.walkie-talkie.lost", NOTIFY_UNDO, 5 )
@@ -85,7 +86,7 @@ PLAYER.GiveShockCollar = ( silent ) =>
     if @HasShockCollar!
         return
 
-    @SetNW2Bool( "shock-collar", true )
+    SetNW2Bool( @, "shock-collar", true )
     @SetShockCollar( false, true )
 
     unless @IsBot! or silent
@@ -96,7 +97,7 @@ PLAYER.TakeShockCollar = ( silent ) =>
         return
 
     @SetShockCollar( false, true )
-    @SetNW2Bool( "shock-collar", false )
+    SetNW2Bool( @, "shock-collar", false )
 
     unless @IsBot! or silent
         @SendNotify( "#jb.shock-collar.lost", NOTIFY_UNDO, 5 )
@@ -105,7 +106,7 @@ PLAYER.SetShockCollar = ( bool, silent ) =>
     if bool == @ShockCollarIsEnabled!
         return
 
-    @SetNW2Bool( "shock-collar-enabled", bool )
+    SetNW2Bool( @, "shock-collar-enabled", bool )
 
     if silent
         return
@@ -117,7 +118,7 @@ PLAYER.SetWarden = ( bool, silent ) =>
     if bool == @IsWarden!
         return
 
-    @SetNW2Bool( "is-warden", bool )
+    SetNW2Bool( @, "is-warden", bool )
 
     if silent
         return
@@ -129,7 +130,10 @@ Add "PostPlayerDeath", "Jailbreak::WardenDeath", =>
 
 -- Allows player use of flight
 PLAYER.AllowFlight = ( bool ) =>
-    @SetNW2Bool( "flight-allowed", bool )
+    SetNW2Bool( @, "flight-allowed", bool )
+
+    if bool == false
+        SetNW2Bool( @, "in-flight", bool )
 
 Add "PostPlayerDeath", "Jailbreak::DisallowFlight", =>
     @AllowFlight( false )
@@ -337,7 +341,7 @@ do
         return weapon
 
 PLAYER.SetMutedByWarden = ( bool ) =>
-    @SetNW2Bool( "warden-mute", bool )
+    SetNW2Bool( @, "warden-mute", bool )
 
 PLAYER.RemoveRagdoll = =>
     ragdoll = @GetRagdollEntity!
@@ -442,7 +446,7 @@ do
                 ragdoll\SetSubMaterial( index, materialPath )
 
         ragdoll\SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
-        ragdoll\SetNW2Bool( "is-player-ragdoll", true )
+        SetNW2Bool( ragdoll, "is-player-ragdoll", true )
         ragdoll\SetNW2Entity( "ragdoll-owner", @ )
         @SetNW2Entity( "player-ragdoll", ragdoll )
 
@@ -808,8 +812,6 @@ do
         tryFixPosition( @, entity, origin )
         entity\PhysWake!
         return entity
-
-ENTITY = FindMetaTable( "Entity" )
 
 do
 
