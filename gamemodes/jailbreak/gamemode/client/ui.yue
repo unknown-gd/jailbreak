@@ -834,21 +834,21 @@ do
         :DrawTexturedRect, :SetMaterial = surface
         :Material = Jailbreak
 
-        default = Material( "icon16/user.png", "mips" )
+        default = Material( "icon16/user.png" )
         statuses = {
-            "friend": Material( "icon16/user_green.png", "mips" )
-            "blocked": Material( "icon16/user_delete.png", "mips" )
-            "requesting": Material( "icon16/user_add.png", "mips" )
+            "friend": Material( "icon16/user_green.png" )
+            "blocked": Material( "icon16/user_delete.png" )
+            "requesting": Material( "icon16/user_add.png" )
         }
 
         PANEL.AvatarPaintOver = ( width, height ) =>
             ply, material = @m_ePlayer, nil
             if ply and ply\IsValid! and not ply\IsLocalPlayer!
                 if ply\IsWarden!
-                    material = Material( "icon16/user_suit.png", "mips" )
+                    material = Material( "icon16/user_suit.png" )
 
                 elseif ply\IsBot!
-                    material = Material( "icon16/tux.png", "mips" )
+                    material = Material( "icon16/tux.png" )
 
                 else
                     material = statuses[ GetFriendStatus( ply ) ]

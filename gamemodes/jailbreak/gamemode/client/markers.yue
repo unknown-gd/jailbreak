@@ -12,25 +12,25 @@ EyePos = EyePos
 TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
-UserOrangeIcon = Material( "icon16/user_orange.png", "mips" )
-UserSuitIcon = Material( "icon16/user_suit.png", "mips" )
-UserIcon = Material( "icon16/user.png", "mips" )
-BricksIcon = Material( "icon16/bricks.png", "mips" )
-OrangeFlagIcon = Material( "icon16/flag_orange.png", "mips" )
-BlueFlagIcon = Material( "icon16/flag_blue.png", "mips" )
-DoorIcon = Material( "icon16/door.png", "mips" )
-ImageIcon = Material( "icon16/image.png", "mips" )
-PhotoIcon = Material( "icon16/photo.png", "mips" )
-GunIcon = Material( "icon16/gun.png", "mips" )
-ErrorIcon = Material( "icon16/error.png", "mips" )
-PaintCanIcon = Material( "icon16/paintcan.png", "mips" )
+UserOrangeIcon = Material( "icon16/user_orange.png" )
+UserSuitIcon = Material( "icon16/user_suit.png" )
+UserIcon = Material( "icon16/user.png" )
+BricksIcon = Material( "icon16/bricks.png" )
+OrangeFlagIcon = Material( "icon16/flag_orange.png" )
+BlueFlagIcon = Material( "icon16/flag_blue.png" )
+DoorIcon = Material( "icon16/door.png" )
+ImageIcon = Material( "icon16/image.png" )
+PhotoIcon = Material( "icon16/photo.png" )
+GunIcon = Material( "icon16/gun.png" )
+ErrorIcon = Material( "icon16/error.png" )
+PaintCanIcon = Material( "icon16/paintcan.png" )
 
 markers = {}
 
 classNames = {
-    ["class C_BaseEntity"]: Material( "icon16/keyboard.png", "mips" )
-    sent_soccerball: Material( "icon16/sport_basketball.png", "mips" )
-    prop_ragdoll: Material( "icon16/user_delete.png", "mips" )
+    ["class C_BaseEntity"]: Material( "icon16/keyboard.png" )
+    sent_soccerball: Material( "icon16/sport_basketball.png" )
+    prop_ragdoll: Material( "icon16/user_delete.png" )
     prop_combine_ball: ErrorIcon
     npc_grenade_frag: ErrorIcon
     npc_satchel: ErrorIcon

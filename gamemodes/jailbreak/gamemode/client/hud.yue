@@ -481,7 +481,7 @@ do
 
 do
 
-    speakingIcon = Material( "icon16/sound.png", "mips" )
+    speakingIcon = Material( "icon16/sound.png" )
 
     do
 
@@ -543,7 +543,8 @@ do
         LocalToWorld = LocalToWorld
         angle_zero = angle_zero
 
-        typingIcon = Material( "icon16/comment_edit.png", "mips" )
+        typingIcon = Material( "icon16/comment_edit.png" )
+        radioIcon = Material( "icon16/phone_sound.png" )
         isSpeaking = false
 
         Add "PostPlayerDraw", "Jailbreak::StatusIcons", =>
@@ -576,7 +577,7 @@ do
                 return
 
             origin[ 3 ] = 1 + origin[ 3 ] + sin( CurTime! * 4 ) * 1.5
-            render_SetMaterial( isSpeaking and speakingIcon or typingIcon )
+            render_SetMaterial( isSpeaking and ( @UsingSecurityRadio! and radioIcon or speakingIcon ) or typingIcon )
             render_DrawSprite( origin, 12, 12, white )
 
 Jailbreak.Font( "Jailbreak::HUD", "Roboto Mono SemiBold Italic", 2 )
@@ -926,9 +927,9 @@ do
 
 do
 
-    lightning_delete = Material( "icon16/lightning_delete.png", "mips" )
-    lightning_add = Material( "icon16/lightning_add.png", "mips" )
-    lightning = Material( "icon16/lightning.png", "mips" )
+    lightning_delete = Material( "icon16/lightning_delete.png" )
+    lightning_add = Material( "icon16/lightning_add.png" )
+    lightning = Material( "icon16/lightning.png" )
 
     PANEL = {}
 
