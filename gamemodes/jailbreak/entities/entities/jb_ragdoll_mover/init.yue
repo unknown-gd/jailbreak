@@ -10,6 +10,7 @@ mins, maxs = Vector( -1, -1, -1 ), Vector( 1, 1, 1 )
 ENT.Initialize = =>
     @SetCollisionGroup( 12 )
     @PhysicsInitBox( mins, maxs, "dirt" )
+    @DrawShadow( false )
 
     phys = @GetPhysicsObject!
     if phys and phys\IsValid!
