@@ -65,6 +65,7 @@ do
 do
 
     :IsRoundPreparing, :IsProp = Jailbreak
+    vector_origin = vector_origin
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
         className = entity\GetClass!
@@ -75,31 +76,32 @@ do
             return true
 
         if entity\IsPlayer!
-            if Run( "CanPlayerTakeDamage", entity, damageInfo, entity\Team! ) ~= false
-                return Run( "PlayerTakeDamage", entity, damageInfo, entity\Team! )
+            if Run( "CanPlayerTakeDamage", entity, damageInfo, entity\Team! ) == false
+                return true
 
-            return true
+            return Run( "PlayerTakeDamage", entity, damageInfo, entity\Team! )
+
+        if damageInfo\IsNeverGibDamage!
+            damageInfo\SetDamageForce( vector_origin )
+            damageInfo\ScaleDamage( 0.25 )
 
         if className == "func_button"
             return Run( "ButtonTakeDamage", entity, damageInfo )
 
-        if damageInfo\IsNeverGibDamage!
-            return
-
         if className == "prop_door_rotating"
             return Run( "DoorTakeDamage", entity, damageInfo )
-
-        if entity\IsWeapon!
-            return Run( "WeaponTakeDamage", entity, damageInfo )
-
-        if IsProp( className )
-            return Run( "PropTakeDamage", entity, damageInfo )
 
         if entity\IsRagdoll!
             return Run( "RagdollTakeDamage", entity, damageInfo )
 
+        if IsProp( className )
+            return Run( "PropTakeDamage", entity, damageInfo )
+
+        if entity\IsWeapon!
+            return Run( "WeaponTakeDamage", entity, damageInfo )
+
 GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
-    unless isRealDamage
+    if not isRealDamage or damageInfo\GetAttacker!\IsWorld!
         return
 
     if damageInfo\IsExplosionDamage!
@@ -420,13 +422,15 @@ GM.GetFallDamage = ( ply, speed ) =>
 
 do
 
-    vector_origin = vector_origin
     LocalToWorld = LocalToWorld
     :BloodSplashes = Jailbreak
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo ) =>
-        unless IsValid( damageInfo\GetInflictor! )
-            damageInfo\SetDamageForce( vector_origin )
+        if damageInfo\GetDamage! < 0
+            return true
+
+        if damageInfo\GetAttacker!\IsWorld!
+            damageInfo\ScaleDamage( 0.25 )
 
         if damageInfo\IsCrushDamage!
             damageInfo\ScaleDamage( 0.25 )
@@ -434,13 +438,6 @@ do
         armor = ragdoll.Armor
         if armor ~= nil and armor > 0
             ragdoll.Armor = @PerformArmorDamage( ragdoll, armor, damageInfo )
-
-        if damageInfo\IsExplosionDamage!
-            damageInfo\ScaleDamage( 0.25 )
-        else
-            damageInfo\ScaleDamage( 0.025 )
-
-        damageInfo\SetDamage( ceil( damageInfo\GetDamage! ) )
 
         health = ragdoll\Health!
         nextHealth = floor( health - damageInfo\GetDamage! )
@@ -499,7 +496,7 @@ do
 
         inflictor = damageInfo\GetInflictor!
         if IsValid( inflictor ) and inflictor\GetClass! == "prop_combine_ball"
-            entity\Dissolve!
+            ragdoll\Dissolve!
             return
 
         ragdoll\Remove!

@@ -679,7 +679,9 @@ Add "PostEntityTakeDamage", "Jailbreak::AliveRagdoll", ( damageInfo, isRealDamag
 
     ply = @GetRagdollOwner!
     if IsValid( ply ) and Alive( ply )
+        damageInfo\ScaleDamage( 3 )
         ply\TakeDamageInfo( damageInfo )
+        return
 
 Add "PostPlayerDeath", "Jailbreak::AliveRagdoll", =>
     ragdoll = @GetRagdollEntity!
