@@ -1,8 +1,10 @@
 Jailbreak = Jailbreak
 
 :Clamp, :Rand, :random, :min, :max, :floor = math
-ENTITY = FindMetaTable( "Entity" )
+PLAYER, ENTITY = FindMetaTable( "Player" ), FindMetaTable( "Entity" )
+:SetNW2Bool, :IsValid = ENTITY
 :FixModelPath = Jailbreak
+:Alive, :IsBot = PLAYER
 :IsValidModel = util
 CurTime = CurTime
 :Simple = timer
@@ -11,59 +13,17 @@ GM = GM
 
 do
 
-    :white = Jailbreak.Colors
+    :GetNW2Bool = ENTITY
 
-    GM.OnEntityWaterLevelChanged = ( entity, old, new ) =>
-        if new < 2
-            return
+    Add( "PlayerPostThink", "Jailbreak::SecurityRadio", =>
+        if Alive( @ ) and not IsBot( @ )
+            state = @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
+            if state == GetNW2Bool( @, "using-security-radio" )
+                return
 
-        if entity\IsOnFire!
-            entity\Extinguish!
+            SetNW2Bool( @, "using-security-radio", state )
 
-        if old < new and new == 3
-            if entity\IsPlayer! and entity\Alive!
-                entity.DrownDamageTime = CurTime! + random( 15, 45 )
-
-            entity\SetColor( white )
-
-do
-
-    vector_origin = vector_origin
-    DamageInfo = DamageInfo
-    LerpVector = LerpVector
-    DMG_DROWN = DMG_DROWN
-
-    GM.PlayerPostThink = ( ply ) =>
-        unless ply\Alive!
-            return
-
-        if ply\IsUnderwater! and ( ply.DrownDamageTime or 0 ) < CurTime!
-            ply.DrownDamageTime = CurTime! + 0.5
-
-            damageInfo = DamageInfo!
-            damageInfo\SetDamageType( DMG_DROWN )
-            damageInfo\SetDamageForce( vector_origin )
-            damageInfo\SetAttacker( ply )
-            damageInfo\SetDamage( max( 5, ply\Health! * 0.1 ) )
-            damageInfo\SetDamagePosition( ply\GetPos! )
-            ply\EmitSound( "Player.DrownContinue" )
-            ply\TakeDamageInfo( damageInfo )
-
-        if ply\IsBot!
-            return
-
-        state = ply\HasSecurityRadio! and ply\GetInfo( "jb_security_radio" ) == "1"
-        if state ~= ply\GetNW2Bool( "using-security-radio" )
-            ply\SetNW2Bool( "using-security-radio", state )
-
-        if ( ply.NextEyeTargetTime or 0 ) < CurTime!
-            ply.NextEyeTargetTime = CurTime! + 0.1
-
-            traceResult = ply\GetEyeTrace!
-            if traceResult.Hit
-                nextEyePos = LerpVector( 0.5, ply.LastEyePos or vector_origin, traceResult.HitPos )
-                ply\SetEyeTarget( nextEyePos )
-                ply.LastEyePos = nextEyePos
+    PRE_HOOK )
 
 Simple 0, ->
     :Call = hook
@@ -118,7 +78,7 @@ Add "WorkshopItemFound", "Jailbreak::sent_soccerball - Shop", ( wsid ) ->
 
     Add "ShopItems", "Jailbreak::sent_soccerball", ( add ) ->
         add "sent_soccerball", "models/props_phx/misc/soccerball.mdl", 10, =>
-            return @SpawnEntity( "sent_soccerball" )\IsValid!
+            return IsValid( @SpawnEntity( "sent_soccerball" ) )
 
         return
 
@@ -130,7 +90,7 @@ Add "WorkshopItemFound", "Jailbreak::sent_grapplehook_bpack - Shop", ( wsid ) ->
     Add "ShopItems", "Jailbreak::sent_grapplehook_bpack", ( add ) ->
         add "sent_grapplehook_bpack", "models/props_phx/wheels/magnetic_small.mdl", 25, =>
             entity = @SpawnEntity( "sent_grapplehook_bpack", => @SetSlotName( "movement" ) )
-            if entity\IsValid!
+            if IsValid( entity )
                 entity\SetKey( KEY_B )
                 return true
 
@@ -145,7 +105,7 @@ Add "WorkshopItemFound", "Jailbreak::sent_jetpack - Shop", ( wsid ) ->
 
     Add "ShopItems", "Jailbreak::sent_jetpack", ( add ) ->
         add "sent_jetpack", "models/thrusters/jetpack.mdl", 30, =>
-            return @SpawnEntity( "sent_jetpack", => @SetSlotName( "movement" ) )\IsValid!
+            return IsValid( @SpawnEntity( "sent_jetpack", => @SetSlotName( "movement" ) ) )
 
         return
 
@@ -157,7 +117,7 @@ Add "WorkshopItemFound", "Jailbreak::mediaplayer_tv - Shop", ( wsid ) ->
     Add "ShopItems", "Jailbreak::mediaplayer_tv", ( add ) ->
         add "mediaplayer_tv", "models/gmod_tower/suitetv_large.mdl", 45, =>
             entity = @SpawnEntity( "mediaplayer_tv" )
-            if entity\IsValid!
+            if IsValid( entity )
                 phys = entity\GetPhysicsObject!
                 if phys and phys\IsValid!
                     phys\EnableMotion( true )
@@ -252,8 +212,8 @@ do
             return
 
         Simple 0, ->
-            if @IsValid! and IsFoodModel( @GetModel! )
-                @SetNW2Bool( "is-food", true )
+            if IsValid( @ ) and IsFoodModel( @GetModel! )
+                SetNW2Bool( @, "is-food", true )
 
     cache = {}
 
@@ -299,6 +259,7 @@ do
 
     GESTURE_SLOT_CUSTOM = GESTURE_SLOT_CUSTOM
     ACT_GMOD_DEATH = ACT_GMOD_DEATH
+    DamageInfo = DamageInfo
 
     whitelist = { DMG_BULLET, DMG_CLUB, DMG_SHOCK, DMG_POISON, DMG_PARALYZE, DMG_NERVEGAS, DMG_BUCKSHOT, DMG_SNIPER }
     :DeathAnimations = Jailbreak
@@ -341,14 +302,14 @@ do
             @SetNW2Int( "death-animation", 1 )
             @SetNotSolid( false )
 
-            if @Alive!
+            if Alive( @ )
                 damageInfo = DamageInfo!
                 damageInfo\SetDamage( damage )
 
-                if inflictor\IsValid!
+                if IsValid( inflictor )
                     damageInfo\SetInflictor( inflictor )
 
-                if attacker\IsValid!
+                if IsValid( attacker )
                     damageInfo\SetAttacker( attacker )
 
                 damageInfo\SetDamageType( damageType )
@@ -388,15 +349,15 @@ do
     :TF2Freezecam = Jailbreak
 
     Add "PlayerDeath", "Jailbreak::TF2 Freezecam", ( _, attacker ) =>
-        unless TF2Freezecam\GetBool! and attacker and attacker\IsValid!
+        unless TF2Freezecam\GetBool! and attacker and IsValid( attacker )
             return
 
         Simple 0, ->
-            if not attacker\IsValid! or not @IsValid! or @Alive!
+            if not IsValid( attacker ) or not IsValid( @ ) or Alive( @ )
                 return
 
             if attacker\IsPlayer!
-                if not attacker\Alive! or attacker == @
+                if not Alive( attacker ) or attacker == @
                     return
 
             elseif not attacker\IsSolid! or attacker\GetNoDraw!
@@ -406,7 +367,7 @@ do
             @SpectateEntity( attacker )
 
             Simple 1.5, ->
-                if not @IsValid! or @Alive! or @GetObserverMode! ~= OBS_MODE_FREEZECAM
+                if not IsValid( @ ) or Alive( @ ) or @GetObserverMode! ~= OBS_MODE_FREEZECAM
                     return
 
                 @Spectate( OBS_MODE_CHASE )
@@ -429,11 +390,11 @@ do
 
 -- Developer
 Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
-    if @IsBot!
+    if IsBot( @ )
         return
 
     if @SteamID64! == "76561198100459279"
-        @SetNW2Bool( "is-developer", true )
+        SetNW2Bool( @, "is-developer", true )
 
 -- Realistic items mass
 Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
@@ -443,7 +404,7 @@ Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
                 @Remove!
 
         entity = entity.Ragdoll
-        unless entity\IsValid!
+        unless IsValid( entity )
             return
 
     entityMass = entity\GetPhysicsMass!
@@ -467,7 +428,7 @@ Add "OnPlayerPhysicsDrop", "Jailbreak::RealisticItemMass", ( entity, thrown ) =>
         ragdoll = entity.Ragdoll
         entity\Remove!
 
-        unless ragdoll\IsValid!
+        unless IsValid( ragdoll )
             return
 
         entity = ragdoll
@@ -496,7 +457,7 @@ do
             return
 
         Simple 0, ->
-            if @IsValid! and @Clip1! ~= -1
+            if IsValid( @ ) and @Clip1! ~= -1
                 @SetClip1( @GetMaxClip1! )
 
     Add "WeaponEquip", "Jailbreak::HL2AmmoFix", ( ply ) =>
@@ -506,7 +467,7 @@ do
 
         if className == "weapon_frag" or className == "weapon_slam"
             Simple 0, ->
-                if @IsValid! and ply\IsValid! and ply == @GetOwner!
+                if IsValid( @ ) and IsValid( ply ) and ply == @GetOwner!
                     ply\SetAmmo( 1, max( @GetPrimaryAmmoType!, @GetSecondaryAmmoType! ) )
 
             return
@@ -515,7 +476,7 @@ do
         @SetClip1( 0 )
 
         Simple 0, ->
-            if @IsValid!
+            if IsValid( @ )
                 @SetClip1( min( clip1, @GetMaxClip1! ) )
 
     Add "PlayerCanPickupWeapon", "Jailbreak::HL2AmmoFix", ( weapon ) =>
@@ -590,34 +551,34 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
         if @HasWeapon( "weapon_medkit" )
             return false
 
-        return @Give( "weapon_medkit", false, true )\IsValid!
+        return IsValid( @Give( "weapon_medkit", false, true ) )
 
     add "paint-can", "models/props_junk/metal_paintcan001a.mdl", 5, =>
-        return @SpawnEntity( "prop_physics", =>
+        return IsValid( @SpawnEntity( "prop_physics", =>
             @SetModel( "models/props_junk/metal_paintcan001a.mdl" )
             @SetCollisionGroup( COLLISION_GROUP_WEAPON )
-        )\IsValid!
+        ) )
 
     add "jb_radio", "models/props_lab/citizenradio.mdl", 25, =>
-        return @SpawnEntity( "jb_radio" )\IsValid!
+        return IsValid( @SpawnEntity( "jb_radio" ) )
 
     add "weapon_physcannon", "models/weapons/w_Physics.mdl", 15, =>
         if @HasWeapon( "weapon_physcannon" )
             return false
 
-        return @Give( "weapon_physcannon", false, true )\IsValid!
+        return IsValid( @Give( "weapon_physcannon", false, true ) )
 
     add "weapon_stunstick", "models/weapons/w_stunbaton.mdl", 15, =>
         if @HasWeapon( "weapon_stunstick" )
             return false
 
-        return @Give( "weapon_stunstick", false, true )\IsValid!
+        return IsValid( @Give( "weapon_stunstick", false, true ) )
 
     add "gas-can", "models/props_junk/gascan001a.mdl", 10, =>
-        return @SpawnEntity( "prop_physics", =>
+        return IsValid( @SpawnEntity( "prop_physics", =>
             @SetModel( "models/props_junk/gascan001a.mdl" )
             @SetCollisionGroup( COLLISION_GROUP_WEAPON )
-        )\IsValid!
+        ) )
 
     add( "weapon_physcannon.upgrade", "models/weapons/w_Physics.mdl", 40, =>
         if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_ON
@@ -632,13 +593,13 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
         if @HasWeapon( "jb_russian_roulette" )
             return false
 
-        return @Give( "jb_russian_roulette", false, true )\IsValid!
+        return IsValid( @Give( "jb_russian_roulette", false, true ) )
 
     add "defibrillator", "models/weapons/w_slam.mdl", 60, =>
         if @HasWeapon( "jb_defibrillator" )
             return false
 
-        return @Give( "jb_defibrillator", false, true )\IsValid!
+        return IsValid( @Give( "jb_defibrillator", false, true ) )
 
     return
 
@@ -648,11 +609,11 @@ Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
 
 Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
     attacker = damageInfo\GetAttacker!
-    unless attacker and attacker\IsValid! and attacker\IsPlayer! and attacker\Alive! and attacker == damageInfo\GetInflictor!
+    unless attacker and IsValid( attacker ) and attacker\IsPlayer! and Alive( attacker ) and attacker == damageInfo\GetInflictor!
         return
 
     weapon = attacker\GetActiveWeapon!
-    unless weapon and weapon\IsValid! and weapon\GetClass! == "weapon_stunstick"
+    unless weapon and IsValid( weapon ) and weapon\GetClass! == "weapon_stunstick"
         return
 
     damageInfo\ScaleDamage( max( @WaterLevel!, 0.25 ) )
@@ -675,7 +636,7 @@ do
         if prop\GetModel! ~= "models/props_junk/gascan001a.mdl"
             return
 
-        if ply\IsValid! and ply\IsPlayer!
+        if IsValid( ply ) and ply\IsPlayer!
             teamID = ply\Team!
         else
             teamID = prop\Team!
@@ -685,7 +646,7 @@ do
                 continue
 
             if entity\IsPlayer!
-                unless entity\Alive!
+                unless Alive( entity )
                     continue
 
                 if entity\Team! == teamID and random( 1, 100 ) > 2
@@ -711,29 +672,29 @@ Add "AllowPlayerPickup", "Jailbreak::PaintCan", ( entity ) =>
 
 Add "PlayerCanCreateRagdoll", "Jailbreak::AliveRagdoll", =>
     ragdoll = @GetRagdollEntity!
-    if ragdoll\IsValid! and ragdoll\Alive! and not @Alive!
+    if IsValid( ragdoll ) and ragdoll\Alive! and not Alive( @ )
         return false
 
 Add "PostEntityTakeDamage", "Jailbreak::AliveRagdoll", ( damageInfo, isRealDamage ) =>
-    unless isRealDamage and @IsPlayerRagdoll! and @Alive!
+    unless isRealDamage and @IsPlayerRagdoll! and Alive( @ )
         return
 
     ply = @GetRagdollOwner!
-    if ply\IsValid! and ply\Alive!
+    if IsValid( ply ) and Alive( ply )
         ply\TakeDamageInfo( damageInfo )
 
 Add "PostPlayerDeath", "Jailbreak::AliveRagdoll", =>
     ragdoll = @GetRagdollEntity!
-    if ragdoll\IsValid! and ragdoll\Alive!
+    if IsValid( ragdoll ) and ragdoll\Alive!
         ragdoll\SetAlive( false )
 
 Add "RagdollDeath", "Jailbreak::AliveRagdoll", =>
     ply = @GetRagdollOwner!
-    if ply\IsValid! and ply\Alive!
+    if IsValid( ply ) and Alive( ply )
         ply\KillSilent!
 
 Add "EntityRemoved", "Jailbreak::AliveRagdoll", =>
     if @IsPlayerRagdoll! and @Alive!
         ply = @GetRagdollOwner!
-        if ply\IsValid! and ply\Alive!
+        if IsValid( ply ) and Alive( ply )
             ply\KillSilent!
