@@ -64,62 +64,11 @@ do
 
 do
 
-    unflamableMaterials = Jailbreak.UnflamableMaterials
-
-    unless unflamableMaterials
-        unflamableMaterials = {
-            [ MAT_METAL ]: true
-            [ MAT_GRATE ]: true
-            [ MAT_TILE ]: true
-            [ MAT_SAND ]: true
-            [ MAT_VENT ]: true
-            [ MAT_CONCRETE ]: true
-            [ MAT_SNOW ]: true
-            [ MAT_GLASS ]: true
-            [ MAT_DEFAULT ]: true
-        }
-
-        Jailbreak.UnflamableMaterials = unflamableMaterials
-
-    GM.AllowEntityExtinguish = ( entity ) =>
-        if unflamableMaterials[ entity\GetMaterialType! ]
-            return true
-
-GM.EntityTakeFireDamage = ( entity, damageInfo ) =>
-    unless entity\IsOnFire!
-        return
-
-    unless entity\IsSolid!
-        entity\Extinguish!
-        return true
-
-    if entity\WaterLevel! >= 2
-        entity\Extinguish!
-        return
-
-    if entity\IsPlayer!
-        unless entity\Alive!
-            entity\Extinguish!
-            return true
-
-        if entity\GetVelocity!\Length! > 800
-            entity\Extinguish!
-            return true
-
-    elseif Run( "AllowEntityExtinguish", entity ) ~= false
-        entity\Extinguish!
-        return true
-
-do
-
     :IsRoundPreparing, :IsProp = Jailbreak
     DMG_NEVERGIB = DMG_NEVERGIB
     :band = bit
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
-        if damageInfo\IsBurnDamage! and Run( "EntityTakeFireDamage", entity, damageInfo ) == true
-            return true
-
         className = entity\GetClass!
         if IsRoundPreparing!
             if className == "func_button"
