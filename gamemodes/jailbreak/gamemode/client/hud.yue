@@ -255,48 +255,49 @@ do
 
                 entityType = 7
 
-        if entityType == 0 or text == nil
+        if entityType == 0
             return
 
-        SetFont( "Jailbreak::TargetID" )
-        textWidth, textHeight = GetTextSize( text )
+        x, y = 0, mouseY + VMin( 2 )
 
-        x = mouseX - textWidth / 2
-        y = mouseY + VMin( 2 )
-
-        SetTextPos( x - 1, y - 1 )
-        SetTextColor( black.r, black.g, black.b, 50 )
-        DrawText( text )
-
-        SetTextPos( x + 3, y + 3 )
-        SetTextColor( black.r, black.g, black.b, 120 )
-        DrawText( text )
-
-        SetTextColor( r, g, b )
-        SetTextPos( x, y )
-        DrawText( text )
-
-        y += textHeight
-
-        if entityType == 1 and entity\IsDeveloper!
-            text = "#jb.player.developer"
-
-            SetFont( "Jailbreak::TargetID - Team" )
+        if text ~= nil
+            SetFont( "Jailbreak::TargetID" )
             textWidth, textHeight = GetTextSize( text )
             x = mouseX - textWidth / 2
 
-            SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
+            SetTextPos( x - 1, y - 1 )
+            SetTextColor( black.r, black.g, black.b, 50 )
+            DrawText( text )
 
-            for sx = -2, 2
-                for sy = -2, 2
-                    SetTextPos( x + sx, y + sy )
-                    DrawText( text )
+            SetTextPos( x + 3, y + 3 )
+            SetTextColor( black.r, black.g, black.b, 120 )
+            DrawText( text )
 
-            SetTextColor( butterfly_bush.r, butterfly_bush.g, butterfly_bush.b )
+            SetTextColor( r, g, b )
             SetTextPos( x, y )
             DrawText( text )
 
             y += textHeight
+
+            if entityType == 1 and entity\IsDeveloper!
+                text = "#jb.player.developer"
+
+                SetFont( "Jailbreak::TargetID - Team" )
+                textWidth, textHeight = GetTextSize( text )
+                x = mouseX - textWidth / 2
+
+                SetTextColor( dark_grey.r, dark_grey.g, dark_grey.b, 100 )
+
+                for sx = -2, 2
+                    for sy = -2, 2
+                        SetTextPos( x + sx, y + sy )
+                        DrawText( text )
+
+                SetTextColor( butterfly_bush.r, butterfly_bush.g, butterfly_bush.b )
+                SetTextPos( x, y )
+                DrawText( text )
+
+                y += textHeight
 
         if entityType == 1 or entityType == 2
             if entityType == 1
