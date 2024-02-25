@@ -1,8 +1,8 @@
 Jailbreak = Jailbreak
 
 :ceil, :random, :max, :floor, :Rand = math
+:IsValid = FindMetaTable( "Entity" )
 CHAN_STATIC = CHAN_STATIC
-IsValid = IsValid
 Vector = Vector
 :Create = ents
 Angle = Angle
@@ -22,7 +22,7 @@ do
             ply\SendNotify( "#jb.notify.shock-collar.broken", NOTIFY_ERROR, 10 )
 
         attacker = damageInfo\GetAttacker!
-        attackerIsPlayer = attacker\IsValid! and attacker\IsPlayer!
+        attackerIsPlayer = IsValid( attacker ) and attacker\IsPlayer!
         isCloseRangeDamage = damageInfo\IsCloseRangeDamage!
 
         if attackerIsPlayer and isCloseRangeDamage and attacker\ShockCollarIsEnabled! and attacker ~= ply
@@ -38,7 +38,7 @@ do
             damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
 
         inflictor = damageInfo\GetInflictor!
-        if inflictor\IsValid! and inflictor\IsWeapon!
+        if IsValid( inflictor ) and inflictor\IsWeapon!
             unless inflictor\IsScripted!
                 return
 
@@ -86,22 +86,17 @@ do
         if damageInfo\IsNeverGibDamage!
             return
 
+        if className == "prop_door_rotating"
+            return Run( "DoorTakeDamage", entity, damageInfo )
+
         if entity\IsWeapon!
             return Run( "WeaponTakeDamage", entity, damageInfo )
-
-        if entity\IsRagdoll!
-            inflictor = damageInfo\GetInflictor!
-            if inflictor\IsValid! and inflictor\GetClass! == "prop_combine_ball"
-                entity\Dissolve!
-                return true
-
-            return Run( "RagdollTakeDamage", entity, damageInfo )
 
         if IsProp( className )
             return Run( "PropTakeDamage", entity, damageInfo )
 
-        if className == "prop_door_rotating"
-            return Run( "DoorTakeDamage", entity, damageInfo )
+        if entity\IsRagdoll!
+            return Run( "RagdollTakeDamage", entity, damageInfo )
 
 GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
     unless isRealDamage
@@ -111,7 +106,7 @@ GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
         damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
 
     inflictor = damageInfo\GetInflictor!
-    if inflictor\IsValid!
+    if IsValid( inflictor )
         if inflictor\IsWeapon!
             if not inflictor\IsScripted! and entity\IsPlayer!
                 return
@@ -154,7 +149,6 @@ do
             weapon\Remove!
             return true
 
-        return
 do
 
     :IsValidModel, :IsInWorld = util
@@ -163,13 +157,13 @@ do
     GM.DoorTakeDamage = ( door, damageInfo ) =>
         model = door\GetModel!
         if #model == 0 or not IsValidModel( model )
-            return true
+            return
 
         maxHealth = door\GetMaxHealth!
         if maxHealth == 1
             maxHealth = DoorsHealth\GetInt!
             if maxHealth <= 0
-                return true
+                return
 
             door\SetMaxHealth( maxHealth )
             door\SetHealth( maxHealth )
@@ -178,7 +172,7 @@ do
         door\SetHealth( health )
 
         if health >= 1
-            return true
+            return
 
         center = door\OBBCenter!
         center[ 1 ], center[ 2 ] = 0, 0
@@ -214,7 +208,7 @@ do
             return true
 
         attacker = damageInfo\GetAttacker!
-        unless attacker\IsValid! and attacker\IsPlayer! and random( 0, 1 ) == 1
+        unless IsValid( attacker ) and attacker\IsPlayer! and random( 0, 1 ) == 1
             return true
 
         button\DoElectricSparks( damageInfo\GetDamagePosition!, 150 )
@@ -332,8 +326,13 @@ do
                         prop\Spawn!
 
                         phys = prop\GetPhysicsObject!
-                        if IsValid( phys )
+                        if phys and phys\IsValid!
                             phys\ApplyForceCenter( Vector( random( -1, 1 ), random( -1, 1 ), random( -1, 1 ) ) * speed )
+
+            inflictor = damageInfo\GetInflictor!
+            if IsValid( inflictor ) and inflictor\GetClass! == "prop_combine_ball"
+                entity\Dissolve!
+                return
 
             entity\Remove!
             return true
@@ -426,7 +425,7 @@ do
     :BloodSplashes = Jailbreak
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo ) =>
-        unless damageInfo\GetInflictor!\IsValid!
+        unless IsValid( damageInfo\GetInflictor! )
             damageInfo\SetDamageForce( vector_origin )
 
         if damageInfo\IsCrushDamage!
@@ -471,7 +470,7 @@ do
             mins, maxs = mins * 0.5, maxs * 0.5
 
             for weapon in *ragdoll.Weapons
-                unless weapon\IsValid!
+                unless IsValid( weapon )
                     continue
 
                 weapon\SetParent!
@@ -483,7 +482,7 @@ do
                 weapon\SetPos( origin )
 
                 phys = weapon\GetPhysicsObject!
-                if IsValid( phys )
+                if phys and phys\IsValid!
                     phys\SetVelocity( velocity )
                     phys\Wake!
 
@@ -497,5 +496,10 @@ do
             ragdoll\EmitSound( "physics/body/body_medium_break" .. random( 2, 4 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
         else
             ragdoll\EmitSound( "physics/flesh/flesh_squishy_impact_hard" .. random( 1, 4 ) .. ".wav", 70, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+
+        inflictor = damageInfo\GetInflictor!
+        if IsValid( inflictor ) and inflictor\GetClass! == "prop_combine_ball"
+            entity\Dissolve!
+            return
 
         ragdoll\Remove!
