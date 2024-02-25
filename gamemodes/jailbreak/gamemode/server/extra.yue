@@ -6,10 +6,8 @@ PLAYER, ENTITY = FindMetaTable( "Player" ), FindMetaTable( "Entity" )
 :FixModelPath = Jailbreak
 :Alive, :IsBot = PLAYER
 :IsValidModel = util
-CurTime = CurTime
 :Simple = timer
 :Add = hook
-GM = GM
 
 do
 
