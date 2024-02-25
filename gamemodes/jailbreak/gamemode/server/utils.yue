@@ -329,7 +329,15 @@ do
 
     CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
     :GetDamageType = CTakeDamageInfo
-    :band, :bor = bit
+    :band = bit
+
+    -- Returns true if the damage type is never gib damage
+    do
+
+        DMG_NEVERGIB = DMG_NEVERGIB
+
+        CTakeDamageInfo.IsNeverGibDamage = =>
+            return band( GetDamageType( @ ), DMG_NEVERGIB ) == DMG_NEVERGIB
 
     -- Returns true if the damage type is burn damage
     do
@@ -342,7 +350,7 @@ do
     -- Returns true if the damage type is close range
     do
 
-        DMG_CLOSE_RANGE = bor( DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH )
+        DMG_CLOSE_RANGE = bit.bor( DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH )
 
         CTakeDamageInfo.IsCloseRangeDamage = =>
             return band( GetDamageType( @ ), DMG_CLOSE_RANGE ) ~= 0

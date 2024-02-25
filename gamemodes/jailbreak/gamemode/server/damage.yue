@@ -65,8 +65,6 @@ do
 do
 
     :IsRoundPreparing, :IsProp = Jailbreak
-    DMG_NEVERGIB = DMG_NEVERGIB
-    :band = bit
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
         className = entity\GetClass!
@@ -85,7 +83,7 @@ do
         if className == "func_button"
             return Run( "ButtonTakeDamage", entity, damageInfo )
 
-        if band( damageInfo\GetDamageType!, DMG_NEVERGIB ) == DMG_NEVERGIB
+        if damageInfo\IsNeverGibDamage!
             return
 
         if entity\IsWeapon!
