@@ -333,14 +333,6 @@ do
         if noSound ~= true
             @EmitSound( "Jailbreak.ElectricSpark", random( 50, 90 ), pitch or random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
--- Returns true if entity is under water
-do
-
-    :WaterLevel = ENTITY
-
-    ENTITY.IsUnderwater = =>
-        return WaterLevel( @ ) == 3
-
 do
 
     :DefaultPlayerColor = Jailbreak
