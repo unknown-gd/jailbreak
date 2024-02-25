@@ -12,7 +12,6 @@ GM = GM
 IsValid = IsValid
 :format = string
 :GetScore = team
-:GetAll = player
 select = select
 pairs = pairs
 
