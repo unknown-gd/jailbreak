@@ -674,7 +674,7 @@ Add "PlayerCanCreateRagdoll", "Jailbreak::AliveRagdoll", =>
         return false
 
 Add "PostEntityTakeDamage", "Jailbreak::AliveRagdoll", ( damageInfo, isRealDamage ) =>
-    unless isRealDamage and @IsPlayerRagdoll! and Alive( @ )
+    unless isRealDamage and @IsPlayerRagdoll! and @Alive!
         return
 
     ply = @GetRagdollOwner!

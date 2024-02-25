@@ -34,17 +34,17 @@ do
     :LookupKeyBinding, :IsKeyDown = input
 
     GM.PlayerButtonUp = ( ply, keyCode ) =>
-        bind = LookupKeyBinding( keyCode )
-        if ( bind and #bind ~= 0 ) or not IsFirstTimePredicted!
+        unless IsFirstTimePredicted!
             return
 
-        if keyCode == 17
+        bind = LookupKeyBinding( keyCode )
+        if keyCode == 17 and ( not bind or bind == "drop" or #bind == 0 )
             RunConsoleCommand( "drop" )
-        elseif keyCode == 109
+        elseif keyCode == 109 and ( not bind or bind == "marker" or #bind == 0 )
             RunConsoleCommand( "marker" )
-        elseif keyCode == 58 or keyCode == 23
+        elseif ( keyCode == 58 or keyCode == 23 ) and ( not bind or bind == "jb_showteam" or #bind == 0 )
             RunConsoleCommand( "jb_showteam" )
-        elseif keyCode == 18
+        elseif keyCode == 18 and ( not bind or #bind == 0 )
             RunConsoleCommand( "pe_drop", "movement" )
 
     GM.PlayerButtonDown = ( ply, keyCode ) =>
