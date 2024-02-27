@@ -86,19 +86,21 @@ do
             damageInfo\ScaleDamage( 0.25 )
 
         if className == "func_button"
-            return Run( "ButtonTakeDamage", entity, damageInfo )
+            return Run( "ButtonTakeDamage", entity, damageInfo, className )
 
         if className == "prop_door_rotating"
-            return Run( "DoorTakeDamage", entity, damageInfo )
+            return Run( "DoorTakeDamage", entity, damageInfo, className )
 
-        if entity\IsRagdoll!
-            return Run( "RagdollTakeDamage", entity, damageInfo )
+        if entity\IsRagdoll! or entity\IsPlayerRagdoll!
+            return Run( "RagdollTakeDamage", entity, damageInfo, className )
 
         if IsProp( className )
-            return Run( "PropTakeDamage", entity, damageInfo )
+            return Run( "PropTakeDamage", entity, damageInfo, className )
 
         if entity\IsWeapon!
-            return Run( "WeaponTakeDamage", entity, damageInfo )
+            return Run( "WeaponTakeDamage", entity, damageInfo, className )
+
+        return Run( "ClassTakeDamage", entity, damageInfo, className )
 
 GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
     if not isRealDamage or damageInfo\GetAttacker!\IsWorld!
@@ -138,10 +140,21 @@ do
     sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
     :Explosion = Jailbreak
 
-    GM.WeaponTakeDamage = ( weapon, damageInfo ) =>
-        className = weapon\GetClass!
-        if className == "weapon_frag" and not weapon.Exploded
-            weapon.Exploded = true
+    GM.ClassTakeDamage = ( entity, damageInfo, className ) =>
+        if className == "npc_grenade_frag" and not entity.m_bExploded
+            entity.m_bExploded = true
+
+            radius = sk_fraggrenade_radius\GetInt!
+            if damageInfo\IsExplosionDamage!
+                radius *= random( 1, 4 )
+
+            Explosion( entity, damageInfo\GetAttacker!, entity\WorldSpaceCenter!, radius, sk_npc_dmg_fraggrenade\GetInt! )
+            entity\Remove!
+            return true
+
+    GM.WeaponTakeDamage = ( weapon, damageInfo, className ) =>
+        if className == "weapon_frag" and not weapon.m_bExploded
+            weapon.m_bExploded = true
 
             radius = sk_fraggrenade_radius\GetInt!
             if damageInfo\IsExplosionDamage!
