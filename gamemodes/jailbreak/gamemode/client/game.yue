@@ -84,8 +84,8 @@ do
                 entity\AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool! )
 
         [ 5 ]: ->
-            RunConsoleCommand( "jb_security_radio", "0" )
-            RunConsoleCommand( "jb_megaphone", "0" )
+            RunConsoleCommand( "jb_megaphone", GetConVar( "jb_megaphone" )\GetDefault! )
+            RunConsoleCommand( "jb_security_radio", GetConVar( "jb_security_radio" )\GetDefault! )
 
     }
 
