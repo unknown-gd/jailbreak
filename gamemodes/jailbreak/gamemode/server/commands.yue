@@ -388,7 +388,7 @@ do
         unless @ and @IsValid!
             return
 
-        unless @Alive!
+        if not @Alive! or @IsPlayingTaunt! or not @IsInWorld!
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
             return
 
