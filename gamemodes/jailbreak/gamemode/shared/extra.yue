@@ -157,10 +157,16 @@ do
 
     :IsPlayingTaunt = PLAYER
 
-    Add( "Move", "Jailbreak::Taunts", ( mv ) =>
+    Add( "StartCommand", "Jailbreak::Taunts", ( cmd ) =>
         if IsPlayingTaunt( @ )
-            mv\SetSideSpeed( 0 )
-            mv\SetUpSpeed( 0 )
+            cmd\SetImpulse( 0 )
+
+    POST_HOOK )
+
+    Add( "SetupMove", "Jailbreak::Taunts", ( _, cmd ) =>
+        if IsPlayingTaunt( @ )
+            cmd\ClearMovement!
+            cmd\ClearButtons!
 
     POST_HOOK )
 

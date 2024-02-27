@@ -510,13 +510,7 @@ GM.PlayerNoClip = ( ply, desiredState ) =>
     unless desiredState
         return true
 
-    unless ply\Alive!
-        return false
-
-    if ply\IsPlayingTaunt!
-        return false
-
-    return ply\IsSuperAdmin!
+    return ply\IsSuperAdmin! and ply\Alive! and not ply\IsPlayingTaunt!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSwitchFlashlight
 GM.PlayerSwitchFlashlight = ( ply, newState ) =>

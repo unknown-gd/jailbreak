@@ -5,6 +5,7 @@ GM = GM
 
 GM.InitPostEntity = =>
     Jailbreak.PlayingTaunt = false
+    Jailbreak.TauntFraction = 0
 
     ply = LocalPlayer!
     Jailbreak.Player = ply
