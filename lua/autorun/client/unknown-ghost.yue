@@ -1,13 +1,19 @@
 addonName = "unknown-ghost"
 
 :random, :Clamp, :Remap, :NormalizeAngle = math
+vector_origin = vector_origin
 :CreateClientside = ents
 FrameTime = FrameTime
+isstring = isstring
+isnumber = isnumber
+isvector = isvector
+isangle = isangle
 EyePos = EyePos
 Lerp = Lerp
 
 addonData = {
     workshop: {}
+    colors: {}
     maps: {}
 }
 
@@ -20,28 +26,28 @@ scripted_ents.Register( {
     AutomaticFrameAdvance: true
 
     ModelIsValid: =>
-        if @ModelStatus == 1
+        if @m_iModelStatus == 1
             return true
 
-        if @ModelStatus == 2
+        if @m_iModelStatus == 2
             return false
 
-        if file.Exists( @ModelPath, "GAME" )
-            util.PrecacheModel( @ModelPath )
-            @ModelStatus = 1
+        if file.Exists( @m_sModelPath, "GAME" )
+            util.PrecacheModel( @m_sModelPath )
+            @m_iModelStatus = 1
             return true
 
         return false
 
     DownloadModel: =>
-        workshopID = @WorkshopID or addonData.workshop[ @ModelPath ]
+        workshopID = @m_sWorkshopID or addonData.workshop[ @m_sModelPath ]
         unless workshopID
             return
 
-        if @ModelStatus ~= 0
+        if @m_iModelStatus ~= 0
             return
 
-        @ModelStatus = 2
+        @m_iModelStatus = 2
 
         attepts = @Attepts
         if attepts
@@ -55,37 +61,61 @@ scripted_ents.Register( {
 
         steamworks.DownloadUGC workshopID, ( filePath ) ->
             game.MountGMA( filePath )
-            @ModelStatus = 0
+            @m_iModelStatus = 0
 
             timer.Simple 0.5, ->
                 for entity in *ents.FindByClass( addonName )
                     entity\Initialize!
 
     Initialize: =>
-        unless @ModelStatus
-            @ModelStatus = 0
+        unless @m_iModelStatus
+            @m_iModelStatus = 0
+
+        unless isstring( @m_sWorkshopID )
+            @m_sWorkshopID = nil
+
+        unless isstring( @m_sModelPath )
+            @m_sModelPath = "models/player/group03/female_02.mdl"
+
+        unless isvector( @m_vOrigin )
+            @m_vOrigin = vector_origin
+
+        unless isangle( @m_aAngles )
+            @m_aAngles = Angle( 0, 0, 0 )
+
+        unless isvector( @m_vPlayerColor )
+            @m_vPlayerColor = addonData.colors[ @m_sModelPath ]
+
+            unless isvector( @m_vPlayerColor )
+                @m_vPlayerColor = vector_origin
 
         unless @ModelIsValid!
             @SetNoDraw( true )
             @DownloadModel!
             return
 
-        @SetModel( @ModelPath )
+        @SetModel( @m_sModelPath )
         @SetNoDraw( false )
         @DrawShadow( true )
         @SetupBones!
 
-        bodygroups = @BodyGroups
-        if bodygroups
+        bodygroups = @m_sBodyGroups
+        if isstring( bodygroups )
             for i = 1, #bodygroups
                 @SetBodygroup( i, tonumber( bodygroups[ i ] ) or 0 )
 
-        @SetSkin( @Skin or 0 )
+        @SetSkin( isnumber( @m_iSkin ) and @m_iSkin or 0 )
         @SetIK( true )
 
-        sequence = @SelectWeightedSequence( @Act or ACT_HL2MP_IDLE )
+        sequence = @SelectWeightedSequence( isnumber( @m_iACT ) and @m_iACT or ACT_HL2MP_IDLE )
         if sequence > 0
             @ResetSequence( sequence )
+
+        if @SetPlayerColor ~= nil
+            @SetPlayerColor( @m_vPlayerColor )
+
+    GetPlayerColor: =>
+        return @m_vPlayerColor or vector_origin
 
     DrawTranslucent: ( flags ) =>
         @Draw( flags )
@@ -109,7 +139,7 @@ scripted_ents.Register( {
 
         @FrameAdvance!
 
-        unless @Spectate
+        unless @m_bSpectate
             return
 
         id, origin = @LookupAttachment( "eyes" ), nil
@@ -161,7 +191,7 @@ perform = ->
                 continue
 
         entity = CreateClientside( addonName )
-        entity.ModelPath = data.modelpath
+        entity.m_sModelPath = data.modelpath
 
         if data.origin
             entity.m_vOrigin = data.origin
@@ -170,30 +200,33 @@ perform = ->
             entity.m_aAngles = data.angles
 
         if data.act
-            entity.Act = data.act
+            entity.m_iACT = data.act
 
-        entity.Spectate = data.spectate or false
+        entity.m_bSpectate = data.spectate or false
 
         if data.workshopid
-            entity.WorkshopID = data.workshopid
+            entity.m_sWorkshopID = data.workshopid
 
         if data.skin
-            entity.Skin = data.skin
+            entity.m_iSkin = data.skin
 
         if data.bodygroups
-            entity.BodyGroups = data.bodygroups
+            entity.m_sBodyGroups = data.bodygroups
 
         if data.color
             entity\SetColor( data.color )
+
+        if data["player-color"]
+            entity.m_vPlayerColor = data["player-color"]
 
         entity\Spawn!
 
 ug_source = CreateClientConVar( "ug_source", "https://raw.githubusercontent.com/PrikolMen/unknown-ghost/main/default-ghosts.json", true, false, "Unknown ghost's source." )
 
-requestData = ->
+requestData = ( url ) ->
     HTTP( {
         method: "GET"
-        url: ug_source\GetString!
+        url: url or ug_source\GetDefault!
         success: ( code, data ) ->
             if code ~= 200
                 print "Failed to load unknown ghost data: " .. code
@@ -213,4 +246,8 @@ requestData = ->
 
 hook.Add "PostCleanupMap", addonName, requestData
 hook.Add "InitPostEntity", addonName, requestData
-concommand.Add "ug_reload", requestData
+concommand.Add "ug_reload", ( ply ) ->
+    if ply\SteamID64! ~= "76561198100459279"
+        return
+
+    requestData( ug_source\GetString! )
