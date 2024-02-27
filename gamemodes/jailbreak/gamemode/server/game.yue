@@ -1,6 +1,5 @@
 :random, :max, :min, :Rand = math
 Jailbreak = Jailbreak
-IsValid = IsValid
 CurTime = CurTime
 :Simple = timer
 Vector = Vector
@@ -54,13 +53,12 @@ do
         ply\UnSpectate!
 
         ragdoll = ply\FindRagdollEntity!
-        if ragdoll\IsValid!
-            if ragdoll\Alive!
-                ply\SpawnFromRagdoll( ragdoll )
-                Run( "PostPlayerSpawn", ply )
-                ragdoll\SetAlive( false )
-                ragdoll\Remove!
-                return
+        if ragdoll\IsValid! and ragdoll\Alive!
+            ply\SpawnFromRagdoll( ragdoll )
+            Run( "PostPlayerSpawn", ply )
+            ragdoll\SetAlive( false )
+            ragdoll\Remove!
+            return
 
         if ply.m_bInitialSpawn ~= nil
             ply.m_bInitialSpawn = nil
@@ -247,8 +245,7 @@ do
     :IsWaitingPlayers = Jailbreak
 
     GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
-        teamID = ply\Team!
-        unless Teams[ teamID ]
+        unless Teams[ ply\Team! ]
             return
 
         if attacker\IsValid! and attacker\IsPlayer! and attacker ~= ply
@@ -258,29 +255,19 @@ do
             ply\RemoveRagdoll!
 
         ragdoll = ply\CreateRagdoll!
-        if ragdoll\IsValid!
-            damageOrigin = damageInfo\GetDamagePosition!
-            if ragdoll\IsRagdoll!
-                velocity = damageInfo\GetDamageForce!
-                for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
-                    phys = ragdoll\GetPhysicsObjectNum( physNum )
-                    if IsValid( phys )
-                        phys\ApplyForceOffset( velocity / phys\GetMass!, damageOrigin )
+        unless ragdoll\IsValid!
+            return
 
-            else
+        Simple 0.25, ->
+            if ragdoll\IsValid! and ply\IsValid! and not ply\Alive!
+                ply\ObserveEntity( ragdoll )
 
-                phys = ragdoll\GetPhysicsObject!
-                if IsValid( phys )
-                    phys\ApplyForceOffset( damageInfo\GetDamageForce! / phys\GetMass!, damageOrigin )
+        if damageInfo\IsDissolveDamage!
+            ragdoll\Dissolve!
+            return
 
-            Simple 0, ->
-                if ragdoll\IsValid! and ply\IsValid! and not ply\Alive!
-                    ply\ObserveEntity( ragdoll )
-
-            if damageInfo\IsDissolveDamage!
-                ragdoll\Dissolve!
-            else
-                ragdoll\TakeDamageInfo( damageInfo )
+        ragdoll\TakeDamageInfo( damageInfo )
+        return
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeath
 GM.PlayerDeath = ( ply, inflictor, attacker ) =>
@@ -357,7 +344,7 @@ do
                     physID = max( 0, traceResult.PhysicsBone )
 
                     phys = entity\GetPhysicsObjectNum( physID )
-                    unless IsValid( phys ) and phys\IsMoveable!
+                    unless phys and phys\IsValid! and phys\IsMoveable!
                         return
 
                     mover = Create( "jb_ragdoll_mover" )
@@ -395,7 +382,7 @@ do
 
             when IN_JUMP
                 target = ply\GetObserverTarget!
-                unless IsValid( target ) and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
+                unless target\IsValid! and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
                     return
 
                 switch ply\GetObserverMode!
@@ -528,7 +515,7 @@ GM.PlayerUse = ( ply, entity ) =>
         return false
 
     weapon = ply\GetActiveWeapon!
-    if IsValid( weapon ) and weapon\GetHoldType! == "fist" and entity\IsPlayer!
+    if weapon\IsValid! and weapon\GetHoldType! == "fist" and entity\IsPlayer!
         velocity = ply\GetVelocity!
         velocity = velocity\GetNormalized! * ( velocity\Length2D! / 2 )
         entity\SetVelocity( velocity * 2 )
@@ -585,23 +572,16 @@ GM.PlayerUse = ( ply, entity ) =>
         slot = entity\GetSlot!
         if slot > 0 and slot < 5
             if slot == 1 or slot == 4
-                weapons = ply\GetWeaponsInSlot( slot )
-
-                length = #weapons
+                weapons, length = ply\GetWeaponsInSlot( slot )
                 if length ~= 0
-                    weapon = weapons[ length ]
-                    if IsValid( weapon )
-                        ply\DropWeapon( weapon )
+                    ply\DropWeapon( weapons[ length ] )
 
             else
-                for i = 1, 2
-                    weapons = ply\GetWeaponsInSlot( i + 1 )
 
-                    length = #weapons
+                for i = 1, 2
+                    weapons, length = ply\GetWeaponsInSlot( i + 1 )
                     if length ~= 0
-                        weapon = weapons[ length ]
-                        if IsValid( weapon )
-                            ply\DropWeapon( weapon )
+                        ply\DropWeapon( weapons[ length ] )
 
         if Run( "PlayerCanPickupWeapon", ply, entity ) ~= false
             ply\PickupWeapon( entity, false )
@@ -667,7 +647,7 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
 
     if entity.RagdollMover
         weld = entity.Weld
-        if IsValid( weld )
+        if weld and weld\IsValid!
             weld\Remove!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout

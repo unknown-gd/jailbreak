@@ -2,6 +2,7 @@ Jailbreak = Jailbreak
 
 :ceil, :random, :max, :floor, :Rand = math
 :IsValid = FindMetaTable( "Entity" )
+vector_origin = vector_origin
 CHAN_STATIC = CHAN_STATIC
 Vector = Vector
 :Create = ents
@@ -12,6 +13,7 @@ GM = GM
 do
 
     :ShockCollarVictimDamage, :ShockCollarAttackerDamage = Jailbreak
+    white = Color( 200, 200, 200, 150 )
     NOTIFY_ERROR = NOTIFY_ERROR
     DMG_SONIC = DMG_SONIC
 
@@ -20,52 +22,34 @@ do
             ply\DoElectricSparks!
             ply\TakeShockCollar( true )
             ply\SendNotify( "#jb.notify.shock-collar.broken", NOTIFY_ERROR, 10 )
-
-        attacker = damageInfo\GetAttacker!
-        attackerIsPlayer = IsValid( attacker ) and attacker\IsPlayer!
-        isCloseRangeDamage = damageInfo\IsCloseRangeDamage!
-
-        if attackerIsPlayer and isCloseRangeDamage and attacker\ShockCollarIsEnabled! and attacker ~= ply
-            damage, damageType = damageInfo\GetDamage!, damageInfo\GetDamageType!
-            newDamage = damage * ShockCollarAttackerDamage\GetFloat!
-            if newDamage >= 1
-                attacker\DoElectricSparks!
-                damageInfo\SetDamage( newDamage )
-                damageInfo\SetDamageType( DMG_SONIC )
-                attacker\TakeDamageInfo( damageInfo )
-
-            damageInfo\SetDamageType( damageType )
-            damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
-
-        inflictor = damageInfo\GetInflictor!
-        if IsValid( inflictor ) and inflictor\IsWeapon!
-            unless inflictor\IsScripted!
-                return
-
-            if isCloseRangeDamage and inflictor\GetClass! ~= "jb_hands"
-                force = damageInfo\GetDamageForce!
-                if force\Length! > 1000
-                    force[ 1 ], force[ 2 ], force[ 3 ] = 0, 0, 0
-                    damageInfo\SetDamageForce( force )
-
-                return
-
-        velocity = damageInfo\GetDamageForce!
-        if velocity\Length! < 1
             return
 
-        if Jailbreak.PowerfulPlayers and attackerIsPlayer and isCloseRangeDamage
-            velocity *= 3
+        unless damageInfo\IsCloseRangeDamage!
+            return
 
-        velocity[ 1 ] /= 10
-        velocity[ 2 ] /= 10
-        velocity[ 3 ] /= 8
-        ply\SetVelocity( velocity )
+        attacker = damageInfo\GetAttacker!
+        unless IsValid( attacker ) and attacker\IsPlayer! and attacker\ShockCollarIsEnabled!
+            return
+
+        if attacker == ply
+            return
+
+        damage, damageType = damageInfo\GetDamage!, damageInfo\GetDamageType!
+        newDamage = damage * ShockCollarAttackerDamage\GetFloat!
+
+        if newDamage >= 1
+            attacker\DoElectricSparks!
+            damageInfo\SetDamage( newDamage )
+            damageInfo\SetDamageType( DMG_SONIC )
+            attacker\TakeDamageInfo( damageInfo )
+            attacker\Shock( 0.8, white, 0.2, true )
+
+        damageInfo\SetDamageType( damageType )
+        damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
 
 do
 
     :IsRoundPreparing, :IsProp = Jailbreak
-    vector_origin = vector_origin
 
     GM.EntityTakeDamage = ( entity, damageInfo ) =>
         className = entity\GetClass!
@@ -75,11 +59,31 @@ do
 
             return true
 
+        if damageInfo\IsExplosionDamage!
+            inflictor = damageInfo\GetInflictor!
+            if inflictor\IsValid! and not ( inflictor\IsPlayer! or inflictor\IsNPC! or inflictor\IsRagdoll! )
+                force = damageInfo\GetDamageForce!
+                force\Normalize!
+
+                mass = ceil( inflictor\GetPhysicsMass! * 0.8 )
+                damageInfo\SetDamage( mass * 256 )
+                damageInfo\SetDamageForce( force * 4096 * mass )
+            else
+                damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
+
+        elseif damageInfo\IsCloseRangeDamage!
+            attacker = damageInfo\GetAttacker!
+            if IsValid( attacker ) and attacker\IsPlayer! and Jailbreak.PowerfulPlayers
+                damageInfo\ScaleDamage( 3 )
+
         if entity\IsPlayer!
             if Run( "CanPlayerTakeDamage", entity, damageInfo, entity\Team! ) == false
                 return true
 
             return Run( "PlayerTakeDamage", entity, damageInfo, entity\Team! )
+
+        if entity\IsRagdoll! or entity\IsPlayerRagdoll!
+            return Run( "RagdollTakeDamage", entity, damageInfo, className )
 
         if damageInfo\IsNeverGibDamage!
             damageInfo\SetDamageForce( vector_origin )
@@ -91,9 +95,6 @@ do
         if className == "prop_door_rotating"
             return Run( "DoorTakeDamage", entity, damageInfo, className )
 
-        if entity\IsRagdoll! or entity\IsPlayerRagdoll!
-            return Run( "RagdollTakeDamage", entity, damageInfo, className )
-
         if IsProp( className )
             return Run( "PropTakeDamage", entity, damageInfo, className )
 
@@ -103,33 +104,41 @@ do
         return Run( "ClassTakeDamage", entity, damageInfo, className )
 
 GM.PostEntityTakeDamage = ( entity, damageInfo, isRealDamage ) =>
-    if not isRealDamage or damageInfo\GetAttacker!\IsWorld!
+    unless isRealDamage
         return
 
-    if damageInfo\IsExplosionDamage!
-        damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
+    velocity = damageInfo\GetDamageForce!
+    speed = velocity\Length!
+    if speed < 1
+        return
+
+    if entity\IsPlayer!
+        if damageInfo\IsBulletDamage!
+            length = speed / 1000
+            if length > 3
+                velocity\Normalize!
+                velocity = velocity * 256
+            elseif length > 2
+                velocity *= 2 / length
+
+            damageInfo\SetDamageForce( velocity )
+
+        inflictor = damageInfo\GetInflictor!
+        if IsValid( inflictor ) and inflictor\IsWeapon! and inflictor\IsScripted!
+            entity\SetVelocity( velocity )
+
+        return
 
     inflictor = damageInfo\GetInflictor!
-    if IsValid( inflictor )
-        if inflictor\IsWeapon!
-            if not inflictor\IsScripted! and entity\IsPlayer!
-                return
-
-            if damageInfo\IsCloseRangeDamage! and inflictor\GetClass! ~= "jb_hands"
-                return
-
-        elseif inflictor\IsRagdoll!
-            return
-
-    velocity = damageInfo\GetDamageForce!
-    if velocity\Length! < 1
+    if IsValid( inflictor ) and inflictor\IsRagdoll!
+        damageInfo\SetDamageForce( vector_origin )
         return
 
     origin = damageInfo\GetDamagePosition!
     for physNum = 0, entity\GetPhysicsObjectCount! - 1
         phys = entity\GetPhysicsObjectNum( physNum )
         if phys and phys\IsValid! and phys\IsMoveable! and phys\IsMotionEnabled!
-            phys\ApplyForceOffset( velocity, origin )
+            phys\ApplyForceOffset( velocity / phys\GetMass!, origin )
 
             if phys\IsAsleep!
                 phys\Wake!
@@ -439,14 +448,32 @@ do
     :BloodSplashes = Jailbreak
 
     GM.RagdollTakeDamage = ( ragdoll, damageInfo ) =>
-        if damageInfo\GetDamage! < 0
-            return true
-
-        if damageInfo\GetAttacker!\IsWorld!
+        if damageInfo\IsNeverGibDamage!
             damageInfo\ScaleDamage( 0.25 )
+
+        if damageInfo\IsBulletDamage!
+            force = damageInfo\GetDamageForce!
+
+            length = force\Length! / 1000
+            if length > 3
+                force\Normalize!
+                damageInfo\SetDamageForce( force * 512 )
+            elseif length > 0.5
+                damageInfo\SetDamageForce( force * ( 0.5 / length ) )
+
+            damageInfo\SetDamage( damageInfo\GetDamage! * 0.25 )
 
         if damageInfo\IsCrushDamage!
-            damageInfo\ScaleDamage( 0.25 )
+            damageInfo\SetDamageForce( vector_origin )
+
+            damage = floor( damageInfo\GetDamage! * 0.25 )
+            if damage > 100
+                damage = 100
+
+            if damage < 1
+                return true
+
+            damageInfo\SetDamage( damage )
 
         armor = ragdoll.Armor
         if armor ~= nil and armor > 0
