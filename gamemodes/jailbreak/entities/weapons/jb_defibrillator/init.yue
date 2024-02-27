@@ -68,7 +68,7 @@ SWEP.PrimaryAttack = =>
 
     ply = entity\GetRagdollOwner!
     unless ply\IsValid!
-        owner\SendNotify( "#jb.player.health.brain-dead", NOTIFY_ERROR, 10 )
+        owner\SendNotify( "#jb.error.player-soulless", NOTIFY_ERROR, 10, entity\GetRagdollOwnerNickname! )
         return
 
     if ply\Alive!

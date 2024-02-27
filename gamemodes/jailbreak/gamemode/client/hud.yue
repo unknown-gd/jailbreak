@@ -315,7 +315,7 @@ do
                 r, g, b = GetTeamColorUpacked( teamID )
 
             else
-                text = entity\Alive! and "#jb.player.lost-consciousness" or "#jb.player.dead"
+                text = entity\Alive! and "#jb.player.unconscious" or "#jb.player.dead"
                 r, g, b = dark_white.r, dark_white.g, dark_white.b
 
             SetFont( "Jailbreak::TargetID - Team" )
