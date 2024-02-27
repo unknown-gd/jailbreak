@@ -296,13 +296,15 @@ PLAYER.UsingMegaphone = =>
 
 do
 
-    color = Color( 255, 255, 255, 240 )
+    white = Color( 255, 255, 255, 240 )
     CurTime = CurTime
     :IN = SCREENFADE
 
-    PLAYER.Shock = ( time ) =>
-        @SetNW2Int( "shock-time", CurTime! + ( time or 3 ) )
-        @ScreenFade( IN, color, 0.25, time or 3 )
+    PLAYER.Shock = ( time, color, fadeTime, blockMovement ) =>
+        if blockMovement ~= false
+            @SetNW2Int( "shock-time", CurTime! + ( time or 3 ) )
+
+        @ScreenFade( IN, color or white, fadeTime or 0.25, time or 3 )
 
 do
 

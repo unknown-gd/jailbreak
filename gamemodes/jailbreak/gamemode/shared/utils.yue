@@ -514,13 +514,20 @@ PLAYER.IsFlightAllowed = =>
     return GetNW2Bool( @, "flight-allowed" )
 
 -- Returns weapons in slot as table
-PLAYER.GetWeaponsInSlot = ( slot ) =>
-    weapons = {}
-    for weapon in *@GetWeapons!
-        if weapon\GetSlot! == slot
-            weapons[] = weapon
+do
 
-    return weapons
+    length = 0
+
+    PLAYER.GetWeaponsInSlot = ( slot ) =>
+        weapons = {}
+        length = 0
+
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                length += 1
+                weapons[ length ] = weapon
+
+        return weapons, length
 
 -- Returns true if player has weapons in slot
 PLAYER.HasWeaponsInSlot = ( slot ) =>
@@ -548,9 +555,9 @@ do
     :FindByClass = ents
 
     PLAYER.FindRagdollEntity = =>
-        entity = GetNW2Entity( @, "player-ragdoll" )
-        if entity\IsValid!
-            return entity
+        ragdoll = GetNW2Entity( @, "player-ragdoll" )
+        if ragdoll\IsValid!
+            return ragdoll
 
         isBot = @IsBot!
         sid64 = isBot and @Nick! or @SteamID64!

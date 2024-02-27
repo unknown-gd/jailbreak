@@ -698,3 +698,14 @@ Add "EntityRemoved", "Jailbreak::AliveRagdoll", =>
         ply = @GetRagdollOwner!
         if IsValid( ply ) and Alive( ply )
             ply\KillSilent!
+
+do
+
+    :PlayerSpawnTime = Jailbreak
+    :black = Jailbreak.Colors
+
+    Add "PostPlayerSpawn", "Jailbreak::Spawn Effect", =>
+        if @IsBot!
+            return
+
+        @Shock( 0.5, black, PlayerSpawnTime\GetFloat!, false )

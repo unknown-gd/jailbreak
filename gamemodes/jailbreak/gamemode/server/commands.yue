@@ -187,6 +187,7 @@ do
         @SelectWeapon( nextWeapon\GetClass! )
 
     Add "drop", dropWeapon
+    Add "headtrack_reset_home_pos", dropWeapon
     Jailbreak.SetChatCommand "drop", dropWeapon, "#jb.chat.command.drop"
     Jailbreak.SetChatCommand "dropweapon", dropWeapon, "#jb.chat.command.drop"
 

@@ -1,6 +1,6 @@
-:min, :max, :random = math
 EffectData = EffectData
 Jailbreak = Jailbreak
+:ceil, :max = math
 IsValid = IsValid
 :Simple = timer
 pairs = pairs
@@ -38,7 +38,6 @@ do
 do
 
     :BlastDamage = util
-    :ceil = math
 
     Jailbreak.Explosion = ( inflictor, attacker, origin, radius, damage ) ->
         fx = EffectData!
@@ -244,7 +243,7 @@ do
                 if IsValid( phys )
                     objectMass += phys\GetMass!
 
-            return objectMass
+            return ceil( objectMass )
 
     -- Entity dissolve method
     ENTITY.Dissolve = =>
