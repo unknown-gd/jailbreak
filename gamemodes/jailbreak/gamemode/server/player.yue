@@ -159,10 +159,12 @@ do
         WriteString( soundPath )
         Send( @ )
 
-    PLAYER.SendPickupNotify = ( itemName ) =>
+    PLAYER.SendPickupNotify = ( itemName, pickupType, amount ) =>
         Start( "Jailbreak::Networking" )
         WriteUInt( 1, 4 )
         WriteString( itemName )
+        WriteUInt( pickupType or 0, 6 )
+        WriteUInt( amount or 1, 16 )
         Send( @ )
 
     do

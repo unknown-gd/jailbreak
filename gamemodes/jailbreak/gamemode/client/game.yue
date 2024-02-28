@@ -62,38 +62,32 @@ do
     :random = math
     :Run = hook
 
-    Networking = {
-        [ 0 ]: ->
-            gameName = ReadString!
-            SoundHandler( gameName )
-            Jailbreak.GameName = gameName
-
-        [ 1 ]: ->
-            Run( "HUDItemPickedUp", ReadString! )
-
-        [ 2 ]: ->
-            AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
-
-        [ 3 ]: ->
-            ply = Jailbreak.Player
-            if ply\IsValid!
-                ply\EmitSound( ReadString!, 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
-
-        [ 4 ]: ->
-            entity = ReadEntity!
-            if entity and entity\IsValid and entity\IsPlayer!
-                entity\AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool! )
-
-        [ 5 ]: ->
-            RunConsoleCommand( "jb_megaphone", GetConVar( "jb_megaphone" )\GetDefault! )
-            RunConsoleCommand( "jb_security_radio", GetConVar( "jb_security_radio" )\GetDefault! )
-
-    }
-
     net.Receive "Jailbreak::Networking", ->
-        func = Networking[ ReadUInt( 4 ) ]
-        if func ~= nil
-            func!
+        switch ReadUInt( 4 )
+            when 0
+                gameName = ReadString!
+                SoundHandler( gameName )
+                Jailbreak.GameName = gameName
+
+            when 1
+                Run( "PickupNotifyReceived", ReadString!, ReadUInt( 6 ), ReadUInt( 16 ) )
+
+            when 2
+                AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
+
+            when 3
+                ply = Jailbreak.Player
+                if ply\IsValid!
+                    ply\EmitSound( ReadString!, 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
+
+            when 4
+                entity = ReadEntity!
+                if entity and entity\IsValid and entity\IsPlayer!
+                    entity\AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool! )
+
+            when 5
+                RunConsoleCommand( "jb_megaphone", GetConVar( "jb_megaphone" )\GetDefault! )
+                RunConsoleCommand( "jb_security_radio", GetConVar( "jb_security_radio" )\GetDefault! )
 
 concommand.Add "jb_credits", ->
     MsgC( unpack( Jailbreak.Credits ) )

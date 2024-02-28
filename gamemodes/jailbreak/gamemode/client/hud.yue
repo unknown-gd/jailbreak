@@ -13,7 +13,6 @@ GM = GM
 FrameTime = FrameTime
 Material = Material
 CurTime = CurTime
-IsValid = IsValid
 EyePos = EyePos
 Lerp = Lerp
 :Add = hook
@@ -52,11 +51,11 @@ do
 
         for index = 0, 2
             viewModel = viewEntity\GetViewModel( index )
-            if IsValid( viewModel )
+            if viewModel and viewModel\IsValid!
                 viewModel\DrawModel!
 
         hands = viewEntity\GetHands!
-        if IsValid( hands )
+        if hands and hands\IsValid!
             hands\DrawModel!
 
         IgnoreZ( false )
@@ -397,7 +396,7 @@ do
 
             if entityType == 1
                 weapon = ply\GetActiveWeapon!
-                if IsValid( weapon ) and weapon\GetClass! == "jb_hands" and weapon\GetHoldType! == "fist"
+                if weapon and weapon\IsValid! and weapon\GetClass! == "jb_hands" and weapon\GetHoldType! == "fist"
                     text = "#jb.player.push"
 
             elseif entityType == 2
@@ -1252,6 +1251,12 @@ Add "InitPostEntity", "Jailbreak::HUD", ->
 
     Jailbreak.HUD = Create( "Jailbreak::HUD", GetHUDPanel! )
 
+PICKUP_OTHER = PICKUP_OTHER
+PICKUP_WEAPON = PICKUP_WEAPON
+PICKUP_AMMO = PICKUP_AMMO
+PICKUP_HEALTH = PICKUP_HEALTH
+PICKUP_ARMOR = PICKUP_ARMOR
+
 do
 
     Jailbreak.Font( "Jailbreak::PickupNotices", "Roboto Mono Bold", 1.5 )
@@ -1282,23 +1287,29 @@ do
         unless time
             return
 
-        alpha = @GetAlpha!
-        if ( CurTime! - time ) > PickupNotifyLifetime\GetInt!
-            if alpha > 0
-                @SetAlpha( alpha - FrameTime! * 255 )
+        fraction = Clamp( ( CurTime! - time ) / PickupNotifyLifetime\GetInt!, 0, 1 )
+        @Progress = 1 - fraction
+
+        if fraction == 1
+            if @GetAlpha! > 0
+                @SetAlpha( max( 0, @GetAlpha! - FrameTime! * 255 ) )
             else
                 @Remove!
 
-        elseif alpha < 255
-            @SetAlpha( alpha + FrameTime! * 512 )
+        elseif @GetAlpha! < 255
+            @SetAlpha( min( @GetAlpha! + FrameTime! * 255, 255 ) )
 
     PANEL.PerformLayout = =>
+        @DockMargin( 0, 0, 0, VMin( 0.25 ) )
+
         margin = VMin( 0.5 )
         @DockPadding( margin, margin, margin, margin )
 
         textHeight = select( 2, @Label\GetTextSize! )
         height = margin + textHeight + margin
         @SetTall( height )
+
+        @ProgressHeight = VMin( 0.05 )
 
         @Label\DockMargin( margin, 0, 0, 0 )
         @Icon\SetWide( textHeight )
@@ -1307,45 +1318,41 @@ do
 
         tonumber = tonumber
 
-        PANEL.Setup = ( name, pickupType, item, amount ) =>
+        PANEL.Setup = ( itemName, pickupType, amount ) =>
             @Time = CurTime!
 
             label = @Label
-            if IsValid( label )
-                label\SetText( format( GetPhrase( "jb.hud.pickup" ), GetPhrase( name ) ) .. " x" .. ( ( tonumber( match( label\GetText!, "x(%d+)$" ) ) or 0 ) + amount ) )
+            if label and label\IsValid!
+                label\SetText( format( GetPhrase( "jb.hud.pickup" ), GetPhrase( itemName ) ) .. " x" .. ( ( tonumber( match( label\GetText!, "x(%d+)$" ) ) or 0 ) + amount ) )
 
-            materialPath = "icon16/information.png"
+            iconPath = "icon16/information.png"
+
             switch pickupType
-                when 1
-                    materialPath = "icon16/gun.png"
-                when 2
-                    switch item
-                        when "jb.flashlight"
-                            materialPath = "icon16/lightbulb.png"
+                when PICKUP_WEAPON
+                    iconPath = "icon16/gun.png"
+                when PICKUP_AMMO
+                    iconPath = "icon16/package_green.png"
+                when PICKUP_HEALTH
+                    iconPath = "icon16/heart.png"
+                when PICKUP_ARMOR
+                    iconPath = "icon16/shield.png"
 
-                        when "jb.security.keys"
-                            materialPath = "icon16/key.png"
-
-                        when "jb.walkie-talkie"
-                            materialPath = "icon16/phone.png"
-
-                        when "jb.shock-collar"
-                            materialPath = "icon16/lock.png"
-
-                when 3
-                    materialPath = "icon16/package_green.png"
-
-            result = Run( "Jailbreak::GetPickupIcon", pickupType, item, amount )
-            if result ~= nil
-                materialPath = result
-
-            @Icon\SetImage( materialPath )
-
+            @Icon\SetImage( Run( "PickupNotifyIcon", itemName, pickupType, amount ) or iconPath )
             @InvalidateLayout( true )
+
+    progress, progressHeight = 0, 0
 
     PANEL.Paint = ( width, height ) =>
         SetDrawColor( dark_grey.r, dark_grey.g, dark_grey.b, 240 )
         DrawRect( 0, 0, width, height )
+
+        progressHeight = @ProgressHeight
+        SetDrawColor( 0, 0, 0, 140 )
+        DrawRect( 0, height - progressHeight, width, progressHeight )
+
+        progress = @Progress
+        SetDrawColor( Lerp( progress, au_chico.r, asparagus.r ), Lerp( progress, au_chico.g, asparagus.g ), Lerp( progress, au_chico.b, asparagus.b ), 240 )
+        DrawRect( 0, height - progressHeight, width * progress, progressHeight )
 
     Register( "Jailbreak::PickupNotify", PANEL, "Panel" )
 
@@ -1363,46 +1370,66 @@ do
         @SetSize( width, Jailbreak.ScreenHeight )
         @SetPos( floor( ( screenWidth - width ) / 2 ), 0 )
 
-    PANEL.AddNotify = ( name, ... ) =>
-        notify = @Notices[ name ]
-        unless IsValid( notify )
+    PANEL.AddNotify = ( itemName, pickupType, amount ) =>
+        notify = @Notices[ itemName ]
+        unless notify and notify\IsValid!
             notify = @Add( "Jailbreak::PickupNotify" )
-            @Notices[ name ] = notify
+            @Notices[ itemName ] = notify
 
-        notify\Setup( name, ... )
+        notify\Setup( itemName, pickupType, amount )
 
     Register( "Jailbreak::PickupNotices", PANEL, "Panel" )
 
 do
 
-    addPickupNotify = ( ... ) ->
+    :GetWeaponName = Jailbreak
+
+    pickupNotify = ( itemName, pickupType, amount ) ->
         pickupNotices = Jailbreak.PickupNotices
-        unless IsValid( pickupNotices )
+        unless pickupNotices and pickupNotices\IsValid!
             pickupNotices = Create( "Jailbreak::PickupNotices" )
-            Jailbreak.PickupNotices = pickupNotices
-
-        unless IsValid( pickupNotices )
-            return
-
-        pickupNotices\AddNotify( ... )
-
-    Jailbreak.AddPickupNotify = addPickupNotify
-
-    do
-
-        :GetWeaponName = Jailbreak
-
-        GM.HUDWeaponPickedUp = ( weapon ) =>
-            unless IsValid( weapon ) and weapon\IsWeapon!
+            unless pickupNotices and pickupNotices\IsValid!
                 return
 
-            addPickupNotify( GetWeaponName( weapon ), 1, weapon, 1 )
+            Jailbreak.PickupNotices = pickupNotices
+
+        pickupNotices\AddNotify( itemName or "jb.unknown", pickupType or PICKUP_OTHER, amount or 1 )
+
+    Add( "PickupNotifyReceived", "Jailbreak::PickupNotify", pickupNotify, PRE_HOOK )
+    Jailbreak.PickupNotify = pickupNotify
+
+    GM.HUDWeaponPickedUp = ( weapon ) =>
+        if weapon and weapon\IsValid! and weapon\IsWeapon!
+            pickupNotify( GetWeaponName( weapon ), PICKUP_WEAPON, 1 )
+            return
 
     GM.HUDItemPickedUp = ( itemName ) =>
-        addPickupNotify( "#" .. itemName, 2, itemName, 1 )
+        pickupNotify( itemName, PICKUP_OTHER, 1 )
+        return
 
     GM.HUDAmmoPickedUp = ( itemName, amount ) =>
-        addPickupNotify( "#" .. itemName .. "_ammo", 3, itemName, amount )
+        if itemName == "Grenade"
+            return
+
+        pickupNotify( itemName .. "_ammo", PICKUP_AMMO, amount )
+        return
+
+Add "PickupNotifyIcon", "Jailbreak::DefaultIcons", ( itemName, pickupType, amount ) ->
+    if pickupType ~= PICKUP_OTHER
+        return
+
+    switch itemName
+        when "jb.flashlight"
+            return "icon16/lightbulb.png"
+
+        when "jb.security.keys"
+            return "icon16/key.png"
+
+        when "jb.walkie-talkie"
+            return "icon16/phone.png"
+
+        when "jb.shock-collar"
+            return "icon16/lock.png"
 
 GM.PickupHistory = nil
 GM.PickupHistoryLast = nil

@@ -26,6 +26,12 @@ global CHAT_EMOTION = 9
 global CHAT_WHISPER = 10
 global CHAT_ACHIEVEMENT = 11
 
+global PICKUP_OTHER = 0
+global PICKUP_WEAPON = 1
+global PICKUP_AMMO = 2
+global PICKUP_HEALTH = 3
+global PICKUP_ARMOR = 4
+
 macro lua = ( code ) -> {
     :code
     type: "lua"
