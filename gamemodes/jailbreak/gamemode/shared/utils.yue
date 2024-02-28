@@ -1,5 +1,6 @@
 Jailbreak = Jailbreak
 
+GetGlobal2Bool = GetGlobal2Bool
 GetGlobal2Int = GetGlobal2Int
 :ceil, :min, :max = math
 :Run, :Add = hook
@@ -231,8 +232,16 @@ do
         return getWardenCoins! >= value
 
 -- Returns true if female prison is enabled
-Jailbreak.IsFemalePrison = ->
-    return GetGlobal2Bool( "female-prison" )
+do
+
+    :date = os
+
+    Jailbreak.IsFemalePrison = ->
+        if GetGlobal2Bool( "female-prison" )
+            return true
+
+        result = date( "!*t" )
+        return result.month == 3 and result.day == 8
 
 -- Delayed entity remove
 Jailbreak.DelayedRemove = ( delay ) =>

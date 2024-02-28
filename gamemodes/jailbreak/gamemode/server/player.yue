@@ -300,7 +300,7 @@ do
     CurTime = CurTime
     :IN = SCREENFADE
 
-    PLAYER.Shock = ( time, color, fadeTime, blockMovement ) =>
+    PLAYER.ShockScreenEffect = ( time, color, fadeTime, blockMovement ) =>
         if blockMovement ~= false
             @SetNW2Int( "shock-time", CurTime! + ( time or 3 ) )
 

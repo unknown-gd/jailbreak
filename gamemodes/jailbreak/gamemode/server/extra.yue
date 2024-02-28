@@ -615,7 +615,7 @@ Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
         return
 
     damageInfo\ScaleDamage( max( @WaterLevel!, 0.25 ) )
-    @Shock!
+    @ShockScreenEffect!
 
 Add "PlayerCanPickupWeapon", "Jailbreak::PlayerSpawn", =>
     if @IsSpawning!
@@ -708,4 +708,4 @@ do
         if @IsBot!
             return
 
-        @Shock( 0.5, black, PlayerSpawnTime\GetFloat!, false )
+        @ShockScreenEffect( 0.5, black, PlayerSpawnTime\GetFloat!, false )

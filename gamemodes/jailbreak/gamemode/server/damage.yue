@@ -42,7 +42,7 @@ do
             damageInfo\SetDamage( newDamage )
             damageInfo\SetDamageType( DMG_SONIC )
             attacker\TakeDamageInfo( damageInfo )
-            attacker\Shock( 0.8, white, 0.2, true )
+            attacker\ShockScreenEffect( 0.8, white, 0.2, true )
 
         damageInfo\SetDamageType( damageType )
         damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
