@@ -2,8 +2,8 @@ Jailbreak = Jailbreak
 GM = GM
 
 :GetTeamPlayersCount, :Teams, :PrepareTime, :RoundTime, :PlaySound, :SendChatText, :GetRoundState = Jailbreak
+:Iterator = player
 CurTime = CurTime
-:GetAll = player
 :Run = hook
 
 ROUND_WAITING_PLAYERS = ROUND_WAITING_PLAYERS
@@ -93,7 +93,7 @@ do
                 SetShockCollars( false )
                 ClearObserveTargets!
 
-                for ply in *GetAll!
+                for _, ply in Iterator!
                     if ply\Alive!
                         ply\KillSilent!
 
@@ -104,7 +104,7 @@ do
                 SafeCleanUpMap!
 
             when ROUND_PREPARING
-                for ply in *GetAll!
+                for _, ply in Iterator!
                     if ply\IsBot!
                         ply\SetTeam( TEAM_PRISONER )
 
@@ -118,9 +118,8 @@ do
             when ROUND_RUNNING
                 PlaySound( "ambient/alarms/warningbell1.wav" )
                 SetWardenCoins( WardenCoins\GetInt! )
-                players = GetAll!
 
-                for ply in *players
+                for _, ply in Iterator!
                     if ply\IsBot!
                         teamID = ply\Team!
                         for index = 1, 2
@@ -135,7 +134,7 @@ do
                     return
 
                 guards = {}
-                for ply in *players
+                for _, ply in Iterator!
                     teamID = ply\Team!
                     if Teams[ teamID ]
                         unless ply\Alive!
@@ -236,7 +235,7 @@ do
                 setRoundState( ROUND_WAITING_PLAYERS )
 
 GM.ShockCollarsToggled = ( bool ) =>
-    for ply in *GetAll!
+    for _, ply in Iterator!
         if ply\HasShockCollar!
             ply\SetShockCollar( bool, false )
 

@@ -1,5 +1,4 @@
 Jailbreak = Jailbreak
-IsValid = IsValid
 :Clamp = math
 drive = drive
 :Run = hook
@@ -207,36 +206,37 @@ do
             return true
 
 GM.PreDrawViewModel = ( vm, ply, weapon ) =>
-	unless weapon and weapon\IsValid!
-        return false
-
     func = weapon.PreDrawViewModel
-    if func
-    	return func( weapon, vm, weapon, ply )
-
-    return false
-
-GM.PostDrawViewModel = ( vm, ply, weapon ) =>
-	unless weapon and weapon\IsValid!
+    if func == nil
         return false
 
-	if not weapon\IsScripted! or weapon.UseHands
-		hands = ply\GetHands!
-		if IsValid( hands ) and IsValid( hands\GetParent! )
-			unless Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
-				if weapon.ViewModelFlip
-                    render.CullMode( MATERIAL_CULLMODE_CW )
+    return func( weapon, vm, weapon, ply )
 
-				hands\DrawModel!
-				render.CullMode( MATERIAL_CULLMODE_CCW )
+do
 
-			Run( "PostDrawPlayerHands", hands, vm, ply, weapon )
+    MATERIAL_CULLMODE_CCW = MATERIAL_CULLMODE_CCW
+    MATERIAL_CULLMODE_CW = MATERIAL_CULLMODE_CW
+    :DrawModel = FindMetaTable( "Entity" )
+    :CullMode = render
 
-    func = weapon.PostDrawViewModel
-	if func
-	    return func( weapon, vm, weapon, ply )
+    GM.PostDrawViewModel = ( vm, ply, weapon ) =>
+        if weapon.UseHands or not weapon\IsScripted!
+            hands = ply\GetHands!
+            if hands and hands\IsValid! and hands\GetParent!\IsValid!
+                unless Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
+                    if weapon.ViewModelFlip
+                        CullMode( MATERIAL_CULLMODE_CW )
 
-    return false
+                    DrawModel( hands )
+                    CullMode( MATERIAL_CULLMODE_CCW )
+
+                Run( "PostDrawPlayerHands", hands, vm, ply, weapon )
+
+        func = weapon.PostDrawViewModel
+        if func == nil
+            return false
+
+        return func( weapon, vm, weapon, ply )
 
 do
 

@@ -1,5 +1,5 @@
+:Create, :Iterator = ents
 isfunction = isfunction
-:Create, :GetAll = ents
 :Add, :Remove = hook
 isstring = isstring
 IsValid = IsValid
@@ -97,6 +97,7 @@ global class EntityReplacer
                         phys\Wake!
 
         else
+
             phys, phys2 = newEntity\GetPhysicsObject!, entity\GetPhysicsObject!
             if IsValid( phys ) and IsValid( phys2 )
                 phys\SetVelocity( phys2\GetVelocity! )
@@ -109,7 +110,7 @@ global class EntityReplacer
         entity\Remove!
 
     PerformAll: =>
-        for entity in *GetAll!
+        for _, entity in Iterator!
             @Perform( entity )
 
     Remove: =>

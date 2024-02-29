@@ -4,8 +4,8 @@ GetGlobal2Bool = GetGlobal2Bool
 GetGlobal2Int = GetGlobal2Int
 :ceil, :min, :max = math
 :Run, :Add = hook
+:Iterator = player
 CurTime = CurTime
-:GetAll = player
 :Simple = timer
 :lower = string
 NULL = NULL
@@ -30,7 +30,7 @@ do
                 return false
 
             guardCount, prisonerCount = 0, 0
-            for ply in *GetAll!
+            for _, ply in Iterator!
                 teamID = Team( ply )
                 if teamID == TEAM_GUARD
                     guardCount += 1
@@ -89,7 +89,7 @@ do
 -- Getting player count in team
 Jailbreak.GetPlayersCount = ( teamID, alive ) ->
     count = 0
-    for ply in *GetAll!
+    for _, ply in Iterator!
         if teamID ~= nil and Team( ply ) ~= teamID
             continue
 
@@ -103,14 +103,16 @@ Jailbreak.GetPlayersCount = ( teamID, alive ) ->
 do
 
     ipairs = ipairs
+    length = 0
 
     -- Getting players in teams
     Jailbreak.GetTeamPlayers = ( alive, ... ) ->
-        teams, players = { ... }, GetAll!
+        teams = { ... }
         for index, teamID in ipairs( teams )
-            tbl, length = {}, 0
+            length = 0
+            tbl = {}
 
-            for ply in *players
+            for _, ply in Iterator!
                 if Team( ply ) ~= teamID
                     continue
 
@@ -126,19 +128,20 @@ do
 
     -- Getting player count in teams
     Jailbreak.GetTeamPlayersCount = ( alive, ... ) ->
-        teams, players = { ... }, GetAll!
+        teams = { ... }
         for index, teamID in ipairs( teams )
-            count = 0
-            for ply in *players
+            length = 0
+
+            for _, ply in Iterator!
                 if Team( ply ) ~= teamID
                     continue
 
                 if alive ~= nil and Alive( ply ) ~= alive
                     continue
 
-                count += 1
+                length += 1
 
-            teams[ index ] = count
+            teams[ index ] = length
 
         return teams
 
@@ -150,7 +153,7 @@ do
         if warden and warden\IsValid! and warden\IsWarden! and Alive( warden )
             return warden
 
-        for ply in *GetAll!
+        for _, ply in Iterator!
             if ply\IsWarden!
                 Jailbreak.Warden = ply
                 return ply
@@ -547,13 +550,18 @@ PLAYER.HasWeaponsInSlot = ( slot ) =>
     return false
 
 -- Returns count of weapons in slot
-PLAYER.GetCountWeaponsInSlot = ( slot ) =>
-    count = 0
-    for weapon in *@GetWeapons!
-        if weapon\GetSlot! == slot
-            count += 1
+do
 
-    return count
+    count = 0
+
+    PLAYER.GetCountWeaponsInSlot = ( slot ) =>
+        count = 0
+
+        for weapon in *@GetWeapons!
+            if weapon\GetSlot! == slot
+                count += 1
+
+        return count
 
 -- Returns player ragdoll as entity
 PLAYER.GetRagdollEntity = =>

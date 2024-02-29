@@ -16,7 +16,6 @@ TEAM_GURAD = TEAM_GUARD
 :Colors, :SendChatText, :GetTeamPlayers, :IsRoundRunning = Jailbreak
 CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 CHAT_CUSTOM = CHAT_CUSTOM
-:GetAll = player
 :white = Colors
 
 events = Jailbreak.Events
@@ -282,7 +281,7 @@ do
                 if attacker\IsValid! or attacker\IsPlayer!
                     damageInfo\ScaleDamage( 2 )
 
-            for ply in *GetAll!
+            for _, ply in player.Iterator!
                 if ply\Alive!
                     ply\AnimRestartNetworkedGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_GESTURE_TAUNT_ZOMBIE, true )
 

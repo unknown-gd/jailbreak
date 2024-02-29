@@ -14,7 +14,8 @@ ENT.Display = =>
         return
 
     teamID = Jailbreak.TF2Team( tonumber( teamID ) or 0 )
-    for ply in *player.GetAll!
+
+    for _, ply in player.Iterator!
         if ply\Team! == teamID and not ply\IsBot!
             ply\PrintMessage( HUD_PRINTCENTER, message )
 
