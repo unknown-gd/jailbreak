@@ -42,7 +42,7 @@ do
             damageInfo\SetDamage( newDamage )
             damageInfo\SetDamageType( DMG_SONIC )
             attacker\TakeDamageInfo( damageInfo )
-            attacker\ShockScreenEffect( 0.8, white, 0.2, true )
+            attacker\ShockScreenEffect( 0.25, white, 0.25, true )
 
         damageInfo\SetDamageType( damageType )
         damageInfo\SetDamage( damage * ShockCollarVictimDamage\GetFloat! )
@@ -60,16 +60,7 @@ do
             return true
 
         if damageInfo\IsExplosionDamage!
-            inflictor = damageInfo\GetInflictor!
-            if inflictor\IsValid! and not ( inflictor\IsPlayer! or inflictor\IsNPC! or inflictor\IsRagdoll! )
-                force = damageInfo\GetDamageForce!
-                force\Normalize!
-
-                mass = ceil( inflictor\GetPhysicsMass! * 0.8 )
-                damageInfo\SetDamage( mass * 256 )
-                damageInfo\SetDamageForce( force * 4096 * mass )
-            else
-                damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
+            damageInfo\SetDamage( damageInfo\GetDamage! + damageInfo\GetDamageForce!\Length! / 256 )
 
         elseif damageInfo\IsCloseRangeDamage!
             attacker = damageInfo\GetAttacker!
@@ -453,13 +444,9 @@ do
 
         if damageInfo\IsBulletDamage!
             force = damageInfo\GetDamageForce!
-
             length = force\Length! / 1000
             if length > 3
-                force\Normalize!
-                damageInfo\SetDamageForce( force * 512 )
-            elseif length > 0.5
-                damageInfo\SetDamageForce( force * ( 0.5 / length ) )
+                damageInfo\SetDamageForce( force * ( 3 / length ) )
 
             damageInfo\SetDamage( damageInfo\GetDamage! * 0.25 )
 

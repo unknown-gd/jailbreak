@@ -704,8 +704,10 @@ do
     :PlayerSpawnTime = Jailbreak
     :black = Jailbreak.Colors
 
-    Add "PostPlayerSpawn", "Jailbreak::Spawn Effect", =>
-        if @IsBot!
+    spawnEffect = ( ply ) ->
+        unless ply\IsBot!
+            ply\ShockScreenEffect( 0.5, black, PlayerSpawnTime\GetFloat!, false )
             return
 
-        @ShockScreenEffect( 0.5, black, PlayerSpawnTime\GetFloat!, false )
+    Add "PlayerInitialized", "Jailbreak::Connect Effect", spawnEffect
+    Add "PostPlayerSpawn", "Jailbreak::Spawn Effect", spawnEffect
