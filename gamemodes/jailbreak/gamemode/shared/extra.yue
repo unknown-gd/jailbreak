@@ -161,14 +161,14 @@ do
         if IsPlayingTaunt( @ )
             cmd\SetImpulse( 0 )
 
-    POST_HOOK )
+    PRE_HOOK )
 
     Add( "SetupMove", "Jailbreak::Taunts", ( _, cmd ) =>
         if IsPlayingTaunt( @ )
             cmd\ClearMovement!
             cmd\ClearButtons!
 
-    POST_HOOK )
+    PRE_HOOK )
 
 -- Block player movement while player in spectator mode
 do
