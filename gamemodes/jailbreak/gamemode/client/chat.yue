@@ -390,10 +390,7 @@ do
 
 messageHandlers[ CHAT_CUSTOM ] = ( _, __, data ) ->
     for value in *data
-        if isstring( value )
-            value = Translate( value )
-
-        insert( value )
+        insert( isstring( value ) and Translate( value ) or value )
 
 messageHandlers[ CHAT_SERVERMESSAGE ] = ( _, __, data ) ->
     insert( data[ 2 ] or dark_white )
