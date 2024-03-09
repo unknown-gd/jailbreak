@@ -183,14 +183,14 @@ do
     :PrecacheModel = util
 
     femaleGuards = {}
-    for modelPath in *GuardFemaleModels
-        modelPath = FixModelPath( modelPath )
+    for str in *GuardFemaleModels
+        modelPath = FixModelPath( str )
         PrecacheModel( modelPath )
         femaleGuards[] = modelPath
 
     maleGuards = {}
-    for modelPath in *GuardMaleModels
-        modelPath = FixModelPath( modelPath )
+    for str in *GuardMaleModels
+        modelPath = FixModelPath( str )
         PrecacheModel( modelPath )
         maleGuards[] = modelPath
 

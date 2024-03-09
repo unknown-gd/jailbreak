@@ -312,10 +312,7 @@ do
         insert( " " )
 
         for value in *data
-            if isstring( value )
-                value = Translate( value )
-
-            insert( value )
+            insert( isstring( value ) and Translate( value ) or value )
 
 do
 

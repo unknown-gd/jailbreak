@@ -86,11 +86,10 @@ global class SoundHandler
                         @Perform( "File\n{" .. content .. "}" )
 
         for filePath in *@DefaultScripts
-            filePath = "scripts/" .. filePath
-            unless Exists( filePath, gameName )
+            unless Exists( "scripts/" .. filePath, gameName )
                 continue
 
-            AsyncRead filePath, gameName, ( _, __, status, content ) ->
+            AsyncRead "scripts/" .. filePath, gameName, ( _, __, status, content ) ->
                 if status == FSASYNC_OK
                     @Perform( "File\n{" .. content .. "}" )
 
