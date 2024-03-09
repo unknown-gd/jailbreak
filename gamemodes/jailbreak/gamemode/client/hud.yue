@@ -159,13 +159,15 @@ do
     MASK_SHOT = MASK_SHOT
     :TraceLine = util
 
-    trace, useDistance = { mask: MASK_SHOT }, 75 ^ 2
+    traceResult = {}
+    trace, useDistance = { mask: MASK_SHOT, output: traceResult }, 75 ^ 2
 
     Jailbreak.Font( "Jailbreak::TargetID", "Roboto Mono Bold", 2.5 )
     Jailbreak.Font( "Jailbreak::TargetID - Team", "Roboto Mono SemiBold Italic", 2.25 )
     Jailbreak.Font( "Jailbreak::TargetID - Health", "Roboto Mono", 1.8 )
     Jailbreak.Font( "Jailbreak::TargetID - Use", "Roboto Mono Bold", 2 )
 
+    -- TODO: Rewrite
     targetIDClasses = Jailbreak.TargetIDClasses
     unless targetIDClasses
         targetIDClasses = {
@@ -209,8 +211,8 @@ do
 
         trace.endpos = start + ScreenToVector( mouseX, mouseY ) * ( isWorldClicking and 1024 or VoiceChatMinDistance\GetInt! )
         trace.filter = filter
+        TraceLine( trace )
 
-        traceResult = TraceLine( trace )
         if not traceResult.Hit or traceResult.HitWorld
             return
 
@@ -702,6 +704,7 @@ do
             @InvalidateLayout!
 
     PANEL.PerformLayout = =>
+        -- TODO: WHAT THE FUCK
         @PlaceholderName = GetPhrase( "jb.unknown" )
 
         margin, offset = VMin( 0.25 ), VMin( 1 )

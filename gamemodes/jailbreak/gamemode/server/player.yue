@@ -389,7 +389,8 @@ do
         if IsRoundPreparing!
             return false
 
-    trace = {}
+    traceResult = {}
+    trace = { output: traceResult }
 
     PLAYER.CreateRagdoll = ( putItems ) =>
         putItems = putItems ~= false
@@ -484,8 +485,9 @@ do
                     trace.start = origin
                     trace.endpos = origin
                     trace.filter = { ragdoll, @ }
+                    TraceLine( trace )
 
-                    if TraceLine( trace ).Hit
+                    if traceResult.Hit
                         continue
 
                     phys\SetPos( origin )
@@ -737,6 +739,7 @@ Add "PlayerSelectSpawn", "Jailbreak::AliveRagdoll", ( transition ) =>
 
 do
 
+    traceResultDown, traceResultUp = {}, {}
     trace = {}
 
     fixupProp = ( entity, origin, mins, maxs ) =>
@@ -745,11 +748,13 @@ do
 
         trace.start = origin
         trace.endpos = downEndPos
-        traceResultDown = TraceLine( trace )
+        trace.output = traceResultDown
+        TraceLine( trace )
 
         trace.start = origin
         trace.endpos = upEndPos
-        traceResultUp = TraceLine( trace )
+        trace.output = traceResultUp
+        TraceLine( trace )
 
         -- Both traces hit meaning we are probably inside a wall on both sides, do nothing
         if traceResultUp.Hit and traceResultDown.Hit
@@ -785,17 +790,19 @@ do
         unless IsInWorld( trace.start )
             return NULL
 
-        trace.endpos = trace.start + ( @GetAimVector! * 128 )
-        trace.filter = @
-
         entity = Create( className )
         unless entity and entity\IsValid!
             return NULL
 
-        traceResult = TraceLine( trace )
+        trace.endpos = trace.start + ( @GetAimVector! * 128 )
+        trace.filter = @
+        trace.output = traceResultDown
+        TraceLine( trace )
 
-        origin = traceResult.HitPos
+        origin = traceResultDown.HitPos
+        entity\SetTeam( @Team! )
         entity\SetPos( origin )
+        entity\SetCreator( @ )
 
         angles = @EyeAngles!
         angles[ 1 ] = 0
@@ -810,7 +817,7 @@ do
         entity\Spawn!
         entity\Activate!
 
-        origin = entity\NearestPoint( origin - ( traceResult.HitNormal * entity\OBBMins! ) )
+        origin = entity\NearestPoint( origin - ( traceResultDown.HitNormal * entity\OBBMins! ) )
         entity\SetPos( origin )
 
         tryFixPosition( @, entity, origin )

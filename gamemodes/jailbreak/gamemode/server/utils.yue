@@ -414,7 +414,9 @@ do
 do
 
     :TraceLine, :Decal = util
-    trace = {}
+
+    traceResult = {}
+    trace = { output: traceResult }
 
     Jailbreak.BloodSplashes = ( damageInfo, death, velocity ) =>
         unless velocity
@@ -437,7 +439,8 @@ do
 
         unless death
             trace.endpos = damagePosition + velocity
-            traceResult = TraceLine( trace )
+            TraceLine( trace )
+
             unless traceResult.Hit
                 return
 
@@ -450,7 +453,7 @@ do
             origin = @GetBonePosition( bone )
 
             trace.endpos = origin + ( origin - damagePosition ) * speed
-            traceResult = TraceLine( trace )
+            TraceLine( trace )
 
             if traceResult.Hit
                 Decal( decal, traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )

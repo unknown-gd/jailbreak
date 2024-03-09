@@ -202,9 +202,8 @@ do
     :TraceLine = util
     :abs = math
 
-    trace = {
-        mask: MASK_SHOT
-    }
+    traceResult = {}
+    trace = { mask: MASK_SHOT, output: traceResult }
 
     Add "marker", =>
         unless Markers\GetBool! and @ and @IsValid! and @Alive!
@@ -231,12 +230,9 @@ do
         @LagCompensation( true )
 
         trace.filter = @
-
-        start = @EyePos!
-        trace.start = start
-        trace.endpos = start + @GetAimVector! * distance
-
-        traceResult = TraceLine( trace )
+        trace.start = @EyePos!
+        trace.endpos = trace.start + @GetAimVector! * distance
+        TraceLine( trace )
 
         @LagCompensation( false )
 

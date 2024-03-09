@@ -6,7 +6,8 @@ include( "shared.lua" )
 :TraceLine = util
 CurTime = CurTime
 
-trace = {}
+traceResult = {}
+trace = { output: traceResult }
 
 SWEP.UseDoor = ( open ) =>
     curTime, lastDoorLock = CurTime!, @LastDoorLock or 0
@@ -19,14 +20,13 @@ SWEP.UseDoor = ( open ) =>
     trace.start = owner\GetShootPos!
     trace.endpos = trace.start + owner\GetAimVector! * 72
     trace.filter = owner
-
-    traceResult = TraceLine( trace )
+    TraceLine( trace )
 
     unless traceResult.Hit
         return
 
     entity = traceResult.Entity
-    unless IsValid( entity )
+    unless entity and entity\IsValid!
         return
 
     className = entity\GetClass!
@@ -68,12 +68,12 @@ do
 
     SWEP.HitEntity = ( entity, owner, origin ) =>
         vm = owner\GetViewModel!
-        unless vm\IsValid!
+        unless vm and vm\IsValid!
             return
 
         hit, anim = false, @GetSequenceName( vm\GetSequence! )
 
-        if IsValid( entity )
+        if entity and entity\IsValid!
             if entity\IsPlayer! and entity\HasGodMode!
                 if not entity.m_bArmstrongMoment and random( 1, 100 ) == 1
                     entity.m_bArmstrongMoment = true
@@ -84,7 +84,7 @@ do
                 scale = phys_pushscale\GetFloat!
 
                 attacker = owner
-                unless IsValid( attacker )
+                unless attacker and attacker\IsValid!
                     attacker = @
 
                 damageInfo = DamageInfo!

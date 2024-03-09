@@ -1,5 +1,6 @@
+:Alive, :IsPlayingTaunt = FindMetaTable( "Player" )
 Jailbreak = Jailbreak
-:Clamp = math
+FrameTime = FrameTime
 drive = drive
 :Run = hook
 GM = GM
@@ -17,34 +18,36 @@ GM.ShouldDrawLocalPlayer = ( ply ) =>
 
         return true
 
-    if ply\IsPlayingTaunt!
+    if IsPlayingTaunt( ply ) and Alive( ply )
         Jailbreak.PlayingTaunt = true
         return true
 
     Jailbreak.PlayingTaunt = false
-
-    if Jailbreak.TauntFraction > 0
-        return true
-
-    return false
+    return Jailbreak.TauntFraction > 0
 
 do
 
+    :LookupBone, :GetBonePosition = FindMetaTable( "Entity" )
+    :Forward = FindMetaTable( "Angle" )
     LerpVector = LerpVector
     LerpAngle = LerpAngle
     :TraceHull = util
     :CalcView = drive
 
-    tauntTrace = {
-        mask: MASK_SHOT
+    traceResult = {}
+    trace = {
         mins: Vector( -8, -8, -8 )
         maxs: Vector( 8, 8, 8 )
+        output: traceResult
+        mask: MASK_SHOT
     }
 
     view = Jailbreak.PlayerView
     unless istable( view )
         view = {}
         Jailbreak.PlayerView = view
+
+    boneID = 0
 
     GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
         Jailbreak.Player = ply
@@ -60,8 +63,17 @@ do
             return view
 
         entity = nil
-        if ply\Alive!
+        if Alive( ply )
             if ply\GetNW2Bool( "lost-consciousness" )
+                if Jailbreak.TauntViewAngles
+                    Jailbreak.TauntViewAngles = nil
+
+                if Jailbreak.TauntDistance
+                    Jailbreak.TauntDistance = nil
+
+                if Jailbreak.TauntEyeAngles
+                    Jailbreak.TauntEyeAngles = nil
+
                 entity = ply\GetRagdollEntity!
                 unless entity\IsValid!
                     return view
@@ -88,12 +100,39 @@ do
         Jailbreak.ViewEntity = entity
 
         if ply ~= entity
+            if Jailbreak.TauntViewAngles
+                Jailbreak.TauntViewAngles = nil
+
+            if Jailbreak.TauntDistance
+                Jailbreak.TauntDistance = nil
+
+            if Jailbreak.TauntEyeAngles
+                Jailbreak.TauntEyeAngles = nil
+
             return view
 
-        unless ply\Alive!
+        unless Alive( ply )
+            if Jailbreak.TauntViewAngles
+                Jailbreak.TauntViewAngles = nil
+
+            if Jailbreak.TauntDistance
+                Jailbreak.TauntDistance = nil
+
+            if Jailbreak.TauntEyeAngles
+                Jailbreak.TauntEyeAngles = nil
+
             return view
 
         if entity\Health! < 1
+            if Jailbreak.TauntViewAngles
+                Jailbreak.TauntViewAngles = nil
+
+            if Jailbreak.TauntDistance
+                Jailbreak.TauntDistance = nil
+
+            if Jailbreak.TauntEyeAngles
+                Jailbreak.TauntEyeAngles = nil
+
             attachmentID = entity\LookupAttachment( "eyes" )
             if attachmentID >= 0
                 attachment = entity\GetAttachment( attachmentID )
@@ -106,56 +145,55 @@ do
             return view
 
         if Jailbreak.PlayingTaunt or Jailbreak.TauntFraction > 0
-            :TauntViewAngles = Jailbreak
-            unless TauntViewAngles
-                TauntViewAngles = angles
-                Jailbreak.TauntViewAngles = TauntViewAngles
+            viewAngles = Jailbreak.TauntViewAngles
+            unless viewAngles
+                viewAngles = angles
+                viewAngles[ 1 ], viewAngles[ 3 ] = 0, 0
+                Jailbreak.TauntViewAngles = viewAngles
 
-            :TauntDistance = Jailbreak
-            unless TauntDistance
-                TauntDistance = 128
-                Jailbreak.TauntDistance = TauntDistance
+            distance = Jailbreak.TauntDistance
+            unless distance
+                distance = 128
+                Jailbreak.TauntDistance = distance
 
-            bone = ply\LookupBone( "ValveBiped.Bip01_Head1" )
-            if bone and bone >= 0
-                origin = ply\GetBonePosition( bone )
+            boneID = LookupBone( ply, "ValveBiped.Bip01_Head1" )
+            if boneID and boneID >= 0
+                origin = GetBonePosition( ply, boneID )
 
-            targetOrigin = origin - TauntViewAngles\Forward! * TauntDistance
+            targetOrigin = origin - Forward( viewAngles ) * distance
 
-            tauntTrace.start = origin
-            tauntTrace.endpos = targetOrigin
-            tauntTrace.filter = entity
+            trace.start = origin
+            trace.endpos = targetOrigin
+            trace.filter = entity
+            TraceHull( trace )
 
-            traceResult = TraceHull( tauntTrace )
             targetOrigin = traceResult.HitPos + traceResult.HitNormal
 
-            :TauntPlayerAngles = Jailbreak
-            unless TauntPlayerAngles
-                TauntPlayerAngles = Angle( angles )
-                Jailbreak.TauntPlayerAngles = TauntPlayerAngles
+            eyeAngles = Jailbreak.TauntEyeAngles
+            unless eyeAngles
+                eyeAngles = Angle( viewAngles )
+                Jailbreak.TauntEyeAngles = eyeAngles
 
-            :TauntFraction = Jailbreak
+            fraction = Jailbreak.TauntFraction
             if Jailbreak.PlayingTaunt
-                if TauntFraction < 1
-                    TauntFraction += FrameTime! * 4
-                    Jailbreak.TauntFraction = TauntFraction
+                if fraction < 1
+                    fraction += FrameTime! * 4
+                    Jailbreak.TauntFraction = fraction
 
-                    view.origin = LerpVector( TauntFraction, origin, targetOrigin )
-                    view.angles = LerpAngle( TauntFraction, TauntPlayerAngles, TauntViewAngles )
+                    view.origin = LerpVector( fraction, origin, targetOrigin )
+                    view.angles = LerpAngle( fraction, eyeAngles, viewAngles )
                     return view
 
-            else
+            elseif fraction > 0
+                fraction -= FrameTime! * 2
+                Jailbreak.TauntFraction = fraction
 
-                if TauntFraction > 0
-                    TauntFraction -= FrameTime! * 4
-                    Jailbreak.TauntFraction = TauntFraction
-
-                    view.origin = LerpVector( TauntFraction, origin, targetOrigin )
-                    view.angles = LerpAngle( TauntFraction, TauntPlayerAngles, TauntViewAngles )
-                    return view
+                view.origin = LerpVector( fraction, origin, targetOrigin )
+                view.angles = LerpAngle( fraction, eyeAngles, viewAngles )
+                return view
 
             view.origin = targetOrigin
-            view.angles = TauntViewAngles
+            view.angles = viewAngles
             return view
 
         if Jailbreak.TauntViewAngles
@@ -164,8 +202,8 @@ do
         if Jailbreak.TauntDistance
             Jailbreak.TauntDistance = nil
 
-        if Jailbreak.TauntPlayerAngles
-            Jailbreak.TauntPlayerAngles = nil
+        if Jailbreak.TauntEyeAngles
+            Jailbreak.TauntEyeAngles = nil
 
         if ply\InVehicle!
             return Run( "CalcVehicleView", ply\GetVehicle!, ply, view )
@@ -181,29 +219,31 @@ do
 
 do
 
+    :SetViewAngles, :GetMouseX, :GetMouseY, :GetMouseWheel = FindMetaTable( "CUserCmd" )
     :CreateMove = drive
+    :Clamp = math
+
+    frameTime = 0
 
     GM.CreateMove = ( cmd ) =>
         if CreateMove( cmd )
             return true
 
         if Jailbreak.PlayingTaunt
-            :TauntViewAngles = Jailbreak
-            if TauntViewAngles
-                TauntViewAngles[ 1 ] += cmd\GetMouseY! * 0.01
-                TauntViewAngles[ 2 ] -= cmd\GetMouseX! * 0.01
+            viewAngles = Jailbreak.TauntViewAngles
+            if viewAngles
+                frameTime = FrameTime!
+                viewAngles[ 1 ] += GetMouseY( cmd ) * frameTime
+                viewAngles[ 2 ] -= GetMouseX( cmd ) * frameTime
 
-            :TauntDistance = Jailbreak
-            if TauntDistance
-                Jailbreak.TauntDistance = Clamp( TauntDistance - cmd\GetMouseWheel! * ( TauntDistance * 0.25 ), 16, 1024 )
+            distance = Jailbreak.TauntDistance
+            if distance
+                Jailbreak.TauntDistance = Clamp( distance - GetMouseWheel( cmd ) * ( distance * 0.1 ), 16, 1024 )
 
-            :TauntPlayerAngles = Jailbreak
-            if TauntPlayerAngles
-                cmd\SetViewAngles( TauntPlayerAngles )
-
-            cmd\ClearMovement!
-            cmd\ClearButtons!
-            return true
+            eyeAngles = Jailbreak.TauntEyeAngles
+            if eyeAngles
+                SetViewAngles( cmd, eyeAngles )
+                return
 
 GM.PreDrawViewModel = ( vm, ply, weapon ) =>
     func = weapon.PreDrawViewModel

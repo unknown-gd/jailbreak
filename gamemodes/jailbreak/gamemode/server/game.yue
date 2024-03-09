@@ -317,7 +317,8 @@ do
         [ IN_MOVERIGHT ]: true
     }
 
-    trace = {}
+    traceResult = {}
+    trace = { output: traceResult }
 
     GM.KeyPress = ( ply, key ) =>
         if ply\Alive!
@@ -328,11 +329,11 @@ do
                 if not ( ply\IsValid! and ply\Alive! ) or ply\KeyDown( IN_USE ) or ply\IsHoldingEntity!
                     return
 
+                trace.filter = ply
                 trace.start = ply\EyePos!
                 trace.endpos = trace.start + ply\GetAimVector! * 72
-                trace.filter = ply
+                TraceLine( trace )
 
-                traceResult = TraceLine( trace )
                 unless traceResult.Hit
                     return
 

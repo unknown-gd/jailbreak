@@ -214,7 +214,8 @@ do
                 return true
 
             :TraceHull = util
-            trace = {}
+            traceResult = {}
+            trace = { output: traceResult }
 
             Add "PlayerFootstep", "Jailbreak::GrassIsLavaEvent", ( pos, _, __, volume ) =>
                 unless @Alive!
@@ -226,8 +227,7 @@ do
                 trace.start = @EyePos!
                 trace.endpos = pos
                 trace.filter = @
-
-                traceResult = TraceHull( trace )
+                TraceHull( trace )
 
                 unless traceResult.Hit and traceResult.HitWorld
                     return

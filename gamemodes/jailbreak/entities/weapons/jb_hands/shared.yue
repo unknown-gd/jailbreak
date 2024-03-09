@@ -1,8 +1,9 @@
 AddCSLuaFile!
 
 CLIENT, SERVER = CLIENT, SERVER
-timer_Simple = timer.Simple
 CurTime = CurTime
+:Simple = timer
+:random = math
 
 SWEP.PrintName = "#jb.hands"
 SWEP.Spawnable = false
@@ -40,12 +41,16 @@ SWEP.SetupDataTables = =>
     @NetworkVar( "Float", 1, "NextIdle" )
     @NetworkVar( "Int", 2, "Combo" )
 
-SWEP.GetViewModel = =>
-    owner = @GetOwner!
-    if owner\IsValid!
-        return owner\GetViewModel!
+do
 
-    return NULL
+    NULL = NULL
+
+    SWEP.GetViewModel = =>
+        owner = @GetOwner!
+        if owner\IsValid!
+            return owner\GetViewModel!
+
+        return NULL
 
 SWEP.PlaySequence = ( sequenceName, onFinish ) =>
     @SequenceFinished = false
@@ -67,7 +72,7 @@ SWEP.PlaySequence = ( sequenceName, onFinish ) =>
     duration = vm\SequenceDuration( seqid ) / vm\GetPlaybackRate!
     nextSequence = CurTime! + duration
 
-    timer_Simple duration, ->
+    Simple duration, ->
         unless @IsValid!
             return
 
@@ -85,37 +90,41 @@ SWEP.SetNextFire = ( curTime ) =>
     @SetNextPrimaryFire( curTime )
     @SetNextSecondaryFire( curTime )
 
-SwingSound = Sound( "WeaponFrag.Throw" )
+do
 
-SWEP.PrimaryAttack = ( right ) =>
-    if @GetHoldType! == "normal"
-        if SERVER
-            @UseDoor( false )
+    swingSound = Sound( "WeaponFrag.Throw" )
+    PLAYER_ATTACK1 = PLAYER_ATTACK1
+    CHAN_STATIC = CHAN_STATIC
 
-        return
+    SWEP.PrimaryAttack = ( right ) =>
+        if @GetHoldType! == "normal"
+            if SERVER
+                @UseDoor( false )
 
-    if @GetNextIdle! == 0
-        return
+            return
 
-    if @Pulls
-        return
+        if @GetNextIdle! == 0
+            return
 
-    owner = @GetOwner!
-    owner\SetAnimation( PLAYER_ATTACK1 )
-    owner\EmitSound( SwingSound, 50, math.random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
+        if @Pulls
+            return
 
-    anim = "fists_left"
-    if right
-        anim = "fists_right"
+        owner = @GetOwner!
+        owner\SetAnimation( PLAYER_ATTACK1 )
+        owner\EmitSound( swingSound, 50, random( 80, 120 ), 1, CHAN_STATIC, 0, 1 )
 
-    combo = @GetCombo!
-    if combo >= 2
-        anim = "fists_uppercut"
+        anim = "fists_left"
+        if right
+            anim = "fists_right"
 
-    seqFinish, delay = @PlaySequence( anim )
-    @SetNextMeleeAttack( CurTime! + ( delay / 4 ) / math.max( combo, 1 ) )
-    @SetNextFire( seqFinish )
-    @SetNextIdle( seqFinish )
+        combo = @GetCombo!
+        if combo >= 2
+            anim = "fists_uppercut"
+
+        seqFinish, delay = @PlaySequence( anim )
+        @SetNextMeleeAttack( CurTime! + ( delay / 4 ) / math.max( combo, 1 ) )
+        @SetNextFire( seqFinish )
+        @SetNextIdle( seqFinish )
 
 SWEP.SecondaryAttack = =>
     if @GetHoldType! ~= "normal"
@@ -125,40 +134,36 @@ SWEP.SecondaryAttack = =>
 
 SWEP.HitDistance = CreateConVar( "jb_hands_distance", "48", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD ), "Distance of the player's fist punch.", 16, 4096 )
 
-HitSound = Sound( "Flesh.ImpactHard" )
+do
 
-SWEP.Mins = Vector( -10, -10, -8 )
-SWEP.Maxs = Vector( 10, 10, 8 )
-MASK_SHOT_HULL = MASK_SHOT_HULL
+    traceResult = {}
+    trace = { output: traceResult, mask: MASK_SHOT_HULL, mins: Vector( -10, -10, -8 ), maxs: Vector( 10, 10, 8 ) }
+    hitSound = Sound( "Flesh.ImpactHard" )
+    :TraceHull = util
 
-SWEP.DealDamage = =>
-    owner = @GetOwner!
-    unless owner\IsValid! and owner\IsPlayer! and owner\Alive!
-        return
+    SWEP.DealDamage = =>
+        owner = @GetOwner!
+        unless owner\IsValid! and owner\IsPlayer! and owner\Alive!
+            return
 
-    owner\LagCompensation( true )
+        owner\LagCompensation( true )
 
-    start = owner\GetShootPos!
-    traceResult = util.TraceHull( {
-        start: start
-        endpos: start + owner\GetAimVector! * @HitDistance\GetInt!
-        filter: owner
-        mins: @Mins
-        maxs: @Maxs
-        mask: MASK_SHOT_HULL
-    } )
+        trace.start = owner\GetShootPos!
+        trace.endpos = trace.start + owner\GetAimVector! * @HitDistance\GetInt!
+        trace.filter = owner
+        TraceHull( trace )
 
-    if traceResult.Hit
-        unless game.SinglePlayer! and CLIENT
-            @EmitSound( HitSound, 70, math.random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
+        if traceResult.Hit
+            unless game.SinglePlayer! and CLIENT
+                @EmitSound( hitSound, 70, random( 80, 120 ), 1, CHAN_BODY, 0, 1 )
+
+            if SERVER
+                @HitMaterial( traceResult.MatType, owner, traceResult.HitPos )
 
         if SERVER
-            @HitMaterial( traceResult.MatType, owner, traceResult.HitPos )
+            @HitEntity( traceResult.Entity, owner, traceResult.HitPos )
 
-    if SERVER
-        @HitEntity( traceResult.Entity, owner, traceResult.HitPos )
-
-    owner\LagCompensation( false )
+        owner\LagCompensation( false )
 
 SWEP.Show = =>
     vm = @GetViewModel!
@@ -219,7 +224,7 @@ SWEP.Think = =>
 
     idletime = @GetNextIdle!
     if idletime > 0 and curTime > idletime
-        @SetNextIdle( @PlaySequence( "fists_idle_0" .. math.random( 1, 2 ) ) )
+        @SetNextIdle( @PlaySequence( "fists_idle_0" .. random( 1, 2 ) ) )
 
     meleetime = @GetNextMeleeAttack!
     if meleetime > 0 and curTime > meleetime
@@ -230,6 +235,9 @@ SWEP.Think = =>
         @SetCombo( 0 )
 
 SWEP.Reload = =>
+    if CLIENT
+        return
+
     curTime, lastReload = CurTime!, @LastReload or 0
     @LastReload = curTime
 
@@ -241,5 +249,7 @@ SWEP.Reload = =>
 
     if @GetHoldType! == "normal"
         @Show!
-    else
-        @Hide!
+        return
+
+    @Hide!
+    return

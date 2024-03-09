@@ -5,7 +5,9 @@ SWEP.Initialize = =>
 
 CurTime = CurTime
 :TraceLine = util
-trace = {}
+
+traceResult = {}
+trace = { output: traceResult }
 
 SWEP.PrimaryAttack = =>
     owner = @GetOwner!
@@ -15,8 +17,8 @@ SWEP.PrimaryAttack = =>
     trace.start = owner\GetShootPos!
     trace.endpos = trace.start + owner\GetAimVector! * 128
     trace.filter = owner
+    TraceLine( trace )
 
-    traceResult = TraceLine( trace )
     unless traceResult.Hit
         return
 
