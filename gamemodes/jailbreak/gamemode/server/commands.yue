@@ -335,6 +335,10 @@ do
         unless item
             return
 
+        unless @IsInBuyZone!
+            @SendNotify( "#jb.shop.not-in-buy-zone", NOTIFY_ERROR, 5 )
+            return
+
         unless CanWardenAfford( item.price )
             @SendNotify( "#jb.shop.not-enough-coins", NOTIFY_ERROR, 5 )
             return

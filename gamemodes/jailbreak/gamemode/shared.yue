@@ -122,6 +122,7 @@ do
     -- Extra Stuff
     Jailbreak.AllowPlayersLoseConsciousness = CreateConVar( "jb_allow_players_lose_consciousness", "1", FCVAR_SHARED, "Allow players to lose consciousness.", 0, 1 )
     Jailbreak.RagdollLootingTime = CreateConVar( "jb_ragdoll_looting_time", "4", FCVAR_SHARED, "Time to looting a ragdoll in seconds.", 0, 300 )
+    Jailbreak.BuyZones = CreateConVar( "jb_buy_zones", "0", FCVAR_SHARED, "Makes the purchase of items possible only in the buy zone.", 0, 1 )
     Jailbreak.FoodEatingTime = CreateConVar( "jb_food_eating_time", "2.5", FCVAR_SHARED, "Time to eat food in seconds.", 0, 300 )
 
 do

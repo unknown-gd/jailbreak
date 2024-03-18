@@ -703,6 +703,16 @@ PLAYER.IsSpawning = =>
 
 do
 
+    :BuyZones = Jailbreak
+
+    PLAYER.IsInBuyZone = =>
+        if BuyZones\GetBool!
+            return GetNW2Bool( @, "in-buy-zone" )
+
+        return true
+
+do
+
     MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
     :GetMoveType = ENTITY
 
