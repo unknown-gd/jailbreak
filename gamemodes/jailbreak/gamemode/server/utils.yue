@@ -206,15 +206,6 @@ do
         table.Empty( shopItems )
         Run( "ShopItems", Jailbreak.AddShopItem )
 
--- Clear observe targets
-do
-
-    :ObserveTargets = Jailbreak
-
-    Jailbreak.ClearObserveTargets = ->
-        for key in pairs( ObserveTargets )
-            ObserveTargets[ key ] = nil
-
 -- Cleanup's map safely
 do
 
@@ -308,6 +299,11 @@ do
                 return true
 
             return false
+
+        -- Clear observe targets
+        Jailbreak.ClearObserveTargets = ->
+            for key in pairs( ObserveTargets )
+                ObserveTargets[ key ] = nil
 
     -- Returns true if door entity is locked
     ENTITY.IsDoorLocked = =>

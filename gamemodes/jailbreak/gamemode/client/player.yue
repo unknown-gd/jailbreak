@@ -5,12 +5,6 @@ drive = drive
 :Run = hook
 GM = GM
 
-unless Jailbreak.ViewEntity
-    Jailbreak.ViewEntity = NULL
-
-unless Jailbreak.Player
-    Jailbreak.Player = NULL
-
 GM.ShouldDrawLocalPlayer = ( ply ) =>
     if ply ~= Jailbreak.ViewEntity
         if Jailbreak.PlayingTaunt
@@ -50,8 +44,6 @@ do
     boneID = 0
 
     GM.CalcView = ( ply, origin, angles, fov, znear, zfar ) =>
-        Jailbreak.Player = ply
-
         view.origin = origin
         view.angles = angles
         view.fov = fov
@@ -257,11 +249,12 @@ do
     MATERIAL_CULLMODE_CCW = MATERIAL_CULLMODE_CCW
     MATERIAL_CULLMODE_CW = MATERIAL_CULLMODE_CW
     :DrawModel = FindMetaTable( "Entity" )
+    :GetHands = FindMetaTable( "Player" )
     :CullMode = render
 
     GM.PostDrawViewModel = ( vm, ply, weapon ) =>
         if weapon.UseHands or not weapon\IsScripted!
-            hands = ply\GetHands!
+            hands = GetHands( ply )
             if hands and hands\IsValid! and hands\GetParent!\IsValid!
                 unless Run( "PreDrawPlayerHands", hands, vm, ply, weapon )
                     if weapon.ViewModelFlip

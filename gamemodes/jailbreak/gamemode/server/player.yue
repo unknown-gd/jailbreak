@@ -9,7 +9,6 @@ vector_origin = vector_origin
 :Create = ents
 
 OBS_MODE_ROAMING = OBS_MODE_ROAMING
-OBS_MODE_CHASE = OBS_MODE_CHASE
 NULL = NULL
 
 PLAYER, ENTITY = FindMetaTable( "Player" ), FindMetaTable( "Entity" )
@@ -266,32 +265,41 @@ PLAYER.ObserveEntity = ( entity ) =>
 do
 
     :ObserveTargets = Jailbreak
+    index, length = 0, 0
 
-    PLAYER.MoveObserveIndex = ( move, players ) =>
-        if @Alive! or #ObserveTargets == 0
+    PLAYER.MoveObserveIndex = ( step, players ) =>
+        length = #ObserveTargets
+        if length == 0
             return
 
-        index, length = ( @LastSpectatedIndex or 0 ) + move, #ObserveTargets
+        index = ( @LastSpectatedIndex or 0 ) + step
         if index > length
             index = 1
         elseif index < 1
             index = length
 
         entity = ObserveTargets[ index ]
-        if entity\IsPlayer! or entity\IsRagdoll!
-            @ObserveEntity( entity )
-        else
-
+        unless entity\IsValid!
             if @GetObserverMode! ~= OBS_MODE_ROAMING
                 @Spectate( OBS_MODE_ROAMING )
 
-            angles = entity\GetAngles!
-            angles[ 3 ] = 0
-
-            @SetEyeAngles( angles )
-            @SetPos( entity\GetPos! )
+            @LastSpectatedIndex = 0
+            return
 
         @LastSpectatedIndex = index
+
+        if entity\IsPlayer! or entity\IsRagdoll!
+            @ObserveEntity( entity )
+            return
+
+        if @GetObserverMode! ~= OBS_MODE_ROAMING
+            @Spectate( OBS_MODE_ROAMING )
+
+        angles = entity\GetAngles!
+        angles[ 3 ] = 0
+
+        @SetEyeAngles( angles )
+        @SetPos( entity\GetPos! )
 
 PLAYER.UsingMegaphone = =>
     return @IsWarden! and @GetInfo( "jb_megaphone" ) == "1"
@@ -827,7 +835,6 @@ do
 do
 
     :PrecacheModel, :IsValidModel = util
-    :SetupHands = PLAYER
     :SetModel = ENTITY
 
     PLAYER.SetModel = ( modelPath ) =>
@@ -836,7 +843,7 @@ do
             PrecacheModel( modelPath )
             SetModel( @, modelPath )
             Run( "PlayerModelChanged", @, modelPath )
-            SetupHands( @ )
+            @SetupHands!
             return true
 
         return false

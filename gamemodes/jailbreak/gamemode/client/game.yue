@@ -3,22 +3,27 @@ Jailbreak = Jailbreak
 :format = string
 GM = GM
 
+Jailbreak.TauntFraction = Jailbreak.TauntFraction or 0
+Jailbreak.PlayingTaunt = Jailbreak.PlayingTaunt or false
+Jailbreak.ViewEntity = Jailbreak.ViewEntity or NULL
+Jailbreak.Player = Jailbreak.Player or NULL
+
+hook.Add "RenderScene", "Jailbreak::PlayerInitialized", ->
+    hook.Remove "RenderScene", "Jailbreak::PlayerInitialized"
+    unless Jailbreak.Player\IsValid!
+        ply = LocalPlayer!
+        Jailbreak.Player = ply
+        Jailbreak.PlayerIndex = ply\EntIndex!
+        hook.Run( "PlayerInitialized", ply )
+        return true
+
+GM.PlayerInitialized = =>
+    RunConsoleCommand( "dsp_player", "1" )
+    RunConsoleCommand( "dsp_room", "1" )
+
 GM.InitPostEntity = =>
-    Jailbreak.PlayingTaunt = false
-    Jailbreak.TauntFraction = 0
-
-    ply = LocalPlayer!
-    Jailbreak.Player = ply
-    Jailbreak.PlayerIndex = ply\EntIndex!
-
-    timer.Simple 0.25, ->
-        RunConsoleCommand( "dsp_player", "1" )
-        RunConsoleCommand( "dsp_room", "1" )
-
     timer.Simple 1, ->
         RunConsoleCommand( "r_flushlod" )
-
-    return
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )

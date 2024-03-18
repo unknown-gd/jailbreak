@@ -400,6 +400,7 @@ Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
         Add "Think", entity, =>
             unless @IsPlayerHolding!
                 @Remove!
+                return
 
         entity = entity.Ragdoll
         unless IsValid( entity )

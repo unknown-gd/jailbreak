@@ -233,11 +233,14 @@ do
 
     GM.PlayerSetHandsModel = ( ply, hands ) =>
         info = TranslatePlayerHands( TranslateToPlayerModelName( ply\GetModel! ) )
-        if info ~= nil
-            hands\SetModel( info.model )
-            hands\SetBodyGroups( info.body )
-            hands\SetPlayerColor( ply\GetPlayerColor! )
-            hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
+        if info == nil
+            return
+
+        hands\SetModel( info.model )
+        hands\SetBodyGroups( info.body )
+        hands\SetPlayerColor( ply\GetPlayerColor! )
+        hands\SetSkin( info.matchBodySkin and ply\GetSkin! or info.skin )
+        return
 
 -- https://wiki.facepunch.com/gmod/GM:DoPlayerDeath
 do
@@ -364,35 +367,35 @@ do
             return
 
         if MovementKeys[ key ]
-            if ply\GetObserverMode! == OBS_MODE_ROAMING
-                return
+            if ply\GetObserverMode! ~= OBS_MODE_ROAMING
+                ply\ObserveEntity!
 
-            eyeAngles = ply\EyeAngles!
-
-            ply\Spectate( OBS_MODE_ROAMING )
-            ply\SpectateEntity!
-
-            ply\SetEyeAngles( eyeAngles )
             return
 
-        switch key
-            when IN_ATTACK
-                ply\MoveObserveIndex( 1 )
+        if key == IN_ATTACK
+            ply\MoveObserveIndex( 1 )
+            return
 
-            when IN_ATTACK2
-                ply\MoveObserveIndex( -1 )
+        if key == IN_ATTACK2
+            ply\MoveObserveIndex( -1 )
+            return
 
-            when IN_JUMP
-                target = ply\GetObserverTarget!
-                unless target\IsValid! and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
-                    return
+        if key == IN_JUMP
+            target = ply\GetObserverTarget!
+            unless target\IsValid! and ( ( target\IsPlayer! and target\Alive! ) or target\IsNPC! )
+                return
 
-                switch ply\GetObserverMode!
-                    when OBS_MODE_CHASE
-                        ply\Spectate( OBS_MODE_IN_EYE )
+            observerMode = ply\GetObserverMode!
+            if observerMode == OBS_MODE_CHASE
+                ply\Spectate( OBS_MODE_IN_EYE )
+                ply\SetupHands( target )
+                return
 
-                    when OBS_MODE_IN_EYE
-                        ply\Spectate( OBS_MODE_CHASE )
+            ply\RemoveHands!
+
+            if observerMode == OBS_MODE_IN_EYE
+                ply\Spectate( OBS_MODE_CHASE )
+                return
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
