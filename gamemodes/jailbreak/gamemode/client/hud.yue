@@ -150,7 +150,6 @@ do
 do
 
     :VoiceChatMinDistance, :GetWeaponName, :IsProp, :FoodEatingTime, :RagdollLootingTime = Jailbreak
-    OBS_MODE_IN_EYE = OBS_MODE_IN_EYE
     :ScreenToVector = gui
     :CursorVisible = vgui
     :GetCursorPos = input
