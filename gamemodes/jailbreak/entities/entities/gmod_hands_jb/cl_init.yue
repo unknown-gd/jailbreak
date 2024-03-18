@@ -1,0 +1,5 @@
+include( "shared.lua" )
+
+:DrawModel = FindMetaTable( "Entity" )
+ENT.DrawTranslucent = DrawModel
+ENT.Draw = DrawModel

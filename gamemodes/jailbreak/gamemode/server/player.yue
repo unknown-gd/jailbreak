@@ -246,21 +246,21 @@ do
                 @PlaySound( soundPath )
 
 PLAYER.ObserveEntity = ( entity ) =>
-    if @Alive!
-        @UnSpectate!
-        return
-
-    unless entity and entity\IsValid!
-        if @GetObserverMode! ~= OBS_MODE_ROAMING
-            @Spectate( OBS_MODE_ROAMING )
-
-        return
-
-    if @GetObserverTarget! ~= entity
-        @SpectateEntity( entity )
-
-    if @GetObserverMode! ~= OBS_MODE_CHASE
+    if entity and entity\IsValid!
         @Spectate( OBS_MODE_CHASE )
+        @SpectateEntity( entity )
+        return
+
+    eyeAngles = @EyeAngles!
+    @SpectateEntity!
+    @Spectate( OBS_MODE_ROAMING )
+    @SetEyeAngles( eyeAngles )
+    return
+
+PLAYER.StopObserve = =>
+    @SpectateEntity!
+    @SetObserverMode( OBS_MODE_NONE )
+    @UnSpectate!
 
 do
 
@@ -672,8 +672,7 @@ do
                     return
 
                 if ragdoll\IsValid!
-                    @Spectate( OBS_MODE_CHASE )
-                    @SpectateEntity( ragdoll )
+                    @ObserveEntity( ragdoll )
                     return
 
                 @Spectate( OBS_MODE_ROAMING )
@@ -831,6 +830,20 @@ do
         tryFixPosition( @, entity, origin )
         entity\PhysWake!
         return entity
+
+PLAYER.SetupHands = ( ply ) =>
+    hands = Create( "gmod_hands_jb" )
+    if hands and hands\IsValid!
+        hands\DoSetup( @, ply )
+        hands\Spawn!
+
+    return hands
+
+PLAYER.RemoveHands = =>
+    hands = @GetHands!
+    if hands and hands\IsValid!
+        hands\Remove!
+        return
 
 do
 

@@ -403,8 +403,7 @@ do
         if ragdoll\IsValid! and ragdoll\Alive!
             @SetNW2Bool( "lost-consciousness", false )
             @SpawnFromRagdoll( ragdoll, true, true )
-            @SpectateEntity!
-            @SetObserverMode( OBS_MODE_NONE )
+            @StopObserve!
             @SetNoDraw( false )
             @DrawWorldModel( true )
             @SetNotSolid( false )
@@ -424,6 +423,5 @@ do
             @DrawWorldModel( false )
             @SetNoDraw( true )
             @SetNotSolid( true )
-            @SetObserverMode( OBS_MODE_CHASE )
-            @SpectateEntity( ragdoll )
+            @ObserveEntity( ragdoll )
             @SetNW2Bool( "lost-consciousness", true )
