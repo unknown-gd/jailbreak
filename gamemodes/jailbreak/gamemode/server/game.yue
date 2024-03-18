@@ -392,8 +392,6 @@ do
                 ply\SetupHands( target )
                 return
 
-            ply\RemoveHands!
-
             if observerMode == OBS_MODE_IN_EYE
                 ply\Spectate( OBS_MODE_CHASE )
                 return
