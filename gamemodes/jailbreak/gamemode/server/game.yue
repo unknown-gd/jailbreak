@@ -291,7 +291,6 @@ GM.PostPlayerDeath = ( ply ) =>
     ply\ResetToggles!
     ply\Extinguish!
     ply\DropObject!
-    ply\RemoveHands!
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do

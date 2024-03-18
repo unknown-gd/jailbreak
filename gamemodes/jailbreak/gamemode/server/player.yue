@@ -831,20 +831,6 @@ do
         entity\PhysWake!
         return entity
 
-PLAYER.SetupHands = ( ply ) =>
-    hands = Create( "gmod_hands_jb" )
-    if hands and hands\IsValid!
-        hands\DoSetup( @, ply )
-        hands\Spawn!
-
-    return hands
-
-PLAYER.RemoveHands = =>
-    hands = @GetHands!
-    if hands and hands\IsValid!
-        hands\Remove!
-        return
-
 do
 
     :PrecacheModel, :IsValidModel = util
