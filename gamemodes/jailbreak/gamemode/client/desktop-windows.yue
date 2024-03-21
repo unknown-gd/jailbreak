@@ -381,21 +381,19 @@ Set "DesktopWindows", "warden-shop", {
 
 }
 
-
 do
 
-    :AllowCustomPlayerModels, :PlayerModel, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
+    :AllowCustomPlayerModels, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
     previewOffset = Vector( -100, 0, -61 )
 
     :PlayerModels, :FixModelPath = Jailbreak
-    :GetCursorPos = input
     :TranslatePlayerModel = player_manager
     ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
     vector_origin = vector_origin
     angle_zero = angle_zero
+    :GetCursorPos = input
     tostring = tostring
     :concat = table
-    Model = Model
 
     Set "DesktopWindows", "player-options", {
         title: "#jb.player.options"
@@ -465,7 +463,7 @@ do
                 do
 
                     selectModel = =>
-                        RunConsoleCommand( PlayerModel\GetName!, @ModelName )
+                        RunConsoleCommand( "cl_playermodel", @ModelName )
 
                     openMenu = =>
                         menu = DermaMenu!
@@ -623,12 +621,15 @@ do
 
                 -- Player Model
                 SetupModel = ( modelName ) ->
+                    unless scrollPanel\IsValid!
+                        return
+
                     scrollPanel\Clear!
 
                     unless modelPreview\IsValid!
                         return
 
-                    modelPreview\SetModel( Model( FixModelPath( TranslatePlayerModel( modelName ) ) ) )
+                    modelPreview\SetModel( FixModelPath( TranslatePlayerModel( modelName ) ) )
 
                     previewEntity = modelPreview.Entity
                     unless previewEntity
@@ -693,11 +694,10 @@ do
                     if sequence > 0
                         previewEntity\ResetSequence( sequence )
 
-                cvars.AddChangeCallback( PlayerModel\GetName!, ( _, __, modelName ) ->
+                hook.Add "PlayerModelChanged", window, ( _, modelName ) ->
                     SetupModel( modelName )
-                "player-editor" )
 
-                SetupModel( PlayerModel\GetString! )
+                SetupModel( Jailbreak.DesiredPlayerModel )
 
             -- Options Tab
             do

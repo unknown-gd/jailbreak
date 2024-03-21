@@ -271,3 +271,19 @@ do
             materials[ materialPath ] = Material( materialPath, parameters )
 
         return materials[ materialPath ]
+
+do
+
+    :AllowCustomPlayerModels, :PlayerModels, :IsFemalePrison = Jailbreak
+    :TranslateToPlayerModelName = player_manager
+    :random = math
+
+    Jailbreak.FormatPlayerModelRequest = ( modelName ) ->
+        if AllowCustomPlayerModels\GetBool!
+            return modelName
+
+        models = PlayerModels[ Jailbreak.Player\Team! ][ IsFemalePrison! ]
+        if #models == 0 or models[ modelName ]
+            return modelName
+
+        return TranslateToPlayerModelName( models[ random( 1, #models ) ] )

@@ -28,10 +28,13 @@ do
     }
 
     GM.HUDShouldDraw = ( name ) =>
-        if sourceHUD[ name ] or ( Jailbreak.PlayingTaunt and name == "CHudWeaponSelection" )
-            return false
+        if Jailbreak.DrawHUD
+            if sourceHUD[ name ] or Jailbreak.PlayingTaunt and name == "CHudWeaponSelection"
+                return false
 
-        return true
+            return true
+
+        return false
 
 do
 
@@ -71,6 +74,9 @@ do
     Jailbreak.Font( "Jailbreak::RoundState", "Roboto Mono Medium", 4 )
 
     Add "HUDPaint", "Jailbreak::RoundInfo", ->
+        unless Jailbreak.DrawHUD
+            return
+
         state = GetRoundState!
         if state == ROUND_RUNNING
             return
@@ -137,6 +143,9 @@ do
     view = { "type": "3D" }
 
     GM.HUDPaint = =>
+        unless Jailbreak.DrawHUD
+            return
+
         Start( view )
         Run( "HUDPaint3D" )
         End3D!
@@ -1214,7 +1223,6 @@ do
 
 do
 
-
     PANEL = {}
 
     PANEL.Init = =>
@@ -1222,8 +1230,8 @@ do
         @Power = @Add( "Jailbreak::HUDPower" )
         @Ammo = @Add( "Jailbreak::HUDAmmo" )
         @Dock( BOTTOM )
-
         @InvalidateLayout( true )
+        @SetVisible( Jailbreak.DrawHUD )
 
     PANEL.PerformLayout = =>
         margin = VMin( 1 )

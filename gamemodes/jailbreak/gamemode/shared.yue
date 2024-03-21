@@ -180,6 +180,7 @@ include( "shared/utils.lua" )
 
 do
 
+    :TranslateToPlayerModelName = player_manager
     :FixModelPath = Jailbreak
     :PrecacheModel = util
 
@@ -188,29 +189,34 @@ do
         modelPath = FixModelPath( str )
         PrecacheModel( modelPath )
         femaleGuards[] = modelPath
+        femaleGuards[ TranslateToPlayerModelName( modelPath ) ] = modelPath
 
     maleGuards = {}
     for str in *GuardMaleModels
         modelPath = FixModelPath( str )
         PrecacheModel( modelPath )
         maleGuards[] = modelPath
+        maleGuards[ TranslateToPlayerModelName( modelPath ) ] = modelPath
 
     femalePrisoners = {}
     for i = 1, 6
         modelPath = FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
         PrecacheModel( modelPath )
         femalePrisoners[] = modelPath
+        femalePrisoners[ TranslateToPlayerModelName( modelPath ) ] = modelPath
 
     malePrisoners = {}
     for i = 1, 9
         modelPath = FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
         PrecacheModel( modelPath )
         malePrisoners[] = modelPath
+        malePrisoners[ TranslateToPlayerModelName( modelPath ) ] = modelPath
 
     for i = 2, 8, 2
         modelPath = FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
         PrecacheModel( modelPath )
         malePrisoners[] = modelPath
+        malePrisoners[ TranslateToPlayerModelName( modelPath ) ] = modelPath
 
     Jailbreak.PlayerModels = {
         [ TEAM_GUARD ]: {

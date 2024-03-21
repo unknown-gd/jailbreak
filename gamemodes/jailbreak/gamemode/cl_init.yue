@@ -21,17 +21,35 @@ do
 
 do
 
-    cl_playermodel = GetConVar( "cl_playermodel" )
-    Jailbreak.PlayerModel = cl_playermodel
+    RunConsoleCommand = RunConsoleCommand
+    GetConVar = GetConVar
 
-    do
+    Jailbreak.DrawHUD = GetConVar( "cl_drawhud" )\GetBool!
 
-        RunConsoleCommand = RunConsoleCommand
+    cvars.AddChangeCallback( "cl_drawhud", ( _, __, value ) ->
+        Jailbreak.DrawHUD = value ~= "0"
 
-        cvars.AddChangeCallback( cl_playermodel\GetName!, ->
-            RunConsoleCommand( "cl_playerbodygroups", "0" )
-            RunConsoleCommand( "cl_playerskin", "0" )
-        "Jailbreak::PlayerModel" )
+        panel = Jailbreak.HUD
+        if panel and panel\IsValid!
+            panel\SetVisible( Jailbreak.DrawHUD )
+
+    "Jailbreak::DrawHUD" )
+
+    Jailbreak.DesiredPlayerModel = GetConVar( "cl_playermodel" )\GetString!
+
+    cvars.AddChangeCallback( "cl_playermodel", ( _, __, value ) ->
+        RunConsoleCommand( "cl_playerbodygroups", "0" )
+        RunConsoleCommand( "cl_playerskin", "0" )
+
+        modelName = Jailbreak.FormatPlayerModelRequest( value )
+        Jailbreak.DesiredPlayerModel = modelName
+
+        if modelName ~= value
+            RunConsoleCommand( "cl_playermodel", modelName )
+
+        hook.Run( "PlayerModelChanged", modelName )
+        return
+    "Jailbreak::PlayerModel" )
 
 -- Utils
 include( "client/utils.lua" )

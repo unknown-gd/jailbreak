@@ -22,8 +22,7 @@ GM.PlayerInitialized = =>
     RunConsoleCommand( "dsp_room", "1" )
 
 GM.InitPostEntity = =>
-    timer.Simple 1, ->
-        RunConsoleCommand( "r_flushlod" )
+    RunConsoleCommand( "r_flushlod" )
 
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
