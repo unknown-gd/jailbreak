@@ -35,7 +35,16 @@ do
 
     "Jailbreak::DrawHUD" )
 
-    Jailbreak.DesiredPlayerModel = GetConVar( "cl_playermodel" )\GetString!
+    do
+
+        value = cvars.String( "cl_playermodel" )
+
+        modelName = Jailbreak.FormatPlayerModelRequest( value )
+        Jailbreak.DesiredPlayerModel = modelName
+
+        if modelName ~= value
+            RunConsoleCommand( "cl_playermodel", modelName )
+            hook.Run( "PlayerModelChanged", modelName )
 
     cvars.AddChangeCallback( "cl_playermodel", ( _, __, value ) ->
         RunConsoleCommand( "cl_playerbodygroups", "0" )
