@@ -1,8 +1,9 @@
 Jailbreak = Jailbreak
 
+:ceil, :min, :max, :random = math
 GetGlobal2Bool = GetGlobal2Bool
 GetGlobal2Int = GetGlobal2Int
-:ceil, :min, :max = math
+:PlayerModels = Jailbreak
 :Run, :Add = hook
 :Iterator = player
 CurTime = CurTime
@@ -234,18 +235,6 @@ do
     Jailbreak.CanWardenAfford = ( value ) ->
         return getWardenCoins! >= value
 
--- Returns true if female prison is enabled
-do
-
-    :date = os
-
-    Jailbreak.IsFemalePrison = ->
-        if GetGlobal2Bool( "female-prison" )
-            return true
-
-        result = date( "!*t" )
-        return result.month == 3 and result.day == 8
-
 -- Delayed entity remove
 Jailbreak.DelayedRemove = ( delay ) =>
     Simple delay or 0, ->
@@ -262,6 +251,41 @@ Jailbreak.TF2Team = ( teamID ) ->
             return TEAM_GUARD
 
     return TEAM_SPECTATOR
+
+-- Returns true if female prison is enabled
+do
+
+    :date = os
+
+    Jailbreak.IsFemalePrison = ->
+        if GetGlobal2Bool( "female-prison" )
+            return true
+
+        result = date( "!*t" )
+        return result.month == 3 and result.day == 8
+
+do
+
+    :AllowCustomPlayerModels, :IsFemalePrison = Jailbreak
+    :TranslateToPlayerModelName = player_manager
+
+    isFemalePrison = false
+
+    Jailbreak.FormatPlayerModelName = ( modelName ) ->
+        if AllowCustomPlayerModels\GetBool!
+            return modelName
+
+        isFemalePrison = IsFemalePrison!
+
+        models = PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+        if #models == 0 or models[ modelName ]
+            return modelName
+
+        models = PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+        if #models == 0 or models[ modelName ]
+            return modelName
+
+        return TranslateToPlayerModelName( models[ random( 1, #models ) ] )
 
 ENTITY = FindMetaTable( "Entity" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
@@ -324,7 +348,6 @@ do
 
     EffectData = EffectData
     :Effect = util
-    :random = math
 
     ENTITY.DoElectricSparks = ( origin, pitch, noSound ) =>
         unless origin
@@ -448,24 +471,17 @@ do
 
     :GetModel = ENTITY
 
-    do
-
-        models = nil
-
-        Simple 0, ->
-            models = Jailbreak.PlayerModels
-
-        ENTITY.IsFemaleModel = =>
-            teamModels = models[ @Team! ]
-            unless teamModels
-                return false
-
-            model = lower( GetModel( @ ) )
-            for modelPath in *teamModels[ true ]
-                if modelPath == model
-                    return true
-
+    ENTITY.IsFemaleModel = =>
+        teamModels = PlayerModels[ @Team! ]
+        unless teamModels
             return false
+
+        model = lower( GetModel( @ ) )
+        for modelPath in *teamModels[ true ]
+            if modelPath == model
+                return true
+
+        return false
 
     paintCans = {
         "models/props_junk/metal_paintcan001a.mdl": true

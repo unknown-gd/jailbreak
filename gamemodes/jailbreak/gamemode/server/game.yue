@@ -164,9 +164,11 @@ do
     :TranslatePlayerModel = player_manager
     :match = string
 
+    length = 0
+
     GM.PlayerSetModel = ( ply ) =>
-        requested = TranslatePlayerModel( ply\GetInfo( "cl_playermodel" ) )
-        if AllowCustomPlayerModels\GetBool! and ply\SetModel( requested )
+        modelPath = TranslatePlayerModel( ply\GetInfo( "jb_playermodel" ) )
+        if AllowCustomPlayerModels\GetBool! and ply\SetModel( modelPath )
             return
 
         models = PlayerModels[ ply\Team! ][ IsFemalePrison! ]
@@ -176,12 +178,12 @@ do
             ply\SetModel( models[ 1 ] )
             return
 
-        requestedName = match( requested, "([%w%_%-]+)%.mdl$" )
+        requestedName = match( modelPath, "([%w%_%-]+)%.mdl$" )
         for index = 1, length
-            if ( models[ index ] == requested or match( models[ index ], "([%w%_%-]+)%.mdl$" ) == requestedName ) and ply\SetModel( models[ index ] )
+            if ( models[ index ] == modelPath or match( models[ index ], "([%w%_%-]+)%.mdl$" ) == requestedName ) and ply\SetModel( models[ index ] )
                 return
 
-        ply\SetModel( models[ random( 1, #models ) ] )
+        ply\SetModel( models[ random( 1, length ) ] )
 
 do
 
@@ -200,10 +202,10 @@ do
                 ply\SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
 
         else
-            ply\SetSkin( ply\GetInfoNum( "cl_playerskin", 0 ) )
+            ply\SetSkin( ply\GetInfoNum( "jb_playerskin", 0 ) )
 
             -- Model bodygroups setup
-            groups = Explode( " ", ply\GetInfo( "cl_playerbodygroups" ) or "" )
+            groups = Explode( " ", ply\GetInfo( "jb_playerbodygroups" ) or "" )
             for i = 0, ply\GetNumBodyGroups! - 1 do
                 ply\SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
 

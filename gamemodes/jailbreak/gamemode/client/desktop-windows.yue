@@ -383,7 +383,7 @@ Set "DesktopWindows", "warden-shop", {
 
 do
 
-    :AllowCustomPlayerModels, :PlayerColor, :PlayerWeaponColor, :PlayerSkin, :PlayerBodyGroups = Jailbreak
+    :AllowCustomPlayerModels, :PlayerColor, :PlayerWeaponColor, :PlayerModel, :PlayerSkin, :PlayerBodyGroups = Jailbreak
     previewOffset = Vector( -100, 0, -61 )
 
     :PlayerModels, :FixModelPath = Jailbreak
@@ -463,7 +463,7 @@ do
                 do
 
                     selectModel = =>
-                        RunConsoleCommand( "cl_playermodel", @ModelName )
+                        PlayerModel\SetString( @ModelName )
 
                     openMenu = =>
                         menu = DermaMenu!

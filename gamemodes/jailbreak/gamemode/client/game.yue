@@ -35,6 +35,48 @@ GM.PostProcessPermitted = =>
 
 do
 
+    Jailbreak.DrawHUD = GetConVar( "cl_drawhud" )\GetBool!
+
+    cvars.AddChangeCallback( "cl_drawhud", ( _, __, value ) ->
+        Jailbreak.DrawHUD = value ~= "0"
+
+        panel = Jailbreak.HUD
+        if panel and panel\IsValid!
+            panel\SetVisible( Jailbreak.DrawHUD )
+
+    "Jailbreak::DrawHUD" )
+
+do
+
+    :PlayerModel = Jailbreak
+
+    do
+
+        requestedName = PlayerModel\GetString!
+
+        modelName = Jailbreak.FormatPlayerModelName( requestedName )
+        Jailbreak.DesiredPlayerModel = modelName
+
+        if modelName ~= requestedName
+            PlayerModel\SetString( modelName )
+            hook.Run( "PlayerModelChanged", modelName )
+
+    cvars.AddChangeCallback( PlayerModel\GetName!, ( _, __, requestedName ) ->
+        Jailbreak.PlayerBodyGroups\SetInt( 0 )
+        Jailbreak.PlayerSkin\SetInt( 0 )
+
+        modelName = Jailbreak.FormatPlayerModelName( requestedName )
+        Jailbreak.DesiredPlayerModel = modelName
+
+        if modelName ~= requestedName
+            PlayerModel\SetString( modelName )
+
+        hook.Run( "PlayerModelChanged", modelName )
+        return
+    "Jailbreak::PlayerModel" )
+
+do
+
     IsFirstTimePredicted = IsFirstTimePredicted
     :LookupKeyBinding, :IsKeyDown = input
 
