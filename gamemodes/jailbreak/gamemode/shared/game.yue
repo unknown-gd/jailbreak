@@ -134,7 +134,7 @@ do
 
     GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
         if hitGroup == HITGROUP_HEAD and jb_instant_kill_on_headshot\GetBool!
-            damageInfo\SetDamage( entity\Health! + 1 )
+            damageInfo\SetDamage( ply\Health! + 1 )
         else
             Run( "ScaleHitGroupDamage", hitGroup, damageInfo )
 
