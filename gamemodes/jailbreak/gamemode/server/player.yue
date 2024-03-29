@@ -257,11 +257,6 @@ PLAYER.ObserveEntity = ( entity ) =>
     @SetEyeAngles( eyeAngles )
     return
 
-PLAYER.StopObserve = =>
-    @SpectateEntity!
-    @SetObserverMode( OBS_MODE_NONE )
-    @UnSpectate!
-
 do
 
     :ObserveTargets = Jailbreak
@@ -684,7 +679,7 @@ do
         @SetEyeAngles( ragdoll.PlayerAngles or angle_zero )
 
         if ignoreHealth ~= true
-            @SetHealth( @GetMaxHealth! * ( ragdoll\Health! / ragdoll\GetMaxHealth! ) )
+            @SetHealth( @GetMaxHealth! * Clamp( ( ragdoll\Health! - ( ragdoll\GetMaxHealth! * 0.75 ) / ( ragdoll\GetMaxHealth! * 0.25 ) ), 0, 1 ) )
             @SetArmor( @GetMaxArmor! * ( ( ragdoll.Armor or 0 ) / ( ragdoll.MaxArmor or 100 ) ) )
 
         @SetPlayerColor( ragdoll\GetPlayerColor! )
