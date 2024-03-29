@@ -1307,7 +1307,7 @@ do
             @SetAlpha( min( @GetAlpha! + FrameTime! * 255, 255 ) )
 
     PANEL.PerformLayout = =>
-        @DockMargin( 0, 0, 0, VMin( 0.25 ) )
+        @DockMargin( 0, 0, 0, VMin( 0.2 ) )
 
         margin = VMin( 0.5 )
         @DockPadding( margin, margin, margin, margin )
@@ -1316,7 +1316,7 @@ do
         height = margin + textHeight + margin
         @SetTall( height )
 
-        @ProgressHeight = VMin( 0.05 )
+        @ProgressHeight = VMin( 0.2 )
 
         @Label\DockMargin( margin, 0, 0, 0 )
         @Icon\SetWide( textHeight )
