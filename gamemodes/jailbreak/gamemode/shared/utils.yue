@@ -717,6 +717,9 @@ do
 PLAYER.IsSpawning = =>
     return Alive( @ ) and GetNW2Bool( @, "is-spawning" )
 
+PLAYER.IsEscaped = =>
+    return GetNW2Bool( @, "escaped" )
+
 do
 
     :BuyZones = Jailbreak

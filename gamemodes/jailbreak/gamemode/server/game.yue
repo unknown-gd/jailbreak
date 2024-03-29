@@ -669,7 +669,7 @@ hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", =>
     @m_tGivedAmmo = nil
 
 GM.WeaponEquip = ( weapon, owner ) =>
-    unless owner\IsGuard!
+    unless owner\IsGuard! or owner\IsEscaped!
         return
 
     givedAmmo = owner.m_tGivedAmmo

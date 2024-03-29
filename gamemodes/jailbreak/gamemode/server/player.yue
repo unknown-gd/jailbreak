@@ -874,3 +874,7 @@ do
             if Give( @, className, false )\IsValid!
                 gived[ className ] = true
                 count -= 1
+
+PLAYER.SetEscaped = ( state ) =>
+    SetNW2Bool( @, "escaped", state )
+    return
