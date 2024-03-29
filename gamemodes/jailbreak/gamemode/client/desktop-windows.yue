@@ -696,8 +696,9 @@ do
 
                 hook.Add "PlayerModelChanged", window, ( _, modelName ) ->
                     SetupModel( modelName )
+                    return
 
-                SetupModel( Jailbreak.DesiredPlayerModel )
+                SetupModel( Jailbreak.SelectedPlayerModel )
 
             -- Options Tab
             do

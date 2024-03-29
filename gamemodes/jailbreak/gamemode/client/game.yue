@@ -55,7 +55,7 @@ do
         requestedName = PlayerModel\GetString!
 
         modelName = Jailbreak.FormatPlayerModelName( requestedName )
-        Jailbreak.DesiredPlayerModel = modelName
+        Jailbreak.SelectedPlayerModel = modelName
 
         if modelName ~= requestedName
             PlayerModel\SetString( modelName )
@@ -66,7 +66,7 @@ do
         Jailbreak.PlayerSkin\SetInt( 0 )
 
         modelName = Jailbreak.FormatPlayerModelName( requestedName )
-        Jailbreak.DesiredPlayerModel = modelName
+        Jailbreak.SelectedPlayerModel = modelName
 
         if modelName ~= requestedName
             PlayerModel\SetString( modelName )
