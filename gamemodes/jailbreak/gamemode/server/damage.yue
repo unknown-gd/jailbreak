@@ -28,10 +28,7 @@ do
             return
 
         attacker = damageInfo\GetAttacker!
-        unless IsValid( attacker ) and attacker\IsPlayer! and attacker\ShockCollarIsEnabled!
-            return
-
-        if attacker == ply
+        if not ( IsValid( attacker ) and attacker\IsPlayer! and attacker\ShockCollarIsEnabled! ) or attacker == ply
             return
 
         damage, damageType = damageInfo\GetDamage!, damageInfo\GetDamageType!
@@ -288,7 +285,7 @@ do
     cache = {}
 
     GM.PropTakeDamage = ( entity, damageInfo ) =>
-        if entity.CustomHealth == nil
+        if entity.m_bCustomHealth == nil
             if entity\GetMaxHealth! == 1 and entity\Health! == 0
                 health = cache[ entity\GetModel! ]
                 unless health
@@ -298,11 +295,10 @@ do
 
                 entity\SetHealth( health )
                 entity\SetMaxHealth( health )
-                entity.CustomHealth = true
-            else
-                entity.CustomHealth = false
 
-        unless entity.CustomHealth
+            entity.m_bCustomHealth = true
+
+        unless entity.m_bCustomHealth
             return
 
         health = max( 0, entity\Health! - damageInfo\GetDamage! )
@@ -453,7 +449,7 @@ do
         if damageInfo\IsCrushDamage!
             damageInfo\SetDamageForce( vector_origin )
 
-            damage = floor( damageInfo\GetDamage! * 0.25 )
+            damage = floor( damageInfo\GetDamage! * 0.1 )
             if damage > 100
                 damage = 100
 
