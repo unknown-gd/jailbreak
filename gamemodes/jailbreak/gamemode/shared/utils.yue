@@ -705,14 +705,23 @@ do
 
     :GetAmmoCount = PLAYER
     :GetAmmoMax = game
+    count = 0
 
     getAmmoMax = ( ammoType ) ->
-        return max( 0, min( 256, GetAmmoMax( ammoType ) ) )
+        count = GetAmmoMax( ammoType )
+        if count < 0 or count > 256
+            return 256
+
+        return count
 
     Jailbreak.GetAmmoMax = getAmmoMax
 
     PLAYER.GetPickupAmmoCount = ( ammoType ) =>
-        return max( 0, getAmmoMax( ammoType ) - GetAmmoCount( @, ammoType ) )
+        count = getAmmoMax( ammoType ) - GetAmmoCount( @, ammoType )
+        if count < 0
+            return 0
+
+        return count
 
 PLAYER.IsSpawning = =>
     return Alive( @ ) and GetNW2Bool( @, "is-spawning" )
