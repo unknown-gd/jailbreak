@@ -89,6 +89,8 @@ do
 -- https://wiki.facepunch.com/gmod/GM:ScalePlayerDamage
 do
 
+    HITGROUP_HEAD = HITGROUP_HEAD
+
     hitGroups = {
         [ HITGROUP_GENERIC ]: 1
         [ HITGROUP_HEAD ]: 5
@@ -101,17 +103,21 @@ do
         [ HITGROUP_GEAR ]: 0.25
     }
 
+    jb_instant_kill_on_headshot = nil
+
     do
 
-        conVarFlags = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+        FCVAR_FLAGS = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
         CreateConVar = CreateConVar
         :AddChangeCallback = cvars
         tostring = tostring
         tonumber = tonumber
 
+        jb_instant_kill_on_headshot = CreateConVar( "jb_instant_kill_on_headshot", "0", FCVAR_FLAGS, "If true, players will always be instantly killed on headshots.", 0, 1 )
+
         for index, default in pairs( hitGroups )
             conVarName = "jb_hitgroup" .. index .. "_scale"
-            hitGroups[ index ] = CreateConVar( conVarName, tostring( default ), conVarFlags, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 )\GetFloat!
+            hitGroups[ index ] = CreateConVar( conVarName, tostring( default ), FCVAR_FLAGS, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 )\GetFloat!
             AddChangeCallback( conVarName, ( _, __, str ) ->
                 hitGroups[ index ] = tonumber( str ) or 0
             "Jailbreak::HitGroups" )
@@ -127,7 +133,10 @@ do
                 damageInfo\ScaleDamage( damageScale )
 
     GM.ScalePlayerDamage = ( ply, hitGroup, damageInfo ) =>
-        Run( "ScaleHitGroupDamage", hitGroup, damageInfo )
+        if hitGroup == HITGROUP_HEAD and jb_instant_kill_on_headshot\GetBool!
+            damageInfo\SetDamage( entity\Health! + 1 )
+        else
+            Run( "ScaleHitGroupDamage", hitGroup, damageInfo )
 
         if CLIENT and Run( "CanPlayerTakeDamage", ply, damageInfo, ply\Team! ) ~= true
             return true
