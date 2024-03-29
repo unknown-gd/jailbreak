@@ -285,6 +285,9 @@ do
     cache = {}
 
     GM.PropTakeDamage = ( entity, damageInfo ) =>
+        if damageInfo\IsCrushDamage!
+            damageInfo\SetDamageForce( vector_origin )
+
         if entity.m_bCustomHealth == nil
             if entity\GetMaxHealth! == 1 and entity\Health! == 0
                 health = cache[ entity\GetModel! ]
