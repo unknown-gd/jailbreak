@@ -519,12 +519,7 @@ GM.PlayerUse = ( ply, entity ) =>
     if ply\IsHoldingEntity!
         return false
 
-    weapon = ply\GetActiveWeapon!
-    if weapon\IsValid! and weapon\GetHoldType! == "fist" and entity\IsPlayer!
-        velocity = ply\GetVelocity!
-        velocity = velocity\GetNormalized! * ( velocity\Length2D! / 2 )
-        entity\SetVelocity( velocity * 2 )
-        ply\SetVelocity( -velocity )
+    if entity\IsPlayer!
         return false
 
     curTime, lastUseTime = CurTime!, ply.LastUseTime or 0

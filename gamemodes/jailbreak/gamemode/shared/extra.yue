@@ -6,6 +6,7 @@ SERVER = SERVER
 CLIENT = CLIENT
 :Add = hook
 
+:GetVelocity, :SetVelocity = CMOVEDATA
 :GetNW2Var, :SetNW2Var = ENTITY
 :Alive = PLAYER
 
@@ -41,9 +42,9 @@ Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
 --     elseif @HasDoubleJump and mv\KeyPressed( IN_JUMP )
 --         @HasDoubleJump = false
 
---         velocity = mv\GetVelocity!
+--         velocity = GetVelocity( mv )
 --         velocity[ 3 ] = @GetJumpPower! * 2
---         mv\SetVelocity( velocity )
+--         SetVelocity( mv, velocity )
 
 -- Player can't take damage in death animation
 Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
@@ -80,7 +81,7 @@ do
                 SetNW2Var( @, "in-flight", false )
 
         elseif GetNW2Var( @, "in-flight" )
-            velocity = mv\GetVelocity!
+            velocity = GetVelocity( mv )
             angles = mv\GetMoveAngles!
 
             buttons = mv\GetButtons!
@@ -128,7 +129,7 @@ do
 
             velocity[ 3 ] += ( @GetGravity! + 1 ) * sv_gravity\GetFloat! * 0.5 * frameTime
 
-            mv\SetVelocity( velocity )
+            SetVelocity( mv, velocity )
             mv\SetButtons( buttons )
 
         elseif not CLIENT and mv\KeyPressed( IN_JUMP )
@@ -182,3 +183,39 @@ do
         if Alive( @ ) and GetObserverMode( @ ) ~= OBS_MODE_NONE
             return false
 
+do
+
+    :Length2D, :SetUnpacked = VECTOR
+    speed = 0
+
+    Add "Move", "Jailbreak::PlayerPush", ( mv ) =>
+        target = GetNW2Var( @, "push-target" )
+        if target and target\IsValid! and target\Alive!
+            velocity = GetVelocity( mv )
+
+            speed, direction = Length2D( velocity ), nil
+            if speed == 0
+                speed, direction = @GetWalkSpeed!, @GetAimVector!
+            else
+                direction = velocity\GetNormalized!
+                SetUnpacked( velocity, velocity[ 1 ] * 0.5, velocity[ 2 ] * 0.5, velocity[ 3 ] )
+                SetVelocity( mv, velocity )
+
+            @m_vPushVelocity = direction * speed
+            return
+
+        pusher = GetNW2Var( @, "pushing-player" )
+        if pusher and pusher\IsValid! and pusher\Alive!
+            if SERVER and @GetPos!\DistToSqr( pusher\GetPos! ) > 5184
+                SetNW2Var( pusher, "push-target", nil )
+                SetNW2Var( @, "pushing-player", nil )
+                return
+
+            pushVelocity = pusher.m_vPushVelocity
+            unless pushVelocity
+                return
+
+            pushVelocity *= 1.125
+            pushVelocity[ 3 ] = GetVelocity( mv )[ 3 ]
+            SetVelocity( mv, pushVelocity )
+            return

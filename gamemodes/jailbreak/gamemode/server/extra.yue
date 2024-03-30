@@ -708,3 +708,34 @@ do
 
     Add "PlayerInitialized", "Jailbreak::Connect Effect", spawnEffect
     Add "PostPlayerSpawn", "Jailbreak::Spawn Effect", spawnEffect
+
+do
+
+    IN_USE = IN_USE
+
+    Add "KeyPress", "Jailbreak::PlayerPush", ( ply, key ) ->
+        if key ~= IN_USE or not ply\Alive!
+            return
+
+        weapon = ply\GetActiveWeapon!
+        unless weapon\IsValid! and weapon\GetHoldType! == "fist"
+            return
+
+        target = ply\GetUseEntity!
+        unless IsValid( target ) and target\IsPlayer! and target\Alive!
+            return
+
+        SetNW2Var( ply, "push-target", target )
+        SetNW2Var( target, "pushing-player", ply )
+        return
+
+    Add "KeyRelease", "Jailbreak::PlayerPush", ( ply, key ) ->
+        if key ~= IN_USE
+            return
+
+        target = GetNW2Var( ply, "push-target" )
+        if target and IsValid( target )
+            SetNW2Var( target, "pushing-player", nil )
+
+        SetNW2Var( ply, "push-target", nil )
+        return
