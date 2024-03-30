@@ -177,6 +177,7 @@ do
     targetIDClasses = Jailbreak.TargetIDClasses
     unless targetIDClasses
         targetIDClasses = {
+            func_door_rotating: true
             prop_door_rotating: true
             sent_soccerball: true
             prop_ragdoll: true
@@ -435,7 +436,7 @@ do
             else
 
                 className = entity\GetClass!
-                if className == "prop_door_rotating"
+                if className == "prop_door_rotating" or className == "func_door_rotating"
                     if entity\IsDoorLocked!
                         text = "#jb.player.door-locked"
                     elseif entity\GetDoorState! == 0

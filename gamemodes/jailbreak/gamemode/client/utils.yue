@@ -4,6 +4,7 @@ ENTITY = ENTITY
 PLAYER = PLAYER
 :max = math
 :Run = hook
+:GetNW2Var = ENTITY
 
 do
 
@@ -166,15 +167,11 @@ do
 
         Run( "PlayerSpawn", ply )
 
-do
+PLAYER.GetSpawnTime = =>
+    return @m_fSpawnTime or GetNW2Var( @, "spawn-time", 0 )
 
-    :GetNW2Int = ENTITY
-
-    PLAYER.GetSpawnTime = =>
-        return @m_fSpawnTime or GetNW2Int( @, "spawn-time" )
-
-    PLAYER.GetAliveTime = =>
-        return CurTime! - ( @m_fSpawnTime or GetNW2Int( @, "spawn-time" ) )
+PLAYER.GetAliveTime = =>
+    return CurTime! - ( @m_fSpawnTime or GetNW2Var( @, "spawn-time", 0 ) )
 
 PLAYER.VoiceFraction = =>
     return @m_fVoiceFraction or 0
@@ -201,11 +198,11 @@ do
 
     -- Returns true if door entity is locked
     ENTITY.IsDoorLocked = =>
-        return @GetNW2Bool( "m_bLocked" )
+        return GetNW2Var( @, "m_bLocked", false )
 
     -- Returns door entity state
     ENTITY.GetDoorState = =>
-        return @GetNW2Int( "m_eDoorState" )
+        return GetNW2Var( @, "m_eDoorState", 0 )
 
     -- Returns true if entity is local player
     ENTITY.IsLocalPlayer = =>

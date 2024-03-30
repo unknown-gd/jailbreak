@@ -30,14 +30,10 @@ SWEP.UseDoor = ( open ) =>
         return
 
     className = entity\GetClass!
-    if className == "prop_door_rotating"
+    if className == "prop_door_rotating" or className == "func_door_rotating"
         unless owner\HasSecurityKeys!
-            if entity\IsDoorLocked!
-                entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
-                owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true )
-            else
-                entity\Use( owner, owner )
-
+            entity\EmitSound( "physics/wood/wood_crate_impact_hard2.wav", 100, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
+            owner\AnimRestartNetworkedGesture( GESTURE_SLOT_ATTACK_AND_RELOAD, ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true )
             return
 
         if open ~= entity\IsDoorLocked! or entity\GetDoorState! ~= 0

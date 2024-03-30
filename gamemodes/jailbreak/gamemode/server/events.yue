@@ -401,7 +401,7 @@ do
         for entity in *ents.FindByClass( "prop_door_rotating" )
             entity\Fire( "Open" )
 
-        for entity in *ents.FindByClass( "func_door" )
+        for entity in *ents.FindByClass( "func_door*" )
             entity\Fire( "Open" )
 
         return true, true,

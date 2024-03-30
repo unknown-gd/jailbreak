@@ -375,7 +375,7 @@ do
     state = 0
 
     timer.Create "Jailbreak::DoorState", 0.25, 0, ->
-        for _, entity in ipairs( FindByClass( "prop_door_rotating" ) )
+        for entity in *FindByClass( "prop_door_rotating" )
             state = GetDoorState( entity )
             if GetNW2Var( entity, "m_eDoorState" ) ~= state
                 SetNW2Var( entity, "m_eDoorState", state )

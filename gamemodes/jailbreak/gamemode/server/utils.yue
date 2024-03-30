@@ -312,7 +312,10 @@ do
 
     -- Returns door entity state
     ENTITY.GetDoorState = =>
+        if GetClass( @ ) == "prop_door_rotating"
             return GetInternalVariable( @, "m_eDoorState" )
+
+        return 0
 
 -- Set entity team
 ENTITY.SetTeam = ( teamID ) =>
@@ -397,15 +400,18 @@ do
     :lower = string
 
     GM.AcceptInput = ( entity, key ) =>
-        if entity\GetClass! == "prop_door_rotating"
+        className = GetClass( entity )
+        if className == "prop_door_rotating" or className == "func_door_rotating"
             switch lower( key )
                 when "lock"
                     entity\SetNW2Bool( "m_bLocked", true )
+
                 when "unlock"
                     entity\SetNW2Bool( "m_bLocked", false )
 
     GM.EntityKeyValue = ( entity, key, value ) =>
-        if entity\GetClass! == "prop_door_rotating" and lower( key ) == "m_bLocked"
+        className = GetClass( entity )
+        if ( className == "prop_door_rotating" or className == "func_door_rotating" ) and lower( key ) == "m_bLocked"
             entity\SetNW2Bool( key, tobool( value ) )
 
 do
