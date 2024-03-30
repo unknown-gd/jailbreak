@@ -96,7 +96,12 @@ do
     PLAYER_ATTACK1 = PLAYER_ATTACK1
     CHAN_STATIC = CHAN_STATIC
 
+    seqFinish, delay, combo = 0, 0, 0
+
     SWEP.PrimaryAttack = ( right ) =>
+        if @Pulls
+            return
+
         if @GetHoldType! == "normal"
             if SERVER
                 @UseDoor( false )
@@ -104,9 +109,6 @@ do
             return
 
         if @GetNextIdle! == 0
-            return
-
-        if @Pulls
             return
 
         owner = @GetOwner!
@@ -127,6 +129,9 @@ do
         @SetNextIdle( seqFinish )
 
 SWEP.SecondaryAttack = =>
+    if @Pulls
+        return
+
     if @GetHoldType! ~= "normal"
         @PrimaryAttack( true )
     elseif SERVER
@@ -213,43 +218,46 @@ SWEP.Holster = ( weapon ) =>
     @SetNextIdle( 0 )
     return true
 
-SWEP.Think = =>
-    if @GetHoldType! ~= "fist"
+curTime = 0
+
+do
+
+    idletime, meleetime = 0, 0
+
+    SWEP.Think = =>
+        if @GetHoldType! ~= "fist" or @Pulls
+            return
+
+        curTime = CurTime!
+
+        idletime = @GetNextIdle!
+        if idletime > 0 and curTime > idletime
+            @SetNextIdle( @PlaySequence( "fists_idle_0" .. random( 1, 2 ) ) )
+
+        meleetime = @GetNextMeleeAttack!
+        if meleetime > 0 and curTime > meleetime
+            @SetNextMeleeAttack( 0 )
+            @DealDamage!
+
+        if SERVER and curTime > @GetNextPrimaryFire! + 0.1
+            @SetCombo( 0 )
+
+do
+
+    lastReload = 0
+
+    SWEP.Reload = =>
+        curTime = CurTime!
+
+        lastReload = @m_fLastReload or curTime
+        @m_fLastReload = curTime
+
+        if ( curTime - lastReload ) <= 0.25 or @Pulls
+            return
+
+        if @GetHoldType! == "normal"
+            @Show!
+            return
+
+        @Hide!
         return
-
-    if @Pulls
-        return
-
-    curTime = CurTime!
-
-    idletime = @GetNextIdle!
-    if idletime > 0 and curTime > idletime
-        @SetNextIdle( @PlaySequence( "fists_idle_0" .. random( 1, 2 ) ) )
-
-    meleetime = @GetNextMeleeAttack!
-    if meleetime > 0 and curTime > meleetime
-        @SetNextMeleeAttack( 0 )
-        @DealDamage!
-
-    if SERVER and curTime > @GetNextPrimaryFire! + 0.1
-        @SetCombo( 0 )
-
-SWEP.Reload = =>
-    if CLIENT
-        return
-
-    curTime, lastReload = CurTime!, @LastReload or 0
-    @LastReload = curTime
-
-    if curTime - lastReload <= 0.025
-        return
-
-    if @Pulls
-        return
-
-    if @GetHoldType! == "normal"
-        @Show!
-        return
-
-    @Hide!
-    return
