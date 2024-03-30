@@ -32,6 +32,19 @@ global PICKUP_AMMO = 2
 global PICKUP_HEALTH = 3
 global PICKUP_ARMOR = 4
 
+do
+
+    global CTAKE_DAMAGE_INFO = FindMetaTable( "CTakeDamageInfo" )
+    global IMATERIAL = FindMetaTable( "IMaterial" )
+    global CMOVEDATA = FindMetaTable( "CMoveData" )
+    global CUSERCMD = FindMetaTable( "CUserCmd" )
+    global PANEL_META = FindMetaTable( "Panel" )
+    global ENTITY = FindMetaTable( "Entity" )
+    global PLAYER = FindMetaTable( "Player" )
+    global WEAPON = FindMetaTable( "Weapon" )
+    global VECTOR = FindMetaTable( "Vector" )
+    global ANGLE = FindMetaTable( "Angle" )
+
 macro lua = ( code ) -> {
     :code
     type: "lua"

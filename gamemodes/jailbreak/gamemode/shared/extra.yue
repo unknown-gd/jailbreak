@@ -1,6 +1,13 @@
 Jailbreak = Jailbreak
+CurTime = CurTime
+ENTITY = ENTITY
+PLAYER = PLAYER
+SERVER = SERVER
 CLIENT = CLIENT
 :Add = hook
+
+:GetNW2Var, :SetNW2Var = ENTITY
+:Alive = PLAYER
 
 -- Disallow player shoot on marker setup
 do
@@ -9,19 +16,19 @@ do
     IN_WALK = IN_WALK
 
     Add "StartCommand", "Jailbreak::Markers", ( cmd ) =>
-        if @Alive! and cmd\KeyDown( IN_WALK )
+        if Alive( @ ) and cmd\KeyDown( IN_WALK )
             cmd\RemoveKey( IN_ATTACK )
             cmd\RemoveKey( IN_ATTACK2 )
 
 -- Silly death animations
 Add "AllowPlayerMove", "Jailbreak::Death Animations", =>
-    if @GetNW2Int( "death-animation" ) == 0
+    if GetNW2Var( @, "death-animation" ) == 0
         return
 
     return false
 
 Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
-    if @GetNW2Int( "death-animation" ) ~= 0
+    if GetNW2Var( @, "death-animation" ) ~= 0
         return false
 
 -- -- TF2 Double Jump
@@ -40,7 +47,7 @@ Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
 
 -- Player can't take damage in death animation
 Add "CanPlayerTakeDamage", "Jailbreak::Death Animations", =>
-    if @GetNW2Int( "death-animation" ) == 2
+    if GetNW2Var( @, "death-animation" ) == 2
         return false
 
 -- Developer features
@@ -56,22 +63,23 @@ do
 
     sv_gravity = GetConVar( "sv_gravity" )
     FrameTime = FrameTime
+    :IsOnGround = ENTITY
     Lerp = Lerp
     :band = bit
     :abs = math
 
     Add "Move", "Jailbreak::Developer", ( mv ) =>
         unless @IsFlightAllowed!
-            if not CLIENT and @GetNW2Bool( "in-flight" )
-                @SetNW2Bool( "in-flight", false )
+            if not CLIENT and GetNW2Var( @, "in-flight" )
+                SetNW2Var( @, "in-flight", false )
 
             return
 
-        if @IsOnGround!
-            if not CLIENT and @GetNW2Bool( "in-flight" )
-                @SetNW2Bool( "in-flight", false )
+        if IsOnGround( @ )
+            if not CLIENT and GetNW2Var( @, "in-flight" )
+                SetNW2Var( @, "in-flight", false )
 
-        elseif @GetNW2Bool( "in-flight" )
+        elseif GetNW2Var( @, "in-flight" )
             velocity = mv\GetVelocity!
             angles = mv\GetMoveAngles!
 
@@ -124,24 +132,18 @@ do
             mv\SetButtons( buttons )
 
         elseif not CLIENT and mv\KeyPressed( IN_JUMP )
-            @SetNW2Bool( "in-flight", true )
+            SetNW2Var( @, "in-flight", true )
 
-do
+Add "Move", "Jailbreak::weapon_stunstick", ( mv ) =>
+    shockTime = GetNW2Var( @, "shock-time" )
+    if not shockTime or CurTime! > shockTime
+        return
 
-    CurTime = CurTime
-
-    Add "Move", "Jailbreak::weapon_stunstick", ( mv ) =>
-        shockTime = @GetNW2Int( "shock-time" )
-        if shockTime == 0 or CurTime! > shockTime
-            return
-
-        mv\SetMaxSpeed( @GetWalkSpeed! / 4 )
+    mv\SetMaxSpeed( @GetWalkSpeed! / 4 )
 
 Add "PlayerEmitSound", "Jailbreak::SilentDeath", ( data ) =>
-    unless @Alive!
+    unless Alive( @ )
         return false
-
-PLAYER = FindMetaTable( "Player" )
 
 -- Block player movement while spawning
 do
@@ -173,9 +175,10 @@ do
 -- Block player movement while player in spectator mode
 do
 
-    :Alive, :GetObserverMode = PLAYER
     OBS_MODE_NONE = OBS_MODE_NONE
+    :GetObserverMode = PLAYER
 
     Add "AllowPlayerMove", "Jailbreak::AliveSpectator", =>
         if Alive( @ ) and GetObserverMode( @ ) ~= OBS_MODE_NONE
             return false
+

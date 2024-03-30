@@ -1,5 +1,7 @@
 Jailbreak = Jailbreak
 :Simple = timer
+ENTITY = ENTITY
+PLAYER = PLAYER
 :max = math
 :Run = hook
 
@@ -146,58 +148,52 @@ do
 
         ply.m_fVoiceFraction = 0
 
-ENTITY = FindMetaTable( "Entity" )
+do
+
+    gameevent.Listen( "player_spawn" )
+    Player = Player
+
+    hook.Add "player_spawn", "Jailbreak::SpawnEffect", ( data ) ->
+        ply = Player( data.userid )
+        unless ply and ply\IsValid!
+            return
+
+        pl = Jailbreak.Player
+        if pl\IsValid!
+            ply.m_fSpawnTime = CurTime! + pl\Ping! / 1000
+        else
+            ply.m_fSpawnTime = CurTime! + 0.25
+
+        Run( "PlayerSpawn", ply )
 
 do
 
-    PLAYER = FindMetaTable( "Player" )
+    :GetNW2Int = ENTITY
 
-    do
+    PLAYER.GetSpawnTime = =>
+        return @m_fSpawnTime or GetNW2Int( @, "spawn-time" )
 
-        gameevent.Listen( "player_spawn" )
-        Player = Player
+    PLAYER.GetAliveTime = =>
+        return CurTime! - ( @m_fSpawnTime or GetNW2Int( @, "spawn-time" ) )
 
-        hook.Add "player_spawn", "Jailbreak::SpawnEffect", ( data ) ->
-            ply = Player( data.userid )
-            unless ply and ply\IsValid!
-                return
+PLAYER.VoiceFraction = =>
+    return @m_fVoiceFraction or 0
 
-            pl = Jailbreak.Player
-            if pl\IsValid!
-                ply.m_fSpawnTime = CurTime! + pl\Ping! / 1000
-            else
-                ply.m_fSpawnTime = CurTime! + 0.25
+do
 
-            Run( "PlayerSpawn", ply )
+    isfunction = isfunction
 
-    do
+    PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished ) =>
+        sequenceID = @SelectWeightedSequence( activity )
+        if sequenceID < 0
+            return
 
-        :GetNW2Int = ENTITY
+        if isfunction( finished )
+            Simple @SequenceDuration( sequenceID ), ->
+                if @IsValid!
+                    finished( @ )
 
-        PLAYER.GetSpawnTime = =>
-            return @m_fSpawnTime or GetNW2Int( @, "spawn-time" )
-
-        PLAYER.GetAliveTime = =>
-            return CurTime! - ( @m_fSpawnTime or GetNW2Int( @, "spawn-time" ) )
-
-    PLAYER.VoiceFraction = =>
-        return @m_fVoiceFraction or 0
-
-    do
-
-        isfunction = isfunction
-
-        PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished ) =>
-            sequenceID = @SelectWeightedSequence( activity )
-            if sequenceID < 0
-                return
-
-            if isfunction( finished )
-                Simple @SequenceDuration( sequenceID ), ->
-                    if @IsValid!
-                        finished( @ )
-
-            @AnimRestartGesture( slot, activity, autokill )
+        @AnimRestartGesture( slot, activity, autokill )
 
 do
 
@@ -248,8 +244,8 @@ do
 -- Pure performance
 do
 
-    :GetPlayerColor = FindMetaTable( "Entity" )
-    :SetVector = FindMetaTable( "IMaterial" )
+    :GetPlayerColor = ENTITY
+    :SetVector = IMATERIAL
 
     matproxy.Add {
         name: "PlayerColor"

@@ -1,27 +1,23 @@
+ENTITY, PLAYER = ENTITY, PLAYER
 Jailbreak = Jailbreak
 
 :Clamp, :Rand, :random, :min, :max, :floor = math
-PLAYER, ENTITY = FindMetaTable( "Player" ), FindMetaTable( "Entity" )
-:SetNW2Bool, :IsValid = ENTITY
+:IsValid, :GetNW2Var, :SetNW2Var = ENTITY
 :FixModelPath = Jailbreak
 :Alive, :IsBot = PLAYER
 :IsValidModel = util
 :Simple = timer
 :Add = hook
 
-do
+Add( "PlayerPostThink", "Jailbreak::SecurityRadio", =>
+    if Alive( @ ) and not IsBot( @ )
+        state = @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
+        if state == GetNW2Var( @, "using-security-radio" )
+            return
 
-    :GetNW2Bool = ENTITY
+        SetNW2Var( @, "using-security-radio", state )
 
-    Add( "PlayerPostThink", "Jailbreak::SecurityRadio", =>
-        if Alive( @ ) and not IsBot( @ )
-            state = @HasSecurityRadio! and @GetInfo( "jb_security_radio" ) == "1"
-            if state == GetNW2Bool( @, "using-security-radio" )
-                return
-
-            SetNW2Bool( @, "using-security-radio", state )
-
-    PRE_HOOK )
+PRE_HOOK )
 
 Simple 0, ->
     :Call = hook
@@ -211,7 +207,7 @@ do
 
         Simple 0, ->
             if IsValid( @ ) and IsFoodModel( @GetModel! )
-                SetNW2Bool( @, "is-food", true )
+                SetNW2Var( @, "is-food", true )
 
     cache = {}
 
@@ -264,7 +260,7 @@ do
     :band = bit
 
     Add "PlayerTakeDamage", "Jailbreak::Death Animations", ( damageInfo, teamID ) =>
-        if not DeathAnimations\GetBool! or @GetNW2Int( "death-animation" ) == 1
+        if not DeathAnimations\GetBool! or GetNW2Var( @, "death-animation" ) == 1
             return
 
         damage = damageInfo\GetDamage!
@@ -288,16 +284,16 @@ do
         reportedOrigin = damageInfo\GetReportedPosition!
         origin = damageInfo\GetDamagePosition!
 
-        @SetNW2Int( "death-animation", 2 )
+        SetNW2Var( @, "death-animation", 2 )
         @SetNotSolid( true )
         @SetHealth( 0 )
         @DropToFloor!
 
         @AnimRestartNetworkedGesture GESTURE_SLOT_CUSTOM, ACT_GMOD_DEATH, true, =>
-            if @GetNW2Int( "death-animation" ) ~= 2
+            if GetNW2Var( @, "death-animation" ) ~= 2
                 return
 
-            @SetNW2Int( "death-animation", 1 )
+            SetNW2Var( @, "death-animation", 1 )
             @SetNotSolid( false )
 
             if Alive( @ )
@@ -320,13 +316,13 @@ do
 
                 @TakeDamageInfo( damageInfo )
 
-            @SetNW2Int( "death-animation", 0 ),
+            SetNW2Var( @, "death-animation", 0 ),
             Rand( 0.1, 0.25 )
 
         return true
 
     Add "PlayerSpawn", "Jailbreak::Death Animations", =>
-        @SetNW2Int( "death-animation", 0 )
+        SetNW2Var( @, "death-animation", 0 )
 
 -- Guard Death
 do
@@ -373,16 +369,16 @@ do
 -- Door hacks
 do
 
-    :GetInternalVariable, :GetNW2Int, :SetNW2Int = ENTITY
+    :GetDoorState = ENTITY
     :FindByClass = ents
     ipairs = ipairs
     state = 0
 
     timer.Create "Jailbreak::DoorState", 0.25, 0, ->
         for _, entity in ipairs( FindByClass( "prop_door_rotating" ) )
-            state = GetInternalVariable( entity, "m_eDoorState" )
-            if GetNW2Int( entity, "m_eDoorState" ) ~= state
-                SetNW2Int( entity, "m_eDoorState", state )
+            state = GetDoorState( entity )
+            if GetNW2Var( entity, "m_eDoorState" ) ~= state
+                SetNW2Var( entity, "m_eDoorState", state )
                 if state ~= 0 and entity\IsDoorLocked!
                     entity\Fire( "unlock" )
 
@@ -392,7 +388,7 @@ Add "PlayerInitialSpawn", "Jailbreak::Developer", =>
         return
 
     if @SteamID64! == "76561198100459279"
-        SetNW2Bool( @, "is-developer", true )
+        SetNW2Var( @, "is-developer", true )
 
 -- Realistic items mass
 Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
@@ -407,7 +403,7 @@ Add "OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", ( entity ) =>
             return
 
     entityMass = entity\GetPhysicsMass!
-    entity\SetNW2Int( "entity-mass", entityMass )
+    SetNW2Var( entity, "entity-mass", entityMass )
     entityMass = 1 / entityMass
 
     slowWalkSpeed = @GetSlowWalkSpeed!

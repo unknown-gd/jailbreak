@@ -173,9 +173,9 @@ if render.GetDXLevel! < 80
     return
 
 :UpdateRefractTexture, :PushCustomClipPlane, :SetColorModulation, :PopCustomClipPlane, :MaterialOverride, :EnableClipping, :GetBlend, :SetBlend = render
-:LocalToWorld, :GetModelRenderBounds = FindMetaTable( "Entity" )
-:GetPlayerColor, :GetSpawnTime = FindMetaTable( "Player" )
-:Dot, :Normalize = FindMetaTable( "Vector" )
+:LocalToWorld, :GetModelRenderBounds = ENTITY
+:GetPlayerColor, :GetSpawnTime = PLAYER
+:Dot, :Normalize = VECTOR
 LerpVector = LerpVector
 CurTime = CurTime
 :Clamp = math

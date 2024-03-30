@@ -8,6 +8,8 @@ GetGlobal2Int = GetGlobal2Int
 :Iterator = player
 CurTime = CurTime
 :Simple = timer
+ENTITY = ENTITY
+PLAYER = PLAYER
 :lower = string
 NULL = NULL
 
@@ -17,7 +19,6 @@ TEAM_GUARD = TEAM_GUARD
 
 CHAN_STATIC = CHAN_STATIC
 
-PLAYER = FindMetaTable( "Player" )
 :Alive, :Team = PLAYER
 
 do
@@ -287,7 +288,6 @@ do
 
         return TranslateToPlayerModelName( models[ random( 1, #models ) ] )
 
-ENTITY = FindMetaTable( "Entity" )
 :GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
 
 -- Returns true if player is jailbreak developer
@@ -394,7 +394,7 @@ do
 
     do
 
-        :ClearMovement, :ClearButtons = FindMetaTable( "CUserCmd" )
+        :ClearMovement, :ClearButtons = CUSERCMD
 
         Add "StartCommand", "Jailbreak::MovementBlocking", ( cmd ) =>
             if Call( "AllowPlayerMove", nil, @ ) == false
@@ -403,7 +403,7 @@ do
 
     do
 
-        :GetVelocity, :SetVelocity = FindMetaTable( "CMoveData" )
+        :GetVelocity, :SetVelocity = CMOVEDATA
         FrameTime = FrameTime
         Lerp = Lerp
 
@@ -419,7 +419,8 @@ do
 -- Returns entity custom color
 do
 
-    :ToColor = FindMetaTable( "Vector" )
+    :ToColor = VECTOR
+
     defaultColor = ToColor( Jailbreak.DefaultPlayerColor )
 
     Add "PlayerColorChanged", "Jailbreak::PlayerColor", ( vector ) =>

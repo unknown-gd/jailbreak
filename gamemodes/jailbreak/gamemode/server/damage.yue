@@ -1,9 +1,9 @@
 Jailbreak = Jailbreak
 
 :ceil, :random, :max, :floor, :Rand = math
-:IsValid = FindMetaTable( "Entity" )
 vector_origin = vector_origin
 CHAN_STATIC = CHAN_STATIC
+:IsValid = ENTITY
 Vector = Vector
 :Create = ents
 Angle = Angle

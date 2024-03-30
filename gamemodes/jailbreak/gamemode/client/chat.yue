@@ -103,7 +103,7 @@ do
 
             return true
 
-        FindMetaTable( "Player" ).ChatPrint = ( text ) =>
+        PLAYER.ChatPrint = ( text ) =>
             buffer[ 1 ] = text
             buffer[ 2 ] = white
             performChatMessage( NULL, CHAT_SERVERMESSAGE, buffer )

@@ -43,9 +43,9 @@ if CLIENT
 
         :SuppressEngineLighting, :SetStencilEnable, :SetStencilWriteMask, :SetStencilTestMask, :SetStencilReferenceValue, :SetStencilCompareFunction, :SetStencilPassOperation, :SetStencilFailOperation, :SetStencilZFailOperation = render
         STENCIL_ALWAYS, STENCIL_KEEP, STENCIL_REPLACE, STENCIL_EQUAL = STENCIL_ALWAYS, STENCIL_KEEP, STENCIL_REPLACE, STENCIL_EQUAL
-        :DrawModel = FindMetaTable( "Entity" )
         :SetDrawColor, :DrawRect = surface
         :Start2D, :End2D = cam
+        :DrawModel = ENTITY
 
         hook.Add "HUDPaint3D", "Jailbreak::Properties", ->
             unless entity\IsValid!

@@ -1,3 +1,4 @@
+ENTITY, PLAYER = ENTITY, PLAYER
 NOTIFY_UNDO = NOTIFY_UNDO
 Jailbreak = Jailbreak
 
@@ -11,7 +12,6 @@ vector_origin = vector_origin
 OBS_MODE_ROAMING = OBS_MODE_ROAMING
 NULL = NULL
 
-PLAYER, ENTITY = FindMetaTable( "Player" ), FindMetaTable( "Entity" )
 PLAYER.ChangeTeam = Jailbreak.ChangeTeam
 :SetNW2Bool = ENTITY
 

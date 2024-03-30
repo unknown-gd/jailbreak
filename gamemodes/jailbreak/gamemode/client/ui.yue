@@ -6,6 +6,7 @@ GM = GM
 :ceil, :min, :max, :floor, :log, :Clamp = math
 :IsGameUIVisible, :HideGameUI = gui
 :Create, :Register = vgui
+PANEL_META = PANEL_META
 :GetPhrase = language
 :IsKeyDown = input
 :Run, :Add = hook
@@ -22,8 +23,6 @@ TEAM_PRISONER = TEAM_PRISONER
 TEAM_GUARD = TEAM_GUARD
 
 :dark_grey, :black, :white, :light_grey = Colors
-
-PANEL_META = FindMetaTable( "Panel" )
 :InvalidateLayout, :GetParent = PANEL_META
 
 do
@@ -829,8 +828,8 @@ do
 
     do
 
-        :GetFriendStatus = FindMetaTable( "Player" )
         :DrawTexturedRect, :SetMaterial = surface
+        :GetFriendStatus = PLAYER
         :Material = Jailbreak
 
         default = Material( "icon16/user.png" )

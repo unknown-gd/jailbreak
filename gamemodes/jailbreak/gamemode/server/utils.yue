@@ -3,11 +3,13 @@ Jailbreak = Jailbreak
 :ceil, :max = math
 IsValid = IsValid
 :Simple = timer
+ENTITY = ENTITY
 pairs = pairs
 :Run = hook
 
 util = util
 :Effect = util
+:GetClass = ENTITY
 
 -- Networking
 util.AddNetworkString( "Jailbreak::Networking" )
@@ -216,114 +218,113 @@ do
         timer_Create "Jailbreak::CleanUpMap", 0.25, 1, ->
             CleanUpMap( false )
 
--- Entity metatable
+-- Returns entity mass in kilograms
 do
 
-    ENTITY = FindMetaTable( "Entity" )
+    :GetPhysicsObjectCount, :GetPhysicsObjectNum = ENTITY
 
-    -- Returns entity mass in kilograms
-    do
+    ENTITY.GetPhysicsMass = =>
+        objectMass = 0
 
-        :GetPhysicsObjectCount, :GetPhysicsObjectNum = ENTITY
+        for physNum = 0, GetPhysicsObjectCount( @ ) - 1
+            phys = GetPhysicsObjectNum( @, physNum )
+            if IsValid( phys )
+                objectMass += phys\GetMass!
 
-        ENTITY.GetPhysicsMass = =>
-            objectMass = 0
+        return ceil( objectMass )
 
-            for physNum = 0, GetPhysicsObjectCount( @ ) - 1
-                phys = GetPhysicsObjectNum( @, physNum )
-                if IsValid( phys )
-                    objectMass += phys\GetMass!
+-- Entity dissolve method
+ENTITY.Dissolve = =>
+    dissolver = ENTITY.Dissolver
+    unless IsValid( dissolver )
+        dissolver = ents.Create( "env_entity_dissolver" )
+        ENTITY.Dissolver = dissolver
 
-            return ceil( objectMass )
+        dissolver\SetKeyValue( "dissolvetype", 0 )
+        dissolver\SetKeyValue( "magnitude", 0 )
+        dissolver\Spawn!
 
-    -- Entity dissolve method
-    ENTITY.Dissolve = =>
-        dissolver = ENTITY.Dissolver
-        unless IsValid( dissolver )
-            dissolver = ents.Create( "env_entity_dissolver" )
-            ENTITY.Dissolver = dissolver
+    unless IsValid( dissolver )
+        return false
 
-            dissolver\SetKeyValue( "dissolvetype", 0 )
-            dissolver\SetKeyValue( "magnitude", 0 )
-            dissolver\Spawn!
+    dissolver\SetPos( @WorldSpaceCenter! )
 
-        unless IsValid( dissolver )
-            return false
+    temporaryName = "dissolver" .. dissolver\EntIndex! .. "_request" .. @EntIndex!
+    @SetName( temporaryName )
 
-        dissolver\SetPos( @WorldSpaceCenter! )
+    dissolver\Fire( "dissolve", temporaryName, 0 )
 
-        temporaryName = "dissolver" .. dissolver\EntIndex! .. "_request" .. @EntIndex!
-        @SetName( temporaryName )
+    timer.Create "Jailbreak::Dissolver", 0.25, 1, ->
+        if @IsValid!
+            @SetName( "" )
 
-        dissolver\Fire( "dissolve", temporaryName, 0 )
+    return true
 
-        timer.Create "Jailbreak::Dissolver", 0.25, 1, ->
-            if @IsValid!
-                @SetName( "" )
+-- Returns true if the entity is valid observe target
+do
 
-        return true
+    :AllowRagdollSpectate = Jailbreak
 
-    -- Returns true if the entity is valid observe target
-    do
+    ENTITY.IsValidObserveTarget = =>
+        if @IsPlayer! and @Alive!
+            return true
 
-        :AllowRagdollSpectate = Jailbreak
+        if @IsPlayerRagdoll!
+            return AllowRagdollSpectate\GetBool!
 
-        ENTITY.IsValidObserveTarget = =>
-            if @IsPlayer! and @Alive!
-                return true
+        return GetClass( @ ) == "info_observer_point"
 
-            if @IsPlayerRagdoll!
-                return AllowRagdollSpectate\GetBool!
+do
 
-            return @GetClass! == "info_observer_point"
+    :ObserveTargets = Jailbreak
+    :remove = table
 
-    do
+    -- Remove the entity from the list of observe targets
+    removeAsObserveTarget = =>
+        for index = 1, #ObserveTargets
+            if ObserveTargets[ index ] == @
+                remove( ObserveTargets, index )
+                break
 
-        :ObserveTargets = Jailbreak
-        :remove = table
+    ENTITY.RemoveFromObserveTargets = removeAsObserveTarget
 
-        -- Remove the entity from the list of observe targets
-        removeAsObserveTarget = =>
-            for index = 1, #ObserveTargets
-                if ObserveTargets[ index ] == @
-                    remove( ObserveTargets, index )
-                    break
+    -- Add the entity to the list of observe targets
+    ENTITY.AddToObserveTargets = =>
+        if @IsValidObserveTarget!
+            removeAsObserveTarget( @ )
+            ObserveTargets[] = @
+            return true
 
-        ENTITY.RemoveFromObserveTargets = removeAsObserveTarget
+        return false
 
-        -- Add the entity to the list of observe targets
-        ENTITY.AddToObserveTargets = =>
-            if @IsValidObserveTarget!
-                removeAsObserveTarget( @ )
-                ObserveTargets[] = @
-                return true
+    -- Clear observe targets
+    Jailbreak.ClearObserveTargets = ->
+        for key in pairs( ObserveTargets )
+            ObserveTargets[ key ] = nil
 
-            return false
+do
 
-        -- Clear observe targets
-        Jailbreak.ClearObserveTargets = ->
-            for key in pairs( ObserveTargets )
-                ObserveTargets[ key ] = nil
+    :GetInternalVariable = ENTITY
 
     -- Returns true if door entity is locked
     ENTITY.IsDoorLocked = =>
-        return @GetInternalVariable( "m_bLocked" )
+        return GetInternalVariable( @, "m_bLocked" )
 
     -- Returns door entity state
     ENTITY.GetDoorState = =>
-        return @GetInternalVariable( "m_eDoorState" )
+            return GetInternalVariable( @, "m_eDoorState" )
 
-    -- Set entity team
-    ENTITY.SetTeam = ( teamID ) =>
-        @SetNW2Int( "player-team", teamID )
+-- Set entity team
+ENTITY.SetTeam = ( teamID ) =>
+    @SetNW2Int( "player-team", teamID )
 
-    ENTITY.SetAlive = ( alive ) =>
-        @SetNW2Bool( "alive", alive )
+ENTITY.SetAlive = ( alive ) =>
+    @SetNW2Bool( "alive", alive )
 
 do
 
-    CTakeDamageInfo = FindMetaTable( "CTakeDamageInfo" )
-    :GetDamageType = CTakeDamageInfo
+    CTAKE_DAMAGE_INFO = CTAKE_DAMAGE_INFO
+    :GetDamageType = CTAKE_DAMAGE_INFO
     :band = bit
 
     -- Returns true if the damage type is never gib damage
@@ -331,7 +332,7 @@ do
 
         DMG_NEVERGIB = DMG_NEVERGIB
 
-        CTakeDamageInfo.IsNeverGibDamage = =>
+        CTAKE_DAMAGE_INFO.IsNeverGibDamage = =>
             return band( GetDamageType( @ ), DMG_NEVERGIB ) == DMG_NEVERGIB
 
     -- Returns true if the damage type is burn damage
@@ -339,7 +340,7 @@ do
 
         DMG_BURN = DMG_BURN
 
-        CTakeDamageInfo.IsBurnDamage = =>
+        CTAKE_DAMAGE_INFO.IsBurnDamage = =>
             return band( GetDamageType( @ ), DMG_BURN ) ~= 0
 
     -- Returns true if the damage type is close range
@@ -347,7 +348,7 @@ do
 
         DMG_CLOSE_RANGE = bit.bor( DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH )
 
-        CTakeDamageInfo.IsCloseRangeDamage = =>
+        CTAKE_DAMAGE_INFO.IsCloseRangeDamage = =>
             return band( GetDamageType( @ ), DMG_CLOSE_RANGE ) ~= 0
 
     -- Returns true if the damage type is dissolve
@@ -355,7 +356,7 @@ do
 
         DMG_DISSOLVE = DMG_DISSOLVE
 
-        CTakeDamageInfo.IsDissolveDamage = =>
+        CTAKE_DAMAGE_INFO.IsDissolveDamage = =>
             return band( GetDamageType( @ ), DMG_DISSOLVE ) == DMG_DISSOLVE
 
 
@@ -366,7 +367,7 @@ do
         damageTypesLength = #damageTypes
         damageType = 0
 
-        CTakeDamageInfo.IsNonPhysicalDamage = =>
+        CTAKE_DAMAGE_INFO.IsNonPhysicalDamage = =>
             damageType = GetDamageType( @ )
             for index = 1, damageTypesLength
                 if band( damageType, damageTypes[ index ] ) ~= 0
@@ -379,7 +380,7 @@ do
 
         DMG_CRUSH = DMG_CRUSH
 
-        CTakeDamageInfo.IsCrushDamage = =>
+        CTAKE_DAMAGE_INFO.IsCrushDamage = =>
             return band( GetDamageType( @ ), DMG_CRUSH ) == DMG_CRUSH
 
     -- Returns true if the damage type is shock damage
@@ -387,7 +388,7 @@ do
 
         DMG_SHOCK = DMG_SHOCK
 
-        CTakeDamageInfo.IsShockDamage = =>
+        CTAKE_DAMAGE_INFO.IsShockDamage = =>
             return band( GetDamageType( @ ), DMG_SHOCK ) == DMG_SHOCK
 
 do

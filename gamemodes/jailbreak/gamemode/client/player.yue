@@ -1,4 +1,4 @@
-:Alive, :IsPlayingTaunt = FindMetaTable( "Player" )
+:Alive, :IsPlayingTaunt = PLAYER
 Jailbreak = Jailbreak
 FrameTime = FrameTime
 drive = drive
@@ -21,12 +21,12 @@ GM.ShouldDrawLocalPlayer = ( ply ) =>
 
 do
 
-    :LookupBone, :GetBonePosition = FindMetaTable( "Entity" )
-    :Forward = FindMetaTable( "Angle" )
+    :LookupBone, :GetBonePosition = ENTITY
     LerpVector = LerpVector
     LerpAngle = LerpAngle
     :TraceHull = util
     :CalcView = drive
+    :Forward = ANGLE
 
     traceResult = {}
     trace = {
@@ -211,7 +211,7 @@ do
 
 do
 
-    :SetViewAngles, :GetMouseX, :GetMouseY, :GetMouseWheel = FindMetaTable( "CUserCmd" )
+    :SetViewAngles, :GetMouseX, :GetMouseY, :GetMouseWheel = CUSERCMD
     :CreateMove = drive
     :Clamp = math
 
@@ -248,8 +248,8 @@ do
 
     MATERIAL_CULLMODE_CCW = MATERIAL_CULLMODE_CCW
     MATERIAL_CULLMODE_CW = MATERIAL_CULLMODE_CW
-    :DrawModel = FindMetaTable( "Entity" )
-    :GetHands = FindMetaTable( "Player" )
+    :DrawModel = ENTITY
+    :GetHands = PLAYER
     :CullMode = render
 
     GM.PostDrawViewModel = ( vm, ply, weapon ) =>

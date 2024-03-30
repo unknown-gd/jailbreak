@@ -226,8 +226,8 @@ GM.PlayerEndVoice = ( ply ) =>
 
 do
 
-    :SetVoiceVolumeScale = FindMetaTable( "Player" )
     :ReadEntity, :ReadFloat, :ReadUInt = net
+    :SetVoiceVolumeScale = PLAYER
 
     net.Receive "JB::Communication", ->
         for i = 1, ReadUInt( 10 )
