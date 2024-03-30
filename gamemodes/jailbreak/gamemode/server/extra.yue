@@ -603,7 +603,7 @@ Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
 
 Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
     attacker = damageInfo\GetAttacker!
-    unless attacker and IsValid( attacker )
+    unless attacker and IsValid( attacker ) and attacker\IsPlayer!
         return
 
     weapon = attacker\GetActiveWeapon!
