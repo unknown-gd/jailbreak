@@ -186,7 +186,9 @@ GM.TeamPlayerDisconnected = ( ply, teamID ) =>
         return
 
     ply\RemoveFromObserveTargets!
-    ply\CreateRagdoll!
+
+    if Jailbreak.IsRoundFinished!
+        ply\CreateRagdoll!
 
 do
 

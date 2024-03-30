@@ -392,9 +392,10 @@ do
         SetGlobal2Bool( "Jailbreak::Hell", true )
 
         for ply in *prisoners
-            ply\SetModel( "models/player/charple.mdl" )
-            ply\GiveRandomWeapons( 3 )
+            ply\SetEscaped( true )
             ply\AllowFlight( true )
+            ply\GiveRandomWeapons( 3 )
+            ply\SetModel( "models/player/charple.mdl" )
 
         for entity in *ents.FindByClass( "prop_door_rotating" )
             entity\Fire( "Open" )

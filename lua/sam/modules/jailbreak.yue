@@ -107,7 +107,7 @@ command.new( "forcewarden" )
 
 	\AddArg( "number", {
 		optional: true
-		hint: "silent"
+		hint: "give/take"
 		default: 1
 		min: 0
 		max: 1

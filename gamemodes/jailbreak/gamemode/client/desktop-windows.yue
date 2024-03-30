@@ -386,10 +386,10 @@ do
     :AllowCustomPlayerModels, :PlayerColor, :PlayerWeaponColor, :PlayerModel, :PlayerSkin, :PlayerBodyGroups = Jailbreak
     previewOffset = Vector( -100, 0, -61 )
 
-    :PlayerModels, :FixModelPath = Jailbreak
     :TranslatePlayerModel = player_manager
     ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
     vector_origin = vector_origin
+    :FixModelPath = Jailbreak
     angle_zero = angle_zero
     :GetCursorPos = input
     tostring = tostring
@@ -493,10 +493,10 @@ do
                         allowedPlayerModels = {}
                         isFemalePrison = Jailbreak.IsFemalePrison!
 
-                        for modelPath in *PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+                        for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
                             allowedPlayerModels[ modelPath ] = true
 
-                        for modelPath in *PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+                        for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
                             allowedPlayerModels[ modelPath ] = true
 
                         for icon in *icons\GetChildren!

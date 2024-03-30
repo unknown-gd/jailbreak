@@ -135,12 +135,13 @@ do
         elseif not CLIENT and mv\KeyPressed( IN_JUMP )
             SetNW2Var( @, "in-flight", true )
 
-Add "Move", "Jailbreak::weapon_stunstick", ( mv ) =>
+Add "Move", "Jailbreak::Shock", ( mv ) =>
     shockTime = GetNW2Var( @, "shock-time" )
     if not shockTime or CurTime! > shockTime
         return
 
     mv\SetMaxSpeed( @GetWalkSpeed! / 4 )
+    return
 
 Add "PlayerEmitSound", "Jailbreak::SilentDeath", ( data ) =>
     unless Alive( @ )
@@ -182,6 +183,10 @@ do
     Add "AllowPlayerMove", "Jailbreak::AliveSpectator", =>
         if Alive( @ ) and GetObserverMode( @ ) ~= OBS_MODE_NONE
             return false
+
+Add "PlayerFootstep", "Jailbreak::LoseConsciousness", ( ply ) ->
+    if GetNW2Var( ply, "lost-consciousness" )
+        return true
 
 do
 

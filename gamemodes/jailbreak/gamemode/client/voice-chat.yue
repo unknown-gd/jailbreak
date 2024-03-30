@@ -316,12 +316,13 @@ do
             return
 
         value = VoiceFlexLess\GetInt!
-        if value == 0
-            return
 
         fraction, angles = ply\VoiceFraction!, angle_zero
         if fraction ~= 0
-            if value <= 2
+            if value == 0
+                angles = Angle!
+
+            elseif value <= 2
                 angles = Angle( Rand( -45, 45 ), Rand( -90, 90 ), 0 ) * fraction
 
             elseif value <= 5

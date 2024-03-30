@@ -3,7 +3,6 @@ Jailbreak = Jailbreak
 :ceil, :min, :max, :random = math
 GetGlobal2Bool = GetGlobal2Bool
 GetGlobal2Int = GetGlobal2Int
-:PlayerModels = Jailbreak
 :Run, :Add = hook
 :Iterator = player
 CurTime = CurTime
@@ -278,11 +277,11 @@ do
 
         isFemalePrison = IsFemalePrison!
 
-        models = PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+        models = Jailbreak.PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
         if #models == 0 or models[ modelName ]
             return modelName
 
-        models = PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+        models = Jailbreak.PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
         if #models == 0 or models[ modelName ]
             return modelName
 
@@ -473,7 +472,7 @@ do
     :GetModel = ENTITY
 
     ENTITY.IsFemaleModel = =>
-        teamModels = PlayerModels[ @Team! ]
+        teamModels = Jailbreak.PlayerModels[ @Team! ]
         unless teamModels
             return false
 

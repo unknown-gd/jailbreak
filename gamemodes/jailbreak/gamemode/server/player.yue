@@ -653,6 +653,7 @@ do
 do
 
     angle_zero = angle_zero
+    :Clamp = math
 
     PLAYER.SpawnFromRagdoll = ( ragdoll, ignoreHealth ) =>
         if @Team! ~= ragdoll\Team!
