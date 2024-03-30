@@ -371,7 +371,6 @@ do
 
     :GetDoorState = ENTITY
     :FindByClass = ents
-    ipairs = ipairs
     state = 0
 
     timer.Create "Jailbreak::DoorState", 0.25, 0, ->
