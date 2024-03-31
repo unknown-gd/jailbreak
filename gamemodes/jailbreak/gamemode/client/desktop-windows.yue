@@ -390,7 +390,6 @@ do
     ACT_HL2MP_IDLE = ACT_HL2MP_IDLE
     vector_origin = vector_origin
     :FixModelPath = Jailbreak
-    angle_zero = angle_zero
     :GetCursorPos = input
     tostring = tostring
     :concat = table
@@ -417,8 +416,8 @@ do
             modelPreview\SetDirectionalLight( BOX_LEFT, Color( 80, 160, 255 ) )
             modelPreview\SetAmbientLight( Vector( -64, -64, -64 ) )
             modelPreview\SetAnimated( true )
-            modelPreview.Angles = angle_zero
             modelPreview\SetLookAt( Vector( -100, 0, -22 ) )
+            modelPreview.Angles = Angle!
 
             modelPreview.DragMousePress = =>
                 @PressX, @PressY = GetCursorPos!

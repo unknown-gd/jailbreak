@@ -4,6 +4,7 @@ GM = GM
 
 :GetClass, :GetTable, :WaterLevel, :IsOnGround, :IsValid, :GetNW2Bool, :IsFlagSet = ENTITY
 :Length = VECTOR
+:Alive = PLAYER
 CLIENT = CLIENT
 :Run = hook
 
@@ -13,9 +14,10 @@ TEAM_GUARD = TEAM_GUARD
 do
 
     :IsRoundPreparing, :GuardsFriendlyFire = Jailbreak
+    :HasGodMode = PLAYER
 
     GM.CanPlayerTakeDamage = ( ply, damageInfo, teamID ) =>
-        if ply\HasGodMode! or not ply\Alive!
+        if HasGodMode( ply ) or not Alive( ply )
             return false
 
         attacker = damageInfo\GetAttacker!
@@ -65,13 +67,13 @@ do
 
         if CLIENT and not ply\IsBot!
             Run "PerformPlayerVoice", ply
-            if ply\Alive!
+            if Alive( ply )
                 Run "MouthMoveAnimation", ply
                 Run "GrabEarAnimation", ply
 
 -- https://wiki.facepunch.com/gmod/GM:ShouldCollide
 GM.ShouldCollide = ( entity, ply ) =>
-    unless ply\IsPlayer! and ply\Alive!
+    unless ply\IsPlayer! and Alive( ply )
         return
 
     if GetClass( entity ) == "func_respawnroomvisualizer" and not entity\IsDisabled!

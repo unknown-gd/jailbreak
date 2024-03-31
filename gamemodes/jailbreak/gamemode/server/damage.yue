@@ -298,8 +298,9 @@ do
 
                 entity\SetHealth( health )
                 entity\SetMaxHealth( health )
-
-            entity.m_bCustomHealth = true
+                entity.m_bCustomHealth = true
+            else
+                entity.m_bCustomHealth = false
 
         unless entity.m_bCustomHealth
             return
