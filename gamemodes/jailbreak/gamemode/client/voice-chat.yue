@@ -331,7 +331,6 @@ do
         if IsSpeaking( ply )
             fraction = VoiceFraction( ply )
 
-        angles = angle_zero
         if fraction > 0.01
             if flexLessMode <= 2
                 SetUnpacked( tempAngle, Rand( -45, 45 ) * fraction, Rand( -90, 90 ) * fraction, 0 )
@@ -344,14 +343,19 @@ do
                 angle = min( 360, flexLessMode * 36 ) * fraction
                 SetUnpacked( tempAngle, Rand( -angle, angle ), Rand( -angle, angle ), Rand( -angle, angle ) )
 
-        angles = LerpAngle( 0.25, ply.MouthLessAngles or angle_zero, angles )
-        ply.MouthLessAngles = angles
+        ply.m_aMouthLessAngles = LerpAngle( 0.25, ply.m_aMouthLessAngles or angle_zero, tempAngle )
 
         if flexLessMode > 1
-            ManipulateBoneAngles( ply, 0, angles, false )
-        else
             boneID = LookupBone( ply, "ValveBiped.Bip01_Head1" )
             if boneID and boneID >= 0
-                ManipulateBoneAngles( ply, boneID, angles, false )
-            else
-                ManipulateBoneAngles( ply, 0, angles, false )
+                ManipulateBoneAngles( ply, boneID, angle_zero, false )
+
+            ManipulateBoneAngles( ply, 0, ply.m_aMouthLessAngles, false )
+            return
+
+        boneID = LookupBone( ply, "ValveBiped.Bip01_Head1" )
+        if boneID and boneID >= 0
+            ManipulateBoneAngles( ply, boneID, ply.m_aMouthLessAngles, false )
+            return
+
+        ManipulateBoneAngles( ply, 0, ply.m_aMouthLessAngles, false )
