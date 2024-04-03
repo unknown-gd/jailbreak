@@ -469,8 +469,20 @@ do
                         menu\AddOption( "#spawnmenu.menu.copy", -> SetClipboardText( @ModelPath ) )\SetIcon( "icon16/page_copy.png" )
                         menu\Open!
 
+                    isFemalePrison, allowedPlayerModels = Jailbreak.IsFemalePrison!, {}
+
+                    for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
+                        allowedPlayerModels[ modelPath ] = true
+
+                    for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
+                        allowedPlayerModels[ modelPath ] = true
+
+                    customAllowed = AllowCustomPlayerModels\GetBool!
                     for name, modelPath in SortedPairs( player_manager.AllValidModels! )
                         modelPath = FixModelPath( modelPath )
+
+                        unless customAllowed or allowedPlayerModels[ modelPath ]
+                            continue
 
                         icon = icons\Add( "SpawnIcon" )
                         icon\SetModel( modelPath )
@@ -482,30 +494,6 @@ do
 
                         icon.DoClick = selectModel
                         icon.OpenMenu = openMenu
-
-                do
-
-                    updateAvalibleModels = ->
-                        unless icons\IsValid!
-                            return
-
-                        allowedPlayerModels = {}
-                        isFemalePrison = Jailbreak.IsFemalePrison!
-
-                        for modelPath in *Jailbreak.PlayerModels[ TEAM_PRISONER ][ isFemalePrison ]
-                            allowedPlayerModels[ modelPath ] = true
-
-                        for modelPath in *Jailbreak.PlayerModels[ TEAM_GUARD ][ isFemalePrison ]
-                            allowedPlayerModels[ modelPath ] = true
-
-                        for icon in *icons\GetChildren!
-                            visible = AllowCustomPlayerModels\GetBool! or allowedPlayerModels[ icon.ModelPath ]
-                            if icon\IsVisible! ~= visible
-                                icon\SetVisible( visible )
-                                icons\InvalidateLayout!
-
-                    timer.Create( "Jailbreak::PlayerModels", 0.5, 0, updateAvalibleModels )
-                    updateAvalibleModels!
 
                 sheet\AddSheet( "#smwidget.model", panel, "icon16/user_edit.png" )
 
