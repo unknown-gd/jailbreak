@@ -1,14 +1,9 @@
-# Основное
-- дописать properties
-- валидация кода
-- переписать HUD и TargerID
-- оптимизировать рендер худа
-- сделать меню на E если смотреть на игрока
+# Main
+- rewrite properties
+- rewrite HUD and TargerID
 
-# Дополнительное
-- заменить derma
+# Additional
+- replace derma
 - custom kill feed
 - custom weapon selector
-- Добавить возможность начальнику тюрьмы в магазин ставить пропы за денюжку но чтобы они стоили не оч дорого баксов 3-5
-Просто разных пропов из ксс в типу фонтана и тд, пример прикреплю во вложении.
-
+- simple prop building system
