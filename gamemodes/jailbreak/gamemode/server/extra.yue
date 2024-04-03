@@ -466,6 +466,9 @@ do
 
             return
 
+        if className == "weapon_crossbow"
+            return
+
         clip1 = @Clip1!
         @SetClip1( 0 )
 
