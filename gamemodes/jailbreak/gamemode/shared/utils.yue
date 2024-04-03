@@ -1,8 +1,10 @@
 Jailbreak = Jailbreak
 
 :ceil, :min, :max, :random = math
+:GetNW2Var, :SetNW2Var = ENTITY
 GetGlobal2Bool = GetGlobal2Bool
 GetGlobal2Int = GetGlobal2Int
+:Alive, :Team = PLAYER
 :Run, :Add = hook
 :Iterator = player
 CurTime = CurTime
@@ -10,15 +12,12 @@ CurTime = CurTime
 ENTITY = ENTITY
 PLAYER = PLAYER
 :lower = string
-NULL = NULL
 
 TEAM_SPECTATOR = TEAM_SPECTATOR
 TEAM_PRISONER = TEAM_PRISONER
-TEAM_GUARD = TEAM_GUARD
-
 CHAN_STATIC = CHAN_STATIC
-
-:Alive, :Team = PLAYER
+TEAM_GUARD = TEAM_GUARD
+NULL = NULL
 
 do
 
@@ -287,53 +286,21 @@ do
 
         return TranslateToPlayerModelName( models[ random( 1, #models ) ] )
 
-:GetNW2Bool, :GetNW2Entity, :GetNW2Var, :GetNW2Int = ENTITY
-
 -- Returns true if player is jailbreak developer
 PLAYER.IsDeveloper = =>
-    return GetNW2Bool( @, "is-developer" )
-
--- Returns entity health
-CHealth = ENTITY.CHealth
-unless CHealth
-    CHealth = ENTITY.Health
-    ENTITY.CHealth = CHealth
-
-PLAYER.Health = PLAYER.Health or CHealth
-
-ENTITY.Health = =>
-    return GetNW2Int( @, "health", CHealth( @ ) )
-
-SetCHealth = ENTITY.SetCHealth
-unless SetCHealth
-    SetCHealth = ENTITY.SetHealth
-    ENTITY.SetCHealth = SetCHealth
-
-PLAYER.SetHealth = PLAYER.SetHealth or SetCHealth
-
--- Sets entity health
-do
-
-    :SetNW2Int = ENTITY
-
-    ENTITY.SetHealth = ( int ) =>
-        SetCHealth( @, int )
-        if @IsPlayer!
-            return
-
-        SetNW2Int( @, "health", int )
+    return GetNW2Var( @, "is-developer", false )
 
 -- Returns true if entity is using security radio
 PLAYER.UsingSecurityRadio = =>
-    return GetNW2Bool( @, "using-security-radio" )
+    return GetNW2Var( @, "using-security-radio", false )
 
 -- Returns true if entity is player ragdoll
 ENTITY.IsPlayerRagdoll = =>
-    return GetNW2Bool( @, "is-player-ragdoll" )
+    return GetNW2Var( @, "is-player-ragdoll", false )
 
 -- Returns ragdoll owner
 ENTITY.GetRagdollOwner = =>
-    return GetNW2Entity( @, "ragdoll-owner" )
+    return GetNW2Var( @, "ragdoll-owner", NULL )
 
 ENTITY.GetRagdollOwnerNickname = =>
     value = GetNW2Var( @, "owner-nickname" )
@@ -439,14 +406,10 @@ do
         return defaultColor.r, defaultColor.g, defaultColor.b
 
 -- Sets player color
-do
+setPlayerColor = ( vector ) =>
+    SetNW2Var( @, "player-color", vector )
 
-    :SetNW2Vector = ENTITY
-
-    setPlayerColor = ( vector ) =>
-        SetNW2Vector( @, "player-color", vector )
-
-    ENTITY.SetPlayerColor, PLAYER.SetPlayerColor = setPlayerColor, setPlayerColor
+ENTITY.SetPlayerColor, PLAYER.SetPlayerColor = setPlayerColor, setPlayerColor
 
 -- Returns true if entity is prop
 do
@@ -493,18 +456,18 @@ do
 
 -- Returns true if entity is button
 ENTITY.IsButton = =>
-    return GetNW2Bool( @, "is-button" )
+    return GetNW2Var( @, "is-button", false )
 
 -- Returns true if entity is food
 ENTITY.IsFood = =>
-    return GetNW2Bool( @, "is-food" )
+    return GetNW2Var( @, "is-food", false )
 
 -- Returns player team
 ENTITY.Team = =>
-    return GetNW2Int( @, "player-team", TEAM_SPECTATOR )
+    return GetNW2Var( @, "player-team", TEAM_SPECTATOR )
 
 ENTITY.Alive = =>
-    return GetNW2Bool( @, "alive" ) and @Health! >= 1
+    return GetNW2Var( @, "alive", false ) and @Health! >= 1
 
 -- Returns player team color
 do
@@ -535,11 +498,11 @@ do
 
 -- Returns true if player is fully connected
 PLAYER.IsFullyConnected = =>
-    return GetNW2Bool( @, "fully-connected" )
+    return GetNW2Var( @, "fully-connected", false )
 
 -- Returns true if player is flight allowed
 PLAYER.IsFlightAllowed = =>
-    return GetNW2Bool( @, "flight-allowed" )
+    return GetNW2Var( @, "flight-allowed", false )
 
 -- Returns weapons in slot as table
 do
@@ -581,28 +544,28 @@ do
 
 -- Returns player ragdoll as entity
 PLAYER.GetRagdollEntity = =>
-    return GetNW2Entity( @, "player-ragdoll" )
+    return GetNW2Var( @, "player-ragdoll", NULL )
 
 do
 
     :FindByClass = ents
 
     PLAYER.FindRagdollEntity = =>
-        ragdoll = GetNW2Entity( @, "player-ragdoll" )
-        if ragdoll\IsValid!
+        ragdoll = GetNW2Var( @, "player-ragdoll" )
+        if ragdoll and ragdoll\IsValid!
             return ragdoll
 
         isBot = @IsBot!
         sid64 = isBot and @Nick! or @SteamID64!
 
         for entity in *FindByClass( "prop_ragdoll" )
-            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
-                @SetNW2Entity( "player-ragdoll", entity )
+            if entity\IsPlayerRagdoll! and GetNW2Var( entity, isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                SetNW2Var( @, "player-ragdoll", entity )
                 return entity
 
         for entity in *FindByClass( "prop_physics" )
-            if entity\IsPlayerRagdoll! and entity\GetNW2Var( isBot and "owner-nickname" or "owner-steamid64" ) == sid64
-                @SetNW2Entity( "player-ragdoll", entity )
+            if entity\IsPlayerRagdoll! and GetNW2Var( entity, isBot and "owner-nickname" or "owner-steamid64" ) == sid64
+                SetNW2Var( @, "player-ragdoll", entity )
                 return entity
 
         return NULL
@@ -617,30 +580,27 @@ PLAYER.IsPrisoner = =>
 
 -- Returns true if player is warden
 PLAYER.IsWarden = =>
-    return GetNW2Bool( @, "is-warden" )
+    return GetNW2Var( @, "is-warden", false )
 
 do
 
     -- Returns true if player has shock collar
     hasShockCollar = =>
-        return GetNW2Bool( @, "shock-collar" )
+        return GetNW2Var( @, "shock-collar", false )
 
     PLAYER.HasShockCollar = hasShockCollar
 
     -- Returns true if player shock collar is enabled
     PLAYER.ShockCollarIsEnabled = =>
-        unless hasShockCollar( @ )
-            return false
-
-        return GetNW2Bool( @, "shock-collar-enabled" )
+        return hasShockCollar( @ ) and GetNW2Var( @, "shock-collar-enabled", false )
 
 -- Returns true if player has security access
 PLAYER.HasSecurityKeys = =>
-    return GetNW2Bool( @, "security-keys" )
+    return GetNW2Var( @, "security-keys", false )
 
 -- Returns true if player has security radio
 PLAYER.HasSecurityRadio = =>
-    return GetNW2Bool( @, "security-radio" )
+    return GetNW2Var( @, "security-radio", false )
 
 -- Returns table of players near player by distance
 do
@@ -686,17 +646,17 @@ do
         return false
 
     PLAYER.IsHoldingEntity = =>
-        return GetNW2Entity( @, "holding-entity" )\IsValid!
+        return GetNW2Var( @, "holding-entity", NULL )\IsValid!
 
     PLAYER.GetHoldingEntity = =>
-        return GetNW2Entity( @, "holding-entity" )
+        return GetNW2Var( @, "holding-entity", NULL )
 
     PLAYER.GetUseTime = =>
         unless KeyDown( @, IN_USE )
             return 0
 
-        startUseTime = GetNW2Int( @, "start-use-time" )
-        if startUseTime == 0
+        startUseTime = GetNW2Var( @, "start-use-time" )
+        unless startUseTime
             return 0
 
         return CurTime! - startUseTime
@@ -724,20 +684,17 @@ do
         return count
 
 PLAYER.IsSpawning = =>
-    return Alive( @ ) and GetNW2Bool( @, "is-spawning" )
+    return Alive( @ ) and GetNW2Var( @, "is-spawning", false )
 
 PLAYER.IsEscaped = =>
-    return GetNW2Bool( @, "escaped" )
+    return GetNW2Var( @, "escaped", false )
 
 do
 
     :BuyZones = Jailbreak
 
     PLAYER.IsInBuyZone = =>
-        if BuyZones\GetBool!
-            return GetNW2Bool( @, "in-buy-zone" )
-
-        return true
+        return not BuyZones\GetBool! or GetNW2Var( @, "in-buy-zone", false )
 
 do
 
