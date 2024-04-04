@@ -209,7 +209,6 @@ do
         :LookupSequence, :GetParent, :GetModel = ENTITY
         ACT_HL2MP_RUN_PANICKED = ACT_HL2MP_RUN_PANICKED
         ACT_HL2MP_RUN_FAST = ACT_HL2MP_RUN_FAST
-        GESTURE_SLOT_JUMP = GESTURE_SLOT_JUMP
         :GetHoldType = WEAPON
         :Length2DSqr = VECTOR
 

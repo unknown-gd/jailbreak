@@ -407,7 +407,6 @@ PLAYER.RemoveRagdoll = ( ply ) ->
 do
 
     :ceil = math
-    amount = 0
 
     PLAYER.Heal = ( ply, frac ) ->
         amount = ceil( ply\GetMaxHealth! * ( frac or 1 ) )
@@ -417,7 +416,6 @@ do
 do
 
     :max = math
-    amount = 0
 
     PLAYER.AddHealth = ( ply, amount ) ->
         amount = max( ply\GetHealth! + amount, ply\GetMaxHealth! )
