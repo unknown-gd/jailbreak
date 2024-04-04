@@ -41,11 +41,14 @@ ENT.Hide = =>
         if @IsValid!
             @Show!
 
+ENT.ShowSound = Sound( "Item.Show" )
+
 ENT.Show = =>
     if @GetNoDraw!
-        @EmitSound( Sound( "Item.Show" ) )
+        @EmitSound( @ShowSound )
         @SetNoDraw( false )
         @MuzzleFlash!
+
     @SetTrigger( true )
 
 ENT.Touch = ( entity ) =>
@@ -63,8 +66,7 @@ ENT.Touch = ( entity ) =>
     if Run( "PlayerCanPickupItem", entity, @ ) == false
         return
 
-    playerGotItem = @PlayerGotItem
-    unless playerGotItem and playerGotItem( @, entity )
+    unless @PlayerGotItem and @PlayerGotItem( entity )
         return
 
     soundName = @Sound
@@ -72,6 +74,7 @@ ENT.Touch = ( entity ) =>
         entity\EmitSound( soundName )
 
     @Hide!
+    return
 
 ENT.IsDisabled = =>
     return @Disabled or false

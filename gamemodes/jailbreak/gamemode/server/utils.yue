@@ -15,7 +15,7 @@ util = util
 util.AddNetworkString( "Jailbreak::Networking" )
 
 -- Workshop content
-resource.AddWorkshop( "3211331044" )
+resource.AddWorkshop( "3212160573" )
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
