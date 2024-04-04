@@ -172,13 +172,20 @@ do
                 PlaySound( "ambient/alarms/warningbell1.wav" )
                 Run( "GameFinished" )
 
--- Called when a in game player dies
-GM.TeamPlayerDeath = ( ply, teamID ) =>
-    ply\RemoveFromObserveTargets!
-    ply\TakeSecurityRadio!
-    ply\TakeSecurityKeys!
-    ply\TakeShockCollar!
-    ply\TakeFlashlight!
+do
+
+    :black = Jailbreak.Colors
+
+    GM.TeamPlayerDeath = ( ply, teamID ) =>
+        unless ply\IsBot!
+            ply\ShockScreenEffect( 0.25, black, 1, false )
+
+        ply\RemoveFromObserveTargets!
+        ply\TakeSecurityRadio!
+        ply\TakeSecurityKeys!
+        ply\TakeShockCollar!
+        ply\TakeFlashlight!
+        return
 
 -- Called when a player disconnected
 GM.TeamPlayerDisconnected = ( ply, teamID ) =>
