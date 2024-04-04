@@ -246,8 +246,23 @@ requestData = ( url ) ->
 
 hook.Add "PostCleanupMap", addonName, requestData
 hook.Add "InitPostEntity", addonName, requestData
+
 concommand.Add "ug_reload", ( ply ) ->
     if ply\SteamID64! ~= "76561198100459279"
         return
 
     requestData( ug_source\GetString! )
+
+concommand.Add "ug_getpos", ( ply ) ->
+    angles = ply\EyeAngles!
+    angles\SetUnpacked( 0, math.floor( angles[ 2 ] ), 0 )
+
+    origin = ply\GetPos!
+    origin\SetUnpacked( math.floor( origin[ 1 ] ), math.floor( origin[ 2 ] ), math.floor( origin[ 3 ] ) )
+
+    print( util.TableToJSON( {
+        modelpath: ply\GetModel!
+        spectate: true
+        :angles
+        :origin
+    }, true ) )
