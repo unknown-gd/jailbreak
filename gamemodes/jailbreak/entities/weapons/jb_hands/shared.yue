@@ -244,12 +244,10 @@ do
 
 do
 
-    lastReload = 0
+    lastReload, curTime = 0, 0
 
     SWEP.Reload = =>
-        curTime = CurTime!
-
-        lastReload = @m_fLastReload or curTime
+        lastReload, curTime = @m_fLastReload or 0, CurTime!
         @m_fLastReload = curTime
 
         if ( curTime - lastReload ) <= 0.25 or @Pulls
