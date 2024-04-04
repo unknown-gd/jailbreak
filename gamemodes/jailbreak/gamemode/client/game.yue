@@ -3,8 +3,9 @@ Jailbreak = Jailbreak
 :format = string
 GM = GM
 
-Jailbreak.TauntFraction = Jailbreak.TauntFraction or 0
+Jailbreak.VoiceChatState = Jailbreak.VoiceChatState or false
 Jailbreak.PlayingTaunt = Jailbreak.PlayingTaunt or false
+Jailbreak.TauntFraction = Jailbreak.TauntFraction or 0
 Jailbreak.ViewEntity = Jailbreak.ViewEntity or NULL
 Jailbreak.Player = Jailbreak.Player or NULL
 

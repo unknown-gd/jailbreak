@@ -498,7 +498,7 @@ do
         alpha = 0
 
         Add "DrawOverlay", "Jailbreak::VoiceChatIcon", ->
-            if Jailbreak.Player\IsValid! and Jailbreak.Player\IsSpeaking!
+            if Jailbreak.VoiceChatState
                 if alpha < 1
                     alpha = min( 1, alpha + FrameTime! )
             elseif alpha > 0
