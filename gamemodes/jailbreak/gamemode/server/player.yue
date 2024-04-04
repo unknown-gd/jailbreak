@@ -13,165 +13,201 @@ OBS_MODE_ROAMING = OBS_MODE_ROAMING
 NULL = NULL
 
 PLAYER.ChangeTeam = Jailbreak.ChangeTeam
-:SetNW2Bool = ENTITY
+:SetNW2Var = ENTITY
 
 -- Flashlight
 PLAYER.HasFlashlight = PLAYER.CanUseFlashlight
 
-PLAYER.GiveFlashlight = ( silent ) =>
-    if @HasFlashlight!
-        return
+PLAYER.GiveFlashlight = ( ply, silent ) ->
+    if ply\HasFlashlight!
+        return false
 
-    if @FlashlightIsOn!
-        @Flashlight( false )
+    if ply\FlashlightIsOn!
+        ply\Flashlight( false )
 
-    @AllowFlashlight( true )
+    ply\AllowFlashlight( true )
 
-    unless @IsBot! or silent
-        @SendPickupNotify( "jb.flashlight" )
+    unless ply\IsBot! or silent
+        ply\SendPickupNotify( "jb.flashlight" )
 
-PLAYER.TakeFlashlight = ( silent ) =>
-    unless @HasFlashlight!
-        return
+    return true
 
-    if @FlashlightIsOn!
-        @Flashlight( false )
+PLAYER.TakeFlashlight = ( ply, silent ) ->
+    unless ply\HasFlashlight!
+        return false
 
-    @AllowFlashlight( false )
+    if ply\FlashlightIsOn!
+        ply\Flashlight( false )
 
-    unless @IsBot! or silent
-        @SendNotify( "#jb.flashlight.lost", NOTIFY_UNDO, 5 )
+    ply\AllowFlashlight( false )
+
+    unless ply\IsBot! or silent
+        ply\SendNotify( "#jb.flashlight.lost", NOTIFY_UNDO, 5 )
+
+    return true
 
 -- Security keys
-PLAYER.GiveSecurityKeys = ( silent ) =>
-    if @HasSecurityKeys!
-        return
+PLAYER.GiveSecurityKeys = ( ply, silent ) ->
+    if ply\HasSecurityKeys!
+        return false
 
-    SetNW2Bool( @, "security-keys", true )
+    SetNW2Var( ply, "security-keys", true )
 
-    unless @IsBot! or silent
-        @SendPickupNotify( "jb.security.keys" )
+    unless ply\IsBot! or silent
+        ply\SendPickupNotify( "jb.security.keys" )
 
-PLAYER.TakeSecurityKeys = ( silent ) =>
-    unless @HasSecurityKeys!
-        return
+    return true
 
-    SetNW2Bool( @, "security-keys", false )
+PLAYER.TakeSecurityKeys = ( ply, silent ) ->
+    unless ply\HasSecurityKeys!
+        return false
 
-    unless @IsBot! or silent
-        @SendNotify( "#jb.security.keys.lost", NOTIFY_UNDO, 5 )
+    SetNW2Var( ply, "security-keys", false )
+
+    unless ply\IsBot! or silent
+        ply\SendNotify( "#jb.security.keys.lost", NOTIFY_UNDO, 5 )
+
+    return true
 
 -- Security radio
-PLAYER.GiveSecurityRadio = ( silent ) =>
-    if @HasSecurityRadio!
+PLAYER.GiveSecurityRadio = ( ply, silent ) ->
+    if ply\HasSecurityRadio!
+        return false
+
+    SetNW2Var( ply, "security-radio", true )
+
+    unless ply\IsBot! or silent
+        ply\SendPickupNotify( "jb.walkie-talkie" )
+
+    return true
+
+PLAYER.TakeSecurityRadio = ( ply, silent ) ->
+    unless ply\HasSecurityRadio!
+        return false
+
+    SetNW2Var( ply, "security-radio", false )
+
+    unless ply\IsBot! or silent
+        ply\SendNotify( "#jb.walkie-talkie.lost", NOTIFY_UNDO, 5 )
+
+    return true
+
+do
+
+    setShockCollar = ( ply, bool, silent ) ->
+        bool = bool == true
+
+        if bool == ply\ShockCollarIsEnabled!
+            return
+
+        SetNW2Var( ply, "shock-collar-enabled", bool )
+
+        unless silent
+            Run( "ShockCollarToggled", ply, bool )
+
         return
 
-    SetNW2Bool( @, "security-radio", true )
+    PLAYER.SetShockCollar = setShockCollar
 
-    unless @IsBot! or silent
-        @SendPickupNotify( "jb.walkie-talkie" )
+    PLAYER.GiveShockCollar = ( ply, silent ) ->
+        if ply\HasShockCollar!
+            return
 
-PLAYER.TakeSecurityRadio = ( silent ) =>
-    unless @HasSecurityRadio!
+        SetNW2Var( ply, "shock-collar", true )
+        setShockCollar( ply, false, true )
+
+        unless ply\IsBot! or silent
+            ply\SendPickupNotify( "jb.shock-collar" )
+
         return
 
-    SetNW2Bool( @, "security-radio", false )
+    PLAYER.TakeShockCollar = ( ply, silent ) ->
+        if ply\HasShockCollar!
+            setShockCollar( ply, false, true )
+            SetNW2Var( ply, "shock-collar", false )
 
-    unless @IsBot! or silent
-        @SendNotify( "#jb.walkie-talkie.lost", NOTIFY_UNDO, 5 )
+            unless ply\IsBot! or silent
+                ply\SendNotify( "#jb.shock-collar.lost", NOTIFY_UNDO, 5 )
 
--- Shock collar
-PLAYER.GiveShockCollar = ( silent ) =>
-    if @HasShockCollar!
         return
 
-    SetNW2Bool( @, "shock-collar", true )
-    @SetShockCollar( false, true )
+do
 
-    unless @IsBot! or silent
-        @SendPickupNotify( "jb.shock-collar" )
+    setWarden = ( ply, bool, silent ) ->
+        bool = bool == true
 
-PLAYER.TakeShockCollar = ( silent ) =>
-    unless @HasShockCollar!
+        if bool == ply\IsWarden!
+            return
+
+        SetNW2Var( ply, "is-warden", bool )
+
+        unless silent
+            Run( "WardenChanged", ply, bool )
+
         return
 
-    @SetShockCollar( false, true )
-    SetNW2Bool( @, "shock-collar", false )
+    PLAYER.SetWarden = setWarden
 
-    unless @IsBot! or silent
-        @SendNotify( "#jb.shock-collar.lost", NOTIFY_UNDO, 5 )
-
-PLAYER.SetShockCollar = ( bool, silent ) =>
-    if bool == @ShockCollarIsEnabled!
+    Add "PostPlayerDeath", "Jailbreak::WardenDeath", ( ply ) ->
+        setWarden( ply, false )
         return
 
-    SetNW2Bool( @, "shock-collar-enabled", bool )
+do
 
-    if silent
+    allowFlight = ( ply, bool ) ->
+        bool = bool == true
+
+        if bool == false
+            SetNW2Var( ply, "in-flight", bool )
+
+        SetNW2Var( ply, "flight-allowed", bool )
         return
 
-    Run( "ShockCollarToggled", @, bool )
+    PLAYER.AllowFlight = allowFlight
 
--- Warden
-PLAYER.SetWarden = ( bool, silent ) =>
-    if bool == @IsWarden!
+    Add "PostPlayerDeath", "Jailbreak::DisallowFlight", ( ply ) ->
+        allowFlight( ply, false )
         return
-
-    SetNW2Bool( @, "is-warden", bool )
-
-    if silent
-        return
-
-    Run( "WardenChanged", @, bool )
-
-Add "PostPlayerDeath", "Jailbreak::WardenDeath", =>
-    @SetWarden( false )
-
--- Allows player use of flight
-PLAYER.AllowFlight = ( bool ) =>
-    SetNW2Bool( @, "flight-allowed", bool )
-
-    if bool == false
-        SetNW2Bool( @, "in-flight", bool )
-
-Add "PostPlayerDeath", "Jailbreak::DisallowFlight", =>
-    @AllowFlight( false )
 
 do
 
     :PlayerSlowWalkSpeed, :PlayerWalkSpeed, :PlayerRunSpeed, :PlayerJumpPower = Jailbreak
 
-    PLAYER.SetupMovement = =>
-        @SetSlowWalkSpeed( PlayerSlowWalkSpeed\GetInt! )
-        @SetWalkSpeed( PlayerWalkSpeed\GetInt! )
-        @SetRunSpeed( PlayerRunSpeed\GetInt! )
-        @SetJumpPower( PlayerJumpPower\GetInt! )
-        Run( "SetupPlayerMovement", @ )
+    PLAYER.SetupMovement = ( ply ) ->
+        ply\SetSlowWalkSpeed( PlayerSlowWalkSpeed\GetInt! )
+        ply\SetWalkSpeed( PlayerWalkSpeed\GetInt! )
+        ply\SetRunSpeed( PlayerRunSpeed\GetInt! )
+        ply\SetJumpPower( PlayerJumpPower\GetInt! )
+        Run( "SetupPlayerMovement", ply )
+        return
 
 do
 
     :Start, :WriteUInt, :WriteTable, :WriteString, :WriteBool, :WriteEntity, :Send = net
 
-    PLAYER.PlaySound = ( soundPath ) =>
+    PLAYER.PlaySound = ( ply, soundPath ) ->
         Start( "Jailbreak::Networking" )
         WriteUInt( 3, 4 )
         WriteString( soundPath )
-        Send( @ )
+        Send( ply )
+        return
 
-    PLAYER.SendPickupNotify = ( itemName, pickupType, amount ) =>
+    PLAYER.SendPickupNotify = ( ply, itemName, pickupType, amount ) ->
         Start( "Jailbreak::Networking" )
         WriteUInt( 1, 4 )
         WriteString( itemName )
         WriteUInt( pickupType or 0, 6 )
         WriteUInt( amount or 1, 16 )
-        Send( @ )
+        Send( ply )
+        return
 
     do
 
         util.AddNetworkString( "Jailbreak::Shop" )
         :ShopItems = Jailbreak
+        length = 0
 
-        PLAYER.SendShopItems = =>
+        PLAYER.SendShopItems = ( ply ) ->
             Start( "Jailbreak::Shop" )
 
             length = #ShopItems
@@ -186,41 +222,45 @@ do
                     WriteUInt( item.skin, 8 )
                     WriteString( item.bodygroups )
 
-            Send( @ )
+            Send( ply )
+            return
 
-    PLAYER.ResetToggles = =>
+    PLAYER.ResetToggles = ( ply ) ->
         Start( "Jailbreak::Networking" )
         WriteUInt( 5, 4 )
-        Send( @ )
+        Send( ply )
+        return
 
     do
 
         RecipientFilter = RecipientFilter
         isfunction = isfunction
 
-        PLAYER.AnimRestartNetworkedGesture = ( slot, activity, autokill, finished, frac ) =>
-            sequenceID = @SelectWeightedSequence( activity )
+        PLAYER.AnimRestartNetworkedGesture = ( ply, slot, activity, autokill, finished, frac ) ->
+            sequenceID = ply\SelectWeightedSequence( activity )
             if sequenceID < 0
                 return
 
             rf = RecipientFilter!
-            rf\AddPVS( @WorldSpaceCenter! )
+            rf\AddPVS( ply\WorldSpaceCenter! )
+
             if rf\GetCount! > 0
                 Start( "Jailbreak::Networking" )
                 WriteUInt( 4, 4 )
-                WriteEntity( @ )
+                WriteEntity( ply )
                 WriteUInt( slot, 3 )
                 WriteUInt( activity, 11 )
                 WriteBool( autokill or false )
                 Send( rf )
 
             if isfunction( finished )
-                duration = @SequenceDuration( sequenceID )
+                duration = ply\SequenceDuration( sequenceID )
                 Simple duration - duration * ( frac or 0 ), ->
-                    if @IsValid!
-                        finished( @ )
+                    if ply\IsValid!
+                        finished( ply )
 
-            @AnimRestartGesture( slot, activity, autokill )
+            ply\AnimRestartGesture( slot, activity, autokill )
+            return
 
     do
 
@@ -232,29 +272,34 @@ do
             [ NOTIFY_UNDO ]: "buttons/button9.wav"
         }
 
-        PLAYER.SendNotify = ( text, typeID, length, ... ) =>
+        PLAYER.SendNotify = ( ply, text, typeID, length, ... ) ->
             Start( "Jailbreak::Networking" )
             WriteUInt( 2, 4 )
             WriteString( text )
             WriteTable( { ... }, true )
             WriteUInt( typeID, 3 )
             WriteUInt( length, 16 )
-            Send( @ )
+            Send( ply )
 
             soundPath = sounds[ typeID ]
             if soundPath ~= nil
-                @PlaySound( soundPath )
+                ply\PlaySound( soundPath )
 
-PLAYER.ObserveEntity = ( entity ) =>
-    if entity and entity\IsValid!
-        @Spectate( OBS_MODE_CHASE )
-        @SpectateEntity( entity )
+            return
+
+PLAYER.ObserveEntity = ( ply, entity ) ->
+    if ply\Alive!
         return
 
-    eyeAngles = @EyeAngles!
-    @SpectateEntity!
-    @Spectate( OBS_MODE_ROAMING )
-    @SetEyeAngles( eyeAngles )
+    if entity and entity\IsValid!
+        ply\Spectate( OBS_MODE_CHASE )
+        ply\SpectateEntity( entity )
+        return
+
+    eyeAngles = ply\EyeAngles!
+    ply\SpectateEntity!
+    ply\Spectate( OBS_MODE_ROAMING )
+    ply\SetEyeAngles( eyeAngles )
     return
 
 do
@@ -262,12 +307,12 @@ do
     :ObserveTargets = Jailbreak
     index, length = 0, 0
 
-    PLAYER.MoveObserveIndex = ( step, players ) =>
+    PLAYER.MoveObserveIndex = ( ply, step, players ) ->
         length = #ObserveTargets
         if length == 0
             return
 
-        index = ( @LastSpectatedIndex or 0 ) + step
+        index = ( ply.m_iLastSpectatedIndex or 0 ) + step
         if index > length
             index = 1
         elseif index < 1
@@ -275,29 +320,30 @@ do
 
         entity = ObserveTargets[ index ]
         unless entity\IsValid!
-            if @GetObserverMode! ~= OBS_MODE_ROAMING
-                @Spectate( OBS_MODE_ROAMING )
+            if ply\GetObserverMode! ~= OBS_MODE_ROAMING
+                ply\Spectate( OBS_MODE_ROAMING )
 
-            @LastSpectatedIndex = 0
+            ply.m_iLastSpectatedIndex = 0
             return
 
-        @LastSpectatedIndex = index
+        ply.m_iLastSpectatedIndex = index
 
         if entity\IsPlayer! or entity\IsRagdoll!
-            @ObserveEntity( entity )
+            ply\ObserveEntity( entity )
             return
 
-        if @GetObserverMode! ~= OBS_MODE_ROAMING
-            @Spectate( OBS_MODE_ROAMING )
+        if ply\GetObserverMode! ~= OBS_MODE_ROAMING
+            ply\Spectate( OBS_MODE_ROAMING )
 
         angles = entity\GetAngles!
         angles[ 3 ] = 0
 
-        @SetEyeAngles( angles )
-        @SetPos( entity\GetPos! )
+        ply\SetEyeAngles( angles )
+        ply\SetPos( entity\GetPos! )
+        return
 
-PLAYER.UsingMegaphone = =>
-    return @IsWarden! and @GetInfo( "jb_megaphone" ) == "1"
+PLAYER.UsingMegaphone = ( ply ) ->
+    return ply\IsWarden! and ply\Alive! and ply\GetInfo( "jb_megaphone" ) == "1"
 
 do
 
@@ -305,30 +351,31 @@ do
     CurTime = CurTime
     :IN = SCREENFADE
 
-    PLAYER.ShockScreenEffect = ( time, color, fadeTime, blockMovement ) =>
+    PLAYER.ShockScreenEffect = ( ply, time, color, fadeTime, blockMovement ) ->
         if blockMovement ~= false
-            @SetNW2Int( "shock-time", CurTime! + ( time or 3 ) )
+            SetNW2Var( ply, "shock-time", CurTime! + ( time or 3 ) )
 
-        @ScreenFade( IN, color or white, fadeTime or 0.25, time or 3 )
+        ply\ScreenFade( IN, color or white, fadeTime or 0.25, time or 3 )
+        return
 
 do
 
     WeaponHandlers = WeaponHandlers or {}
 
-    PLAYER.Give = ( className, noAmmo, force ) =>
+    PLAYER.Give = ( ply, className, noAmmo, force ) ->
         handler = WeaponHandlers[ className ]
         if handler
             className = handler.Alternative or className
 
-        if @HasWeapon( className )
+        if ply\HasWeapon( className )
             return NULL
 
         weapon = Create( className )
         unless weapon and weapon\IsValid!
             return NULL
 
-        weapon\SetAngles( @GetAngles! )
-        weapon\SetPos( @GetPos! )
+        weapon\SetAngles( ply\GetAngles! )
+        weapon\SetPos( ply\GetPos! )
 
         weapon\Spawn!
         weapon\Activate!
@@ -336,7 +383,7 @@ do
         unless weapon\IsWeapon!
             return weapon
 
-        if not force and Run( "PlayerCanPickupWeapon", @, weapon ) == false
+        if not force and Run( "PlayerCanPickupWeapon", ply, weapon ) == false
             weapon\Remove!
             return NULL
 
@@ -344,41 +391,42 @@ do
             weapon\SetClip1( 0 )
             weapon\SetClip2( 0 )
 
-        @PickupWeapon( weapon, false )
+        ply\PickupWeapon( weapon, false )
         return weapon
 
-PLAYER.SetMutedByWarden = ( bool ) =>
-    SetNW2Bool( @, "warden-mute", bool )
+PLAYER.SetMutedByWarden = ( ply, state ) ->
+    SetNW2Var( ply, "warden-mute", state ~= false )
 
-PLAYER.RemoveRagdoll = =>
-    ragdoll = @GetRagdollEntity!
-    if ragdoll\IsValid!
+PLAYER.RemoveRagdoll = ( ply ) ->
+    ragdoll = ply\GetRagdollEntity!
+    if ragdoll and ragdoll\IsValid!
         ragdoll\Remove!
+
+    return
 
 do
 
     :ceil = math
+    amount = 0
 
-    PLAYER.Heal = ( frac ) =>
-        amount = ceil( @GetMaxHealth! * ( frac or 1 ) )
-        @SetHealth( amount )
+    PLAYER.Heal = ( ply, frac ) ->
+        amount = ceil( ply\GetMaxHealth! * ( frac or 1 ) )
+        ply\SetHealth( amount )
         return amount
 
 do
 
     :max = math
+    amount = 0
 
-    PLAYER.AddHealth = ( amount ) =>
-        amount = max( @GetHealth! + amount, @GetMaxHealth! )
-        @SetHealth( amount )
+    PLAYER.AddHealth = ( ply, amount ) ->
+        amount = max( ply\GetHealth! + amount, ply\GetMaxHealth! )
+        ply\SetHealth( amount )
         return amount
 
-    PLAYER.TakeHealth = ( amount ) =>
-        amount = max( 0, @GetHealth! - amount )
-        @SetHealth( amount )
-        if amount == 0
-            @Kill!
-
+    PLAYER.TakeHealth = ( ply, amount ) ->
+        amount = max( 0, ply\GetHealth! - amount )
+        ply\SetHealth( amount )
         return amount
 
 PLAYER.CreateClientsideRagdoll = PLAYER.CreateClientsideRagdoll or PLAYER.CreateRagdoll
@@ -388,27 +436,27 @@ do
 
     :RagdollRemove, :RagdollHealth, :IsRoundPreparing, :DropActiveWeaponOnDeath = Jailbreak
 
-    Add "PlayerCanCreateRagdoll", "Jailbreak::NoRagdollsOnPreparing", =>
+    Add "PlayerCanCreateRagdoll", "Jailbreak::NoRagdollsOnPreparing", ->
         if IsRoundPreparing!
             return false
 
     traceResult = {}
     trace = { output: traceResult }
 
-    PLAYER.CreateRagdoll = ( putItems ) =>
+    PLAYER.CreateRagdoll = ( ply, putItems ) ->
         putItems = putItems ~= false
 
-        if Run( "PlayerCanCreateRagdoll", @, putItems ) == false
+        if Run( "PlayerCanCreateRagdoll", ply, putItems ) == false
             return NULL
 
         if RagdollRemove\GetBool!
-            @RemoveRagdoll!
+            ply\RemoveRagdoll!
 
-        spawnOrigin = @GetPos!
+        spawnOrigin = ply\GetPos!
         unless IsInWorld( spawnOrigin )
             return NULL
 
-        modelPath = @GetModel!
+        modelPath = ply\GetModel!
         unless modelPath
             return NULL
 
@@ -416,61 +464,62 @@ do
         unless IsValidModel( modelPath )
             return NULL
 
-        ragdoll = Create( @GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
-        ragdoll\SetAngles( @GetAngles! )
+        ragdoll = Create( ply\GetBoneCount! > 1 and "prop_ragdoll" or "prop_physics" )
+        ragdoll\SetAngles( ply\GetAngles! )
         ragdoll\SetModel( modelPath )
         ragdoll\SetPos( spawnOrigin )
         ragdoll\Spawn!
 
         ragdoll\SetHealth( RagdollHealth\GetInt! )
         ragdoll\SetMaxHealth( ragdoll\Health! )
-        ragdoll\SetTeam( @Team! )
+        ragdoll\SetTeam( ply\Team! )
 
-        if @Alive!
+        if ply\Alive!
             ragdoll\SetAlive( true )
 
-            ragdoll.MaxArmor = @GetMaxArmor!
-            ragdoll.Armor = @Armor!
+            ragdoll.MaxArmor = ply\GetMaxArmor!
+            ragdoll.Armor = ply\Armor!
 
-            angles = @EyeAngles!
+            angles = ply\EyeAngles!
             angles[ 1 ], angles[ 3 ] = 0, 0
             ragdoll.PlayerAngles = angles
 
-        for bodygroup in *@GetBodyGroups!
-            ragdoll\SetBodygroup( bodygroup.id, @GetBodygroup( bodygroup.id ) )
+        for bodygroup in *ply\GetBodyGroups!
+            ragdoll\SetBodygroup( bodygroup.id, ply\GetBodygroup( bodygroup.id ) )
 
-        ragdoll\SetFlexScale( @GetFlexScale! )
-        for flexID = 0, @GetFlexNum!
-            ragdoll\SetFlexWeight( flexID, @GetFlexWeight( flexID ) )
+        ragdoll\SetFlexScale( ply\GetFlexScale! )
+        for flexID = 0, ply\GetFlexNum!
+            ragdoll\SetFlexWeight( flexID, ply\GetFlexWeight( flexID ) )
 
-        ragdoll\SetPlayerColor( @GetPlayerColor! )
-        ragdoll\SetMaterial( @GetMaterial! )
-        ragdoll\SetColor( @GetColor! )
-        ragdoll\SetSkin( @GetSkin! )
+        ragdoll\SetPlayerColor( ply\GetPlayerColor! )
+        ragdoll\SetMaterial( ply\GetMaterial! )
+        ragdoll\SetColor( ply\GetColor! )
+        ragdoll\SetSkin( ply\GetSkin! )
 
-        for index = 1, #@GetMaterials!
-            materialPath = @GetSubMaterial( index )
-            if materialPath ~= ""
+        for index = 1, #ply\GetMaterials!
+            materialPath = ply\GetSubMaterial( index )
+            if materialPath and #materialPath ~= 0
                 ragdoll\SetSubMaterial( index, materialPath )
 
         ragdoll\SetCollisionGroup( COLLISION_GROUP_PASSABLE_DOOR )
-        SetNW2Bool( ragdoll, "is-player-ragdoll", true )
-        ragdoll\SetNW2Entity( "ragdoll-owner", @ )
-        @SetNW2Entity( "player-ragdoll", ragdoll )
+        SetNW2Var( ragdoll, "is-player-ragdoll", true )
+        SetNW2Var( ply, "player-ragdoll", ragdoll )
+        SetNW2Var( ragdoll, "ragdoll-owner", ply )
 
-        unless @IsBot!
-            ragdoll\SetNW2String( "owner-steamid64", @SteamID64! )
-        ragdoll\SetNW2String( "owner-nickname", @Nick! )
+        unless ply\IsBot!
+            SetNW2Var( ragdoll, "owner-steamid64", ply\SteamID64! )
 
-        for bone = 0, @GetBoneCount! - 1
-            ragdoll\ManipulateBonePosition( bone, @GetManipulateBonePosition( bone ) )
-            ragdoll\ManipulateBoneAngles( bone, @GetManipulateBoneAngles( bone ) )
-            ragdoll\ManipulateBoneJiggle( bone, @GetManipulateBoneJiggle( bone ) )
-            ragdoll\ManipulateBoneScale( bone, @GetManipulateBoneScale( bone ) )
+        SetNW2Var( ragdoll, "owner-nickname", ply\Nick! )
+
+        for bone = 0, ply\GetBoneCount! - 1
+            ragdoll\ManipulateBonePosition( bone, ply\GetManipulateBonePosition( bone ) )
+            ragdoll\ManipulateBoneAngles( bone, ply\GetManipulateBoneAngles( bone ) )
+            ragdoll\ManipulateBoneJiggle( bone, ply\GetManipulateBoneJiggle( bone ) )
+            ragdoll\ManipulateBoneScale( bone, ply\GetManipulateBoneScale( bone ) )
 
         if ragdoll\IsRagdoll!
-            velocity = @LastVelocity
-            for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1 do
+            velocity = ply.m_vLastVelocity
+            for physNum = 0, ragdoll\GetPhysicsObjectCount! - 1
                 phys = ragdoll\GetPhysicsObjectNum( physNum )
                 unless phys and phys\IsValid!
                     continue
@@ -479,15 +528,15 @@ do
                 if bone < 0
                     continue
 
-                origin, angles = @GetBonePosition( bone )
-                if origin ~= nil
+                origin, angles = ply\GetBonePosition( bone )
+                if origin
                     phys\SetAngles( angles )
                     unless IsInWorld( origin )
                         continue
 
                     trace.start = origin
                     trace.endpos = origin
-                    trace.filter = { ragdoll, @ }
+                    trace.filter = { ragdoll, ply }
                     TraceLine( trace )
 
                     if traceResult.Hit
@@ -502,41 +551,50 @@ do
 
             phys = ragdoll\GetPhysicsObject!
             if phys and phys\IsValid!
-                phys\SetVelocity( @LastVelocity )
+                phys\SetVelocity( ply.m_vLastVelocity )
                 phys\Wake!
 
-        if @IsOnFire!
+        if ply\IsOnFire!
             ragdoll\Ignite( 5, 64 )
-            @Extinguish!
+            ply\Extinguish!
 
-        Run( "PlayerRagdollCreated", @, ragdoll )
+        Run( "PlayerRagdollCreated", ply, ragdoll )
 
         if putItems
-            if DropActiveWeaponOnDeath\GetBool!
-                @DropWeapon!
+            boolean = DropActiveWeaponOnDeath\GetBool!
+            if boolean
+                ply\DropWeapon!
 
-            ragdoll.HasSecurityRadio = @HasSecurityRadio!
-            @TakeSecurityRadio!
+            boolean = ply\HasSecurityRadio!
+            ragdoll.HasSecurityRadio = boolean
+            if boolean
+                ply\TakeSecurityRadio!
 
-            ragdoll.HasSecurityKeys = @HasSecurityKeys!
-            @TakeSecurityKeys!
+            boolean = ply\HasSecurityKeys!
+            ragdoll.HasSecurityKeys = boolean
+            if boolean
+                ply\TakeSecurityKeys!
 
-            ragdoll.HasFlashlight = @CanUseFlashlight!
-            @TakeFlashlight!
+            boolean = ply\CanUseFlashlight!
+            ragdoll.HasFlashlight = boolean
+            if boolean
+                ply\TakeFlashlight!
 
-            ragdoll.HasShockCollar = @HasShockCollar!
-            @TakeShockCollar!
+            boolean = ply\HasShockCollar!
+            ragdoll.HasShockCollar = boolean
+            if boolean
+                ply\TakeShockCollar!
 
             weapons, length = {}, 0
-            for weapon in *@GetWeapons!
+            for weapon in *ply\GetWeapons!
                 if #weapon\GetWeaponWorldModel! == 0
                     continue
 
-                @DropWeapon( weapon )
+                ply\DropWeapon( weapon )
                 unless weapon\IsValid!
                     continue
 
-                weapon.PickupForbidden = true
+                weapon.m_bPickupForbidden = true
                 weapon\SetPos( spawnOrigin )
                 weapon\SetParent( ragdoll )
                 weapon\SetNotSolid( true )
@@ -548,42 +606,42 @@ do
             if length ~= 0
                 ragdoll.Weapons = weapons
 
-            ragdoll.Ammo = @GetAmmo!
-            @RemoveAllAmmo!
+            ragdoll.Ammo = ply\GetAmmo!
+            ply\RemoveAllAmmo!
 
         ragdoll\AddToObserveTargets!
-
         return ragdoll
 
 do
 
     :Shuffle = table
+    pairs = pairs
     :min = math
 
-    PLAYER.LootRagdoll = ( ragdoll ) =>
+    PLAYER.LootRagdoll = ( ply, ragdoll ) ->
         velocity = vector_origin
 
-        direction = @EyePos! - ragdoll\WorldSpaceCenter!
+        direction = ply\EyePos! - ragdoll\WorldSpaceCenter!
         direction\Normalize!
 
-        if ragdoll.HasFlashlight and not @HasFlashlight!
+        if ragdoll.HasFlashlight and not ply\HasFlashlight!
             ragdoll.HasFlashlight = nil
             velocity += direction * 150
-            @GiveFlashlight!
+            ply\GiveFlashlight!
 
-        if ragdoll.HasSecurityKeys and not @HasSecurityKeys!
+        if ragdoll.HasSecurityKeys and not ply\HasSecurityKeys!
             ragdoll.HasSecurityKeys = nil
             velocity += direction * 50
-            @GiveSecurityKeys!
+            ply\GiveSecurityKeys!
 
-        if ragdoll.HasSecurityRadio and not @HasSecurityRadio!
+        if ragdoll.HasSecurityRadio and not ply\HasSecurityRadio!
             ragdoll.HasSecurityRadio = nil
             velocity += direction * 50
-            @GiveSecurityRadio!
+            ply\GiveSecurityRadio!
 
         :Weapons = ragdoll
         if Weapons ~= nil
-            spawnOrigin = @WorldSpaceCenter!
+            spawnOrigin = ply\WorldSpaceCenter!
             weapon = NULL
 
             for index = 1, #Weapons
@@ -594,12 +652,12 @@ do
                 weapon\SetParent!
                 weapon\SetNoDraw( false )
                 weapon\SetNotSolid( false )
-                weapon.PickupForbidden = nil
+                weapon.m_bPickupForbidden = nil
 
-                if Run( "PlayerCanPickupWeapon", @, weapon ) == false
+                if Run( "PlayerCanPickupWeapon", ply, weapon ) == false
                     weapon\SetPos( spawnOrigin )
                 else
-                    @PickupWeapon( weapon )
+                    ply\PickupWeapon( weapon )
 
                 velocity += direction * 200
 
@@ -609,11 +667,11 @@ do
         if Ammo ~= nil
             count, amount = 0, 0
             for ammoType, ammoCount in pairs( Ammo )
-                amount = min( ammoCount, @GetPickupAmmoCount( ammoType ) )
+                amount = min( ammoCount, ply\GetPickupAmmoCount( ammoType ) )
                 if amount < 1
                     continue
 
-                @GiveAmmo( amount, ammoType )
+                ply\GiveAmmo( amount, ammoType )
                 velocity += direction * 100
                 ammoCount -= amount
 
@@ -648,63 +706,59 @@ do
             if phys and phys\IsValid!
                 phys\ApplyForceCenter( velocity )
 
-        Run( "PlayerLootedRagdoll", @, ragdoll )
+        Run( "PlayerLootedRagdoll", ply, ragdoll )
+        return
 
 do
 
     angle_zero = angle_zero
     :Clamp = math
 
-    PLAYER.SpawnFromRagdoll = ( ragdoll, ignoreHealth ) =>
-        if @Team! ~= ragdoll\Team!
-            @SetTeam( ragdoll\Team! )
+    PLAYER.SpawnFromRagdoll = ( ply, ragdoll, ignoreHealth ) ->
+        if ply\Team! ~= ragdoll\Team!
+            ply\SetTeam( ragdoll\Team! )
 
         unless ragdoll\Alive!
-            if @Alive!
-                @KillSilent!
+            if ply\Alive!
+                ply\KillSilent!
 
             Simple 0, ->
-                if not @IsValid! or @Alive!
+                if ply\IsValid! and ply\Alive!
+                    ply\ObserveEntity( ragdoll )
                     return
-
-                if ragdoll\IsValid!
-                    @ObserveEntity( ragdoll )
-                    return
-
-                @Spectate( OBS_MODE_ROAMING )
 
             return false
 
-        @SetModel( ragdoll\GetModel! )
-        @SetPos( ragdoll\WorldSpaceCenter! )
-        @SetEyeAngles( ragdoll.PlayerAngles or angle_zero )
+        ply\SetModel( ragdoll\GetModel! )
+        ply\SetPos( ragdoll\WorldSpaceCenter! )
+        ply\SetEyeAngles( ragdoll.PlayerAngles or angle_zero )
 
         if ignoreHealth ~= true
-            @SetHealth( @GetMaxHealth! * Clamp( ragdoll\Health! - ( ragdoll\GetMaxHealth! * 0.75 ) / ( ragdoll\GetMaxHealth! * 0.25 ), 0, 1 ) )
-            @SetArmor( @GetMaxArmor! * ( ( ragdoll.Armor or 0 ) / ( ragdoll.MaxArmor or 100 ) ) )
+            ply\SetHealth( ply\GetMaxHealth! * Clamp( ragdoll\Health! - ( ragdoll\GetMaxHealth! * 0.75 ) / ( ragdoll\GetMaxHealth! * 0.25 ), 0, 1 ) )
+            ply\SetArmor( ply\GetMaxArmor! * ( ( ragdoll.Armor or 0 ) / ( ragdoll.MaxArmor or 100 ) ) )
 
-        @SetPlayerColor( ragdoll\GetPlayerColor! )
-        @SetMaterial( ragdoll\GetMaterial! )
-        @SetColor( ragdoll\GetColor! )
-        @SetSkin( ragdoll\GetSkin! )
+        ply\SetPlayerColor( ragdoll\GetPlayerColor! )
+        ply\SetMaterial( ragdoll\GetMaterial! )
+        ply\SetColor( ragdoll\GetColor! )
+        ply\SetSkin( ragdoll\GetSkin! )
 
-        for bodygroup in *@GetBodyGroups!
-            @SetBodygroup( bodygroup.id, ragdoll\GetBodygroup( bodygroup.id ) )
+        for bodygroup in *ply\GetBodyGroups!
+            ply\SetBodygroup( bodygroup.id, ragdoll\GetBodygroup( bodygroup.id ) )
 
-        for index = 1, #@GetMaterials!
+        for index = 1, #ply\GetMaterials!
             materialPath = ragdoll\GetSubMaterial( index )
             if materialPath ~= ""
-                @SetSubMaterial( index, materialPath )
+                ply\SetSubMaterial( index, materialPath )
 
         if ragdoll\IsOnFire!
             ragdoll\Extinguish!
-            @Ignite( 5, 16 )
+            ply\Ignite( 5, 16 )
 
-        for bone = 0, @GetBoneCount! - 1
-            @ManipulateBonePosition( bone, ragdoll\GetManipulateBonePosition( bone ) )
-            @ManipulateBoneAngles( bone, ragdoll\GetManipulateBoneAngles( bone ) )
-            @ManipulateBoneJiggle( bone, ragdoll\GetManipulateBoneJiggle( bone ) )
-            @ManipulateBoneScale( bone, ragdoll\GetManipulateBoneScale( bone ) )
+        for bone = 0, ply\GetBoneCount! - 1
+            ply\ManipulateBonePosition( bone, ragdoll\GetManipulateBonePosition( bone ) )
+            ply\ManipulateBoneAngles( bone, ragdoll\GetManipulateBoneAngles( bone ) )
+            ply\ManipulateBoneJiggle( bone, ragdoll\GetManipulateBoneJiggle( bone ) )
+            ply\ManipulateBoneScale( bone, ragdoll\GetManipulateBoneScale( bone ) )
 
         if ragdoll\IsRagdoll!
             velocity = vector_origin
@@ -716,28 +770,25 @@ do
                     velocity += phys\GetVelocity!
 
             velocity /= count
-            @SetVelocity( velocity )
+            ply\SetVelocity( velocity )
 
         else
 
             phys = ragdoll\GetPhysicsObject!
             if phys and phys\IsValid!
-                @SetVelocity( phys\GetVelocity! )
+                ply\SetVelocity( phys\GetVelocity! )
 
         if ragdoll.HasShockCollar
             ragdoll.HasShockCollar = nil
-            @GiveShockCollar!
+            ply\GiveShockCollar!
 
-        @Give( "jb_hands", false, true )
-        @LootRagdoll( ragdoll )
+        ply\Give( "jb_hands", false, true )
+        ply\LootRagdoll( ragdoll )
         return true
 
-Add "PlayerSelectSpawn", "Jailbreak::AliveRagdoll", ( transition ) =>
-    if transition
-        return
-
-    ragdoll = @GetRagdollEntity!
-    if ragdoll\IsValid! and ragdoll\Alive!
+Add "PlayerSelectSpawn", "Jailbreak::AliveRagdoll", ( ply ) ->
+    ragdoll = ply\GetRagdollEntity!
+    if ragdoll and ragdoll\IsValid! and ragdoll\Alive!
         return ragdoll
 
 do
@@ -745,9 +796,9 @@ do
     traceResultDown, traceResultUp = {}, {}
     trace = {}
 
-    fixupProp = ( entity, origin, mins, maxs ) =>
+    fixupProp = ( ply, entity, origin, mins, maxs ) ->
         downEndPos, upEndPos = entity\LocalToWorld( mins ), entity\LocalToWorld( maxs )
-        trace.filter = { entity, @ }
+        trace.filter = { entity, ply }
 
         trace.start = origin
         trace.endpos = downEndPos
@@ -769,27 +820,30 @@ do
         if traceResultUp.Hit
             entity\SetPos( origin + ( traceResultUp.HitPos - upEndPos ) )
 
-    tryFixPosition = ( entity, origin ) =>
+        return
+
+    tryFixPosition = ( ply, entity, origin ) ->
         mins, maxs = entity\GetCollisionBounds!
         mins[ 2 ], mins[ 3 ] = 0, 0
         maxs[ 2 ], maxs[ 3 ] = 0, 0
 
-        fixupProp( @, entity, origin, mins, maxs )
+        fixupProp( ply, entity, origin, mins, maxs )
 
         mins, maxs = entity\GetCollisionBounds!
         mins[ 1 ], mins[ 3 ] = 0, 0
         maxs[ 1 ], maxs[ 3 ] = 0, 0
 
-        fixupProp( @, entity, origin, mins, maxs )
+        fixupProp( ply, entity, origin, mins, maxs )
 
         mins, maxs = entity\GetCollisionBounds!
         mins[ 1 ], mins[ 2 ] = 0, 0
         maxs[ 1 ], maxs[ 2 ] = 0, 0
 
-        fixupProp( @, entity, origin, mins, maxs )
+        fixupProp( ply, entity, origin, mins, maxs )
+        return
 
-    PLAYER.SpawnEntity = ( className, preSpawn ) =>
-        trace.start = @GetShootPos!
+    PLAYER.SpawnEntity = ( ply, className, preSpawn ) ->
+        trace.start = ply\GetShootPos!
         unless IsInWorld( trace.start )
             return NULL
 
@@ -797,17 +851,17 @@ do
         unless entity and entity\IsValid!
             return NULL
 
-        trace.endpos = trace.start + ( @GetAimVector! * 128 )
-        trace.filter = @
+        trace.endpos = trace.start + ( ply\GetAimVector! * 128 )
         trace.output = traceResultDown
+        trace.filter = ply
         TraceLine( trace )
 
         origin = traceResultDown.HitPos
-        entity\SetTeam( @Team! )
+        entity\SetTeam( ply\Team! )
         entity\SetPos( origin )
-        entity\SetCreator( @ )
+        entity\SetCreator( ply )
 
-        angles = @EyeAngles!
+        angles = ply\EyeAngles!
         angles[ 1 ] = 0
         angles[ 2 ] += 180
         angles[ 3 ] = 0
@@ -815,7 +869,7 @@ do
         entity\SetAngles( angles )
 
         if preSpawn ~= nil
-            preSpawn( entity, @ )
+            preSpawn( entity, ply )
 
         entity\Spawn!
         entity\Activate!
@@ -823,7 +877,7 @@ do
         origin = entity\NearestPoint( origin - ( traceResultDown.HitNormal * entity\OBBMins! ) )
         entity\SetPos( origin )
 
-        tryFixPosition( @, entity, origin )
+        tryFixPosition( ply, entity, origin )
         entity\PhysWake!
         return entity
 
@@ -832,13 +886,13 @@ do
     :PrecacheModel, :IsValidModel = util
     :SetModel = ENTITY
 
-    PLAYER.SetModel = ( modelPath ) =>
+    PLAYER.SetModel = ( ply, modelPath ) ->
         modelPath = FixModelPath( modelPath )
         if IsValidModel( modelPath )
             PrecacheModel( modelPath )
-            SetModel( @, modelPath )
-            Run( "PlayerModelChanged", @, modelPath )
-            @SetupHands!
+            SetModel( ply, modelPath )
+            Run( "PlayerModelChanged", ply, modelPath )
+            ply\SetupHands!
             return true
 
         return false
@@ -847,11 +901,11 @@ do
 
     :GetNW2Int = ENTITY
 
-    PLAYER.GetSpawnTime = =>
-        return GetNW2Int( @, "spawn-time" )
+    PLAYER.GetSpawnTime = ( ply ) ->
+        return GetNW2Int( ply, "spawn-time" )
 
-    PLAYER.GetAliveTime = =>
-        return CurTime! - GetNW2Int( @, "spawn-time" )
+    PLAYER.GetAliveTime = ( ply ) ->
+        return CurTime! - GetNW2Int( ply, "spawn-time" )
 
 do
 
@@ -859,7 +913,7 @@ do
     :Give, :HasWeapon = PLAYER
     :Random = table
 
-    PLAYER.GiveRandomWeapons = ( count ) =>
+    PLAYER.GiveRandomWeapons = ( ply, count ) ->
         unless count
             count = 4
 
@@ -869,13 +923,13 @@ do
                 break
 
             className = Random( AvaliableWeapons, true )
-            if HasWeapon( @, className ) or gived[ className ] == true
+            if HasWeapon( ply, className ) or gived[ className ] == true
                 continue
 
-            if Give( @, className, false )\IsValid!
+            if Give( ply, className, false )\IsValid!
                 gived[ className ] = true
                 count -= 1
 
-PLAYER.SetEscaped = ( state ) =>
-    SetNW2Bool( @, "escaped", state )
+PLAYER.SetEscaped = ( ply, state ) ->
+    SetNW2Var( ply, "escaped", state ~= true )
     return

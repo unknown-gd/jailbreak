@@ -510,7 +510,7 @@ do
                     phys\SetVelocity( velocity )
                     phys\Wake!
 
-                weapon.PickupForbidden = nil
+                weapon.m_bPickupForbidden = nil
 
             ragdoll.Weapons = nil
 

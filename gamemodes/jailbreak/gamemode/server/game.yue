@@ -1,18 +1,17 @@
 :random, :max, :min, :Rand = math
 Jailbreak = Jailbreak
+:SetNW2Var = ENTITY
+:Teams = Jailbreak
 CurTime = CurTime
 :Simple = timer
 Vector = Vector
 :Run = hook
 GM = GM
 
-TEAM_PRISONER = TEAM_PRISONER
-TEAM_GUARD = TEAM_GUARD
-
 OBS_MODE_ROAMING = OBS_MODE_ROAMING
 OBS_MODE_CHASE = OBS_MODE_CHASE
-
-:Teams = Jailbreak
+TEAM_PRISONER = TEAM_PRISONER
+TEAM_GUARD = TEAM_GUARD
 
 -- https://wiki.facepunch.com/gmod/GM:ShowTeam
 GM.ShowTeam = ( ply ) =>
@@ -24,14 +23,14 @@ do
 
     -- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
     GM.PlayerInitialSpawn = ( ply, transiton ) =>
-        ply\SetNoCollideWithTeammates( Jailbreak.GameName == "tf" )
+        ply\SetNoCollideWithTeammates( Jailbreak.m_sGameName == "tf" )
         ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
 
         ragdoll = ply\FindRagdollEntity!
         if ragdoll\IsValid!
-            ragdoll\SetNW2Entity( "ragdoll-owner", ply )
+            SetNW2Var( ragdoll, "ragdoll-owner", ply )
         else
             ply\SetTeam( TEAM_PRISONER )
 
@@ -154,7 +153,7 @@ GM.SetupMove = ( ply, _, cmd ) =>
     if ply\IsFullyConnected! or not ( cmd\IsForced! or ply\IsBot! )
         return
 
-    ply\SetNW2Bool( "fully-connected", true )
+    SetNW2Var( ply, "fully-connected", true )
     Run( "PlayerInitialized", ply )
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetModel
@@ -279,20 +278,23 @@ GM.PlayerDeath = ( ply, inflictor, attacker ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
         Run( "TeamPlayerDeath", ply, teamID )
+        return
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerSilentDeath
 GM.PlayerSilentDeath = ( ply ) =>
     teamID = ply\Team!
     if Teams[ teamID ]
         Run( "TeamPlayerDeath", ply, teamID )
+        return
 
 -- https://wiki.facepunch.com/gmod/GM:PostPlayerDeath
 GM.PostPlayerDeath = ( ply ) =>
-    ply\SetNW2Bool( "lost-consciousness", false )
+    SetNW2Var( ply, "lost-consciousness", false )
     ply\AddDeaths( 1 )
     ply\ResetToggles!
     ply\Extinguish!
     ply\DropObject!
+    return
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerDeathThink
 do
@@ -307,6 +309,7 @@ do
 
         if ply\GetObserverMode! == OBS_MODE_NONE
             ply\Spectate( OBS_MODE_ROAMING )
+            return
 
 -- Spectator controls
 do
@@ -439,7 +442,7 @@ do
 
         SendChatText( false, false, CHAT_CONNECTED, ply\GetModelColor!, ply\Nick!, ply\SteamID! )
 
-        gameName = Jailbreak.GameName
+        gameName = Jailbreak.m_sGameName
         unless gameName
             return
 
@@ -529,12 +532,12 @@ GM.PlayerUse = ( ply, entity ) =>
 
     isReleased = ( curTime - lastUseTime ) > 0.025
     if not lastUseTime or isReleased
-        ply\SetNW2Int( "start-use-time", curTime )
+        SetNW2Var( ply, "start-use-time", curTime )
         Run( "PlayerHoldUse", ply, entity, 0 )
     else
         startUseTime = ply\GetNW2Int( "start-use-time" )
         if startUseTime ~= 0 and Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true
-            ply\SetNW2Int( "start-use-time", 0 )
+            SetNW2Var( ply, "start-use-time", 0 )
             return false
 
     unless isReleased
@@ -544,7 +547,7 @@ GM.PlayerUse = ( ply, entity ) =>
         return false
 
     if entity\IsWeapon!
-        if entity.PickupForbidden
+        if entity.m_bPickupForbidden
             return false
 
         if entity.IsTemporaryWeapon
@@ -602,7 +605,7 @@ GM.OnEntityCreated = ( entity ) =>
         return
 
     if className == "func_button"
-        entity\SetNW2Bool( "is-button", true )
+        SetNW2Var( entity, "is-button", true )
         return
 
     entity\AddToObserveTargets!
@@ -653,15 +656,15 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
 GM.PlayerLoadout = ( ply ) =>
     -- Giving weapons if not cstrike map
-    if ply\IsGuard! and Jailbreak.GameName ~= "cstrike" and not @TF2Medieval
+    if ply\IsGuard! and Jailbreak.m_sGameName ~= "cstrike" and not Jailbreak.m_bTF2Medieval
         ply\GiveRandomWeapons( 4 )
 
     -- Giving hands
     ply\Give( "jb_hands", false, true )
     ply\SelectWeapon( "jb_hands" )
 
-hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", =>
-    @m_tGivedAmmo = nil
+hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", ( ply ) ->
+    ply.m_tGivedAmmo = nil
 
 GM.WeaponEquip = ( weapon, owner ) =>
     unless owner\IsGuard! or owner\IsEscaped!
@@ -712,10 +715,10 @@ GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
 -- https://wiki.facepunch.com/gmod/GM:FinishMove
 GM.FinishMove = ( ply, mv ) =>
     if ply\Alive!
-        ply.LastVelocity = mv\GetVelocity!
+        ply.m_vLastVelocity = mv\GetVelocity!
 
 GM.OnPlayerPhysicsPickup = ( ply, entity ) =>
-    ply\SetNW2Entity( "holding-entity", entity )
+    SetNW2Var( ply, "holding-entity", entity )
     entity.m_eHolder = ply
 
 do
@@ -723,11 +726,13 @@ do
     NULL = NULL
 
     GM.OnPlayerPhysicsDrop = ( ply, entity ) =>
-        ply\SetNW2Entity( "holding-entity", NULL )
+        SetNW2Var( ply, "holding-entity", NULL )
         entity.m_eHolder = nil
         ply\SetupMovement!
+        return
 
 hook.Add "EntityRemoved", "Jailbreak::PhysicsDropFix", ( entity ) ->
     holder = entity.m_eHolder
     if holder and holder\IsValid! and holder\IsPlayer!
         Run( "OnPlayerPhysicsDrop", holder, entity )
+        return

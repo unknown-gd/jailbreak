@@ -99,13 +99,13 @@ do
         RunConsoleCommand( "sv_gravity", "800" )
 
         if #FindByClass( "info_player_teamspawn" ) ~= 0
-            @TF2Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
+            Jailbreak.m_bTF2Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
             xpcall( SoundHandler, ErrorNoHaltWithStack, "tf" )
             resource.AddWorkshop( "105181283" )
-            Jailbreak.GameName = "tf"
+            Jailbreak.m_sGameName = "tf"
         elseif ( #FindByClass( "info_player_counterterrorist" ) + #FindByClass( "info_player_counterterrorist" ) ) ~= 0
             xpcall( SoundHandler, ErrorNoHaltWithStack, "cstrike" )
-            Jailbreak.GameName = "cstrike"
+            Jailbreak.m_sGameName = "cstrike"
 
         -- Localization initialization
         timer.Simple 0, Jailbreak.ReloadLocalization

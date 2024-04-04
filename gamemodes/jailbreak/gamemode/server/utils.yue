@@ -36,6 +36,7 @@ do
         WriteUInt( 3, 4 )
         WriteString( soundPath )
         Broadcast!
+        return
 
 do
 
@@ -55,6 +56,7 @@ do
         Effect( "Explosion", fx )
 
         BlastDamage( inflictor, attacker, origin, radius, damage )
+        return
 
 -- Change player team
 do
@@ -78,6 +80,7 @@ do
                 @KillSilent!
 
         @SetTeam( teamID )
+        return
 
     Jailbreak.ChangeTeam = changeTeam
     GM.PlayerRequestTeam = changeTeam
@@ -96,6 +99,7 @@ do
                 return
 
             SetGlobal2Bool( "female-prison", bool )
+            return
 
     -- Shock collars
     do
@@ -110,6 +114,8 @@ do
 
             unless silent
                 Run( "ShockCollarsToggled", bool )
+
+            return
 
 do
 
@@ -127,15 +133,19 @@ do
         unless silent
             Run( "WardenCoins", oldValue, value )
 
+        return
+
     Jailbreak.SetWardenCoins = setWardenCoins
 
     -- Take warden coins
     Jailbreak.TakeWardenCoins = ( value, silent ) ->
         setWardenCoins( max( 0, GetWardenCoins! - value ), silent )
+        return
 
     -- Give warden coins
     Jailbreak.GiveWardenCoins = ( value, silent ) ->
         setWardenCoins( max( 0, GetWardenCoins! + value ), silent )
+        return
 
 do
 
@@ -207,6 +217,7 @@ do
     Simple 0.5, ->
         table.Empty( shopItems )
         Run( "ShopItems", Jailbreak.AddShopItem )
+        return
 
 -- Cleanup's map safely
 do
@@ -217,6 +228,7 @@ do
     Jailbreak.SafeCleanUpMap = ->
         timer_Create "Jailbreak::CleanUpMap", 0.25, 1, ->
             CleanUpMap( false )
+            return
 
 -- Returns entity mass in kilograms
 do
@@ -413,6 +425,7 @@ do
         className = GetClass( entity )
         if ( className == "prop_door_rotating" or className == "func_door_rotating" ) and lower( key ) == "m_bLocked"
             entity\SetNW2Bool( key, tobool( value ) )
+            return
 
 do
 

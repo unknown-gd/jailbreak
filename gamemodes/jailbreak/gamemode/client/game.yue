@@ -113,7 +113,7 @@ do
             when 0
                 gameName = ReadString!
                 SoundHandler( gameName )
-                Jailbreak.GameName = gameName
+                Jailbreak.m_sGameName = gameName
 
             when 1
                 Run( "PickupNotifyReceived", ReadString!, ReadUInt( 6 ), ReadUInt( 16 ) )
