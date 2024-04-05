@@ -667,27 +667,25 @@ hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", ( ply ) ->
     ply.m_tGivedAmmo = nil
 
 GM.WeaponEquip = ( weapon, owner ) =>
-    unless owner\IsGuard! or owner\IsEscaped!
-        return
+    if owner\IsGuard! or owner\IsEscaped!
+        givedAmmo = owner.m_tGivedAmmo
+        unless givedAmmo
+            givedAmmo = {}
+            owner.m_tGivedAmmo = givedAmmo
 
-    givedAmmo = owner.m_tGivedAmmo
-    unless givedAmmo
-        givedAmmo = {}
-        owner.m_tGivedAmmo = givedAmmo
+        primaryAmmoType = weapon\GetPrimaryAmmoType!
+        if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
+            amount = owner\GetPickupAmmoCount( primaryAmmoType )
+            if amount ~= 0
+                owner\GiveAmmo( amount, primaryAmmoType, false )
+                givedAmmo[ primaryAmmoType ] = true
 
-    primaryAmmoType = weapon\GetPrimaryAmmoType!
-    if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
-        amount = owner\GetPickupAmmoCount( primaryAmmoType )
-        if amount ~= 0
-            owner\GiveAmmo( amount, primaryAmmoType, false )
-            givedAmmo[ primaryAmmoType ] = true
-
-    secondaryAmmoType = weapon\GetSecondaryAmmoType!
-    if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
-        amount = owner\GetPickupAmmoCount( secondaryAmmoType )
-        if amount ~= 0
-            owner\GiveAmmo( amount, secondaryAmmoType, false )
-            givedAmmo[ secondaryAmmoType ] = true
+        secondaryAmmoType = weapon\GetSecondaryAmmoType!
+        if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
+            amount = owner\GetPickupAmmoCount( secondaryAmmoType )
+            if amount ~= 0
+                owner\GiveAmmo( amount, secondaryAmmoType, false )
+                givedAmmo[ secondaryAmmoType ] = true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
