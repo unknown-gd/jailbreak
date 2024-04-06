@@ -74,7 +74,7 @@ SWEP.PrimaryAttack = =>
         return
 
     if ply\Alive!
-        if entity\Alive! and ply\GetNW2Bool( "lost-consciousness" )
+        if entity\Alive! and ply\IsLostConsciousness!
             @ShockAlivePlayer( ply, owner )
             @TakeClip1( 1, owner )
             return

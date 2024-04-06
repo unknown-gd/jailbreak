@@ -399,27 +399,10 @@ do
 
         @m_fLoseConsciousnessDelay = CurTime! + 3
 
-        ragdoll = @GetRagdollEntity!
-        if ragdoll\IsValid! and ragdoll\Alive!
-            @SetNW2Bool( "lost-consciousness", false )
-            @SpawnFromRagdoll( ragdoll, true, true )
-            @SetNoDraw( false )
-            @DrawWorldModel( true )
-            @SetNotSolid( false )
-            @SetMoveType( MOVETYPE_WALK )
-            ragdoll\SetAlive( false )
-            ragdoll\Remove!
-            return
-
         unless GameInProgress! and AllowPlayersLoseConsciousness\GetBool!
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
             return
 
-        ragdoll = @CreateRagdoll( true )
-        if ragdoll\IsValid!
-            @DropObject!
-            @SetMoveType( MOVETYPE_NONE )
-            @DrawWorldModel( false )
-            @SetNoDraw( true )
-            @SetNotSolid( true )
-            @SetNW2Bool( "lost-consciousness", true )
+        @SetLostConsciousness( not @IsLostConsciousness! )
+        return
+

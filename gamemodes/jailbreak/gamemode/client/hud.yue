@@ -194,7 +194,7 @@ do
 
     GM.HUDDrawTargetID = =>
         ply = Jailbreak.ViewEntity
-        unless ply\IsValid!
+        if not ply\IsValid! or ply\IsLostConsciousness!
             return
 
         trace.start = EyePos!

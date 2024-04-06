@@ -185,7 +185,7 @@ do
             return false
 
 Add "PlayerFootstep", "Jailbreak::LoseConsciousness", ( ply ) ->
-    if GetNW2Var( ply, "lost-consciousness" )
+    if ply\IsLostConsciousness!
         return true
 
 do

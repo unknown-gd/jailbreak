@@ -689,6 +689,9 @@ PLAYER.IsSpawning = =>
 PLAYER.IsEscaped = =>
     return GetNW2Var( @, "escaped", false )
 
+PLAYER.IsLostConsciousness = =>
+    return GetNW2Var( @, "lost-consciousness", false )
+
 do
 
     :BuyZones = Jailbreak

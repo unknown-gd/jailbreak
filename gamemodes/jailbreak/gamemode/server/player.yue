@@ -490,6 +490,7 @@ do
             ragdoll\SetFlexWeight( flexID, ply\GetFlexWeight( flexID ) )
 
         ragdoll\SetPlayerColor( ply\GetPlayerColor! )
+        ragdoll\SetModelScale( ply\GetModelScale! )
         ragdoll\SetMaterial( ply\GetMaterial! )
         ragdoll\SetColor( ply\GetColor! )
         ragdoll\SetSkin( ply\GetSkin! )
@@ -736,6 +737,7 @@ do
             ply\SetArmor( ply\GetMaxArmor! * ( ( ragdoll.Armor or 0 ) / ( ragdoll.MaxArmor or 100 ) ) )
 
         ply\SetPlayerColor( ragdoll\GetPlayerColor! )
+        ply\SetModelScale( ragdoll\GetModelScale! )
         ply\SetMaterial( ragdoll\GetMaterial! )
         ply\SetColor( ragdoll\GetColor! )
         ply\SetSkin( ragdoll\GetSkin! )
@@ -788,6 +790,32 @@ Add "PlayerSelectSpawn", "Jailbreak::AliveRagdoll", ( ply ) ->
     ragdoll = ply\GetRagdollEntity!
     if ragdoll and ragdoll\IsValid! and ragdoll\Alive!
         return ragdoll
+
+PLAYER.SetLostConsciousness = ( ply, state ) ->
+    if state
+        ragdoll = ply\CreateRagdoll( true )
+        if ragdoll\IsValid!
+            ply\DropObject!
+            ply\SetMoveType( MOVETYPE_NONE )
+            ply\DrawWorldModel( false )
+            ply\SetNoDraw( true )
+            ply\SetNotSolid( true )
+            SetNW2Var( ply, "lost-consciousness", true )
+
+        return
+
+    ragdoll = ply\GetRagdollEntity!
+    if ragdoll\IsValid! and ragdoll\Alive!
+        SetNW2Var( ply, "lost-consciousness", false )
+        ply\SpawnFromRagdoll( ragdoll, true, true )
+        ply\SetNoDraw( false )
+        ply\DrawWorldModel( true )
+        ply\SetNotSolid( false )
+        ply\SetMoveType( MOVETYPE_WALK )
+        ragdoll\SetAlive( false )
+        ragdoll\Remove!
+
+    return
 
 do
 
