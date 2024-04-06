@@ -791,7 +791,7 @@ Add "PlayerSelectSpawn", "Jailbreak::AliveRagdoll", ( ply ) ->
     if ragdoll and ragdoll\IsValid! and ragdoll\Alive!
         return ragdoll
 
-PLAYER.SetLostConsciousness = ( ply, state ) ->
+PLAYER.SetLoseConsciousness = ( ply, state ) ->
     if state
         ragdoll = ply\CreateRagdoll( true )
         if ragdoll\IsValid!
@@ -800,6 +800,7 @@ PLAYER.SetLostConsciousness = ( ply, state ) ->
             ply\DrawWorldModel( false )
             ply\SetNoDraw( true )
             ply\SetNotSolid( true )
+            ply\SetCollisionGroup( 12 )
             SetNW2Var( ply, "lost-consciousness", true )
 
         return
@@ -810,11 +811,16 @@ PLAYER.SetLostConsciousness = ( ply, state ) ->
         ply\SpawnFromRagdoll( ragdoll, true, true )
         ply\SetNoDraw( false )
         ply\DrawWorldModel( true )
+        ply\SetCollisionGroup( 5 )
         ply\SetNotSolid( false )
         ply\SetMoveType( MOVETYPE_WALK )
         ragdoll\SetAlive( false )
         ragdoll\Remove!
 
+    return
+
+Add "PostPlayerDeath", "Jailbreak::LostConsciousness", ( ply ) ->
+    SetNW2Var( ply, "lost-consciousness", false )
     return
 
 do

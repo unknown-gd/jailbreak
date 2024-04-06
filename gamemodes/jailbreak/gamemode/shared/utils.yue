@@ -689,7 +689,7 @@ PLAYER.IsSpawning = =>
 PLAYER.IsEscaped = =>
     return GetNW2Var( @, "escaped", false )
 
-PLAYER.IsLostConsciousness = =>
+PLAYER.IsLoseConsciousness = =>
     return GetNW2Var( @, "lost-consciousness", false )
 
 do

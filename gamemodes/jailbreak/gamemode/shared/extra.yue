@@ -185,7 +185,7 @@ do
             return false
 
 Add "PlayerFootstep", "Jailbreak::LoseConsciousness", ( ply ) ->
-    if ply\IsLostConsciousness!
+    if ply\IsLoseConsciousness!
         return true
 
 do

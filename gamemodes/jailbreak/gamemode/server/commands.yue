@@ -403,6 +403,6 @@ do
             @SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 5 )
             return
 
-        @SetLostConsciousness( not @IsLostConsciousness! )
+        @SetLoseConsciousness( not @IsLoseConsciousness! )
         return
 

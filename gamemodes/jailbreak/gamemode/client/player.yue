@@ -56,7 +56,7 @@ do
 
         entity = nil
         if Alive( ply )
-            if ply\IsLostConsciousness!
+            if ply\IsLoseConsciousness!
                 if Jailbreak.TauntViewAngles
                     Jailbreak.TauntViewAngles = nil
 

@@ -289,7 +289,6 @@ GM.PlayerSilentDeath = ( ply ) =>
 
 -- https://wiki.facepunch.com/gmod/GM:PostPlayerDeath
 GM.PostPlayerDeath = ( ply ) =>
-    SetNW2Var( ply, "lost-consciousness", false )
     ply\AddDeaths( 1 )
     ply\ResetToggles!
     ply\Extinguish!
