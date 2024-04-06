@@ -194,29 +194,31 @@ do
 
     GM.HUDDrawTargetID = =>
         ply = Jailbreak.ViewEntity
-        if not ply\IsValid! or ply\IsLoseConsciousness!
+        unless ply\IsValid!
             return
 
+        screenCenterX = Jailbreak.ScreenCenterX
+        mouseX, mouseY = screenCenterX, Jailbreak.ScreenCenterY
+
         trace.start = EyePos!
-        trace.endpos = trace.start
+
+        if ply\IsPlayer!
+            if ply\IsLoseConsciousness!
+                return
+
+            isWorldClicking = ply\IsWorldClicking!
+            if isWorldClicking and CursorVisible!
+                mouseX, mouseY = GetCursorPos!
+                trace.endpos = trace.start + ScreenToVector( mouseX, mouseY ) * 1024
+            else
+                trace.endpos = trace.start + ScreenToVector( mouseX, mouseY ) * VoiceChatMinDistance\GetInt!
+        else
+            trace.endpos = trace.start + ScreenToVector( mouseX, mouseY ) * VoiceChatMinDistance\GetInt!
 
         if not Jailbreak.IsPlayingTaunt and ply\Alive!
             trace.filter = ply
         else
             trace.filter = nil
-
-        screenCenterX = Jailbreak.ScreenCenterX
-        mouseX, mouseY = screenCenterX, Jailbreak.ScreenCenterY
-
-        if ply\IsPlayer!
-            isWorldClicking = ply\IsWorldClicking!
-            if isWorldClicking and CursorVisible!
-                mouseX, mouseY = GetCursorPos!
-                trace.endpos += ScreenToVector( mouseX, mouseY ) * 1024
-            else
-                trace.endpos += ScreenToVector( mouseX, mouseY ) * VoiceChatMinDistance\GetInt!
-        else
-            trace.endpos += ScreenToVector( mouseX, mouseY ) * VoiceChatMinDistance\GetInt!
 
         TraceLine( trace )
 
