@@ -678,7 +678,7 @@ Add "RagdollTakeDamage", "Jailbreak::AliveRagdoll", ( damageInfo ) =>
 
     ply = @GetRagdollOwner!
     if IsValid( ply ) and Alive( ply )
-        damageInfo\ScaleDamage( 0.5 )
+        damageInfo\ScaleDamage( 0.25 )
         ply\TakeDamageInfo( damageInfo )
         return
 
