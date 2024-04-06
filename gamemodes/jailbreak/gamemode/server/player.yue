@@ -963,5 +963,9 @@ do
                 count -= 1
 
 PLAYER.SetEscaped = ( ply, state ) ->
-    SetNW2Var( ply, "escaped", state ~= true )
+    SetNW2Var( ply, "escaped", state == true )
+    return
+
+Add "PostPlayerDeath", "Jailbreak::Escape", ( ply ) ->
+    SetNW2Var( ply, "escaped", false )
     return

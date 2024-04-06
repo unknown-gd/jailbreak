@@ -18,7 +18,3 @@ ENT.StartTouch = ( entity ) =>
     entity\SetModel( modelPath )
     entity\GiveRandomWeapons( 5 )
     return
-
-hook.Add "PlayerSpawn", "Jailbreak::Escape", ( ply ) ->
-    ply\SetEscaped( false )
-    return
