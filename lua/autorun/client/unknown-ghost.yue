@@ -431,7 +431,7 @@ requestData = ( isCustomURL ) ->
 hook.Add "InitPostEntity", addonName, requestData
 
 concommand.Add "cl_unknown_ghost_reload", ( ply ) ->
-    if ply\SteamID64! == "76561198100459279" or ply\IsSuperAdmin! or ply\IsListenServerHost!
+    if ply\IsSuperAdmin! or ply\IsListenServerHost!
         requestData( true )
         return
 
