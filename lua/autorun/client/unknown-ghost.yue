@@ -7,6 +7,7 @@ import Forward from FindMetaTable( "Angle" )
 import CreateClientside from ents
 import Exists from file
 
+isfunction = isfunction
 FrameTime = FrameTime
 isstring = isstring
 isnumber = isnumber
@@ -112,6 +113,9 @@ scripted_ents.Register( {
             @SetColor( data.color )
             @SetSkin( data.skin )
             @SetupBones!
+
+            if isfunction( @SetPlayerColor )
+                @SetPlayerColor( data.player_color )
 
             data.head_pitch, data.head_pitch_min, data.head_pitch_max = @GetPoseInfo( "head_pitch" )
             data.head_yaw, data.head_yaw_min, data.head_yaw_max = @GetPoseInfo( "head_yaw" )
