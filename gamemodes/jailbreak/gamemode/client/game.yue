@@ -1,6 +1,7 @@
 RunConsoleCommand = RunConsoleCommand
+import format from string
 Jailbreak = Jailbreak
-:format = string
+MsgC = MsgC
 GM = GM
 
 Jailbreak.VoiceChatState = Jailbreak.VoiceChatState or false
@@ -78,8 +79,8 @@ do
 
 do
 
+    import LookupKeyBinding, IsKeyDown from input
     IsFirstTimePredicted = IsFirstTimePredicted
-    :LookupKeyBinding, :IsKeyDown = input
 
     GM.PlayerButtonUp = ( ply, keyCode ) =>
         unless IsFirstTimePredicted!
@@ -101,13 +102,22 @@ do
 
 do
 
-    :ReadString, :ReadUInt, :ReadTable, :ReadEntity, :ReadBool = net
+    import ReadString, ReadUInt, ReadTable, ReadEntity, ReadBool from net
+    import AddLegacy from notification
+    import Translate from Jailbreak
     CHAN_STATIC = CHAN_STATIC
-    :AddLegacy = notification
-    :Translate = Jailbreak
+    import random from math
+    import Run from hook
+    :Colors = Jailbreak
     unpack = unpack
-    :random = math
-    :Run = hook
+
+    notifyColors = {
+        [ NOTIFY_GENERIC ]: Colors.vivid_orange
+        [ NOTIFY_CLEANUP ]: Colors.horizon
+        [ NOTIFY_ERROR ]: Colors.red
+        [ NOTIFY_UNDO ]: Colors.blue
+        [ NOTIFY_HINT ]: Colors.guards
+    }
 
     net.Receive "Jailbreak::Networking", ->
         switch ReadUInt( 4 )
@@ -120,7 +130,9 @@ do
                 Run( "PickupNotifyReceived", ReadString!, ReadUInt( 6 ), ReadUInt( 16 ) )
 
             when 2
-                AddLegacy( format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 ), ReadUInt( 16 ) )
+                text, notifyType = format( Translate( ReadString! ), unpack( ReadTable( true ) ) ), ReadUInt( 3 )
+                AddLegacy( text, notifyType, ReadUInt( 16 ) )
+                MsgC( notifyColors[ notifyType ], "Notify: ", text, "\n" )
 
             when 3
                 ply = Jailbreak.Player

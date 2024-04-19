@@ -267,7 +267,7 @@ do
         sounds = {
             [ NOTIFY_GENERIC ]: "buttons/button9.wav"
             [ NOTIFY_ERROR ]: "player/suit_denydevice.wav"
-            [ NOTIFY_HINT ]: "buttons/button24.wav"
+            [ NOTIFY_HINT ]: "buttons/button9.wav"
             [ NOTIFY_CLEANUP ]: "buttons/button6.wav"
             [ NOTIFY_UNDO ]: "buttons/button9.wav"
         }
