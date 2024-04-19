@@ -407,7 +407,7 @@ do
         return
 
 Add "jb_restart_server", ( ply ) ->
-    if ply and not ( ply\IsSuperAdmin! or ply\IsListenServerHost! )
+    if ply and ply\IsValid! and not ( ply\IsSuperAdmin! or ply\IsListenServerHost! )
         return
 
     if #player.GetHumans! > 1
