@@ -598,6 +598,12 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 
         return IsValid( @Give( "jb_defibrillator", false, true ) )
 
+    add "item_battery", "models/Items/battery.mdl", 5, =>
+        return IsValid( @SpawnEntity( "item_battery" ) )
+
+    add "jb_ammo", "models/Items/BoxSRounds.mdl", 10, =>
+        return IsValid( @SpawnEntity( "jb_ammo" ) )
+
     return
 
 Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
