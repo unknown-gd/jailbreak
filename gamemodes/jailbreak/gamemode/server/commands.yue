@@ -406,3 +406,12 @@ do
         @SetLoseConsciousness( not @IsLoseConsciousness! )
         return
 
+Add "jb_restart_server", ( ply ) ->
+    if ply and not ( ply\IsSuperAdmin! or ply\IsListenServerHost! )
+        return
+
+    if #player.GetHumans! > 1
+        return
+
+    RunConsoleCommand( "_restart" )
+    return
