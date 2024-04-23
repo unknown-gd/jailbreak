@@ -439,11 +439,23 @@ do
     :GetAmmoID = game
 
     clips = {
+        weapon_smokegrenade: 1
+        weapon_flashbang: 2
+        weapon_hegrenade: 1
         weapon_crossbow: 4
         weapon_frag: 1
         weapon_slam: 3
         weapon_ar2: 30
         weapon_rpg: 3
+    }
+
+    grenades = {
+        weapon_smokegrenade: true
+        weapon_flashbang: true
+        weapon_hegrenade: true
+        weapon_slam: true
+        weapon_frag: true
+        weapon_c4: true
     }
 
     Add "OnEntityCreated", "Jailbreak::HL2AmmoFix", =>
@@ -459,7 +471,7 @@ do
         unless clips[ className ]
             return
 
-        if className == "weapon_frag" or className == "weapon_slam"
+        if grenades[ className ]
             Simple 0, ->
                 if IsValid( @ ) and IsValid( ply ) and ply == @GetOwner!
                     ply\SetAmmo( 1, max( @GetPrimaryAmmoType!, @GetSecondaryAmmoType! ) )
@@ -491,7 +503,7 @@ do
                 return false
 
         ammoMax = 0
-        if className == "weapon_frag" or className == "weapon_slam"
+        if grenades[ className ]
             ammoMax = clips[ className ]
         else
             ammoMax = GetAmmoMax( ammoType )

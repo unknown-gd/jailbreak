@@ -326,3 +326,42 @@ do
             worldModel = weapon.WorldModel
             if worldModel and #worldModel ~= 0 and IsValidModel( worldModel )
                 PrecacheModel( worldModel )
+
+do
+
+    -- https://github.com/Metastruct/gmod-csweapons
+    slots = {
+        weapon_knife: 0
+        weapon_usp: 1
+        weapon_p228: 1
+        weapon_glock: 1
+        weapon_elite: 1
+        weapon_deagle: 1
+        weapon_fiveseven: 1
+        weapon_m3: 2
+        weapon_aug: 2
+        weapon_awp: 2
+        weapon_p90: 2
+        weapon_tmp: 2
+        weapon_ak47: 2
+        weapon_m249: 2
+        weapon_m4a1: 2
+        weapon_g3sg1: 2
+        weapon_galil: 2
+        weapon_mac10: 2
+        weapon_scout: 2
+        weapon_sg550: 2
+        weapon_sg552: 2
+        weapon_ump45: 2
+        weapon_famas: 2
+        weapon_xm1014: 2
+        weapon_mp5navy: 2
+        weapon_flashbang: 4
+        weapon_hegrenade: 4
+        weapon_smokegrenade: 4
+        weapon_c4: 5
+    }
+
+    hook.Add "Initialize", "Jailbreak::WeaponSlotsForCSS", ->
+        for swep in *weapons.GetList!
+            swep.Slot = slots[ swep.ClassName ] or swep.Slot or 0
