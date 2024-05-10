@@ -2,10 +2,10 @@ ENTITY, PLAYER = ENTITY, PLAYER
 NOTIFY_UNDO = NOTIFY_UNDO
 Jailbreak = Jailbreak
 
-:IsInWorld, :IsValidModel, :TraceLine = util
+import IsInWorld, IsValidModel, TraceLine from util
 vector_origin = vector_origin
 :FixModelPath = Jailbreak
-:Add, :Run = hook
+import Add, Run from hook
 :Simple = timer
 :Create = ents
 
@@ -183,7 +183,7 @@ do
 
 do
 
-    :Start, :WriteUInt, :WriteTable, :WriteString, :WriteBool, :WriteEntity, :Send = net
+    import Start, WriteUInt, WriteTable, WriteString, WriteBool, WriteEntity, Send from net
 
     PLAYER.PlaySound = ( ply, soundPath ) ->
         Start( "Jailbreak::Networking" )
@@ -406,7 +406,7 @@ PLAYER.RemoveRagdoll = ( ply ) ->
 
 do
 
-    :ceil = math
+    import ceil from math
 
     PLAYER.Heal = ( ply, frac ) ->
         amount = ceil( ply\GetMaxHealth! * ( frac or 1 ) )
@@ -415,7 +415,7 @@ do
 
 do
 
-    :max = math
+    import max from math
 
     PLAYER.AddHealth = ( ply, amount ) ->
         amount = max( ply\GetHealth! + amount, ply\GetMaxHealth! )
@@ -613,9 +613,9 @@ do
 
 do
 
-    :Shuffle = table
+    import Shuffle from table
+    import min from math
     pairs = pairs
-    :min = math
 
     PLAYER.LootRagdoll = ( ply, ragdoll ) ->
         velocity = vector_origin
@@ -711,7 +711,7 @@ do
 do
 
     angle_zero = angle_zero
-    :Clamp = math
+    import Clamp from math
 
     PLAYER.SpawnFromRagdoll = ( ply, ragdoll, ignoreHealth ) ->
         if ply\Team! ~= ragdoll\Team!
@@ -915,7 +915,7 @@ do
 
 do
 
-    :PrecacheModel, :IsValidModel = util
+    import PrecacheModel from util
     :SetModel = ENTITY
 
     PLAYER.SetModel = ( ply, modelPath ) ->
@@ -941,9 +941,10 @@ do
 
 do
 
-    :AvaliableWeapons = Jailbreak
+    import AvaliableWeapons from Jailbreak
+    import Random from table
+
     :Give, :HasWeapon = PLAYER
-    :Random = table
 
     PLAYER.GiveRandomWeapons = ( ply, count ) ->
         unless count
