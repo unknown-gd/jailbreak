@@ -34,7 +34,7 @@ Add "PlayerEmitSound", "Jailbreak::Death Animations", ( data ) =>
 
 -- -- TF2 Double Jump
 -- Add "Move", "Jailbreak::TF2 Double Jump", ( mv ) =>
---     if Jailbreak.m_sGameName ~= "tf" or @WaterLevel! > 1
+--     if Jailbreak.GameName ~= "tf" or @WaterLevel! > 1
 --         return
 
 --     if @IsOnGround!

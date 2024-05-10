@@ -23,7 +23,7 @@ do
 
     -- https://wiki.facepunch.com/gmod/GM:PlayerInitialSpawn
     GM.PlayerInitialSpawn = ( ply, transiton ) =>
-        ply\SetNoCollideWithTeammates( Jailbreak.m_sGameName == "tf" )
+        ply\SetNoCollideWithTeammates( Jailbreak.GameName == "tf" )
         ply\SetRenderMode( RENDERMODE_TRANSCOLOR )
         ply\SetAvoidPlayers( true )
         ply\SetCanZoom( false )
@@ -441,7 +441,7 @@ do
 
         SendChatText( false, false, CHAT_CONNECTED, ply\GetModelColor!, ply\Nick!, ply\SteamID! )
 
-        gameName = Jailbreak.m_sGameName
+        gameName = Jailbreak.GameName
         unless gameName
             return
 
@@ -652,10 +652,23 @@ GM.EntityRemoved = ( entity, fullUpdate ) =>
         if weld and weld\IsValid!
             weld\Remove!
 
+do
+
+    :AltrenativeWeapons = Jailbreak
+    import Iterator from ents
+
+    GM.MapInitialized = =>
+        Jailbreak.MapHasWeapons = false
+
+        for _, entity in Iterator!
+            if entity\IsWeapon! and AltrenativeWeapons[ entity\GetClass! ] ~= nil
+                Jailbreak.MapHasWeapons = true
+                break
+
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
 GM.PlayerLoadout = ( ply ) =>
     -- Giving weapons if not cstrike map
-    if ply\IsGuard! and Jailbreak.m_sGameName ~= "cstrike" and not Jailbreak.m_bTF2Medieval
+    if ply\IsGuard! and not Jailbreak.MapHasWeapons
         ply\GiveRandomWeapons( 4 )
 
     -- Giving hands

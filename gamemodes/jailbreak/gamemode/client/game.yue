@@ -1,6 +1,7 @@
 RunConsoleCommand = RunConsoleCommand
 import format from string
 Jailbreak = Jailbreak
+import Run from hook
 MsgC = MsgC
 GM = GM
 
@@ -16,7 +17,7 @@ hook.Add "RenderScene", "Jailbreak::PlayerInitialized", ->
         ply = LocalPlayer!
         Jailbreak.Player = ply
         Jailbreak.PlayerIndex = ply\EntIndex!
-        hook.Run( "PlayerInitialized", ply )
+        Run( "PlayerInitialized", ply )
         return true
 
 GM.PlayerInitialized = =>
@@ -26,8 +27,15 @@ GM.PlayerInitialized = =>
 GM.InitPostEntity = =>
     RunConsoleCommand( "r_flushlod" )
 
+    mapName = game.GetMap!
+    Jailbreak.MapName = mapName
+    Run( "MapInitialized", mapName )
+    return
+
 GM.PostCleanupMap = =>
     RunConsoleCommand( "r_cleardecals" )
+    Run( "MapInitialized", Jailbreak.MapName )
+    return
 
 GM.OnSpawnMenuOpen = =>
     RunConsoleCommand( "lastinv" )
@@ -107,7 +115,6 @@ do
     import Translate from Jailbreak
     CHAN_STATIC = CHAN_STATIC
     import random from math
-    import Run from hook
     :Colors = Jailbreak
     unpack = unpack
 
@@ -124,7 +131,7 @@ do
             when 0
                 gameName = ReadString!
                 SoundHandler( gameName )
-                Jailbreak.m_sGameName = gameName
+                Jailbreak.GameName = gameName
 
             when 1
                 Run( "PickupNotifyReceived", ReadString!, ReadUInt( 6 ), ReadUInt( 16 ) )

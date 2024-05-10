@@ -90,7 +90,8 @@ include( "server/game.lua" )
 do
 
     RunConsoleCommand = RunConsoleCommand
-    :FindByClass = ents
+    import FindByClass from ents
+    import Run from hook
 
     GM.InitPostEntity = =>
         -- Correcting silly convar values
@@ -102,13 +103,22 @@ do
             Jailbreak.m_bTF2Medieval = #FindByClass( "tf_logic_medieval" ) ~= 0
             xpcall( SoundHandler, ErrorNoHaltWithStack, "tf" )
             resource.AddWorkshop( "105181283" )
-            Jailbreak.m_sGameName = "tf"
+            Jailbreak.GameName = "tf"
         elseif ( #FindByClass( "info_player_counterterrorist" ) + #FindByClass( "info_player_counterterrorist" ) ) ~= 0
             xpcall( SoundHandler, ErrorNoHaltWithStack, "cstrike" )
-            Jailbreak.m_sGameName = "cstrike"
+            Jailbreak.GameName = "cstrike"
 
         -- Localization initialization
         timer.Simple 0, Jailbreak.ReloadLocalization
+
+        -- Map initialization
+        mapName = game.GetMap!
+        Jailbreak.MapName = mapName
+        Run( "MapInitialized", mapName )
+        return
+
+    GM.PostCleanupMap = =>
+        Run( "MapInitialized", Jailbreak.MapName )
         return
 
 -- Console commands and extra stuff

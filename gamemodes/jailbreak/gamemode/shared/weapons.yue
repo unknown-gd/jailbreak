@@ -302,8 +302,8 @@ Jailbreak.AltrenativeWeapons = altrenativeWeapons
 
 do
 
-    :IsValidModel, :PrecacheModel = util
-    :GetStored = weapons
+    import IsValidModel, PrecacheModel from util
+    import GetStored from weapons
 
     GM.PreGamemodeLoaded = =>
         for className, alternatives in pairs( altrenativeWeapons.Classes )
