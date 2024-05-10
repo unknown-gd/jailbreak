@@ -1,11 +1,11 @@
-:random, :max, :min, :Rand = math
+import random, max, min, Rand from math
+:Teams, :GameInProgress = Jailbreak
+import Simple from timer
 Jailbreak = Jailbreak
+import Run from hook
 :SetNW2Var = ENTITY
-:Teams = Jailbreak
 CurTime = CurTime
-:Simple = timer
 Vector = Vector
-:Run = hook
 GM = GM
 
 OBS_MODE_ROAMING = OBS_MODE_ROAMING
@@ -39,7 +39,7 @@ do
 -- https://wiki.facepunch.com/gmod/GM:PlayerSpawn
 do
 
-    :RagdollRemove, :GameInProgress, :GuardsArmor, :AllowWeaponsInVehicle = Jailbreak
+    :RagdollRemove, :GuardsArmor, :AllowWeaponsInVehicle = Jailbreak
     :white = Jailbreak.Colors
 
     GM.PlayerSpawn = ( ply, transiton ) =>
@@ -101,10 +101,11 @@ do
 -- https://wiki.facepunch.com/gmod/GM:PlayerSelectSpawn
 do
 
+    import Empty, Shuffle from table
+    import GetSpawnPoint from team
+    import FindByClass from ents
+
     vector_origin = vector_origin
-    :Empty, :Shuffle = table
-    :GetSpawnPoint = team
-    :FindByClass = ents
 
     cache, lastIndex, length, teamID = {}, 0, 0, 0
     hook.Add "PostCleanupMap", "Jailbreak::ClearSpawnPointCache", ->
@@ -160,8 +161,8 @@ GM.SetupMove = ( ply, _, cmd ) =>
 do
 
     :AllowCustomPlayerModels, :IsFemalePrison = Jailbreak
-    :TranslatePlayerModel = player_manager
-    :match = string
+    import TranslatePlayerModel from player_manager
+    import match from string
 
     length = 0
 
@@ -183,12 +184,13 @@ do
                 return
 
         ply\SetModel( models[ random( 1, length ) ] )
+        return
 
 do
 
-    :AllowCustomPlayerColors, :AllowCustomWeaponColors, :DefaultTeamColors = Jailbreak
+    import AllowCustomPlayerColors, AllowCustomWeaponColors, DefaultTeamColors from Jailbreak
+    import Explode from string
     tonumber = tonumber
-    :Explode = string
 
     defaultWeaponColor = Vector( 0.001, 0.001, 0.001 )
 
@@ -227,10 +229,12 @@ do
 
             ply\SetWeaponColor( weaponColor )
 
+        return
+
 -- https://wiki.facepunch.com/gmod/GM:PlayerSetHandsModel
 do
 
-    :TranslatePlayerHands, :TranslateToPlayerModelName = player_manager
+    import TranslatePlayerHands, TranslateToPlayerModelName from player_manager
 
     GM.PlayerSetHandsModel = ( ply, hands ) =>
         info = TranslatePlayerHands( TranslateToPlayerModelName( ply\GetModel! ) )
@@ -246,7 +250,7 @@ do
 -- https://wiki.facepunch.com/gmod/GM:DoPlayerDeath
 do
 
-    :IsWaitingPlayers = Jailbreak
+    import IsWaitingPlayers from Jailbreak
 
     GM.DoPlayerDeath = ( ply, attacker, damageInfo ) =>
         unless Teams[ ply\Team! ]
@@ -299,7 +303,6 @@ GM.PostPlayerDeath = ( ply ) =>
 do
 
     OBS_MODE_NONE = OBS_MODE_NONE
-    :GameInProgress = Jailbreak
 
     GM.PlayerDeathThink = ( ply ) =>
         if Teams[ ply\Team! ] and not GameInProgress!
@@ -658,17 +661,17 @@ do
     import Iterator from ents
 
     GM.MapInitialized = =>
-        Jailbreak.MapHasWeapons = false
+        Jailbreak.HasMapWeapons = false
 
         for _, entity in Iterator!
-            if entity\IsWeapon! and AltrenativeWeapons[ entity\GetClass! ] ~= nil
-                Jailbreak.MapHasWeapons = true
+            if entity\IsWeapon! and AltrenativeWeapons[ entity\GetClass! ] ~= nil and not entity\GetOwner!\IsValid!
+                Jailbreak.HasMapWeapons = true
                 break
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerLoadout
 GM.PlayerLoadout = ( ply ) =>
     -- Giving weapons if not cstrike map
-    if ply\IsGuard! and not Jailbreak.MapHasWeapons
+    if not Jailbreak.HasMapWeapons and ply\IsGuard!
         ply\GiveRandomWeapons( 4 )
 
     -- Giving hands

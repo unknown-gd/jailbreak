@@ -155,6 +155,7 @@ do
                     setRoundTime( roundTime )
 
                 SendChatText( false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.asparagus )
+                Run( "GameStarted" )
 
             when ROUND_FINISHED
                 teams = GetTeamPlayersCount( true, TEAM_GUARD, TEAM_PRISONER )
@@ -171,6 +172,8 @@ do
                 setRoundTime( PrepareTime\GetInt! )
                 PlaySound( "ambient/alarms/warningbell1.wav" )
                 Run( "GameFinished" )
+
+        return
 
 do
 

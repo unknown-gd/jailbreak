@@ -39,6 +39,7 @@ GM.PostCleanupMap = =>
 
 GM.OnSpawnMenuOpen = =>
     RunConsoleCommand( "lastinv" )
+    return
 
 GM.PostProcessPermitted = =>
     return false
@@ -69,7 +70,7 @@ do
 
         if modelName ~= requestedName
             PlayerModel\SetString( modelName )
-            hook.Run( "PlayerModelChanged", modelName )
+            Run( "PlayerModelChanged", modelName )
 
     cvars.AddChangeCallback( PlayerModel\GetName!, ( _, __, requestedName ) ->
         Jailbreak.PlayerBodyGroups\SetInt( 0 )
@@ -81,8 +82,9 @@ do
         if modelName ~= requestedName
             PlayerModel\SetString( modelName )
 
-        hook.Run( "PlayerModelChanged", modelName )
+        Run( "PlayerModelChanged", modelName )
         return
+
     "Jailbreak::PlayerModel" )
 
 do

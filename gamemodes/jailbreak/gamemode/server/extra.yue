@@ -621,6 +621,7 @@ Add "ShopItems", "Jailbreak::BaseItems", ( add ) ->
 Add "PostCleanupMap", "Jailbreak::weapon_physcannon", ->
     if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_OFF
         game.SetGlobalState( "super_phys_gun", GLOBAL_OFF )
+        return
 
 Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
     attacker = damageInfo\GetAttacker!
@@ -633,14 +634,15 @@ Add "PlayerTakeDamage", "Jailbreak::weapon_stunstick", ( damageInfo ) =>
 
     damageInfo\ScaleDamage( max( @WaterLevel!, 0.25 ) )
     @ShockScreenEffect!
+    return
 
-Add "PlayerCanPickupWeapon", "Jailbreak::PlayerSpawn", =>
-    if @IsSpawning!
-        return false
+-- Add "PlayerCanPickupWeapon", "Jailbreak::PlayerSpawn", =>
+--     if @IsSpawning!
+--         return false
 
-Add "PlayerCanPickupItem", "Jailbreak::PlayerSpawn", =>
-    if @IsSpawning!
-        return false
+-- Add "PlayerCanPickupItem", "Jailbreak::PlayerSpawn", =>
+--     if @IsSpawning!
+--         return false
 
 do
 

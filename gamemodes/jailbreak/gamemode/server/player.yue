@@ -946,7 +946,7 @@ do
 
     :Give, :HasWeapon = PLAYER
 
-    PLAYER.GiveRandomWeapons = ( ply, count ) ->
+    PLAYER.GiveRandomWeapons = ( ply, count, force ) ->
         unless count
             count = 4
 
@@ -959,9 +959,11 @@ do
             if HasWeapon( ply, className ) or gived[ className ] == true
                 continue
 
-            if Give( ply, className, false )\IsValid!
+            if Give( ply, className, false, force )\IsValid!
                 gived[ className ] = true
                 count -= 1
+
+        return count == 0
 
 PLAYER.SetEscaped = ( ply, state ) ->
     SetNW2Var( ply, "escaped", state == true )
