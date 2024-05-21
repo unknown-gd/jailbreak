@@ -1,9 +1,9 @@
-import random, max, min, Rand from math
-:Teams, :GameInProgress = Jailbreak
+import random, max, min, floor, Rand from math
+import Teams, GameInProgress from Jailbreak
+import SetNW2Var from ENTITY
 import Simple from timer
 Jailbreak = Jailbreak
 import Run from hook
-:SetNW2Var = ENTITY
 CurTime = CurTime
 Vector = Vector
 GM = GM
@@ -682,25 +682,26 @@ hook.Add "PlayerSpawn", "Jailbreak::AmmoControler", ( ply ) ->
     ply.m_tGivedAmmo = nil
 
 GM.WeaponEquip = ( weapon, owner ) =>
-    if owner\IsGuard! or owner\IsEscaped!
-        givedAmmo = owner.m_tGivedAmmo
-        unless givedAmmo
-            givedAmmo = {}
-            owner.m_tGivedAmmo = givedAmmo
+    mult = ( owner\IsGuard! or owner\IsEscaped! ) and 1 or 0.25
 
-        primaryAmmoType = weapon\GetPrimaryAmmoType!
-        if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
-            amount = owner\GetPickupAmmoCount( primaryAmmoType )
-            if amount ~= 0
-                owner\GiveAmmo( amount, primaryAmmoType, false )
-                givedAmmo[ primaryAmmoType ] = true
+    givedAmmo = owner.m_tGivedAmmo
+    unless givedAmmo
+        givedAmmo = {}
+        owner.m_tGivedAmmo = givedAmmo
 
-        secondaryAmmoType = weapon\GetSecondaryAmmoType!
-        if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
-            amount = owner\GetPickupAmmoCount( secondaryAmmoType )
-            if amount ~= 0
-                owner\GiveAmmo( amount, secondaryAmmoType, false )
-                givedAmmo[ secondaryAmmoType ] = true
+    primaryAmmoType = weapon\GetPrimaryAmmoType!
+    if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil
+        amount = floor( owner\GetPickupAmmoCount( primaryAmmoType ) * mult )
+        if amount ~= 0
+            owner\GiveAmmo( amount, primaryAmmoType, false )
+            givedAmmo[ primaryAmmoType ] = true
+
+    secondaryAmmoType = weapon\GetSecondaryAmmoType!
+    if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil
+        amount = floor( owner\GetPickupAmmoCount( secondaryAmmoType ) * mult )
+        if amount ~= 0
+            owner\GiveAmmo( amount, secondaryAmmoType, false )
+            givedAmmo[ secondaryAmmoType ] = true
 
 -- https://wiki.facepunch.com/gmod/GM:PlayerCanPickupWeapon
 GM.PlayerCanPickupWeapon = ( ply, weapon ) =>
