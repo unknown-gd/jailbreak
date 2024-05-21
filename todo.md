@@ -1,6 +1,7 @@
 # Main
 - rewrite properties
 - rewrite HUD and TargerID
+- last owner & better ammo giving system
 
 # Additional
 - replace derma
