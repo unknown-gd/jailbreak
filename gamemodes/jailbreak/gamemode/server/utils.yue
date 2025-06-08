@@ -62,7 +62,6 @@ do
 -- Change player team
 do
 
-    NOTIFY_ERROR = NOTIFY_ERROR
     :Teams = Jailbreak
 
     changeTeam = ( teamID, force ) =>
