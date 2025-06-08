@@ -14,6 +14,7 @@ local util = util
 local Effect = util.Effect
 local GetClass = ENTITY.GetClass
 util.AddNetworkString("Jailbreak::Networking")
+resource.AddWorkshop("3211331044")
 resource.AddWorkshop("3212160573")
 resource.AddWorkshop("2950445307")
 resource.AddWorkshop("2661291057")
@@ -53,7 +54,6 @@ do
 	end
 end
 do
-	NOTIFY_ERROR = NOTIFY_ERROR
 	local Teams = Jailbreak.Teams
 	local changeTeam
 	changeTeam = function(self, teamID, force)
