@@ -241,6 +241,7 @@ Jailbreak.Credits = {
 	Colors.light_grey,
 	"\nTranslators\n",
 	Colors.white,
+	"Tora (TR)\n",
 	"Erick Maksimets (EN, UK)\n",
 	"Unknown Developer (EN, RU)\n",
 	Colors.light_grey,
