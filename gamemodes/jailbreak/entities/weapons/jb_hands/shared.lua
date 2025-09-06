@@ -25,17 +25,17 @@ SWEP.DrawWeaponInfoBox = false
 SWEP.ViewModelFOV = 60
 SWEP.DrawAmmo = false
 SWEP.UseHands = true
-SWEP.Initialize = function(self)
+function SWEP:Initialize()
 	return self:SetHoldType("normal")
 end
-SWEP.SetupDataTables = function(self)
+function SWEP:SetupDataTables()
 	self:NetworkVar("Float", 0, "NextMeleeAttack")
 	self:NetworkVar("Float", 1, "NextIdle")
 	return self:NetworkVar("Int", 2, "Combo")
 end
 do
 	local NULL = NULL
-	SWEP.GetViewModel = function(self)
+	function SWEP:GetViewModel()
 		local owner = self:GetOwner()
 		if owner:IsValid() then
 			return owner:GetViewModel()
@@ -43,7 +43,7 @@ do
 		return NULL
 	end
 end
-SWEP.PlaySequence = function(self, sequenceName, onFinish)
+function SWEP:PlaySequence( sequenceName, onFinish)
 	self.SequenceFinished = false
 	local owner = self:GetOwner()
 	if not (owner:IsValid() and owner:Alive()) then
@@ -74,7 +74,7 @@ SWEP.PlaySequence = function(self, sequenceName, onFinish)
 	end)
 	return nextSequence, duration
 end
-SWEP.SetNextFire = function(self, curTime)
+function SWEP:SetNextFire( curTime)
 	self:SetNextPrimaryFire(curTime)
 	return self:SetNextSecondaryFire(curTime)
 end
@@ -113,7 +113,7 @@ do
 		return self:SetNextIdle(seqFinish)
 	end
 end
-SWEP.SecondaryAttack = function(self)
+function SWEP:SecondaryAttack()
 	if self.Pulls then
 		return
 	end
@@ -134,7 +134,7 @@ do
 	}
 	local hitSound = Sound("Flesh.ImpactHard")
 	local TraceHull = util.TraceHull
-	SWEP.DealDamage = function(self)
+	function SWEP:DealDamage()
 		local owner = self:GetOwner()
 		if not (owner:IsValid() and owner:IsPlayer() and owner:Alive()) then
 			return
@@ -158,7 +158,7 @@ do
 		return owner:LagCompensation(false)
 	end
 end
-SWEP.Show = function(self)
+function SWEP:Show()
 	local vm = self:GetViewModel()
 	if vm:IsValid() then
 		vm:SetNoDraw(false)
@@ -170,7 +170,7 @@ SWEP.Show = function(self)
 		self.Pulls = false
 	end))
 end
-SWEP.Hide = function(self)
+function SWEP:Hide()
 	self.Pulls = true
 	self:SetNextIdle(0)
 	self:SetHoldType("normal")
@@ -180,7 +180,7 @@ SWEP.Hide = function(self)
 		self.Pulls = false
 	end)
 end
-SWEP.Deploy = function(self)
+function SWEP:Deploy()
 	self.SequenceFinished = true
 	self:SetNextFire(CurTime() + 1.5)
 	self:SetNextMeleeAttack(0)
@@ -198,7 +198,7 @@ SWEP.Deploy = function(self)
 	end
 	return true
 end
-SWEP.Holster = function(self, weapon)
+function SWEP:Holster( weapon)
 	self:SetNextMeleeAttack(0)
 	self:SetNextIdle(0)
 	return true
@@ -206,7 +206,7 @@ end
 local curTime = 0
 do
 	local idletime, meleetime = 0, 0
-	SWEP.Think = function(self)
+	function SWEP:Think()
 		if self:GetHoldType() ~= "fist" or self.Pulls then
 			return
 		end
@@ -228,7 +228,7 @@ end
 do
 	local lastReload
 	lastReload, curTime = 0, 0
-	SWEP.Reload = function(self)
+	function SWEP:Reload()
 		lastReload, curTime = self.m_fLastReload or 0, CurTime()
 		self.m_fLastReload = curTime
 		if (curTime - lastReload) <= 0.25 or self.Pulls then

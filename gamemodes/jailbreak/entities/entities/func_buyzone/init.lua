@@ -1,13 +1,13 @@
 ENT.Type = "brush"
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	return self:SetTrigger(true)
 end
-ENT.StartTouch = function(self, entity)
+function ENT:StartTouch( entity)
 	if entity:IsPlayer() and entity:Alive() then
 		return entity:SetNW2Bool("in-buy-zone", true)
 	end
 end
-ENT.EndTouch = function(self, entity)
+function ENT:EndTouch( entity)
 	if entity:IsPlayer() then
 		return entity:SetNW2Bool("in-buy-zone", false)
 	end

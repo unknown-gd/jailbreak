@@ -1,5 +1,5 @@
 ENT.Type = "anim"
-ENT.Think = function(self)
+function ENT:Think()
 	self:FrameAdvance()
 	self:NextThink(CurTime() + 0.5)
 	return true

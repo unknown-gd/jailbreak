@@ -292,7 +292,7 @@ Jailbreak.AltrenativeWeapons = altrenativeWeapons
 do
 	local IsValidModel, PrecacheModel = util.IsValidModel, util.PrecacheModel
 	local GetStored = weapons.GetStored
-	GM.PreGamemodeLoaded = function(self)
+	function GM:PreGamemodeLoaded()
 		for className, alternatives in pairs(altrenativeWeapons.Classes) do
 			avaliableWeapons[#avaliableWeapons + 1] = className
 			local alternative = WeaponHandler(className, alternatives, altrenativeWeapons.Offsets).Alternative

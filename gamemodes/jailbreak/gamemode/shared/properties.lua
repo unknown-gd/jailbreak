@@ -84,7 +84,7 @@ if CLIENT then
 		end)
 	end
 end
-GM.CanProperty = function(self, ply, propertyName, entity)
+function GM:CanProperty( ply, propertyName, entity)
 	if not IsValid(entity) then
 		return
 	end

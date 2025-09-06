@@ -1,8 +1,8 @@
 ENT.Base = "base_filter"
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self.Negated = false
 end
-ENT.PassesFilter = function(self, entity, ply)
+function ENT:PassesFilter( entity, ply)
 	if not (IsValid(ply) and ply:IsPlayer() and ply:Alive()) then
 		return false
 	end
@@ -18,14 +18,14 @@ ENT.PassesFilter = function(self, entity, ply)
 	end
 	return self.Negated
 end
-ENT.KeyValue = function(self, key, value)
+function ENT:KeyValue( key, value)
 	if "Negated" == key then
 		self.Negated = tobool(value)
 	elseif "TeamNum" == key then
 		self.TeamNum = Jailbreak.TF2Team(tonumber(value) or 0)
 	end
 end
-ENT.AcceptInput = function(self, key, _, __, value)
+function ENT:AcceptInput( key, _, __, value)
 	if key == "SetTeam" then
 		self.TeamNum = Jailbreak.TF2Team(tonumber(value) or 0)
 	end

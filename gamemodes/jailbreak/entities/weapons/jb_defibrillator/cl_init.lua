@@ -1,5 +1,5 @@
 include("shared.lua")
-SWEP.Initialize = function(self)
+function SWEP:Initialize()
 	return self:SetHoldType("duel")
 end
 local CurTime = CurTime
@@ -8,7 +8,7 @@ local traceResult = {}
 local trace = {
 	output = traceResult
 }
-SWEP.PrimaryAttack = function(self)
+function SWEP:PrimaryAttack()
 	local owner = self:GetOwner()
 	if not (owner:IsValid() and owner:Alive()) then
 		return

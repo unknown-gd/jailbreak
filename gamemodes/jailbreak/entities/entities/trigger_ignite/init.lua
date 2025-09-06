@@ -1,26 +1,26 @@
 ENT.Type = "brush"
-ENT.Touch = function(self, entity)
+function ENT:Touch( entity)
 	if self.Disabled then
 		return
 	end
 	return entity:Ignite(0.5, 0)
 end
-ENT.Disable = function(self)
+function ENT:Disable()
 	self.Disabled = true
 end
-ENT.Enable = function(self)
+function ENT:Enable()
 	self.Disabled = false
 end
-ENT.Toggle = function(self)
+function ENT:Toggle()
 	self.Disabled = not self.Disabled
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
 		return func(self)
 	end
 end
-ENT.KeyValue = function(self, key, value)
+function ENT:KeyValue( key, value)
 	if "StartDisabled" == key then
 		self.Disabled = tobool(value)
 	end

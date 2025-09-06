@@ -15,7 +15,7 @@ do
 	end
 	local PlayURL = sound.PlayURL
 	local url, volume, origin, direction = "", 0, nil, nil
-	ENT.Think = function(self)
+	function ENT:Think()
 		local channel = self.Channel
 		if channel == true then
 			return
@@ -78,7 +78,7 @@ end
 do
 	local VMin = Jailbreak.VMin
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetTitle("#jb.jb_radio")
 		self:SetIcon("icon16/sound.png")
 		self:SetSize(VMin(40), VMin(20))

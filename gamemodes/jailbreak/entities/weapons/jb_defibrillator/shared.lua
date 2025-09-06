@@ -20,4 +20,4 @@ SWEP.DrawAmmo = true
 SWEP.UseHands = true
 SWEP.UsageDelay = CreateConVar("jb_defibrillator_delay", "1.5", bit.bor(FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED), "Delay between defibrillator usage.")
 SWEP.HoldType = "duel"
-SWEP.SecondaryAttack = function(self) end
+function SWEP:SecondaryAttack() end

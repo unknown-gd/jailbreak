@@ -8,7 +8,7 @@ local FrameTime = FrameTime
 local drive = drive
 local Run = hook.Run
 local GM = GM
-GM.ShouldDrawLocalPlayer = function(self, ply)
+function GM:ShouldDrawLocalPlayer( ply)
 	if ply ~= Jailbreak.ViewEntity then
 		if Jailbreak.PlayingTaunt then
 			Jailbreak.PlayingTaunt = false
@@ -242,7 +242,7 @@ do
 		end
 	end
 end
-GM.PreDrawViewModel = function(self, vm, ply, weapon)
+function GM:PreDrawViewModel( vm, ply, weapon)
 	local func = weapon.PreDrawViewModel
 	if func == nil then
 		return false
@@ -284,10 +284,10 @@ do
 	cvars.AddChangeCallback(HandsTransparency:GetName(), function(_, __, value)
 		handsAlpha = 1 - (tonumber(value) or 0)
 	end, "Jailbreak::HandsTransparency")
-	GM.PreDrawPlayerHands = function(self)
+	function GM:PreDrawPlayerHands()
 		return SetBlend(handsAlpha)
 	end
-	GM.PostDrawPlayerHands = function(self)
+	function GM:PostDrawPlayerHands()
 		return SetBlend(1)
 	end
 end

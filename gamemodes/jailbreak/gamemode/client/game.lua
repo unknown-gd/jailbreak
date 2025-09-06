@@ -19,27 +19,27 @@ hook.Add("RenderScene", "Jailbreak::PlayerInitialized", function()
 		return true
 	end
 end)
-GM.PlayerInitialized = function(self)
+function GM:PlayerInitialized()
 	RunConsoleCommand("dsp_player", "1")
 	return RunConsoleCommand("dsp_room", "1")
 end
-GM.InitPostEntity = function(self)
+function GM:InitPostEntity()
 	RunConsoleCommand("r_flushlod")
 	local mapName = game.GetMap()
 	Jailbreak.MapName = mapName
 	Run("MapInitialized", mapName)
 	return
 end
-GM.PostCleanupMap = function(self)
+function GM:PostCleanupMap()
 	RunConsoleCommand("r_cleardecals")
 	Run("MapInitialized", Jailbreak.MapName)
 	return
 end
-GM.OnSpawnMenuOpen = function(self)
+function GM:OnSpawnMenuOpen()
 	RunConsoleCommand("lastinv")
 	return
 end
-GM.PostProcessPermitted = function(self)
+function GM:PostProcessPermitted()
 	return false
 end
 do

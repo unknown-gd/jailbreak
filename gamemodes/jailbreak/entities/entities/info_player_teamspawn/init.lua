@@ -1,8 +1,8 @@
 ENT.Type = "point"
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self.Disabled = false
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	if "Disable" == key then
 		self.Disabled = true
 	elseif "Enable" == key then

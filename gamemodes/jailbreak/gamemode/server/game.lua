@@ -11,7 +11,7 @@ local OBS_MODE_ROAMING = OBS_MODE_ROAMING
 local OBS_MODE_CHASE = OBS_MODE_CHASE
 local TEAM_PRISONER = TEAM_PRISONER
 local TEAM_GUARD = TEAM_GUARD
-GM.ShowTeam = function(self, ply)
+function GM:ShowTeam( ply)
 	return ply:ConCommand("jb_showteam")
 end
 do
@@ -142,7 +142,7 @@ do
 		return ply:SetPos(vector_origin)
 	end
 end
-GM.SetupMove = function(self, ply, _, cmd)
+function GM:SetupMove( ply, _, cmd)
 	if ply:IsFullyConnected() or not (cmd:IsForced() or ply:IsBot()) then
 		return
 	end
@@ -260,21 +260,21 @@ do
 		return
 	end
 end
-GM.PlayerDeath = function(self, ply, inflictor, attacker)
+function GM:PlayerDeath( ply, inflictor, attacker)
 	local teamID = ply:Team()
 	if Teams[teamID] then
 		Run("TeamPlayerDeath", ply, teamID)
 		return
 	end
 end
-GM.PlayerSilentDeath = function(self, ply)
+function GM:PlayerSilentDeath( ply)
 	local teamID = ply:Team()
 	if Teams[teamID] then
 		Run("TeamPlayerDeath", ply, teamID)
 		return
 	end
 end
-GM.PostPlayerDeath = function(self, ply)
+function GM:PostPlayerDeath( ply)
 	ply:AddDeaths(1)
 	ply:ResetToggles()
 	ply:Extinguish()
@@ -398,7 +398,7 @@ do
 		return true
 	end
 end
-GM.PlayerDisconnected = function(self, ply)
+function GM:PlayerDisconnected( ply)
 	local teamID = ply:Team()
 	if Teams[teamID] then
 		return Run("TeamPlayerDisconnected", ply, teamID)
@@ -463,25 +463,25 @@ do
 		return false
 	end
 end
-GM.AllowPlayerPickup = function(self, ply, entity)
+function GM:AllowPlayerPickup( ply, entity)
 	return ply:Alive() and not entity:IsFood()
 end
-GM.PlayerCanPickupItem = function(self, ply, entity)
+function GM:PlayerCanPickupItem( ply, entity)
 	return ply:Alive()
 end
-GM.PlayerNoClip = function(self, ply, desiredState)
+function GM:PlayerNoClip( ply, desiredState)
 	if not desiredState then
 		return true
 	end
 	return ply:IsSuperAdmin() and ply:Alive() and not ply:IsPlayingTaunt()
 end
-GM.PlayerSwitchFlashlight = function(self, ply, newState)
+function GM:PlayerSwitchFlashlight( ply, newState)
 	if not newState then
 		return true
 	end
 	return ply:Alive() and ply:CanUseFlashlight()
 end
-GM.PlayerUse = function(self, ply, entity)
+function GM:PlayerUse( ply, entity)
 	if not ply:Alive() then
 		return
 	end
@@ -563,7 +563,7 @@ GM.PlayerUse = function(self, ply, entity)
 	end
 	return true
 end
-GM.OnEntityCreated = function(self, entity)
+function GM:OnEntityCreated( entity)
 	if entity:IsPlayer() then
 		Run("OnPlayerCreated", entity)
 		return
@@ -614,7 +614,7 @@ do
 		end)
 	end
 end
-GM.EntityRemoved = function(self, entity, fullUpdate)
+function GM:EntityRemoved( entity, fullUpdate)
 	if fullUpdate then
 		return
 	end
@@ -631,7 +631,7 @@ end
 do
 	local AltrenativeWeapons = Jailbreak.AltrenativeWeapons
 	local Iterator = ents.Iterator
-	GM.MapInitialized = function(self)
+	function GM:MapInitialized()
 		Jailbreak.HasMapWeapons = false
 		for _, entity in Iterator() do
 			if entity:IsWeapon() and AltrenativeWeapons[entity:GetClass()] ~= nil and not entity:GetOwner():IsValid() then
@@ -641,7 +641,7 @@ do
 		end
 	end
 end
-GM.PlayerLoadout = function(self, ply)
+function GM:PlayerLoadout( ply)
 	if not Jailbreak.HasMapWeapons and ply:IsGuard() then
 		ply:GiveRandomWeapons(4)
 	end
@@ -651,7 +651,7 @@ end
 hook.Add("PlayerSpawn", "Jailbreak::AmmoControler", function(ply)
 	ply.m_tGivedAmmo = nil
 end)
-GM.WeaponEquip = function(self, weapon, owner)
+function GM:WeaponEquip( weapon, owner)
 	local mult = (owner:IsGuard() or owner:IsEscaped()) and 1 or 0.25
 	local givedAmmo = owner.m_tGivedAmmo
 	if not givedAmmo then
@@ -675,7 +675,7 @@ GM.WeaponEquip = function(self, weapon, owner)
 		end
 	end
 end
-GM.PlayerCanPickupWeapon = function(self, ply, weapon)
+function GM:PlayerCanPickupWeapon( ply, weapon)
 	if not ply:Alive() or ply:HasWeapon(weapon:GetClass()) then
 		return false
 	end
@@ -694,12 +694,12 @@ GM.PlayerCanPickupWeapon = function(self, ply, weapon)
 	end
 	return true
 end
-GM.FinishMove = function(self, ply, mv)
+function GM:FinishMove( ply, mv)
 	if ply:Alive() then
 		ply.m_vLastVelocity = mv:GetVelocity()
 	end
 end
-GM.OnPlayerPhysicsPickup = function(self, ply, entity)
+function GM:OnPlayerPhysicsPickup( ply, entity)
 	SetNW2Var(ply, "holding-entity", entity)
 	entity.m_eHolder = ply
 end

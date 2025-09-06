@@ -3,7 +3,7 @@ ENT.Base = "item_base"
 ENT.Model = "models/items/medkit_medium.mdl"
 ENT.Sound = Sound("HealthKit.Touch")
 ENT.Healing = 0.5
-ENT.PlayerGotItem = function(self, ply)
+function ENT:PlayerGotItem( ply)
 	if ply:Health() >= ply:GetMaxHealth() then
 		return
 	end

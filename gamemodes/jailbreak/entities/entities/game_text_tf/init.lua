@@ -1,7 +1,7 @@
 ENT.Type = "point"
 local HUD_PRINTCENTER = HUD_PRINTCENTER
 local tonumber = tonumber
-ENT.Display = function(self)
+function ENT:Display()
 	local message = self:GetInternalVariable("message")
 	if not message then
 		return
@@ -18,7 +18,7 @@ ENT.Display = function(self)
 		end
 	end
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
 		return func(self)

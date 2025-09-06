@@ -63,7 +63,7 @@ do
 	local RunConsoleCommand = RunConsoleCommand
 	local FindByClass = ents.FindByClass
 	local Run = hook.Run
-	GM.InitPostEntity = function(self)
+	function GM:InitPostEntity()
 		RunConsoleCommand("sv_defaultdeployspeed", "1")
 		RunConsoleCommand("mp_show_voice_icons", "0")
 		RunConsoleCommand("sv_gravity", "800")
@@ -82,7 +82,7 @@ do
 		Run("MapInitialized", mapName)
 		return
 	end
-	GM.PostCleanupMap = function(self)
+	function GM:PostCleanupMap()
 		Run("MapInitialized", Jailbreak.MapName)
 		return
 	end

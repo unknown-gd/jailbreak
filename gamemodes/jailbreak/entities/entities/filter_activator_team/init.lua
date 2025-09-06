@@ -1,5 +1,5 @@
 ENT.Base = "base_filter"
-ENT.PassesFilter = function(self, entity, ply)
+function ENT:PassesFilter( entity, ply)
 	if not (IsValid(ply) and ply:IsPlayer() and ply:Alive()) then
 		return false
 	end

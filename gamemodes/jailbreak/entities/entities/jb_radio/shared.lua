@@ -3,7 +3,7 @@ ENT.Model = Model("models/props_lab/citizenradio.mdl")
 ENT.PrintName = "#jb.jb_radio"
 ENT.Spawnable = false
 ENT.MaxVolume = 10.0
-ENT.SetupDataTables = function(self)
+function ENT:SetupDataTables()
 	self:NetworkVar("String", 0, "URL")
 	self:NetworkVar("Float", 0, "Volume")
 	if SERVER then

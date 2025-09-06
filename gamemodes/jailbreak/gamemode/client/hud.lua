@@ -145,7 +145,7 @@ do
 	local view = {
 		["type"] = "3D"
 	}
-	GM.HUDPaint = function(self)
+	function GM:HUDPaint()
 		if not Jailbreak.DrawHUD then
 			return
 		end
@@ -192,7 +192,7 @@ do
 		["models/props_junk/metal_paintcan001b.mdl"] = "#jb.paint-can",
 		["models/props_junk/gascan001a.mdl"] = "#jb.gas-can"
 	}
-	GM.HUDDrawTargetID = function(self)
+	function GM:HUDDrawTargetID()
 		local ply = Jailbreak.ViewEntity
 		if not ply:IsValid() then
 			return
@@ -557,7 +557,7 @@ do
 	local Color = Color
 	local date = os.date
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		local placeholder = GetPhrase("jb.unknown")
 		self.PlaceholderName = placeholder
 		self.HeaderColor = dark_white
@@ -577,7 +577,7 @@ do
 		Add("LanguageChanged", self, self.InvalidateLayout)
 		return self:InvalidateLayout(true)
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local time = date("%H:%M")
 		if self.Time ~= time then
 			self.Time = time
@@ -661,7 +661,7 @@ do
 			return self:InvalidateLayout()
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		self.PlaceholderName = GetPhrase("jb.unknown")
 		local margin, offset = VMin(0.25), VMin(1)
 		local width = Jailbreak.ScreenWidth / 6
@@ -874,7 +874,7 @@ do
 	local lightning_add = Material("icon16/lightning_add.png")
 	local lightning = Material("icon16/lightning.png")
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.LineColor = dark_white
 		self.Color = dark_grey
 		self:SetAlpha(0)
@@ -885,7 +885,7 @@ do
 		self.IconRotate = 0
 		return self:InvalidateLayout(true)
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local entity = Jailbreak.ViewEntity
 		if not (entity:IsValid() and entity:IsPlayer()) then
 			return
@@ -925,7 +925,7 @@ do
 			return self:SetAlpha(alpha)
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local width, height = VMin(4), self:GetTall()
 		local margin = VMin(0.25)
 		local lineHeight = VMin(1.5)
@@ -967,7 +967,7 @@ end
 do
 	local GetWeaponName = Jailbreak.GetWeaponName
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.HeaderColor = dark_white
 		self.AmmoTextColor = white
 		self.WeaponName = ""
@@ -980,7 +980,7 @@ do
 		Add("LanguageChanged", self, self.InvalidateLayout)
 		return self:InvalidateLayout(true)
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local entity = Jailbreak.ViewEntity
 		if not (entity:IsValid() and entity:IsPlayer() and entity:Alive()) then
 			if self.HeaderColor ~= dark_white then
@@ -1060,7 +1060,7 @@ do
 			return self:InvalidateLayout()
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local width, height = VMin(4), 0
 		local margin1, margin2 = VMin(0.25), VMin(1)
 		SetFont("Jailbreak::HUD")
@@ -1123,7 +1123,7 @@ do
 end
 do
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.Info = self:Add("Jailbreak::HUDInfo")
 		self.Power = self:Add("Jailbreak::HUDPower")
 		self.Ammo = self:Add("Jailbreak::HUDAmmo")
@@ -1131,7 +1131,7 @@ do
 		self:InvalidateLayout(true)
 		return self:SetVisible(Jailbreak.DrawHUD)
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local margin = VMin(1)
 		self:DockMargin(margin, 0, margin, margin)
 		self:SetZPos(-1000)
@@ -1161,7 +1161,7 @@ do
 	Jailbreak.Font("Jailbreak::PickupNotices", "Roboto Mono Bold", 1.5)
 	local PickupNotifyLifetime = Jailbreak.PickupNotifyLifetime
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetAlpha(0)
 		self:Dock(BOTTOM)
 		local icon = self:Add("DImage")
@@ -1174,7 +1174,7 @@ do
 		label:Dock(FILL)
 		return self:InvalidateLayout(true)
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local time = self.Time
 		if not time then
 			return
@@ -1191,7 +1191,7 @@ do
 			return self:SetAlpha(min(self:GetAlpha() + FrameTime() * 255, 255))
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		self:DockMargin(0, 0, 0, VMin(0.2))
 		local margin = VMin(0.5)
 		self:DockPadding(margin, margin, margin, margin)
@@ -1239,10 +1239,10 @@ do
 end
 do
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.Notices = {}
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local screenWidth = Jailbreak.ScreenWidth
 		local width = ceil(screenWidth / 4)
 		self:SetSize(width, Jailbreak.ScreenHeight)

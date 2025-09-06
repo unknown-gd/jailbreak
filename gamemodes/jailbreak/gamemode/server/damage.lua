@@ -90,7 +90,7 @@ do
 		return Run("ClassTakeDamage", entity, damageInfo, className)
 	end
 end
-GM.PostEntityTakeDamage = function(self, entity, damageInfo, isRealDamage)
+function GM:PostEntityTakeDamage( entity, damageInfo, isRealDamage)
 	if not isRealDamage then
 		return
 	end
@@ -414,7 +414,7 @@ do
 		return ply:SetBloodColor(ply:Armor() > 0 and BLOOD_COLOR_MECH or BLOOD_COLOR_RED)
 	end
 end
-GM.GetFallDamage = function(self, ply, speed)
+function GM:GetFallDamage( ply, speed)
 	if ply:GetNW2Bool("in-flight") then
 		return 0
 	end

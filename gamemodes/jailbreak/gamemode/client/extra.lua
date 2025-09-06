@@ -97,7 +97,7 @@ end
 do
 	local VMin = Jailbreak.VMin
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetTitle("#jb.paint-can")
 		self:SetIcon("icon16/paintcan.png")
 		self:SetSizable(true)

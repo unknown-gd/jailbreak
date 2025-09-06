@@ -175,7 +175,7 @@ do
 		return
 	end
 end
-GM.TeamPlayerDisconnected = function(self, ply, teamID)
+function GM:TeamPlayerDisconnected( ply, teamID)
 	if not ply:Alive() then
 		return
 	end
@@ -208,7 +208,7 @@ end
 do
 	local GetRoundTime = Jailbreak.GetRoundTime
 	local AddScore = team.AddScore
-	GM.Think = function(self)
+	function GM:Think()
 		if GetRoundTime() > CurTime() then
 			return
 		end
@@ -228,14 +228,14 @@ do
 		end
 	end
 end
-GM.ShockCollarsToggled = function(self, bool)
+function GM:ShockCollarsToggled( bool)
 	for _, ply in Iterator() do
 		if ply:HasShockCollar() then
 			ply:SetShockCollar(bool, false)
 		end
 	end
 end
-GM.ShockCollarToggled = function(self, ply, bool)
+function GM:ShockCollarToggled( ply, bool)
 	if not ply:IsBot() then
 		SendChatText(ply, false, CHAT_SERVERMESSAGE, bool and "#jb.notify.shock-collar.on" or "#jb.notify.shock-collar.off")
 	end

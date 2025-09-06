@@ -12,7 +12,7 @@ local traceResult = {}
 local trace = {
 	output = traceResult
 }
-SWEP.UseDoor = function(self, open)
+function SWEP:UseDoor( open)
 	local curTime, lastDoorLock = CurTime(), self.LastDoorLock or 0
 	self.LastDoorLock = curTime
 	if (curTime - lastDoorLock) <= 0.025 then
@@ -115,7 +115,7 @@ SWEP.Materials = {
 	[MAT_GRATE] = 10,
 	[MAT_CONCRETE] = 10
 }
-SWEP.HitMaterial = function(self, matType, owner, origin)
+function SWEP:HitMaterial( matType, owner, origin)
 	local damage = self.Materials[matType]
 	if damage ~= nil then
 		local damageInfo = DamageInfo()
@@ -136,6 +136,6 @@ SWEP.HitMaterial = function(self, matType, owner, origin)
 		return owner:TakeDamageInfo(damageInfo)
 	end
 end
-SWEP.OnDrop = function(self)
+function SWEP:OnDrop()
 	return self:Remove()
 end

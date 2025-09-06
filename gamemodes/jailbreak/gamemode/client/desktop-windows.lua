@@ -223,7 +223,7 @@ local margin = 0
 do
 	Jailbreak.Font("Jailbreak::Coins", "Roboto Mono Bold", 1.8)
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.OverlayFade = nil
 		local label = self:Add("DLabel")
 		self.Label = label
@@ -244,10 +244,10 @@ do
 		self.Price = item.price
 	end
 	PANEL.DoRightClick = function() end
-	PANEL.DoClick = function(self)
+	function PANEL:DoClick()
 		return RunConsoleCommand("jb_buy", self.ItemName)
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local size = VMin(10)
 		self:SetSize(size, size)
 		margin = VMin(0.5)
@@ -257,7 +257,7 @@ do
 		local CanWardenAfford = Jailbreak.CanWardenAfford
 		local spectators, grey = Colors.spectators, Colors.grey
 		local color = nil
-		PANEL.Think = function(self)
+		function PANEL:Think()
 			color = CanWardenAfford(self.Price or 0) and spectators or grey
 			if self.Label:GetTextColor() ~= color then
 				self.Label:SetTextColor(color)
@@ -339,7 +339,7 @@ Set("DesktopWindows", "warden-shop", {
 				coins:Dock(RIGHT)
 				local GetWardenCoins = Jailbreak.GetWardenCoins
 				local count = 0
-				coins.Think = function(self)
+				function coins:Think()
 					count = GetWardenCoins()
 					if self.Count ~= count then
 						self.Count = count
@@ -408,11 +408,11 @@ do
 			modelPreview:SetAnimated(true)
 			modelPreview:SetLookAt(Vector(-100, 0, -22))
 			modelPreview.Angles = Angle()
-			modelPreview.DragMousePress = function(self)
+			function modelPreview:DragMousePress()
 				self.PressX, self.PressY = GetCursorPos()
 				self.Pressed = true
 			end
-			modelPreview.DragMouseRelease = function(self)
+			function modelPreview:DragMouseRelease()
 				self.Pressed = false
 			end
 			function modelPreview:LayoutEntity( entity)
@@ -506,7 +506,7 @@ do
 					playerColor:SetPalette(false)
 					playerColor:Dock(TOP)
 					playerColor:SetSize(200, min(window:GetTall() / 3, 260))
-					playerColor.ValueChanged = function(self)
+					function playerColor:ValueChanged()
 						local vector = self:GetVector()
 						local entity = modelPreview.Entity
 						if entity and entity:IsValid() then
@@ -533,7 +533,7 @@ do
 					weaponColor:SetPalette(false)
 					weaponColor:Dock(TOP)
 					weaponColor:SetSize(200, min(window:GetTall() / 3, 260))
-					weaponColor.ValueChanged = function(self)
+					function weaponColor:ValueChanged()
 						return PlayerWeaponColor:SetString(tostring(self:GetVector()))
 					end
 					weaponColor:SetVector(Vector(PlayerWeaponColor:GetString()))

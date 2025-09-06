@@ -7,11 +7,11 @@ local TraceLine = util.TraceLine
 local CurTime = CurTime
 local random = math.random
 local jb_defibrillator_usages = CreateConVar("jb_defibrillator_usages", "3", bit.bor(FCVAR_ARCHIVE, FCVAR_NOTIFY), "Determines maximum number of defibrillator usages before it fails.")
-SWEP.Initialize = function(self)
+function SWEP:Initialize()
 	self:SetHoldType("duel")
 	return self:SetClip1(jb_defibrillator_usages:GetInt())
 end
-SWEP.TakeClip1 = function(self, amount, owner)
+function SWEP:TakeClip1( amount, owner)
 	local clip1 = self:Clip1() - amount
 	if clip1 < 1 then
 		owner:EmitSound("physics/metal/metal_box_break" .. random(1, 2) .. ".wav", 75, random(80, 120), 0.8, CHAN_STATIC, 0, 1)
@@ -21,7 +21,7 @@ SWEP.TakeClip1 = function(self, amount, owner)
 	end
 	return self:SetClip1(clip1)
 end
-SWEP.ShockAlivePlayer = function(self, ply, owner)
+function SWEP:ShockAlivePlayer( ply, owner)
 	local damageInfo = DamageInfo()
 	damageInfo:SetAttacker(owner)
 	damageInfo:SetInflictor(self)
@@ -36,7 +36,7 @@ local traceResult = {}
 local trace = {
 	output = traceResult
 }
-SWEP.PrimaryAttack = function(self)
+function SWEP:PrimaryAttack()
 	local owner = self:GetOwner()
 	if not (owner:IsValid() and owner:Alive()) then
 		return

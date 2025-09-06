@@ -183,19 +183,19 @@ do
 		return GetGlobal2Int("round-state")
 	end
 	Jailbreak.GetRoundState = getRoundState
-	Jailbreak.IsWaitingPlayers = function(self)
+	function Jailbreak:IsWaitingPlayers()
 		return getRoundState() == ROUND_WAITING_PLAYERS
 	end
-	Jailbreak.IsRoundPreparing = function(self)
+	function Jailbreak:IsRoundPreparing()
 		return getRoundState() == ROUND_PREPARING
 	end
-	Jailbreak.IsRoundRunning = function(self)
+	function Jailbreak:IsRoundRunning()
 		return getRoundState() == ROUND_RUNNING
 	end
-	Jailbreak.IsRoundFinished = function(self)
+	function Jailbreak:IsRoundFinished()
 		return getRoundState() == ROUND_FINISHED
 	end
-	Jailbreak.GameInProgress = function(self)
+	function Jailbreak:GameInProgress()
 		local state = getRoundState()
 		return state ~= ROUND_WAITING_PLAYERS and state ~= ROUND_PREPARING
 	end
@@ -205,7 +205,7 @@ do
 		return GetGlobal2Int("next-round-state")
 	end
 	Jailbreak.GetRoundTime = getRoundTime
-	Jailbreak.GetRemainingTime = function(self)
+	function Jailbreak:GetRemainingTime()
 		return max(0, getRoundTime() - CurTime())
 	end
 end
@@ -224,7 +224,7 @@ do
 		return getWardenCoins() >= value
 	end
 end
-Jailbreak.DelayedRemove = function(self, delay)
+function Jailbreak:DelayedRemove( delay)
 	return Simple(delay or 0, function()
 		if self:IsValid() then
 			return self:Remove()
@@ -269,19 +269,19 @@ do
 		return TranslateToPlayerModelName(models[random(1, #models)])
 	end
 end
-PLAYER.IsDeveloper = function(self)
+function PLAYER:IsDeveloper()
 	return GetNW2Var(self, "is-developer", false)
 end
-PLAYER.UsingSecurityRadio = function(self)
+function PLAYER:UsingSecurityRadio()
 	return GetNW2Var(self, "using-security-radio", false)
 end
-ENTITY.IsPlayerRagdoll = function(self)
+function ENTITY:IsPlayerRagdoll()
 	return GetNW2Var(self, "is-player-ragdoll", false)
 end
-ENTITY.GetRagdollOwner = function(self)
+function ENTITY:GetRagdollOwner()
 	return GetNW2Var(self, "ragdoll-owner", NULL)
 end
-ENTITY.GetRagdollOwnerNickname = function(self)
+function ENTITY:GetRagdollOwnerNickname()
 	local value = GetNW2Var(self, "owner-nickname")
 	if not value then
 		return "#jb.player.unknown"
@@ -369,13 +369,13 @@ do
 	Add("PlayerColorChanged", "Jailbreak::PlayerColor", function(self, vector)
 		self.m_cPlayerColor = ToColor(vector)
 	end)
-	ENTITY.GetModelColor = function(self)
+	function ENTITY:GetModelColor()
 		if self:IsValid() then
 			return self.m_cPlayerColor or defaultColor
 		end
 		return defaultColor
 	end
-	ENTITY.GetModelColorUnpacked = function(self)
+	function ENTITY:GetModelColorUnpacked()
 		if self:IsValid() then
 			local color = self.m_cPlayerColor or defaultColor
 			return color.r, color.g, color.b
@@ -402,11 +402,11 @@ do
 		return classNames[className] ~= nil
 	end
 	local GetClass = ENTITY.GetClass
-	ENTITY.IsProp = function(self)
+	function ENTITY:IsProp()
 		return classNames[GetClass(self)] ~= nil
 	end
 	local GetModel = ENTITY.GetModel
-	ENTITY.IsFemaleModel = function(self)
+	function ENTITY:IsFemaleModel()
 		local teamModels = Jailbreak.PlayerModels[self:Team()]
 		if not teamModels then
 			return false
@@ -425,20 +425,20 @@ do
 		["models/props_junk/metal_paintcan001a.mdl"] = true,
 		["models/props_junk/metal_paintcan001b.mdl"] = true
 	}
-	ENTITY.IsPaintCan = function(self)
+	function ENTITY:IsPaintCan()
 		return classNames[GetClass(self)] ~= nil and paintCans[GetModel(self)] ~= nil
 	end
 end
-ENTITY.IsButton = function(self)
+function ENTITY:IsButton()
 	return GetNW2Var(self, "is-button", false)
 end
-ENTITY.IsFood = function(self)
+function ENTITY:IsFood()
 	return GetNW2Var(self, "is-food", false)
 end
-ENTITY.Team = function(self)
+function ENTITY:Team()
 	return GetNW2Var(self, "player-team", TEAM_SPECTATOR)
 end
-ENTITY.Alive = function(self)
+function ENTITY:Alive()
 	return GetNW2Var(self, "alive", false) and self:Health() >= 1
 end
 do
@@ -457,17 +457,17 @@ do
 		return color.r, color.g, color.b, color.a
 	end
 	Jailbreak.GetTeamColorUpacked = getTeamColorUpacked
-	PLAYER.GetTeamColor = function(self)
+	function PLAYER:GetTeamColor()
 		return getTeamColor(Team(self))
 	end
-	PLAYER.GetTeamColorUpacked = function(self)
+	function PLAYER:GetTeamColorUpacked()
 		return getTeamColorUpacked(Team(self))
 	end
 end
-PLAYER.IsFullyConnected = function(self)
+function PLAYER:IsFullyConnected()
 	return GetNW2Var(self, "fully-connected", false)
 end
-PLAYER.IsFlightAllowed = function(self)
+function PLAYER:IsFlightAllowed()
 	return GetNW2Var(self, "flight-allowed", false)
 end
 do
@@ -486,7 +486,7 @@ do
 		return weapons, length
 	end
 end
-PLAYER.HasWeaponsInSlot = function(self, slot)
+function PLAYER:HasWeaponsInSlot( slot)
 	local _list_0 = self:GetWeapons()
 	for _index_0 = 1, #_list_0 do
 		local weapon = _list_0[_index_0]
@@ -510,12 +510,12 @@ do
 		return count
 	end
 end
-PLAYER.GetRagdollEntity = function(self)
+function PLAYER:GetRagdollEntity()
 	return GetNW2Var(self, "player-ragdoll", NULL)
 end
 do
 	local FindByClass = ents.FindByClass
-	PLAYER.FindRagdollEntity = function(self)
+	function PLAYER:FindRagdollEntity()
 		local ragdoll = GetNW2Var(self, "player-ragdoll")
 		if ragdoll and ragdoll:IsValid() then
 			return ragdoll
@@ -541,13 +541,13 @@ do
 		return NULL
 	end
 end
-PLAYER.IsGuard = function(self)
+function PLAYER:IsGuard()
 	return Team(self) == TEAM_GUARD
 end
-PLAYER.IsPrisoner = function(self)
+function PLAYER:IsPrisoner()
 	return Team(self) == TEAM_PRISONER
 end
-PLAYER.IsWarden = function(self)
+function PLAYER:IsWarden()
 	return GetNW2Var(self, "is-warden", false)
 end
 do
@@ -555,14 +555,14 @@ do
 		return GetNW2Var(self, "shock-collar", false)
 	end
 	PLAYER.HasShockCollar = hasShockCollar
-	PLAYER.ShockCollarIsEnabled = function(self)
+	function PLAYER:ShockCollarIsEnabled()
 		return hasShockCollar(self) and GetNW2Var(self, "shock-collar-enabled", false)
 	end
 end
-PLAYER.HasSecurityKeys = function(self)
+function PLAYER:HasSecurityKeys()
 	return GetNW2Var(self, "security-keys", false)
 end
-PLAYER.HasSecurityRadio = function(self)
+function PLAYER:HasSecurityRadio()
 	return GetNW2Var(self, "security-radio", false)
 end
 do
@@ -594,26 +594,26 @@ end
 do
 	local KeyDown = PLAYER.KeyDown
 	local IN_USE = IN_USE
-	PLAYER.GetUsedEntity = function(self)
+	function PLAYER:GetUsedEntity()
 		if KeyDown(self, IN_USE) then
 			return self:GetUseEntity()
 		end
 		return NULL
 	end
-	PLAYER.IsUsingEntity = function(self)
+	function PLAYER:IsUsingEntity()
 		if KeyDown(self, IN_USE) then
 			local entity = self:GetUseEntity()
 			return entity ~= NULL and entity:IsValid()
 		end
 		return false
 	end
-	PLAYER.IsHoldingEntity = function(self)
+	function PLAYER:IsHoldingEntity()
 		return GetNW2Var(self, "holding-entity", NULL):IsValid()
 	end
-	PLAYER.GetHoldingEntity = function(self)
+	function PLAYER:GetHoldingEntity()
 		return GetNW2Var(self, "holding-entity", NULL)
 	end
-	PLAYER.GetUseTime = function(self)
+	function PLAYER:GetUseTime()
 		if not KeyDown(self, IN_USE) then
 			return 0
 		end
@@ -644,25 +644,25 @@ do
 		return count
 	end
 end
-PLAYER.IsSpawning = function(self)
+function PLAYER:IsSpawning()
 	return Alive(self) and GetNW2Var(self, "is-spawning", false)
 end
-PLAYER.IsEscaped = function(self)
+function PLAYER:IsEscaped()
 	return GetNW2Var(self, "escaped", false)
 end
-PLAYER.IsLoseConsciousness = function(self)
+function PLAYER:IsLoseConsciousness()
 	return GetNW2Var(self, "lost-consciousness", false)
 end
 do
 	local BuyZones = Jailbreak.BuyZones
-	PLAYER.IsInBuyZone = function(self)
+	function PLAYER:IsInBuyZone()
 		return not BuyZones:GetBool() or GetNW2Var(self, "in-buy-zone", false)
 	end
 end
 do
 	local MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 	local GetMoveType = ENTITY.GetMoveType
-	PLAYER.InNoclip = function(self)
+	function PLAYER:InNoclip()
 		return GetMoveType(self) == MOVETYPE_NOCLIP
 	end
 	function PLAYER:SetNoclip( desiredState, force)

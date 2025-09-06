@@ -317,7 +317,7 @@ Add("PlayerInitialSpawn", "Jailbreak::Communication", function(self)
 		self.AvailableSpeakers = {}
 	end
 end)
-GM.PlayerCanSeePlayersChat = function(self, text, isTeam, listener, speaker)
+function GM:PlayerCanSeePlayersChat( text, isTeam, listener, speaker)
 	if #text == 0 or listener:IsBot() then
 		return false
 	end
@@ -378,7 +378,7 @@ do
 		end)
 	end
 end
-GM.PlayerCanHearPlayersVoice = function(self, listener, speaker)
+function GM:PlayerCanHearPlayersVoice( listener, speaker)
 	if listener:IsBot() or speaker:IsBot() or listener:EntIndex() == speaker:EntIndex() then
 		return false, false
 	end

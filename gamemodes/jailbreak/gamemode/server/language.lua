@@ -117,7 +117,7 @@ do
 		return loadLocalization("gamemodes/jailbreak/content/resource/localization")
 	end
 end
-Jailbreak.GetPhrase = function(self, placeholder)
+function Jailbreak:GetPhrase( placeholder)
 	local languageCode = self:GetInfo("gmod_language")
 	if not languageCode or #languageCode == 0 then
 		return placeholder
@@ -128,7 +128,7 @@ Jailbreak.GetPhrase = function(self, placeholder)
 	end
 	return fulltext
 end
-Jailbreak.Translate = function(self, str)
+function Jailbreak:Translate( str)
 	if not (IsValid(self) and self:IsPlayer()) then
 		return str
 	end

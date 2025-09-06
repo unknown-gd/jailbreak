@@ -24,10 +24,10 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
-SWEP.Initialize = function(self)
+function SWEP:Initialize()
 	return self:SecondaryAttack()
 end
-SWEP.PrimaryAttack = function(self)
+function SWEP:PrimaryAttack()
 	self:SetNextSecondaryFire(CurTime() + 0.5)
 	self:SetNextPrimaryFire(CurTime() + 0.5)
 	local owner = self:GetOwner()
@@ -57,7 +57,7 @@ SWEP.PrimaryAttack = function(self)
 		return owner:TakeDamageInfo(damageInfo)
 	end
 end
-SWEP.SecondaryAttack = function(self)
+function SWEP:SecondaryAttack()
 	self:SetNextSecondaryFire(CurTime() + 1.5)
 	self:SetNextPrimaryFire(CurTime() + 0.25)
 	if SERVER then

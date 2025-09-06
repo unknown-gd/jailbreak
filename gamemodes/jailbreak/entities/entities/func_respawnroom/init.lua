@@ -1,21 +1,21 @@
 ENT.Type = "brush"
 local TF2Team = Jailbreak.TF2Team
-ENT.Disable = function(self)
+function ENT:Disable()
 	self.Disabled = true
 end
-ENT.Enable = function(self)
+function ENT:Enable()
 	self.Disabled = false
 end
-ENT.Toggle = function(self)
+function ENT:Toggle()
 	self.Disabled = not self.Disabled
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
 		return func(self)
 	end
 end
-ENT.KeyValue = function(self, key, value)
+function ENT:KeyValue( key, value)
 	if "targetname" == key then
 		self.Targets = value
 	elseif "TeamNum" == key then

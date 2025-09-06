@@ -1,11 +1,11 @@
 ENT.Type = "brush"
 ENT.Base = "base_brush"
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self:SetSolid(SOLID_BBOX)
 	self:SetTrigger(true)
 	self.Entities = {}
 end
-ENT.StartTouch = function(self, entity)
+function ENT:StartTouch( entity)
 	self:TriggerOutput("OnStartTouch", entity)
 	local _obj_0 = self.Entities
 	_obj_0[#_obj_0 + 1] = entity
@@ -23,16 +23,16 @@ do
 		return self:TriggerOutput("OnEndTouch", entity)
 	end
 end
-ENT.Disable = function(self)
+function ENT:Disable()
 	self.Disabled = true
 end
-ENT.Enable = function(self)
+function ENT:Enable()
 	self.Disabled = false
 end
-ENT.Toggle = function(self)
+function ENT:Toggle()
 	self.Disabled = not self.Disabled
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
 		return func(self, activator, caller, data)
@@ -41,7 +41,7 @@ end
 do
 	local defaultVector = Vector(0, 0, 1)
 	local IsValid = IsValid
-	ENT.ApplyImpulse = function(self)
+	function ENT:ApplyImpulse()
 		if self.Disabled then
 			return
 		end

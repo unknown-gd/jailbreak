@@ -225,7 +225,7 @@ do
 end
 do
 	local GetPhysicsObjectCount, GetPhysicsObjectNum = ENTITY.GetPhysicsObjectCount, ENTITY.GetPhysicsObjectNum
-	ENTITY.GetPhysicsMass = function(self)
+	function ENTITY:GetPhysicsMass()
 		local objectMass = 0
 		for physNum = 0, GetPhysicsObjectCount(self) - 1 do
 			local phys = GetPhysicsObjectNum(self, physNum)
@@ -236,7 +236,7 @@ do
 		return ceil(objectMass)
 	end
 end
-ENTITY.Dissolve = function(self)
+function ENTITY:Dissolve()
 	local dissolver = ENTITY.Dissolver
 	if not IsValid(dissolver) then
 		dissolver = ents.Create("env_entity_dissolver")
@@ -261,7 +261,7 @@ ENTITY.Dissolve = function(self)
 end
 do
 	local AllowRagdollSpectate = Jailbreak.AllowRagdollSpectate
-	ENTITY.IsValidObserveTarget = function(self)
+	function ENTITY:IsValidObserveTarget()
 		if self:IsPlayer() and self:Alive() then
 			return true
 		end
@@ -283,7 +283,7 @@ do
 		end
 	end
 	ENTITY.RemoveFromObserveTargets = removeAsObserveTarget
-	ENTITY.AddToObserveTargets = function(self)
+	function ENTITY:AddToObserveTargets()
 		if self:IsValidObserveTarget() then
 			removeAsObserveTarget(self)
 			ObserveTargets[#ObserveTargets + 1] = self
@@ -299,20 +299,20 @@ do
 end
 do
 	local GetInternalVariable = ENTITY.GetInternalVariable
-	ENTITY.IsDoorLocked = function(self)
+	function ENTITY:IsDoorLocked()
 		return GetInternalVariable(self, "m_bLocked")
 	end
-	ENTITY.GetDoorState = function(self)
+	function ENTITY:GetDoorState()
 		if GetClass(self) == "prop_door_rotating" then
 			return GetInternalVariable(self, "m_eDoorState")
 		end
 		return 0
 	end
 end
-ENTITY.SetTeam = function(self, teamID)
+function ENTITY:SetTeam( teamID)
 	return self:SetNW2Int("player-team", teamID)
 end
-ENTITY.SetAlive = function(self, alive)
+function ENTITY:SetAlive( alive)
 	return self:SetNW2Bool("alive", alive)
 end
 do
@@ -321,25 +321,25 @@ do
 	local band = bit.band
 	do
 		local DMG_NEVERGIB = DMG_NEVERGIB
-		CTAKE_DAMAGE_INFO.IsNeverGibDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsNeverGibDamage()
 			return band(GetDamageType(self), DMG_NEVERGIB) == DMG_NEVERGIB
 		end
 	end
 	do
 		local DMG_BURN = DMG_BURN
-		CTAKE_DAMAGE_INFO.IsBurnDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsBurnDamage()
 			return band(GetDamageType(self), DMG_BURN) ~= 0
 		end
 	end
 	do
 		local DMG_CLOSE_RANGE = bit.bor(DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH)
-		CTAKE_DAMAGE_INFO.IsCloseRangeDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsCloseRangeDamage()
 			return band(GetDamageType(self), DMG_CLOSE_RANGE) ~= 0
 		end
 	end
 	do
 		local DMG_DISSOLVE = DMG_DISSOLVE
-		CTAKE_DAMAGE_INFO.IsDissolveDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsDissolveDamage()
 			return band(GetDamageType(self), DMG_DISSOLVE) == DMG_DISSOLVE
 		end
 	end
@@ -356,7 +356,7 @@ do
 		}
 		local damageTypesLength = #damageTypes
 		local damageType = 0
-		CTAKE_DAMAGE_INFO.IsNonPhysicalDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsNonPhysicalDamage()
 			damageType = GetDamageType(self)
 			for index = 1, damageTypesLength do
 				if band(damageType, damageTypes[index]) ~= 0 then
@@ -368,13 +368,13 @@ do
 	end
 	do
 		local DMG_CRUSH = DMG_CRUSH
-		CTAKE_DAMAGE_INFO.IsCrushDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsCrushDamage()
 			return band(GetDamageType(self), DMG_CRUSH) == DMG_CRUSH
 		end
 	end
 	do
 		local DMG_SHOCK = DMG_SHOCK
-		CTAKE_DAMAGE_INFO.IsShockDamage = function(self)
+		function CTAKE_DAMAGE_INFO:IsShockDamage()
 			return band(GetDamageType(self), DMG_SHOCK) == DMG_SHOCK
 		end
 	end

@@ -4,7 +4,7 @@ ENT.Type = "anim"
 ENT.Sequence = "idle"
 ENT.RenderGroup = RENDERGROUP_OPAQUE
 ENT.RespawnTime = 20
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self:SetModel(Model(self.Model))
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_NONE)
@@ -21,7 +21,7 @@ ENT.Initialize = function(self)
 		return init(self)
 	end
 end
-ENT.Hide = function(self)
+function ENT:Hide()
 	self:SetNoDraw(true)
 	self:SetTrigger(false)
 	self:SetPos(self.Origin)
@@ -35,7 +35,7 @@ ENT.Hide = function(self)
 	end)
 end
 ENT.ShowSound = Sound("Item.Show")
-ENT.Show = function(self)
+function ENT:Show()
 	if self:GetNoDraw() then
 		self:EmitSound(self.ShowSound)
 		self:SetNoDraw(false)
@@ -43,7 +43,7 @@ ENT.Show = function(self)
 	end
 	return self:SetTrigger(true)
 end
-ENT.Touch = function(self, entity)
+function ENT:Touch( entity)
 	if self:IsDisabled() or self:GetNoDraw() then
 		return
 	end
@@ -69,22 +69,22 @@ ENT.Touch = function(self, entity)
 	self:Hide()
 	return
 end
-ENT.IsDisabled = function(self)
+function ENT:IsDisabled()
 	return self.Disabled or false
 end
-ENT.Disable = function(self)
+function ENT:Disable()
 	self.Disabled = true
 	return self:SetNoDraw(self.Disabled)
 end
-ENT.Enable = function(self)
+function ENT:Enable()
 	self.Disabled = false
 	return self:SetNoDraw(self.Disabled)
 end
-ENT.Toggle = function(self)
+function ENT:Toggle()
 	self.Disabled = not self.Disabled
 	return self:SetNoDraw(self.Disabled)
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	if "Disable" == key then
 		self.Disabled = true
 	elseif "Enable" == key then
@@ -93,7 +93,7 @@ ENT.AcceptInput = function(self, key, activator, caller, data)
 		self.Disabled = not self.Disabled
 	end
 end
-ENT.KeyValue = function(self, key, value)
+function ENT:KeyValue( key, value)
 	if "origin" == key then
 		self.Origin = Vector(value)
 	elseif "angles" == key then

@@ -164,13 +164,13 @@ do
 		return Run("PlayerSpawn", ply)
 	end)
 end
-PLAYER.GetSpawnTime = function(self)
+function PLAYER:GetSpawnTime()
 	return self.m_fSpawnTime or GetNW2Var(self, "spawn-time", 0)
 end
-PLAYER.GetAliveTime = function(self)
+function PLAYER:GetAliveTime()
 	return CurTime() - (self.m_fSpawnTime or GetNW2Var(self, "spawn-time", 0))
 end
-PLAYER.VoiceFraction = function(self)
+function PLAYER:VoiceFraction()
 	return self.m_fVoiceFraction or 0
 end
 do
@@ -192,13 +192,13 @@ do
 end
 do
 	local EntIndex = ENTITY.EntIndex
-	ENTITY.IsDoorLocked = function(self)
+	function ENTITY:IsDoorLocked()
 		return GetNW2Var(self, "m_bLocked", false)
 	end
-	ENTITY.GetDoorState = function(self)
+	function ENTITY:GetDoorState()
 		return GetNW2Var(self, "m_eDoorState", 0)
 	end
-	ENTITY.IsLocalPlayer = function(self)
+	function ENTITY:IsLocalPlayer()
 		local index = Jailbreak.PlayerIndex
 		if not index then
 			return true

@@ -42,7 +42,7 @@ local dark_grey, black, white, light_grey = Colors.dark_grey, Colors.black, Colo
 local InvalidateLayout, GetParent = PANEL_META.InvalidateLayout, PANEL_META.GetParent
 do
 	local GetText = PANEL_META.GetText
-	DLabel.Think = function(self)
+	function DLabel:Think()
 		if self.m_bAutoStretchVertical then
 			local length = #GetText(self)
 			if length ~= self.m_iLastTextLength then
@@ -113,7 +113,7 @@ do
 	local CloseDermaMenus = CloseDermaMenus
 	local PANEL = {}
 	AccessorFunc(PANEL, "m_bHangOpen", "HangOpen")
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.CursorX, self.CursorY = 0, 0
 		self:SetWorldClicker(true)
 		self.m_bHangOpen = false
@@ -149,7 +149,7 @@ do
 			self:AddItem(data)
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local scrollPanel = self.ScrollPanel
 		local width = 0
 		local _list_0 = scrollPanel:GetCanvas():GetChildren()
@@ -209,7 +209,7 @@ do
 		end
 		return button
 	end
-	PANEL.Open = function(self)
+	function PANEL:Open()
 		self:SetHangOpen(false)
 		if IsValid(g_SpawnMenu) and g_SpawnMenu:IsVisible() then
 			g_SpawnMenu:Close(true)
@@ -278,7 +278,7 @@ do
 	do
 		Jailbreak.Font("Jailbreak::ContextMenu - Button", "Roboto Mono Bold", 1.25)
 		PANEL = {}
-		PANEL.Init = function(self)
+		function PANEL:Init()
 			self:SetText("")
 			self:Dock(TOP)
 			self.Title = ""
@@ -295,14 +295,14 @@ do
 			return image:Dock(FILL)
 		end
 		PANEL.DoClick = function() end
-		PANEL.GetImage = function(self)
+		function PANEL:GetImage()
 			return self.Image:GetImage()
 		end
 		function PANEL:SetImage( materialPath)
 			self.Image:SetImage(materialPath)
 			return InvalidateLayout(self)
 		end
-		PANEL.OnCursorEntered = function(self)
+		function PANEL:OnCursorEntered()
 			if not self:IsEnabled() then
 				return
 			end
@@ -347,7 +347,7 @@ do
 			end
 			self.Depressed = nil
 		end
-		PANEL.PerformLayout = function(self)
+		function PANEL:PerformLayout()
 			local margin = VMin(0.5)
 			local margin2 = margin * 2
 			self.Image:DockMargin(margin2, margin2, margin2, 0)
@@ -364,7 +364,7 @@ do
 		PANEL.Paint = function(width, height) end
 		Register("Jailbreak::ContextMenu - Button", PANEL, "DButton")
 	end
-	GM.OnContextMenuOpen = function(self)
+	function GM:OnContextMenuOpen()
 		if not Run("ContextMenuOpen") then
 			return
 		end
@@ -387,7 +387,7 @@ do
 		end
 		return Run("ContextMenuOpened", contextMenu)
 	end
-	GM.OnContextMenuClose = function(self)
+	function GM:OnContextMenuClose()
 		local contextMenu = Jailbreak.ContextMenu
 		if not IsValid(contextMenu) then
 			return
@@ -426,11 +426,11 @@ end
 do
 	Jailbreak.Font("Jailbreak::TeamSelect - Button", "Roboto Mono Medium", 4)
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetTextColor(white)
 		return self:SetFont("Jailbreak::TeamSelect - Button")
 	end
-	PANEL.OnCursorEntered = function(self)
+	function PANEL:OnCursorEntered()
 		if not self:IsEnabled() then
 			return
 		end
@@ -451,7 +451,7 @@ do
 		SetDrawColor(r, g, b, a)
 		return DrawRect(0, 0, width, height)
 	end
-	PANEL.DoClick = function(self)
+	function PANEL:DoClick()
 		if not self:IsEnabled() then
 			return
 		end
@@ -479,7 +479,7 @@ do
 	function PANEL:SetText( str)
 		return PANEL_META.SetText(self, Translate(str))
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local teamID = self.TeamID
 		if not teamID then
 			local enabled = false
@@ -542,7 +542,7 @@ end
 do
 	Jailbreak.Font("Jailbreak::TeamSelect", "Roboto Mono Bold", 4)
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetKeyboardInputEnabled(false)
 		self:SetVisible(false)
 		do
@@ -553,7 +553,7 @@ do
 			title:SetContentAlignment(5)
 			title:SetFont("Jailbreak::TeamSelect")
 			title:Dock(TOP)
-			title.PerformLayout = function(self)
+			function title:PerformLayout()
 				local parent = GetParent(self)
 				if IsValid(parent) then
 					return self:SetTall(parent:GetTall() * 0.1)
@@ -568,7 +568,7 @@ do
 			button.TeamID = TEAM_GUARD
 			button.MainPanel = self
 			button:Dock(LEFT)
-			button.PerformLayout = function(self)
+			function button:PerformLayout()
 				return self:SetWide(subPanel:GetWide() * 0.5 - 8)
 			end
 			InvalidateLayout(button, true)
@@ -579,7 +579,7 @@ do
 			button.TeamID = TEAM_PRISONER
 			button.MainPanel = self
 			button:Dock(RIGHT)
-			button.PerformLayout = function(self)
+			function button:PerformLayout()
 				return self:SetWide(subPanel:GetWide() * 0.5 - 8)
 			end
 			InvalidateLayout(button, true)
@@ -592,7 +592,7 @@ do
 			button.MainPanel = self
 			button:SetTextColor(dark_grey)
 			button:Dock(BOTTOM)
-			button.PerformLayout = function(self)
+			function button:PerformLayout()
 				local parent = GetParent(self)
 				if IsValid(parent) then
 					return self:SetTall(parent:GetTall() * 0.1)
@@ -607,7 +607,7 @@ do
 			button.Color = Colors.asparagus
 			button.MainPanel = self
 			button:Dock(BOTTOM)
-			button.PerformLayout = function(self)
+			function button:PerformLayout()
 				local parent = GetParent(self)
 				if IsValid(parent) then
 					return self:SetTall(parent:GetTall() * 0.1)
@@ -617,7 +617,7 @@ do
 		end
 		return InvalidateLayout(self, true)
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		if not self:IsVisible() then
 			return
 		end
@@ -670,7 +670,7 @@ do
 		self:SetSize(Jailbreak.ScreenWidth * 0.5, Jailbreak.ScreenHeight * 0.5)
 		return self:Center()
 	end
-	PANEL.Hide = function(self)
+	function PANEL:Hide()
 		if not self:IsVisible() then
 			return
 		end
@@ -681,7 +681,7 @@ do
 		end
 		return self:SetVisible(false)
 	end
-	PANEL.Show = function(self)
+	function PANEL:Show()
 		if self:IsVisible() then
 			return
 		end
@@ -698,7 +698,7 @@ end
 do
 	Jailbreak.Font("Jailbreak::Scoreboard - Player", "Roboto Mono Bold", 2)
 	local PANEL = {}
-	PANEL.ToggleMenu = function(self)
+	function PANEL:ToggleMenu()
 		local menu = self.Menu
 		if IsValid(menu) then
 			menu:Remove()
@@ -799,7 +799,7 @@ do
 			return DrawTexturedRect(-8, height - 8, 16, 16)
 		end
 	end
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:Dock(TOP)
 		local avatar = self:Add("AvatarImage")
 		self.Avatar = avatar
@@ -842,7 +842,7 @@ do
 		self.Color = light_grey
 		self.Text = "unknown"
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local ply = self.Player
 		if ply == nil then
 			return
@@ -877,7 +877,7 @@ do
 			return ratio:SetText(ratioStr)
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local margin = VMin(0.5)
 		self:DockMargin(0, 0, 0, margin)
 		self:DockPadding(margin, margin, margin, margin)
@@ -909,12 +909,12 @@ end
 do
 	Jailbreak.Font("Jailbreak::Scoreboard - Header", "Roboto Mono Bold", 4)
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self.TeamID = TEAM_SPECTATOR
 		self:Dock(TOP)
 		return InvalidateLayout(self, true)
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local teamID = self.TeamID
 		self.Color = GetTeamColor(teamID)
 		local text = "#jb.team." .. teamID
@@ -963,7 +963,7 @@ do
 		SetDrawColor(black.r, black.g, black.b, 100)
 		return DrawRect(0, 0, width, height)
 	end
-	PANEL.Build = function(self)
+	function PANEL:Build()
 		self:Clear()
 		local teamID = self.TeamID
 		if teamID ~= nil then
@@ -988,7 +988,7 @@ end
 do
 	Jailbreak.Font("Jailbreak::Scoreboard - Small", "Roboto Mono Medium Italic", 2)
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		local header = self:Add("DLabel")
 		self.Header = header
 		header:Dock(TOP)
@@ -1038,7 +1038,7 @@ do
 		playerCount:SetFont("Jailbreak::Scoreboard - Small")
 		return playerCount:Dock(BOTTOM)
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local size = VMin(80)
 		self:SetSize(size, size)
 		self:Center()
@@ -1106,14 +1106,14 @@ do
 		end
 		return self:DockPadding(padding, padding, padding, padding)
 	end
-	PANEL.Show = function(self)
+	function PANEL:Show()
 		InvalidateLayout(self, true)
 		self:SetVisible(true)
 		CloseDermaMenus()
 		self:MakePopup()
 		return self:Perform()
 	end
-	PANEL.Hide = function(self)
+	function PANEL:Hide()
 		CloseDermaMenus()
 		if Jailbreak.Developer then
 			self:Remove()
@@ -1122,7 +1122,7 @@ do
 		self:SetVisible(false)
 		return self:Cleanup()
 	end
-	PANEL.Perform = function(self)
+	function PANEL:Perform()
 		local scrollPanel = self.Guards.ScrollPanel
 		if IsValid(scrollPanel) then
 			scrollPanel:Build()
@@ -1136,7 +1136,7 @@ do
 			return scrollPanel:Build()
 		end
 	end
-	PANEL.Cleanup = function(self)
+	function PANEL:Cleanup()
 		local scrollPanel = self.Guards.ScrollPanel
 		if IsValid(scrollPanel) then
 			scrollPanel:Clear()
@@ -1156,7 +1156,7 @@ do
 	end
 	Register("Jailbreak::Scoreboard", PANEL)
 end
-GM.ScoreboardShow = function(self)
+function GM:ScoreboardShow()
 	local scoreboard = Jailbreak.ScoreBoard
 	if not IsValid(scoreboard) then
 		scoreboard = Create("Jailbreak::Scoreboard")
@@ -1165,7 +1165,7 @@ GM.ScoreboardShow = function(self)
 	scoreboard:Show()
 	return false
 end
-GM.ScoreboardHide = function(self)
+function GM:ScoreboardHide()
 	local scoreboard = Jailbreak.ScoreBoard
 	if IsValid(scoreboard) then
 		return scoreboard:Hide()
@@ -1183,7 +1183,7 @@ do
 		local CursorVisible = vgui.CursorVisible
 		local GetCursorPos = input.GetCursorPos
 		local PANEL = {}
-		PANEL.Init = function(self)
+		function PANEL:Init()
 			self:SetFontInternal("Jailbreak::Tooltip")
 			self:SetContentAlignment(5)
 			self:SetAlpha(0)
@@ -1194,7 +1194,7 @@ do
 			InvalidateLayout(self, true)
 			return hook.Add("DrawOverlay", self, self.PaintManual)
 		end
-		PANEL.Think = function(self)
+		function PANEL:Think()
 			if not CursorVisible() then
 				self:SetVisible(false)
 				return
@@ -1227,7 +1227,7 @@ do
 				return self:SetAlpha(min(alpha + FrameTime() * 255 * tooltipFadeOut:GetFloat(), 255))
 			end
 		end
-		PANEL.PerformLayout = function(self)
+		function PANEL:PerformLayout()
 			self:SetBGColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 			local textWidth, textHeight = self:GetTextSize()
 			local margin = VMin(0.25)

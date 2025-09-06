@@ -4,7 +4,7 @@ ENT.Base = "item_base"
 ENT.Model = "models/items/ammopack_medium.mdl"
 ENT.Sound = Sound("AmmoPack.Touch")
 ENT.Ammo = 0.5
-ENT.PlayerGotItem = function(self, ply)
+function ENT:PlayerGotItem( ply)
 	local gived = false
 	local _list_0 = ply:GetWeapons()
 	for _index_0 = 1, #_list_0 do

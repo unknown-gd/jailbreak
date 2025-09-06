@@ -1,8 +1,8 @@
 ENT.Type = "brush"
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	return self:SetTrigger(true)
 end
-ENT.StartTouch = function(self, entity)
+function ENT:StartTouch( entity)
 	if not (entity:IsPlayer() and entity:Alive() and entity:IsPrisoner()) or entity:IsEscaped() then
 		return
 	end

@@ -122,7 +122,7 @@ do
 		local _obj_0 = team
 		SetUp, SetSpawnPoint = _obj_0.SetUp, _obj_0.SetSpawnPoint
 	end
-	GM.CreateTeams = function(self)
+	function GM:CreateTeams()
 		SetUp(TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, Colors.prisoners, true)
 		SetSpawnPoint(TEAM_PRISONER, {
 			"info_player_zombiemaster",

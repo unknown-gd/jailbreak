@@ -4,7 +4,7 @@ include("shared.lua")
 ENT.DoNotDuplicate = true
 ENT.DisableDuplicator = true
 local mins, maxs = Vector(-1, -1, -1), Vector(1, 1, 1)
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self:SetCollisionGroup(12)
 	self:PhysicsInitBox(mins, maxs, "dirt")
 	self:DrawShadow(false)
@@ -16,7 +16,7 @@ ENT.Initialize = function(self)
 		end
 	end
 end
-ENT.OnRemove = function(self)
+function ENT:OnRemove()
 	local owner = self:GetOwner()
 	if owner:IsValid() and owner:IsPlayer() and owner:Alive() then
 		return owner:DropObject()

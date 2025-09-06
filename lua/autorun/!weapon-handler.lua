@@ -23,11 +23,11 @@ local TemporaryWeapon = {
 	Spawnable = false
 }
 if SERVER then
-	TemporaryWeapon.Deploy = function(self)
+	function TemporaryWeapon:Deploy()
 		self:Remove()
 		return false
 	end
-	TemporaryWeapon.Initialize = function(self)
+	function TemporaryWeapon:Initialize()
 		local handler = Handlers[self:GetClass()]
 		if not handler then
 			self:Remove()
@@ -87,7 +87,7 @@ if SERVER then
 		end
 		return self:Remove()
 	end
-	TemporaryWeapon.OnRemove = function(self)
+	function TemporaryWeapon:OnRemove()
 		local parent = self:GetParent()
 		if parent:IsValid() and not parent:GetOwner():IsValid() then
 			return parent:Remove()
@@ -96,7 +96,7 @@ if SERVER then
 end
 if CLIENT then
 	TemporaryWeapon.DrawWorldModel = function() end
-	TemporaryWeapon.Deploy = function(self)
+	function TemporaryWeapon:Deploy()
 		return false
 	end
 end

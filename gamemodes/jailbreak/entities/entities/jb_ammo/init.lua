@@ -3,7 +3,7 @@ AddCSLuaFile("shared.lua")
 include("shared.lua")
 local random = math.random
 ENT.StartAmount = 128
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self.m_iAmount = self.StartAmount
 	self:SetModel(self.Model)
 	self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
@@ -15,7 +15,7 @@ ENT.Initialize = function(self)
 	self:PhysWake()
 	return
 end
-ENT.Use = function(self, ply)
+function ENT:Use( ply)
 	if not (ply:IsPlayer() and ply:Alive()) then
 		return
 	end
@@ -67,7 +67,7 @@ end
 local sk_npc_dmg_fraggrenade = GetConVar("sk_npc_dmg_fraggrenade")
 local sk_fraggrenade_radius = GetConVar("sk_fraggrenade_radius")
 local Explosion = Jailbreak.Explosion
-ENT.OnTakeDamage = function(self, damageInfo)
+function ENT:OnTakeDamage( damageInfo)
 	if self.m_bExploded or self.m_iAmount < 16 then
 		return
 	end

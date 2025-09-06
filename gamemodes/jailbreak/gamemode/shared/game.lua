@@ -66,7 +66,7 @@ do
 		end
 	end
 end
-GM.ShouldCollide = function(self, entity, ply)
+function GM:ShouldCollide( entity, ply)
 	if not (ply:IsPlayer() and Alive(ply)) then
 		return
 	end

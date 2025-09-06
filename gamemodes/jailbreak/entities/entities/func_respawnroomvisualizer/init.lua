@@ -1,16 +1,16 @@
 ENT.Type = "brush"
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	self:SetCustomCollisionCheck(true)
 	self:PhysicsInit(SOLID_BSP)
 	return self:SetMoveType(MOVETYPE_NONE)
 end
-ENT.IsDisabled = function(self)
+function ENT:IsDisabled()
 	return self:GetNW2Bool("disabled")
 end
-ENT.SetDisabled = function(self, bool)
+function ENT:SetDisabled( bool)
 	return self:SetNW2Bool("disabled", bool)
 end
-ENT.KeyValue = function(self, key, value)
+function ENT:KeyValue( key, value)
 	if "respawnroomname" == key then
 		self.RoomName = value
 		return timer.Simple(0.25, function()
@@ -27,16 +27,16 @@ ENT.KeyValue = function(self, key, value)
 		return self:SetDisabled(tobool(value))
 	end
 end
-ENT.Disable = function(self)
+function ENT:Disable()
 	return self:SetDisabled(true)
 end
-ENT.Enable = function(self)
+function ENT:Enable()
 	return self:SetDisabled(false)
 end
-ENT.Toggle = function(self)
+function ENT:Toggle()
 	return self:SetDisabled(not self:GetDisabled())
 end
-ENT.AcceptInput = function(self, key, activator, caller, data)
+function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
 		return func(self)

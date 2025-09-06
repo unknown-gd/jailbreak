@@ -118,7 +118,7 @@ do
 		return
 	end)
 end
-GM.OnPlayerChat = function(self)
+function GM:OnPlayerChat()
 	return true
 end
 do

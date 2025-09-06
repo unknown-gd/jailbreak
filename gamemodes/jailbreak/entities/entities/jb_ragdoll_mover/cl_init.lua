@@ -1,5 +1,5 @@
 include("shared.lua")
-ENT.Initialize = function(self)
+function ENT:Initialize()
 	return self:DrawShadow(false)
 end
 ENT.Draw = function() end

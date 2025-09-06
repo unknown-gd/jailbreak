@@ -3,7 +3,7 @@ ENT.Base = "item_healthkit_medium"
 ENT.Model = "models/flag/briefcase.mdl"
 ENT.Sequence = "spin"
 if SERVER then
-	ENT.Init = function(self)
+	function ENT:Init()
 		self:SetTrigger(false)
 		return self:DrawShadow(false)
 	end

@@ -211,7 +211,7 @@ do
 	event:SetType("playermodel")
 	event:ConVar(5)
 	local HSVToColor = HSVToColor
-	event.SendMessage = function(self)
+	function event:SendMessage()
 		local seed = random(0, 360)
 		local _list_0 = player.GetHumans()
 		for _index_0 = 1, #_list_0 do
@@ -275,7 +275,7 @@ do
 	event:SetFinishState(ROUND_FINISHED)
 	event:SetType("death")
 	event:ConVar(5)
-	event.SendMessage = function(self)
+	function event:SendMessage()
 		local _list_0 = player.GetHumans()
 		for _index_0 = 1, #_list_0 do
 			local ply = _list_0[_index_0]

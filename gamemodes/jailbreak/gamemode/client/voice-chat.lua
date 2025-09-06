@@ -25,7 +25,7 @@ do
 	local LEFT, BOTTOM, FILL = LEFT, BOTTOM, FILL
 	local FrameTime = FrameTime
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetAlpha(0)
 		self:Dock(BOTTOM)
 		self.Player = NULL
@@ -74,7 +74,7 @@ do
 	end
 	do
 		local remove = table.remove
-		PANEL.Think = function(self)
+		function PANEL:Think()
 			if self.NextVoiceData < CurTime() then
 				local ply = self.Player
 				if IsValid(ply) then
@@ -110,16 +110,16 @@ do
 			end
 		end
 	end
-	PANEL.FadeIn = function(self)
+	function PANEL:FadeIn()
 		self.AnimationType = true
 	end
-	PANEL.FadeOut = function(self)
+	function PANEL:FadeOut()
 		self.AnimationType = false
 		if not self:IsVisible() then
 			return self:Show()
 		end
 	end
-	PANEL.IsInAnimation = function(self)
+	function PANEL:IsInAnimation()
 		return self.AnimationType ~= nil
 	end
 	function PANEL:Paint( width, height)
@@ -148,7 +148,7 @@ do
 end
 do
 	local PANEL = {}
-	PANEL.Init = function(self)
+	function PANEL:Init()
 		self:SetZPos(1000)
 		return self:Dock(RIGHT)
 	end
@@ -176,7 +176,7 @@ do
 			return panel:FadeIn()
 		end
 	end
-	PANEL.Think = function(self)
+	function PANEL:Think()
 		local _list_0 = self:GetChildren()
 		for _index_0 = 1, #_list_0 do
 			local panel = _list_0[_index_0]
@@ -189,7 +189,7 @@ do
 			end
 		end
 	end
-	PANEL.PerformLayout = function(self)
+	function PANEL:PerformLayout()
 		local margin = VMin(1)
 		self:DockMargin(0, margin, margin, margin)
 		return self:SetWide(Jailbreak.ScreenWidth / 6)
@@ -219,7 +219,7 @@ do
 		return true
 	end
 end
-GM.PlayerEndVoice = function(self, ply)
+function GM:PlayerEndVoice( ply)
 	if ply:IsLocalPlayer() then
 		Run("LocalPlayerVoice", ply, false)
 		Jailbreak.VoiceChatState = false
