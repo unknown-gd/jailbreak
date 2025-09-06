@@ -38,7 +38,7 @@ do
 		CHudHealth = true,
 		CHudAmmo = true
 	}
-	GM.HUDShouldDraw = function(self, name)
+	function GM:HUDShouldDraw( name)
 		if Jailbreak.DrawHUD then
 			if sourceHUD[name] or Jailbreak.PlayingTaunt and name == "CHudWeaponSelection" then
 				return false
@@ -802,7 +802,7 @@ do
 		self:SetSize(width, height)
 		return self:InvalidateParent()
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		local headerColor = self.HeaderColor
 		SetDrawColor(headerColor.r, headerColor.g, headerColor.b, 240)
 		DrawRect(0, 0, width, self.HeaderHeight)
@@ -941,7 +941,7 @@ do
 		self.RotateOffset = Rand(1, 10)
 		return self:SetWide(width)
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		local fraction = self.SuitPowerFraction
 		if fraction == 1 and self:GetAlpha() == 0 then
 			return
@@ -1105,7 +1105,7 @@ do
 		self.AmmoTextX, self.AmmoTextY = (width - ammoTextWidth) / 2, headerHeight + (rectHeight - ammoTextHeight) / 2
 		return self:SetSize(width, height)
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		local headerColor = self.HeaderColor
 		SetDrawColor(headerColor.r, headerColor.g, headerColor.b, 240)
 		DrawRect(0, 0, width, self.HeaderHeight)
@@ -1204,7 +1204,7 @@ do
 	end
 	do
 		local tonumber = tonumber
-		PANEL.Setup = function(self, itemName, pickupType, amount)
+		function PANEL:Setup( itemName, pickupType, amount)
 			self.Time = CurTime()
 			local label = self.Label
 			if label and label:IsValid() then
@@ -1225,7 +1225,7 @@ do
 		end
 	end
 	local progress, progressHeight = 0, 0
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 		DrawRect(0, 0, width, height)
 		progressHeight = self.ProgressHeight
@@ -1248,7 +1248,7 @@ do
 		self:SetSize(width, Jailbreak.ScreenHeight)
 		return self:SetPos(floor((screenWidth - width) / 2), 0)
 	end
-	PANEL.AddNotify = function(self, itemName, pickupType, amount)
+	function PANEL:AddNotify( itemName, pickupType, amount)
 		local notify = self.Notices[itemName]
 		if not (notify and notify:IsValid()) then
 			notify = self:Add("Jailbreak::PickupNotify")
@@ -1273,17 +1273,17 @@ do
 	end
 	Add("PickupNotifyReceived", "Jailbreak::PickupNotify", pickupNotify, PRE_HOOK)
 	Jailbreak.PickupNotify = pickupNotify
-	GM.HUDWeaponPickedUp = function(self, weapon)
+	function GM:HUDWeaponPickedUp( weapon)
 		if weapon and weapon:IsValid() and weapon:IsWeapon() then
 			pickupNotify(GetWeaponName(weapon), PICKUP_WEAPON, 1)
 			return
 		end
 	end
-	GM.HUDItemPickedUp = function(self, itemName)
+	function GM:HUDItemPickedUp( itemName)
 		pickupNotify(itemName, PICKUP_OTHER, 1)
 		return
 	end
-	GM.HUDAmmoPickedUp = function(self, itemName, amount)
+	function GM:HUDAmmoPickedUp( itemName, amount)
 		if itemName == "Grenade" then
 			return
 		end

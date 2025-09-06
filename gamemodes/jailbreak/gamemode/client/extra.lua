@@ -117,7 +117,7 @@ do
 			return self:Close()
 		end
 	end
-	PANEL.PerformLayout = function(self, ...)
+	function PANEL:PerformLayout( ...)
 		local size = VMin(40)
 		self:SetSize(size, size)
 		self:SetMinWidth(size)

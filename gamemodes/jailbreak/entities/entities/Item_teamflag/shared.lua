@@ -8,15 +8,15 @@ if SERVER then
 		return self:DrawShadow(false)
 	end
 	ENT.Touch = function() end
-	ENT.SelectSkin = function(self, teamID)
+	function ENT:SelectSkin( teamID)
 		return self:SetSkin(teamID - 2)
 	end
-	ENT.KeyValue = function(self, key, value)
+	function ENT:KeyValue( key, value)
 		if string.lower(key) == "teamnum" then
 			return self:SelectSkin(tonumber(value) or 0)
 		end
 	end
-	ENT.AcceptInput = function(self, key, _, __, value)
+	function ENT:AcceptInput( key, _, __, value)
 		local _exp_0 = string.lower(key)
 		if "skin" == _exp_0 then
 			return self:SelectSkin(tonumber(value) or 0)

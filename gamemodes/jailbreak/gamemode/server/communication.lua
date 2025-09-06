@@ -93,7 +93,7 @@ do
 			return Send(players)
 		end
 	end
-	PLAYER.ChatPrint = function(self, text)
+	function PLAYER:ChatPrint( text)
 		if not (isstring(text) and #text > 0) then
 			text = fallbackStr
 		end
@@ -213,7 +213,7 @@ do
 	local AllowTeamChat = Jailbreak.AllowTeamChat
 	local CHAT_TEXT = CHAT_TEXT
 	local min = math.min
-	GM.PlayerSay = function(self, ply, text, isTeamChat)
+	function GM:PlayerSay( ply, text, isTeamChat)
 		text = Trim(text)
 		if sub(text, 1, 1) == "/" then
 			local startPos, _, command = find(text, "^/([^%s]+)")

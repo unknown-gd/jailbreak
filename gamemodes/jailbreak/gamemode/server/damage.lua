@@ -17,7 +17,7 @@ do
 	local white = Color(200, 200, 200, 150)
 	local NOTIFY_ERROR = NOTIFY_ERROR
 	local DMG_SONIC = DMG_SONIC
-	GM.PlayerTakeDamage = function(self, ply, damageInfo, teamID)
+	function GM:PlayerTakeDamage( ply, damageInfo, teamID)
 		if ply:HasShockCollar() and damageInfo:IsShockDamage() then
 			ply:DoElectricSparks()
 			ply:TakeShockCollar(true)
@@ -46,7 +46,7 @@ do
 end
 do
 	local IsRoundPreparing, IsProp = Jailbreak.IsRoundPreparing, Jailbreak.IsProp
-	GM.EntityTakeDamage = function(self, entity, damageInfo)
+	function GM:EntityTakeDamage( entity, damageInfo)
 		local className = entity:GetClass()
 		if IsRoundPreparing() then
 			if className == "func_button" then
@@ -136,7 +136,7 @@ do
 	local sk_npc_dmg_fraggrenade = GetConVar("sk_npc_dmg_fraggrenade")
 	local sk_fraggrenade_radius = GetConVar("sk_fraggrenade_radius")
 	local Explosion = Jailbreak.Explosion
-	GM.ClassTakeDamage = function(self, entity, damageInfo, className)
+	function GM:ClassTakeDamage( entity, damageInfo, className)
 		if className == "npc_grenade_frag" and not entity.m_bExploded then
 			entity.m_bExploded = true
 			local radius = sk_fraggrenade_radius:GetInt()
@@ -148,7 +148,7 @@ do
 			return true
 		end
 	end
-	GM.WeaponTakeDamage = function(self, weapon, damageInfo, className)
+	function GM:WeaponTakeDamage( weapon, damageInfo, className)
 		if className == "weapon_frag" and not weapon.m_bExploded then
 			weapon.m_bExploded = true
 			local radius = sk_fraggrenade_radius:GetInt()
@@ -168,7 +168,7 @@ do
 		IsValidModel, IsInWorld = _obj_0.IsValidModel, _obj_0.IsInWorld
 	end
 	local DoorsHealth = Jailbreak.DoorsHealth
-	GM.DoorTakeDamage = function(self, door, damageInfo)
+	function GM:DoorTakeDamage( door, damageInfo)
 		local model = door:GetModel()
 		if #model == 0 or not IsValidModel(model) then
 			return
@@ -212,7 +212,7 @@ do
 end
 do
 	local DMG_SHOCK = DMG_SHOCK
-	GM.ButtonTakeDamage = function(self, button, damageInfo)
+	function GM:ButtonTakeDamage( button, damageInfo)
 		if damageInfo:IsExplosionDamage() then
 			return true
 		end
@@ -277,7 +277,7 @@ do
 		Jailbreak.PropDamageMaterials = materials
 	end
 	local cache = {}
-	GM.PropTakeDamage = function(self, entity, damageInfo)
+	function GM:PropTakeDamage( entity, damageInfo)
 		if damageInfo:IsCrushDamage() then
 			damageInfo:SetDamageForce(vector_origin)
 		end
@@ -376,7 +376,7 @@ do
 end
 do
 	local player_old_armor = GetConVar("player_old_armor")
-	GM.PerformArmorDamage = function(self, entity, armor, damageInfo)
+	function GM:PerformArmorDamage( entity, armor, damageInfo)
 		if armor <= 0 then
 			return 0
 		end
@@ -409,7 +409,7 @@ end
 do
 	local BLOOD_COLOR_MECH = BLOOD_COLOR_MECH
 	local BLOOD_COLOR_RED = BLOOD_COLOR_RED
-	GM.HandlePlayerArmorReduction = function(self, ply, damageInfo)
+	function GM:HandlePlayerArmorReduction( ply, damageInfo)
 		ply:SetArmor(self:PerformArmorDamage(ply, ply:Armor(), damageInfo))
 		return ply:SetBloodColor(ply:Armor() > 0 and BLOOD_COLOR_MECH or BLOOD_COLOR_RED)
 	end
@@ -423,7 +423,7 @@ end
 do
 	local LocalToWorld = LocalToWorld
 	local BloodSplashes = Jailbreak.BloodSplashes
-	GM.RagdollTakeDamage = function(self, ragdoll, damageInfo)
+	function GM:RagdollTakeDamage( ragdoll, damageInfo)
 		if damageInfo:IsNeverGibDamage() then
 			damageInfo:ScaleDamage(0.25)
 		end

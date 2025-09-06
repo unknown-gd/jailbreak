@@ -12,7 +12,7 @@ ENT.StartTouch = function(self, entity)
 end
 do
 	local remove = table.remove
-	ENT.EndTouch = function(self, entity)
+	function ENT:EndTouch( entity)
 		local entities = self.Entities
 		for index = 1, #entities do
 			if entities[index] == entity then
@@ -66,7 +66,7 @@ do
 end
 do
 	local Angle = Angle
-	ENT.KeyValue = function(self, key, value)
+	function ENT:KeyValue( key, value)
 		if "StartDisabled" == key then
 			self.Disabled = tobool(value)
 		elseif "impulse_dir" == key then

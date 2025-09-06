@@ -78,7 +78,7 @@ end
 do
 	local LookupKeyBinding, IsKeyDown = input.LookupKeyBinding, input.IsKeyDown
 	local IsFirstTimePredicted = IsFirstTimePredicted
-	GM.PlayerButtonUp = function(self, ply, keyCode)
+	function GM:PlayerButtonUp( ply, keyCode)
 		if not IsFirstTimePredicted() then
 			return
 		end
@@ -93,7 +93,7 @@ do
 			return RunConsoleCommand("pe_drop", "movement")
 		end
 	end
-	GM.PlayerButtonDown = function(self, ply, keyCode)
+	function GM:PlayerButtonDown( ply, keyCode)
 		if (keyCode == 107 or keyCode == 108) and IsKeyDown(81) and IsFirstTimePredicted() then
 			return RunConsoleCommand("marker")
 		end

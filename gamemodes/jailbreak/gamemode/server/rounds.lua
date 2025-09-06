@@ -68,7 +68,7 @@ do
 end
 do
 	local SafeCleanUpMap, Colors, RunEvents, SetShockCollars, ClearObserveTargets, TeamIsJoinable, PermanentGuards, SetWardenCoins, WardenCoins = Jailbreak.SafeCleanUpMap, Jailbreak.Colors, Jailbreak.RunEvents, Jailbreak.SetShockCollars, Jailbreak.ClearObserveTargets, Jailbreak.TeamIsJoinable, Jailbreak.PermanentGuards, Jailbreak.SetWardenCoins, Jailbreak.WardenCoins
-	GM.RoundStateChanged = function(self, old, new)
+	function GM:RoundStateChanged( old, new)
 		RunEvents(new)
 		do
 			local _exp_0 = (new)
@@ -163,7 +163,7 @@ do
 end
 do
 	local black = Jailbreak.Colors.black
-	GM.TeamPlayerDeath = function(self, ply, teamID)
+	function GM:TeamPlayerDeath( ply, teamID)
 		if not ply:IsBot() then
 			ply:ShockScreenEffect(0.25, black, 1, false)
 		end
@@ -187,7 +187,7 @@ end
 do
 	local IsWaitingPlayers, PlayerSpawnTime = Jailbreak.IsWaitingPlayers, Jailbreak.PlayerSpawnTime
 	local Simple = timer.Simple
-	GM.PostPlayerSpawn = function(self, ply)
+	function GM:PostPlayerSpawn( ply)
 		ply:SetNW2Int("spawn-time", CurTime() + 0.25)
 		ply:SetNW2Bool("is-spawning", true)
 		ply:AddToObserveTargets()

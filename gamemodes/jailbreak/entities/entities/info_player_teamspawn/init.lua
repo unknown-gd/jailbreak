@@ -15,7 +15,7 @@ do
 	local TF2Team = Jailbreak.TF2Team
 	local tonumber = tonumber
 	local tobool = tobool
-	ENT.KeyValue = function(self, key, value)
+	function ENT:KeyValue( key, value)
 		if "TeamNum" == key then
 			return self:SetTeam(TF2Team(tonumber(value) or 0))
 		elseif "StartDisabled" == key then

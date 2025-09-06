@@ -3,7 +3,7 @@ local IsValid = IsValid
 ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 do
 	local match = string.match
-	ENT.IsValidURL = function(self, str)
+	function ENT:IsValidURL( str)
 		return #str ~= 0 and match(str, "^https?://(%w[%w._-]+%.%w+)/?") ~= nil
 	end
 end
@@ -124,7 +124,7 @@ do
 			return self:Close()
 		end
 	end
-	PANEL.PerformLayout = function(self, width, height)
+	function PANEL:PerformLayout( width, height)
 		self:SetMinWidth(VMin(20))
 		self:SetMinHeight(VMin(10))
 		local entity = self.Entity
@@ -181,7 +181,7 @@ do
 	local sin = math.sin
 	local originOffset = Vector(0, 0, 0)
 	local channel, material = nil, nil
-	ENT.Draw = function(self, flags)
+	function ENT:Draw( flags)
 		self:DrawModel(flags)
 		channel = self.Channel
 		if channel == true then

@@ -17,7 +17,7 @@ do
 		local _obj_0 = net
 		Start, WriteEntity, Send = _obj_0.Start, _obj_0.WriteEntity, _obj_0.Send
 	end
-	ENT.Use = function(self, ply)
+	function ENT:Use( ply)
 		Start("Jailbreak::Radio")
 		WriteEntity(self)
 		return Send(ply)

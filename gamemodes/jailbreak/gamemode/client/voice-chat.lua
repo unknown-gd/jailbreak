@@ -43,7 +43,7 @@ do
 		self.NextVoiceData = 0
 		self.VoiceDataLength = 0
 	end
-	PANEL.PerformLayout = function(self, width)
+	function PANEL:PerformLayout( width)
 		local height, padding = VMin(4), VMin(0.5)
 		self.VoiceDataLength = ceil(max(width, 4) / padding)
 		self:DockPadding(padding, padding, padding, padding)
@@ -59,7 +59,7 @@ do
 		end
 		return self:SetTall(height)
 	end
-	PANEL.Setup = function(self, ply)
+	function PANEL:Setup( ply)
 		if not ply:IsValid() then
 			self:Remove()
 			return
@@ -122,7 +122,7 @@ do
 	PANEL.IsInAnimation = function(self)
 		return self.AnimationType ~= nil
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		for index = 1, self.VoiceDataLength do
 			local volume = self.VoiceData[index]
 			if volume ~= nil then
@@ -152,7 +152,7 @@ do
 		self:SetZPos(1000)
 		return self:Dock(RIGHT)
 	end
-	PANEL.GetVoicePanel = function(self, ply)
+	function PANEL:GetVoicePanel( ply)
 		local _list_0 = self:GetChildren()
 		for _index_0 = 1, #_list_0 do
 			local panel = _list_0[_index_0]
@@ -161,7 +161,7 @@ do
 			end
 		end
 	end
-	PANEL.StartVoice = function(self, ply)
+	function PANEL:StartVoice( ply)
 		local panel = self:GetVoicePanel(ply)
 		if not IsValid(panel) then
 			panel = self:Add("Jailbreak::VoiceNotify")
@@ -170,7 +170,7 @@ do
 		panel:FadeOut()
 		return self:InvalidateLayout()
 	end
-	PANEL.EndVoice = function(self, ply)
+	function PANEL:EndVoice( ply)
 		local panel = self:GetVoicePanel(ply)
 		if IsValid(panel) then
 			return panel:FadeIn()
@@ -198,7 +198,7 @@ do
 end
 do
 	local VoiceChatNotifications = Jailbreak.VoiceChatNotifications
-	GM.PlayerStartVoice = function(self, ply)
+	function GM:PlayerStartVoice( ply)
 		if ply:IsLocalPlayer() then
 			Run("LocalPlayerVoice", ply, true)
 			Jailbreak.VoiceChatState = true
@@ -288,7 +288,7 @@ do
 	local cache, found, flexCount = {}, false, 0
 	local fraction, flexLessMode = 0, 0
 	local tempAngle, angle = Angle(), 0
-	GM.MouthMoveAnimation = function(self, ply)
+	function GM:MouthMoveAnimation( ply)
 		local flexes = cache[GetModel(ply)]
 		if flexes == nil then
 			flexes = {}

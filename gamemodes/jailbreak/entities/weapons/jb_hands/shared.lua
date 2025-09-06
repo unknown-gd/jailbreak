@@ -83,7 +83,7 @@ do
 	local PLAYER_ATTACK1 = PLAYER_ATTACK1
 	local CHAN_STATIC = CHAN_STATIC
 	local seqFinish, delay, combo = 0, 0, 0
-	SWEP.PrimaryAttack = function(self, right)
+	function SWEP:PrimaryAttack( right)
 		if self.Pulls then
 			return
 		end

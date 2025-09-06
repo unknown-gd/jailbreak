@@ -61,7 +61,7 @@ end
 do
 	local phys_pushscale = GetConVar("phys_pushscale")
 	local NULL = NULL
-	SWEP.HitEntity = function(self, entity, owner, origin)
+	function SWEP:HitEntity( entity, owner, origin)
 		local vm = owner:GetViewModel()
 		if not (vm and vm:IsValid()) then
 			return

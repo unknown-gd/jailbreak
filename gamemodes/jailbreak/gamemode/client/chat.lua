@@ -85,7 +85,7 @@ do
 		return true
 	end
 	Jailbreak.PerformChatMessage = performChatMessage
-	GM.OnAchievementAchieved = function(self, ply, achievementID)
+	function GM:OnAchievementAchieved( ply, achievementID)
 		performChatMessage(ply, CHAT_ACHIEVEMENT, {
 			achievementID,
 			ply:Nick()
@@ -94,7 +94,7 @@ do
 	end
 	do
 		local buffer = {}
-		GM.ChatText = function(self, _, __, text, messageType)
+		function GM:ChatText( _, __, text, messageType)
 			if "servermsg" == messageType then
 				buffer[1] = text
 				buffer[2] = nil
@@ -106,7 +106,7 @@ do
 			end
 			return true
 		end
-		PLAYER.ChatPrint = function(self, text)
+		function PLAYER:ChatPrint( text)
 			buffer[1] = text
 			buffer[2] = white
 			performChatMessage(NULL, CHAT_SERVERMESSAGE, buffer)
@@ -126,7 +126,7 @@ do
 	local ACT_GMOD_IN_CHAT = ACT_GMOD_IN_CHAT
 	local FrameTime = FrameTime
 	local Approach = math.Approach
-	GM.GrabEarAnimation = function(self, ply)
+	function GM:GrabEarAnimation( ply)
 		if ply:IsPlayingTaunt() then
 			return
 		end
@@ -145,7 +145,7 @@ do
 end
 do
 	local TrimLeft, sub, match = string.TrimLeft, string.sub, string.match
-	GM.OnChatTab = function(self, text)
+	function GM:OnChatTab( text)
 		text = TrimLeft(text)
 		if sub(text, 1, 1) == "/" then
 			local command = match(text, "/([^%s]+)")

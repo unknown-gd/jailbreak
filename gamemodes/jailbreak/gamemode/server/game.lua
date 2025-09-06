@@ -16,7 +16,7 @@ GM.ShowTeam = function(self, ply)
 end
 do
 	local RENDERMODE_TRANSCOLOR = RENDERMODE_TRANSCOLOR
-	GM.PlayerInitialSpawn = function(self, ply, transiton)
+	function GM:PlayerInitialSpawn( ply, transiton)
 		ply:SetNoCollideWithTeammates(Jailbreak.GameName == "tf")
 		ply:SetRenderMode(RENDERMODE_TRANSCOLOR)
 		ply:SetAvoidPlayers(true)
@@ -33,7 +33,7 @@ end
 do
 	local RagdollRemove, GuardsArmor, AllowWeaponsInVehicle = Jailbreak.RagdollRemove, Jailbreak.GuardsArmor, Jailbreak.AllowWeaponsInVehicle
 	local white = Jailbreak.Colors.white
-	GM.PlayerSpawn = function(self, ply, transiton)
+	function GM:PlayerSpawn( ply, transiton)
 		ply:SetAllowWeaponsInVehicle(AllowWeaponsInVehicle:GetBool())
 		ply:RemoveFromObserveTargets()
 		ply:SetColor(white)
@@ -97,7 +97,7 @@ do
 		Empty(cache)
 		lastIndex = 0
 	end)
-	GM.PlayerSelectSpawn = function(self, ply, transition)
+	function GM:PlayerSelectSpawn( ply, transition)
 		if transiton then
 			return
 		end
@@ -154,7 +154,7 @@ do
 	local TranslatePlayerModel = player_manager.TranslatePlayerModel
 	local match = string.match
 	local length = 0
-	GM.PlayerSetModel = function(self, ply)
+	function GM:PlayerSetModel( ply)
 		local modelPath = TranslatePlayerModel(ply:GetInfo("jb_playermodel"))
 		if AllowCustomPlayerModels:GetBool() and ply:SetModel(modelPath) then
 			return
@@ -180,7 +180,7 @@ do
 	local Explode = string.Explode
 	local tonumber = tonumber
 	local defaultWeaponColor = Vector(0.001, 0.001, 0.001)
-	GM.PlayerModelChanged = function(self, ply)
+	function GM:PlayerModelChanged( ply)
 		local isBot = ply:IsBot()
 		if isBot then
 			ply:SetSkin(random(0, ply:SkinCount()))
@@ -219,7 +219,7 @@ do
 end
 do
 	local TranslatePlayerHands, TranslateToPlayerModelName = player_manager.TranslatePlayerHands, player_manager.TranslateToPlayerModelName
-	GM.PlayerSetHandsModel = function(self, ply, hands)
+	function GM:PlayerSetHandsModel( ply, hands)
 		local info = TranslatePlayerHands(TranslateToPlayerModelName(ply:GetModel()))
 		if info == nil then
 			return
@@ -233,7 +233,7 @@ do
 end
 do
 	local IsWaitingPlayers = Jailbreak.IsWaitingPlayers
-	GM.DoPlayerDeath = function(self, ply, attacker, damageInfo)
+	function GM:DoPlayerDeath( ply, attacker, damageInfo)
 		if not Teams[ply:Team()] then
 			return
 		end
@@ -283,7 +283,7 @@ GM.PostPlayerDeath = function(self, ply)
 end
 do
 	local OBS_MODE_NONE = OBS_MODE_NONE
-	GM.PlayerDeathThink = function(self, ply)
+	function GM:PlayerDeathThink( ply)
 		if Teams[ply:Team()] and not GameInProgress() then
 			ply:Spawn()
 			return
@@ -309,7 +309,7 @@ do
 	local trace = {
 		output = traceResult
 	}
-	GM.KeyPress = function(self, ply, key)
+	function GM:KeyPress( ply, key)
 		if ply:Alive() then
 			if key ~= IN_USE or ply:IsHoldingEntity() then
 				return
@@ -382,7 +382,7 @@ do
 end
 do
 	local IsRoundPreparing = Jailbreak.IsRoundPreparing
-	GM.CanPlayerSuicide = function(self, ply)
+	function GM:CanPlayerSuicide( ply)
 		if IsRoundPreparing() then
 			return false
 		end
@@ -391,7 +391,7 @@ do
 end
 do
 	local CHAN_VOICE_BASE = CHAN_VOICE_BASE
-	GM.PlayerDeathSound = function(self, ply)
+	function GM:PlayerDeathSound( ply)
 		if ply:IsGuard() then
 			ply:EmitSound("Player.Death", 75, random(80, 120), 1, CHAN_VOICE_BASE, 0, 1)
 		end
@@ -412,7 +412,7 @@ do
 	end
 	local CHAT_CONNECTED = CHAT_CONNECTED
 	local SendChatText = Jailbreak.SendChatText
-	GM.PlayerInitialized = function(self, ply)
+	function GM:PlayerInitialized( ply)
 		if ply:IsBot() then
 			SendChatText(false, false, CHAT_CONNECTED, ply:GetModelColor(), ply:Nick())
 			return
@@ -430,7 +430,7 @@ do
 end
 do
 	local TeamIsJoinable = Jailbreak.TeamIsJoinable
-	GM.PlayerCanJoinTeam = function(self, ply, teamID, oldTeamID)
+	function GM:PlayerCanJoinTeam( ply, teamID, oldTeamID)
 		if teamID == oldTeamID then
 			return false, "#jb.error.already-on-team", 3
 		end
@@ -442,7 +442,7 @@ do
 end
 do
 	local AllowSprayEveryone = Jailbreak.AllowSprayEveryone
-	GM.PlayerSpray = function(self, ply)
+	function GM:PlayerSpray( ply)
 		if not ply:Alive() then
 			return true
 		end
@@ -455,7 +455,7 @@ do
 end
 do
 	local MOVETYPE_WALK = MOVETYPE_WALK
-	GM.PlayerShouldTaunt = function(self, ply)
+	function GM:PlayerShouldTaunt( ply)
 		if ply:Alive() and ply:IsOnGround() and not (ply:Crouching() or ply:InVehicle()) and ply:GetMoveType() == MOVETYPE_WALK and ply:WaterLevel() < 2 then
 			return true
 		end
@@ -586,7 +586,7 @@ end
 do
 	local FreezeWeaponsOnSpawn = Jailbreak.FreezeWeaponsOnSpawn
 	local FindInSphere = ents.FindInSphere
-	GM.OnWeaponCreated = function(self, weapon)
+	function GM:OnWeaponCreated( weapon)
 		return Simple(0, function()
 			if not weapon:IsValid() or weapon:GetOwner():IsValid() then
 				return
@@ -705,7 +705,7 @@ GM.OnPlayerPhysicsPickup = function(self, ply, entity)
 end
 do
 	local NULL = NULL
-	GM.OnPlayerPhysicsDrop = function(self, ply, entity)
+	function GM:OnPlayerPhysicsDrop( ply, entity)
 		SetNW2Var(ply, "holding-entity", NULL)
 		entity.m_eHolder = nil
 		ply:SetupMovement()

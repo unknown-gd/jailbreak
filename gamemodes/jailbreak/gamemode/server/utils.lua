@@ -382,7 +382,7 @@ end
 do
 	local tobool = tobool
 	local lower = string.lower
-	GM.AcceptInput = function(self, entity, key)
+	function GM:AcceptInput( entity, key)
 		local className = GetClass(entity)
 		if className == "prop_door_rotating" or className == "func_door_rotating" then
 			local _exp_0 = lower(key)
@@ -393,7 +393,7 @@ do
 			end
 		end
 	end
-	GM.EntityKeyValue = function(self, entity, key, value)
+	function GM:EntityKeyValue( entity, key, value)
 		local className = GetClass(entity)
 		if (className == "prop_door_rotating" or className == "func_door_rotating") and lower(key) == "m_bLocked" then
 			entity:SetNW2Bool(key, tobool(value))
@@ -407,7 +407,7 @@ do
 	local trace = {
 		output = traceResult
 	}
-	Jailbreak.BloodSplashes = function(self, damageInfo, death, velocity)
+	function Jailbreak:BloodSplashes( damageInfo, death, velocity)
 		if not velocity then
 			velocity = self:GetVelocity() + damageInfo:GetDamageForce()
 		end

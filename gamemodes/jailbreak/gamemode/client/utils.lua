@@ -118,7 +118,7 @@ do
 end
 do
 	local voiceVolume = 0
-	GM.PerformPlayerVoice = function(self, ply)
+	function GM:PerformPlayerVoice( ply)
 		if ply:IsSpeaking() then
 			voiceVolume = ply:VoiceVolume()
 		else
@@ -175,7 +175,7 @@ PLAYER.VoiceFraction = function(self)
 end
 do
 	local isfunction = isfunction
-	PLAYER.AnimRestartNetworkedGesture = function(self, slot, activity, autokill, finished)
+	function PLAYER:AnimRestartNetworkedGesture( slot, activity, autokill, finished)
 		local sequenceID = self:SelectWeightedSequence(activity)
 		if sequenceID < 0 then
 			return

@@ -10,7 +10,7 @@ local TEAM_GUARD = TEAM_GUARD
 do
 	local IsRoundPreparing, GuardsFriendlyFire = Jailbreak.IsRoundPreparing, Jailbreak.GuardsFriendlyFire
 	local HasGodMode = PLAYER.HasGodMode
-	GM.CanPlayerTakeDamage = function(self, ply, damageInfo, teamID)
+	function GM:CanPlayerTakeDamage( ply, damageInfo, teamID)
 		if HasGodMode(ply) or not Alive(ply) then
 			return false
 		end
@@ -32,7 +32,7 @@ do
 end
 do
 	local SetPlaybackRate = ENTITY.SetPlaybackRate
-	GM.UpdateAnimation = function(self, ply, velocity, maxSeqGroundSpeed)
+	function GM:UpdateAnimation( ply, velocity, maxSeqGroundSpeed)
 		local speed = Length(velocity)
 		local rate = 1.0
 		if GetTable(ply).m_bWasNoclipping or GetNW2Bool(ply, "in-flight") then
@@ -76,7 +76,7 @@ GM.ShouldCollide = function(self, entity, ply)
 end
 do
 	local PlayerSlowWalkSpeed = Jailbreak.PlayerSlowWalkSpeed
-	GM.PlayerFootstep = function(self, ply, pos, foot, soundPath, volume, recipientFilter)
+	function GM:PlayerFootstep( ply, pos, foot, soundPath, volume, recipientFilter)
 		if IsFlagSet(ply, 4) or Length(ply:GetVelocity()) < PlayerSlowWalkSpeed:GetInt() then
 			return true
 		end
@@ -114,14 +114,14 @@ do
 	do
 		local isnumber = isnumber
 		local damageScale = 0
-		GM.ScaleHitGroupDamage = function(self, hitGroup, damageInfo)
+		function GM:ScaleHitGroupDamage( hitGroup, damageInfo)
 			damageScale = hitGroups[hitGroup]
 			if isnumber(damageScale) then
 				return damageInfo:ScaleDamage(damageScale)
 			end
 		end
 	end
-	GM.ScalePlayerDamage = function(self, ply, hitGroup, damageInfo)
+	function GM:ScalePlayerDamage( ply, hitGroup, damageInfo)
 		if hitGroup == HITGROUP_HEAD and jb_instant_kill_on_headshot:GetBool() then
 			damageInfo:SetDamage(ply:Health() + 1)
 		else
@@ -137,7 +137,7 @@ do
 	local GetDemoPlaybackTimeScale = engine.GetDemoPlaybackTimeScale
 	local GetTimeScale = game.GetTimeScale
 	local Clamp = math.Clamp
-	GM.EntityEmitSound = function(self, data)
+	function GM:EntityEmitSound( data)
 		local pitch = data.Pitch
 		local timeScale = GetTimeScale()
 		if timeScale ~= 1 then
@@ -207,7 +207,7 @@ do
 		local isSwimming, isNoclipping, isOnGround = false, false, false
 		local calcIdeal, seqOverride, playerSpeed = 0, 0, 0
 		local vehicles = list.GetForEdit("Vehicles")
-		GM.CalcMainActivity = function(self, ply, velocity)
+		function GM:CalcMainActivity( ply, velocity)
 			calcIdeal, seqOverride = ACT_MP_STAND_IDLE, -1
 			isOnGround = IsOnGround(ply)
 			local tbl = GetTable(ply)
@@ -312,7 +312,7 @@ do
 		}
 		local TranslateWeaponActivity = PLAYER.TranslateWeaponActivity
 		local nextAct = 0
-		GM.TranslateActivity = function(self, ply, act)
+		function GM:TranslateActivity( ply, act)
 			nextAct = TranslateWeaponActivity(ply, act)
 			if act == nextAct then
 				return idleActivityTranslate[act]

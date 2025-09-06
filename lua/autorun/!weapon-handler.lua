@@ -80,7 +80,7 @@ if SERVER then
 			return self:SetNotSolid(true)
 		end)
 	end
-	TemporaryWeapon.Equip = function(self, owner)
+	function TemporaryWeapon:Equip( owner)
 		local weapon = self:GetParent()
 		if weapon:IsValid() and weapon:IsWeapon() then
 			owner:PickupWeapon(weapon, false)

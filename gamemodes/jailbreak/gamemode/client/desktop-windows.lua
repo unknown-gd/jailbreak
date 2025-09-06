@@ -234,7 +234,7 @@ do
 		label:Dock(FILL)
 		return self.Icon:Dock(FILL)
 	end
-	PANEL.Setup = function(self, item)
+	function PANEL:Setup( item)
 		self:SetModelName(item.model)
 		self:SetSkinID(item.skin or 0)
 		self.Icon:SetModel(item.model, item.skin, item.bodygroups)
@@ -271,7 +271,7 @@ do
 			local _obj_0 = surface
 			SetDrawColor, DrawRect = _obj_0.SetDrawColor, _obj_0.DrawRect
 		end
-		PANEL.Paint = function(self, width, height)
+		function PANEL:Paint( width, height)
 			if self:IsHovered() and not dragndrop.IsDragging() then
 				if self:IsDown() and not self.Dragging then
 					SetDrawColor(255, 255, 255, 25)
@@ -282,7 +282,7 @@ do
 			end
 		end
 	end
-	PANEL.PaintOver = function(self, width, height)
+	function PANEL:PaintOver( width, height)
 		return self:DrawSelections()
 	end
 	vgui.Register("Jailbreak:ShopItem", PANEL, "SpawnIcon")
@@ -415,7 +415,7 @@ do
 			modelPreview.DragMouseRelease = function(self)
 				self.Pressed = false
 			end
-			modelPreview.LayoutEntity = function(self, entity)
+			function modelPreview:LayoutEntity( entity)
 				if self.bAnimated then
 					self:RunAnimation()
 				end
@@ -671,7 +671,7 @@ do
 					handsTransparency:SetDecimals(2)
 					handsTransparency:SetMax(1)
 					handsTransparency:SetValue(Jailbreak.HandsTransparency:GetFloat())
-					handsTransparency.OnValueChanged = function(self, value)
+					function handsTransparency:OnValueChanged( value)
 						return Jailbreak.HandsTransparency:SetFloat(value)
 					end
 				end
@@ -684,7 +684,7 @@ do
 					notifyLifetime:SetTall(50)
 					notifyLifetime:SetMax(60)
 					notifyLifetime:SetValue(Jailbreak.PickupNotifyLifetime:GetInt())
-					notifyLifetime.OnValueChanged = function(self, value)
+					function notifyLifetime:OnValueChanged( value)
 						return Jailbreak.PickupNotifyLifetime:SetInt(value)
 					end
 				end

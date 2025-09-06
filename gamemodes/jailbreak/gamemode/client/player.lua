@@ -46,7 +46,7 @@ do
 		Jailbreak.PlayerView = view
 	end
 	local boneID = 0
-	GM.CalcView = function(self, ply, origin, angles, fov, znear, zfar)
+	function GM:CalcView( ply, origin, angles, fov, znear, zfar)
 		view.origin = origin
 		view.angles = angles
 		view.fov = fov
@@ -217,7 +217,7 @@ do
 	local CreateMove = drive.CreateMove
 	local Clamp = math.Clamp
 	local frameTime = 0
-	GM.CreateMove = function(self, cmd)
+	function GM:CreateMove( cmd)
 		if CreateMove(cmd) then
 			return true
 		end
@@ -255,7 +255,7 @@ do
 	local DrawModel = ENTITY.DrawModel
 	local GetHands = PLAYER.GetHands
 	local CullMode = render.CullMode
-	GM.PostDrawViewModel = function(self, vm, ply, weapon)
+	function GM:PostDrawViewModel( vm, ply, weapon)
 		if weapon.UseHands or not weapon:IsScripted() then
 			local hands = GetHands(ply)
 			if hands and hands:IsValid() and hands:GetParent():IsValid() then

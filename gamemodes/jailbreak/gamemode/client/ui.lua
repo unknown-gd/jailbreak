@@ -54,7 +54,7 @@ do
 end
 do
 	local dark_white = Colors.dark_white
-	DButton.Paint = function(self, w, h)
+	function DButton:Paint( w, h)
 		if self:GetPaintBackground() then
 			SetDrawColor(dark_white.r, dark_white.g, dark_white.b, 240)
 			DrawRect(0, 0, w, h)
@@ -164,7 +164,7 @@ do
 		end
 		return scrollPanel:SetWide(width)
 	end
-	PANEL.AddItem = function(self, data)
+	function PANEL:AddItem( data)
 		local scrollPanel = self.ScrollPanel
 		if not scrollPanel:IsValid() then
 			return
@@ -225,7 +225,7 @@ do
 		SetCursorPos(self.CursorX, self.CursorY)
 		return InvalidateLayout(self, true)
 	end
-	PANEL.Close = function(self, bSkipAnim)
+	function PANEL:Close( bSkipAnim)
 		if self:GetHangOpen() then
 			self:SetHangOpen(false)
 			return
@@ -237,11 +237,11 @@ do
 		self:SetAlpha(255)
 		return self:SetVisible(false)
 	end
-	PANEL.StartKeyFocus = function(self, pPanel)
+	function PANEL:StartKeyFocus( pPanel)
 		self:SetKeyboardInputEnabled(true)
 		return self:SetHangOpen(true)
 	end
-	PANEL.EndKeyFocus = function(self, pPanel)
+	function PANEL:EndKeyFocus( pPanel)
 		return self:SetKeyboardInputEnabled(false)
 	end
 	do
@@ -253,7 +253,7 @@ do
 			return Run("GUIMouseReleased", code, ScreenToVector(GetCursorPos()))
 		end
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		if GetRoundState() ~= ROUND_RUNNING then
 			return
 		end
@@ -298,7 +298,7 @@ do
 		PANEL.GetImage = function(self)
 			return self.Image:GetImage()
 		end
-		PANEL.SetImage = function(self, materialPath)
+		function PANEL:SetImage( materialPath)
 			self.Image:SetImage(materialPath)
 			return InvalidateLayout(self)
 		end
@@ -308,7 +308,7 @@ do
 			end
 			return PlaySound("garrysmod/ui_hover.wav")
 		end
-		PANEL.OnMouseReleased = function(self, mousecode)
+		function PANEL:OnMouseReleased( mousecode)
 			self:MouseCapture(false)
 			if not self:IsEnabled() then
 				return
@@ -436,7 +436,7 @@ do
 		end
 		return PlaySound("garrysmod/ui_hover.wav")
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		local color = self.Color
 		if not color then
 			return
@@ -476,7 +476,7 @@ do
 			return panel:Remove()
 		end
 	end
-	PANEL.SetText = function(self, str)
+	function PANEL:SetText( str)
 		return PANEL_META.SetText(self, Translate(str))
 	end
 	PANEL.Think = function(self)
@@ -652,7 +652,7 @@ do
 			return self:Hide()
 		end
 	end
-	PANEL.PerformLayout = function(self, width, height)
+	function PANEL:PerformLayout( width, height)
 		local padding = VMin(1.5)
 		self:DockPadding(padding, padding, padding, padding)
 		local title = self.Title
@@ -689,7 +689,7 @@ do
 		self:SetVisible(true)
 		return self:MakePopup()
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 		return DrawRect(0, 0, width, height)
 	end
@@ -783,7 +783,7 @@ do
 			["blocked"] = Material("icon16/user_delete.png"),
 			["requesting"] = Material("icon16/user_add.png")
 		}
-		PANEL.AvatarPaintOver = function(self, width, height)
+		function PANEL:AvatarPaintOver( width, height)
 			local ply, material = self.m_ePlayer, nil
 			if ply and ply:IsValid() and not ply:IsLocalPlayer() then
 				if ply:IsWarden() then
@@ -810,7 +810,7 @@ do
 		end
 		avatar.PaintOver = self.AvatarPaintOver
 		local SetPlayer = avatar.SetPlayer
-		avatar.SetPlayer = function(self, ply, ...)
+		function avatar:SetPlayer( ply, ...)
 			SetPlayer(self, ply, ...)
 			self.m_ePlayer = ply
 		end
@@ -900,7 +900,7 @@ do
 		self:SetTall(height)
 		return CloseDermaMenus()
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		SetDrawColor(self.Color)
 		return DrawRect(0, 0, width, height)
 	end
@@ -941,7 +941,7 @@ do
 		self.RectX, self.RectWidth = scoreX, width - scoreX
 		self.TextPosX, self.TextPosY = scoreX + (width - scoreX - textWidth) / 2, (height - textHeight) / 2
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b)
 		SetFont("Jailbreak::Scoreboard - Header")
 		SetDrawColor(self.Color)
@@ -959,7 +959,7 @@ end
 do
 	local GetTeamPlayers = Jailbreak.GetTeamPlayers
 	local PANEL = {}
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		SetDrawColor(black.r, black.g, black.b, 100)
 		return DrawRect(0, 0, width, height)
 	end
@@ -976,7 +976,7 @@ do
 			end
 		end
 	end
-	PANEL.PerformLayout = function(self, width, height)
+	function PANEL:PerformLayout( width, height)
 		DScrollPanel.PerformLayout(self, width, height)
 		local parent = self:GetParent()
 		if IsValid(parent) then
@@ -1150,7 +1150,7 @@ do
 			return scrollPanel:Clear()
 		end
 	end
-	PANEL.Paint = function(self, width, height)
+	function PANEL:Paint( width, height)
 		SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 		return DrawRect(0, 0, width, height)
 	end
@@ -1233,7 +1233,7 @@ do
 			local margin = VMin(0.25)
 			return self:SetSize(margin + textWidth + margin, margin + textHeight + margin)
 		end
-		PANEL.SetText = function(self, str)
+		function PANEL:SetText( str)
 			PANEL_META.SetText(self, str)
 			self.LastTextChange = CurTime()
 			self:SetVisible(true)

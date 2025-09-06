@@ -291,7 +291,7 @@ end
 do
 	local EffectData = EffectData
 	local Effect = util.Effect
-	ENTITY.DoElectricSparks = function(self, origin, pitch, noSound)
+	function ENTITY:DoElectricSparks( origin, pitch, noSound)
 		if not origin then
 			local bone = self:LookupBone("ValveBiped.Bip01_Head1")
 			if bone and bone >= 0 then
@@ -353,7 +353,7 @@ do
 		local FrameTime = FrameTime
 		local Lerp = Lerp
 		local velocity, frameTime = Vector(), 0
-		GM.Move = function(self, ply, mv)
+		function GM:Move( ply, mv)
 			if Call("AllowPlayerMove", nil, ply) == false then
 				velocity, frameTime = GetVelocity(mv), FrameTime()
 				velocity[1] = Lerp(frameTime, velocity[1], 0)
@@ -472,7 +472,7 @@ PLAYER.IsFlightAllowed = function(self)
 end
 do
 	local length = 0
-	PLAYER.GetWeaponsInSlot = function(self, slot)
+	function PLAYER:GetWeaponsInSlot( slot)
 		local weapons = {}
 		length = 0
 		local _list_0 = self:GetWeapons()
@@ -498,7 +498,7 @@ PLAYER.HasWeaponsInSlot = function(self, slot)
 end
 do
 	local count = 0
-	PLAYER.GetCountWeaponsInSlot = function(self, slot)
+	function PLAYER:GetCountWeaponsInSlot( slot)
 		count = 0
 		local _list_0 = self:GetWeapons()
 		for _index_0 = 1, #_list_0 do
@@ -567,7 +567,7 @@ PLAYER.HasSecurityRadio = function(self)
 end
 do
 	local FindInSphere = ents.FindInSphere
-	PLAYER.GetNearPlayers = function(self, distance, isTeam, noSpeaker)
+	function PLAYER:GetNearPlayers( distance, isTeam, noSpeaker)
 		local teamID = false
 		if isTeam then
 			teamID = Team(self)
@@ -636,7 +636,7 @@ do
 		return count
 	end
 	Jailbreak.GetAmmoMax = getAmmoMax
-	PLAYER.GetPickupAmmoCount = function(self, ammoType)
+	function PLAYER:GetPickupAmmoCount( ammoType)
 		count = getAmmoMax(ammoType) - GetAmmoCount(self, ammoType)
 		if count < 0 then
 			return 0
@@ -665,7 +665,7 @@ do
 	PLAYER.InNoclip = function(self)
 		return GetMoveType(self) == MOVETYPE_NOCLIP
 	end
-	PLAYER.SetNoclip = function(self, desiredState, force)
+	function PLAYER:SetNoclip( desiredState, force)
 		if desiredState == self:InNoclip() then
 			return true
 		end
