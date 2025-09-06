@@ -1,18 +1,18 @@
 local addonName = "Unknown Ghost"
 local IsValid, GetPos, SetPos, GetAngles, SetAngles, FrameAdvance, GetSequence, SetSequence, SetPoseParameter, InvalidateBoneCache, DrawModel, LookupAttachment, GetAttachment, LookupBone, GetBonePosition, GetNoDraw, SetNoDraw, GetCycle, SetCycle
 do
-	local _obj_0 = FindMetaTable("Entity")
+	local _obj_0 = FindMetaTable( "Entity" )
 	IsValid, GetPos, SetPos, GetAngles, SetAngles, FrameAdvance, GetSequence, SetSequence, SetPoseParameter, InvalidateBoneCache, DrawModel, LookupAttachment, GetAttachment, LookupBone, GetBonePosition, GetNoDraw, SetNoDraw, GetCycle, SetCycle = _obj_0.IsValid, _obj_0.GetPos, _obj_0.SetPos, _obj_0.GetAngles, _obj_0.SetAngles, _obj_0.FrameAdvance, _obj_0.GetSequence, _obj_0.SetSequence, _obj_0.SetPoseParameter, _obj_0.InvalidateBoneCache, _obj_0.DrawModel, _obj_0.LookupAttachment, _obj_0.GetAttachment, _obj_0.LookupBone, _obj_0.GetBonePosition, _obj_0.GetNoDraw, _obj_0.SetNoDraw, _obj_0.GetCycle, _obj_0.SetCycle
 end
 local DistToSqr, Normalize, Dot, Angle
 do
-	local _obj_0 = FindMetaTable("Vector")
+	local _obj_0 = FindMetaTable( "Vector" )
 	DistToSqr, Normalize, Dot, Angle = _obj_0.DistToSqr, _obj_0.Normalize, _obj_0.Dot, _obj_0.Angle
 end
 local random, Clamp, NormalizeAngle, Remap = math.random, math.Clamp, math.NormalizeAngle, math.Remap
 local Forward
 do
-	local _obj_0 = FindMetaTable("Angle")
+	local _obj_0 = FindMetaTable( "Angle" )
 	Forward = _obj_0.Forward
 end
 local CreateClientside = ents.CreateClientside

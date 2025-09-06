@@ -62,7 +62,7 @@ do
 			FogEnd(2048)
 			FogMode(1)
 			FogMaxDensity(0.5)
-			FogColor(255, 255, 255)
+			FogColor( 255, 255, 255 )
 			return true
 		end
 		if GetGlobal2Bool("Jailbreak::Hell") then
@@ -70,7 +70,7 @@ do
 			FogEnd(1048)
 			FogMode(1)
 			FogMaxDensity(1)
-			FogColor(33, 33, 33)
+			FogColor( 33, 33, 33 )
 			return true
 		end
 	end)

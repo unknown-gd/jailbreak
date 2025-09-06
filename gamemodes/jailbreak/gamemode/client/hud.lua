@@ -501,7 +501,7 @@ do
 			SetTextPos(x + 3, y + 3)
 			SetTextColor(black.r, black.g, black.b, 120)
 			DrawText(text)
-			SetTextColor(255, 255, 255)
+			SetTextColor( 255, 255, 255 )
 			SetTextPos(x, y)
 			DrawText(text)
 			return SetAlphaMultiplier(1)
@@ -955,7 +955,7 @@ do
 		else
 			SetMaterial(lightning_delete)
 		end
-		SetDrawColor(255, 255, 255)
+		SetDrawColor( 255, 255, 255 )
 		DrawTexturedRectRotated(self.IconX, self.IconY, self.IconSize, self.IconSize, self.IconRotate)
 		SetDrawColor(light_grey.r, light_grey.g, light_grey.b, 25)
 		DrawRect(self.LineBackgroundX, self.LineBackgroundY, self.LineBackgroundWidth, self.LineBackgroundHeight)

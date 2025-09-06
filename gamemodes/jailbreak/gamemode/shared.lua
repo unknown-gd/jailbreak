@@ -1,15 +1,20 @@
 local GM = GM
+
 GM.Name = "Jailbreak"
 GM.Author = "Unknown Developer"
 GM.TeamBased = true
+
 local Jailbreak = Jailbreak or {}
 _G.Jailbreak = Jailbreak
+
 local TEAM_GUARD = 1
 local TEAM_PRISONER = 2
 local TEAM_SPECTATOR = 1002
+
 _G.TEAM_GUARD = TEAM_GUARD
 _G.TEAM_PRISONER = TEAM_PRISONER
 _G.TEAM_SPECTATOR = TEAM_SPECTATOR
+
 ROUND_WAITING_PLAYERS = 0
 ROUND_PREPARING = 1
 ROUND_RUNNING = 2
@@ -31,51 +36,66 @@ PICKUP_WEAPON = 1
 PICKUP_AMMO = 2
 PICKUP_HEALTH = 3
 PICKUP_ARMOR = 4
+
 do
-	CTAKE_DAMAGE_INFO = FindMetaTable("CTakeDamageInfo")
-	IMATERIAL = FindMetaTable("IMaterial")
-	CMOVEDATA = FindMetaTable("CMoveData")
-	CUSERCMD = FindMetaTable("CUserCmd")
-	PANEL_META = FindMetaTable("Panel")
-	ENTITY = FindMetaTable("Entity")
-	PLAYER = FindMetaTable("Player")
-	WEAPON = FindMetaTable("Weapon")
-	VECTOR = FindMetaTable("Vector")
-	ANGLE = FindMetaTable("Angle")
+
+	CTAKE_DAMAGE_INFO = FindMetaTable( "CTakeDamageInfo" )
+	IMATERIAL = FindMetaTable( "IMaterial" )
+	CMOVEDATA = FindMetaTable( "CMoveData" )
+	CUSERCMD = FindMetaTable( "CUserCmd" )
+	PANEL_META = FindMetaTable( "Panel" )
+	ENTITY = FindMetaTable( "Entity" )
+	PLAYER = FindMetaTable( "Player" )
+	WEAPON = FindMetaTable( "Weapon" )
+	VECTOR = FindMetaTable( "Vector" )
+	ANGLE = FindMetaTable( "Angle" )
+
 end
+
 local Colors
 do
+
 	local Color = Color
+
 	Colors = {
-		butterfly_bush = Color(112, 86, 154),
-		vivid_orange = Color(255, 200, 50),
-		spectators = Color(220, 220, 220),
-		dark_white = Color(200, 200, 200),
-		light_grey = Color(180, 180, 180),
-		turquoise = Color(64, 224, 208),
-		asparagus = Color(128, 154, 86),
-		prisoners = Color(255, 89, 50),
-		au_chico = Color(154, 98, 86),
-		dark_grey = Color(33, 33, 33),
-		horizon = Color(86, 142, 154),
-		guards = Color(50, 185, 255),
-		pink = Color(225, 50, 100),
-		blue = Color(0, 190, 255),
-		grey = Color(50, 50, 50),
-		red = Color(255, 50, 50),
-		black = Color(0, 0, 0),
+		butterfly_bush = Color( 112, 86, 154 ),
+		vivid_orange = Color( 255, 200, 50 ),
+		spectators = Color( 220, 220, 220 ),
+		dark_white = Color( 200, 200, 200 ),
+		light_grey = Color( 180, 180, 180 ),
+		turquoise = Color( 64, 224, 208 ),
+		asparagus = Color( 128, 154, 86 ),
+		prisoners = Color( 255, 89, 50 ),
+		au_chico = Color( 154, 98, 86 ),
+		dark_grey = Color( 33, 33, 33 ),
+		horizon = Color( 86, 142, 154 ),
+		guards = Color( 50, 185, 255 ),
+		pink = Color( 225, 50, 100 ),
+		blue = Color( 0, 190, 255 ),
+		grey = Color( 50, 50, 50 ),
+		red = Color( 255, 50, 50 ),
+		black = Color( 0, 0, 0 ),
 		white = color_white
 	}
+
 	Jailbreak.Colors = Colors
+
 end
-Jailbreak.DefaultPlayerColor = Vector(0.25, 0.35, 0.4)
+
+Jailbreak.DefaultPlayerColor = Vector( 0.25, 0.35, 0.4 )
+
 Jailbreak.Teams = {
-	[TEAM_PRISONER] = true,
-	[TEAM_GUARD] = true
+	[ TEAM_PRISONER ] = true,
+	[ TEAM_GUARD ] = true
 }
+
 do
-	local FCVAR_SHARED = bit.bor(FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD)
+
+	local FCVAR_SHARED = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD )
+
+	---@type fun( name: string, default: string, flags: number, help: string, min: number, max: number ): ConVar
 	local CreateConVar = CreateConVar
+
 	Jailbreak.PlayerSlowWalkSpeed = CreateConVar("jb_player_slow_walk_speed", "110", FCVAR_SHARED, "The speed of the player while slow walking.", 0, 3000)
 	Jailbreak.PlayerSpawnTime = CreateConVar("jb_player_spawn_time", "1.5", FCVAR_SHARED, "Time to spawn a player in seconds.", 0, 300)
 	Jailbreak.AllowCustomPlayerModels = CreateConVar("jb_allow_custom_player_models", "0", FCVAR_SHARED, "Allow custom player models.", 0, 1)
@@ -101,30 +121,32 @@ do
 	Jailbreak.BuyZones = CreateConVar("jb_buy_zones", "0", FCVAR_SHARED, "Makes the purchase of items possible only in the buy zone.", 0, 1)
 	Jailbreak.FoodEatingTime = CreateConVar("jb_food_eating_time", "2.5", FCVAR_SHARED, "Time to eat food in seconds.", 0, 300)
 end
-do
-	Jailbreak.Developer = cvars.Number("developer", 0) > 2
-	cvars.AddChangeCallback("developer", function(_, __, value)
-		Jailbreak.Developer = (tonumber(value) or 0) > 2
-	end, "Jailbreak::Developer")
-end
+
+Jailbreak.Developer = cvars.Number( "developer", 0 ) > 2
+
+cvars.AddChangeCallback( "developer", function( _, __, value )
+	Jailbreak.Developer = ( tonumber( value, 10 ) or 0 ) > 2
+end, "Jailbreak::Developer" )
+
 local GuardMaleModels = {
 	"models/player/gasmask.mdl",
 	"models/player/riot.mdl",
 	"models/player/swat.mdl",
 	"models/player/urban.mdl"
 }
+
 local GuardFemaleModels = {
 	"models/player/police_fem.mdl"
 }
+
 do
-	local SetUp, SetSpawnPoint
-	do
-		local _obj_0 = team
-		SetUp, SetSpawnPoint = _obj_0.SetUp, _obj_0.SetSpawnPoint
-	end
+
+	local team_SetUp, team_SetSpawnPoint = team.SetUp, team.SetSpawnPoint
+
 	function GM:CreateTeams()
-		SetUp(TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, Colors.prisoners, true)
-		SetSpawnPoint(TEAM_PRISONER, {
+		team_SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, Colors.prisoners, true )
+
+		team_SetSpawnPoint( TEAM_PRISONER, {
 			"info_player_zombiemaster",
 			"info_survivor_position",
 			"info_player_terrorist",
@@ -143,9 +165,11 @@ do
 			"dys_spawn_point",
 			"ins_spawnpoint",
 			"aoc_spawnpoint"
-		})
-		SetUp(TEAM_GUARD, "#jb.team." .. TEAM_GUARD, Colors.guards, true)
-		SetSpawnPoint(TEAM_GUARD, {
+		} )
+
+		team_SetUp( TEAM_GUARD, "#jb.team." .. TEAM_GUARD, Colors.guards, true )
+
+		team_SetSpawnPoint( TEAM_GUARD, {
 			"info_player_counterterrorist",
 			"info_player_zombiemaster",
 			"diprip_start_team_blue",
@@ -164,62 +188,83 @@ do
 			"dys_spawn_point",
 			"ins_spawnpoint",
 			"aoc_spawnpoint"
-		})
-		return SetUp(TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, Colors.spectators, true)
+		} )
+
+		team_SetUp(TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, Colors.spectators, true)
+
 	end
+
 end
+
 include("shared/utils.lua")
+
 do
+
 	local TranslateToPlayerModelName = player_manager.TranslateToPlayerModelName
 	local FixModelPath = Jailbreak.FixModelPath
 	local PrecacheModel = util.PrecacheModel
-	local femaleGuards = {}
-	for _index_0 = 1, #GuardFemaleModels do
-		local str = GuardFemaleModels[_index_0]
-		local modelPath = FixModelPath(str)
-		PrecacheModel(modelPath)
-		femaleGuards[#femaleGuards + 1] = modelPath
-		femaleGuards[TranslateToPlayerModelName(modelPath)] = modelPath
+
+	local female_guards = {}
+
+	for i = 1, #GuardFemaleModels, 1 do
+		local model_path = FixModelPath( GuardFemaleModels[ i ] )
+		PrecacheModel( model_path )
+
+		female_guards[ #female_guards + 1 ] = model_path
+		female_guards[ TranslateToPlayerModelName( model_path ) ] = model_path
 	end
-	local maleGuards = {}
-	for _index_0 = 1, #GuardMaleModels do
-		local str = GuardMaleModels[_index_0]
-		local modelPath = FixModelPath(str)
-		PrecacheModel(modelPath)
-		maleGuards[#maleGuards + 1] = modelPath
-		maleGuards[TranslateToPlayerModelName(modelPath)] = modelPath
+
+	local male_guards = {}
+
+	for i = 1, #GuardMaleModels, 1 do
+		local model_path = FixModelPath( GuardMaleModels[ i ] )
+		PrecacheModel( model_path )
+
+		male_guards[ #male_guards + 1 ] = model_path
+		male_guards[ TranslateToPlayerModelName( model_path ) ] = model_path
 	end
-	local femalePrisoners = {}
-	for i = 1, 6 do
-		local modelPath = FixModelPath("models/player/group01/female_0" .. i .. ".mdl")
-		PrecacheModel(modelPath)
-		femalePrisoners[#femalePrisoners + 1] = modelPath
-		femalePrisoners[TranslateToPlayerModelName(modelPath)] = modelPath
+
+	local female_prisoners = {}
+
+	for i = 1, 6, 1 do
+		local model_path = FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
+		PrecacheModel( model_path )
+
+		female_prisoners[ #female_prisoners + 1 ] = model_path
+		female_prisoners[ TranslateToPlayerModelName( model_path ) ] = model_path
 	end
-	local malePrisoners = {}
-	for i = 1, 9 do
-		local modelPath = FixModelPath("models/player/group01/male_0" .. i .. ".mdl")
-		PrecacheModel(modelPath)
-		malePrisoners[#malePrisoners + 1] = modelPath
-		malePrisoners[TranslateToPlayerModelName(modelPath)] = modelPath
+
+	local male_prisoners = {}
+
+	for i = 1, 9, 1 do
+		local model_path = FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
+		PrecacheModel( model_path )
+
+		male_prisoners[ #male_prisoners + 1 ] = model_path
+		male_prisoners[ TranslateToPlayerModelName( model_path ) ] = model_path
 	end
+
 	for i = 2, 8, 2 do
-		local modelPath = FixModelPath("models/player/group02/male_0" .. i .. ".mdl")
-		PrecacheModel(modelPath)
-		malePrisoners[#malePrisoners + 1] = modelPath
-		malePrisoners[TranslateToPlayerModelName(modelPath)] = modelPath
+		local model_path = FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
+		PrecacheModel( model_path )
+
+		male_prisoners[ #male_prisoners + 1 ] = model_path
+		male_prisoners[ TranslateToPlayerModelName( model_path ) ] = model_path
 	end
+
 	Jailbreak.PlayerModels = {
-		[TEAM_GUARD] = {
-			[true] = femaleGuards,
-			[false] = maleGuards
+		[ TEAM_GUARD ] = {
+			[ true ] = female_guards,
+			[ false ] = male_guards
 		},
-		[TEAM_PRISONER] = {
-			[true] = femalePrisoners,
-			[false] = malePrisoners
+		[ TEAM_PRISONER ] = {
+			[ true ] = female_prisoners,
+			[ false ] = male_prisoners
 		}
 	}
+
 end
+
 Jailbreak.Credits = {
 	Colors.guards,
 	"\nJail",
@@ -269,7 +314,8 @@ Jailbreak.Credits = {
 	"Yeah, well\n",
 	"Erick_Maksimets\n"
 }
+
 include("shared/game.lua")
 include("shared/weapons.lua")
 include("shared/extra.lua")
-return include("shared/properties.lua")
+include("shared/properties.lua")

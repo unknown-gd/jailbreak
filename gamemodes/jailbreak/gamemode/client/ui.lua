@@ -794,7 +794,7 @@ do
 					material = statuses[GetFriendStatus(ply)]
 				end
 			end
-			SetDrawColor(255, 255, 255)
+			SetDrawColor( 255, 255, 255 )
 			SetMaterial(material or default)
 			return DrawTexturedRect(-8, height - 8, 16, 16)
 		end
