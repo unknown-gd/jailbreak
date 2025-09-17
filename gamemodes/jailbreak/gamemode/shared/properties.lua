@@ -19,7 +19,7 @@ if CLIENT then
 	local trace = {
 		output = traceResult
 	}
-	hook.Add("Think", "Jailbreak::Properties", function(self)
+	hook.Add("Think", "Jailbreak::Properties", function( self )
 		local panel = GetHoveredPanel()
 		if not (panel and panel:IsValid() and panel:IsWorldClicker()) then
 			entity = NULL
@@ -28,7 +28,7 @@ if CLIENT then
 		trace.start = EyePos()
 		trace.endpos = trace.start + ScreenToVector(GetCursorPos()) * 1024
 		trace.filter = Jailbreak.ViewEntity
-		TraceLine(trace)
+		TraceLine( trace )
 		entity = traceResult.Hit and traceResult.Entity or NULL
 		if entity:IsValid() and (entity:GetNoDraw() or not CanBeTargeted(entity, Jailbreak.Player)) then
 			entity = NULL
@@ -60,32 +60,32 @@ if CLIENT then
 			if not (contextMenu and contextMenu:IsValid() and contextMenu:IsVisible()) then
 				return
 			end
-			SetStencilEnable(true)
-			SuppressEngineLighting(true)
-			SetStencilWriteMask(1)
-			SetStencilTestMask(1)
-			SetStencilReferenceValue(1)
-			SetStencilCompareFunction(STENCIL_ALWAYS)
-			SetStencilPassOperation(STENCIL_REPLACE)
-			SetStencilFailOperation(STENCIL_KEEP)
-			SetStencilZFailOperation(STENCIL_KEEP)
-			DrawModel(entity)
-			SetStencilCompareFunction(STENCIL_EQUAL)
-			SetStencilPassOperation(STENCIL_KEEP)
+			SetStencilEnable( true )
+			SuppressEngineLighting( true )
+			SetStencilWriteMask( 1 )
+			SetStencilTestMask( 1 )
+			SetStencilReferenceValue( 1 )
+			SetStencilCompareFunction( STENCIL_ALWAYS )
+			SetStencilPassOperation( STENCIL_REPLACE )
+			SetStencilFailOperation( STENCIL_KEEP )
+			SetStencilZFailOperation( STENCIL_KEEP )
+			DrawModel( entity )
+			SetStencilCompareFunction( STENCIL_EQUAL )
+			SetStencilPassOperation( STENCIL_KEEP )
 			Start2D()
 			SetDrawColor(255, 255, 255, 5)
 			DrawRect(0, 0, Jailbreak.ScreenWidth, Jailbreak.ScreenHeight)
 			End2D()
-			SuppressEngineLighting(false)
-			SetStencilEnable(false)
-			SetStencilTestMask(0)
-			SetStencilWriteMask(0)
-			return SetStencilReferenceValue(0)
+			SuppressEngineLighting( false )
+			SetStencilEnable( false )
+			SetStencilTestMask( 0 )
+			SetStencilWriteMask( 0 )
+			return SetStencilReferenceValue( 0 )
 		end)
 	end
 end
 function GM:CanProperty( ply, propertyName, entity)
-	if not IsValid(entity) then
+	if not IsValid( entity ) then
 		return
 	end
 	if propertyName == "bonemanipulate" then

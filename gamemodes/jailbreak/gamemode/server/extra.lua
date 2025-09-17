@@ -11,9 +11,9 @@ local Alive, IsBot = PLAYER.Alive, PLAYER.IsBot
 local IsValidModel = util.IsValidModel
 local Simple = timer.Simple
 local Add = hook.Add
-Add("PlayerPostThink", "Jailbreak::SecurityRadio", function(self)
-	if Alive(self) and not IsBot(self) then
-		local state = self:HasSecurityRadio() and self:GetInfo("jb_security_radio") == "1"
+Add("PlayerPostThink", "Jailbreak::SecurityRadio", function( self )
+	if Alive( self ) and not IsBot( self ) then
+		local state = self:HasSecurityRadio() and self:GetInfo( "jb_security_radio" ) == "1"
 		if state == GetNW2Var(self, "using-security-radio") then
 			return
 		end
@@ -38,66 +38,66 @@ if EntityReplacer ~= nil then
 	end
 	local isstring = isstring
 	local istable = istable
-	ReplaceFilterByModel = function(modelName)
-		if isstring(modelName) then
-			modelName = lower(modelName)
-		elseif istable(modelName) then
+	ReplaceFilterByModel = function( modelName )
+		if isstring( modelName ) then
+			modelName = lower( modelName )
+		elseif istable( modelName ) then
 			local tbl = {}
 			for _index_0 = 1, #modelName do
 				local str = modelName[_index_0]
-				tbl[lower(str)] = true
+				tbl[lower( str )] = true
 			end
 			modelName = tbl
 		else
-			return function(self)
+			return function( self )
 				return true
 			end
 		end
-		return function(self)
+		return function( self )
 			local modelPath = self:GetModel()
 			if not modelPath then
 				return false
 			end
-			modelPath = FixModelPath(modelPath)
-			if not IsValidModel(modelPath) then
+			modelPath = FixModelPath( modelPath )
+			if not IsValidModel( modelPath ) then
 				return false
 			end
-			if istable(modelName) then
+			if istable( modelName ) then
 				return modelName[modelPath]
 			end
 			return find(modelPath, modelName, 1, false) ~= nil
 		end
 	end
-	Add("WorkshopItemFound", "Jailbreak::sent_soccerball - Replace", function(wsid)
+	Add("WorkshopItemFound", "Jailbreak::sent_soccerball - Replace", function( wsid )
 		if wsid ~= "293904092" then
 			return
 		end
-		EntityReplacer("^prop_physics.*", "sent_soccerball", ReplaceFilterByModel("models/props_phx/misc/soccerball%.mdl"))
+		EntityReplacer("^prop_physics.*", "sent_soccerball", ReplaceFilterByModel( "models/props_phx/misc/soccerball%.mdl" ))
 		return
 	end)
 end
-Add("WorkshopItemFound", "Jailbreak::sent_soccerball - Shop", function(wsid)
+Add("WorkshopItemFound", "Jailbreak::sent_soccerball - Shop", function( wsid )
 	if wsid ~= "293904092" then
 		return
 	end
-	return Add("ShopItems", "Jailbreak::sent_soccerball", function(add)
-		add("sent_soccerball", "models/props_phx/misc/soccerball.mdl", 10, function(self)
-			return IsValid(self:SpawnEntity("sent_soccerball"))
+	return Add("ShopItems", "Jailbreak::sent_soccerball", function( add )
+		add("sent_soccerball", "models/props_phx/misc/soccerball.mdl", 10, function( self )
+			return IsValid(self:SpawnEntity( "sent_soccerball" ))
 		end)
 		return
 	end)
 end)
-Add("WorkshopItemFound", "Jailbreak::sent_grapplehook_bpack - Shop", function(wsid)
+Add("WorkshopItemFound", "Jailbreak::sent_grapplehook_bpack - Shop", function( wsid )
 	if wsid ~= "931448005" then
 		return
 	end
-	return Add("ShopItems", "Jailbreak::sent_grapplehook_bpack", function(add)
-		add("sent_grapplehook_bpack", "models/props_phx/wheels/magnetic_small.mdl", 25, function(self)
-			local entity = self:SpawnEntity("sent_grapplehook_bpack", function(self)
-				return self:SetSlotName("movement")
+	return Add("ShopItems", "Jailbreak::sent_grapplehook_bpack", function( add )
+		add("sent_grapplehook_bpack", "models/props_phx/wheels/magnetic_small.mdl", 25, function( self )
+			local entity = self:SpawnEntity("sent_grapplehook_bpack", function( self )
+				return self:SetSlotName( "movement" )
 			end)
-			if IsValid(entity) then
-				entity:SetKey(KEY_B)
+			if IsValid( entity ) then
+				entity:SetKey( KEY_B )
 				return true
 			end
 			return false
@@ -105,31 +105,31 @@ Add("WorkshopItemFound", "Jailbreak::sent_grapplehook_bpack - Shop", function(ws
 		return
 	end)
 end)
-Add("WorkshopItemFound", "Jailbreak::sent_jetpack - Shop", function(wsid)
+Add("WorkshopItemFound", "Jailbreak::sent_jetpack - Shop", function( wsid )
 	if wsid ~= "931376012" then
 		return
 	end
-	return Add("ShopItems", "Jailbreak::sent_jetpack", function(add)
-		add("sent_jetpack", "models/thrusters/jetpack.mdl", 30, function(self)
-			return IsValid(self:SpawnEntity("sent_jetpack", function(self)
-				return self:SetSlotName("movement")
+	return Add("ShopItems", "Jailbreak::sent_jetpack", function( add )
+		add("sent_jetpack", "models/thrusters/jetpack.mdl", 30, function( self )
+			return IsValid(self:SpawnEntity("sent_jetpack", function( self )
+				return self:SetSlotName( "movement" )
 			end))
 		end)
 		return
 	end)
 end)
-Add("WorkshopItemFound", "Jailbreak::mediaplayer_tv - Shop", function(wsid)
+Add("WorkshopItemFound", "Jailbreak::mediaplayer_tv - Shop", function( wsid )
 	if wsid ~= "546392647" then
 		return
 	end
-	return Add("ShopItems", "Jailbreak::mediaplayer_tv", function(add)
-		add("mediaplayer_tv", "models/gmod_tower/suitetv_large.mdl", 45, function(self)
-			local entity = self:SpawnEntity("mediaplayer_tv")
-			if IsValid(entity) then
+	return Add("ShopItems", "Jailbreak::mediaplayer_tv", function( add )
+		add("mediaplayer_tv", "models/gmod_tower/suitetv_large.mdl", 45, function( self )
+			local entity = self:SpawnEntity( "mediaplayer_tv" )
+			if IsValid( entity ) then
 				local phys = entity:GetPhysicsObject()
 				if phys and phys:IsValid() then
-					phys:EnableMotion(true)
-					phys:SetMass(35)
+					phys:EnableMotion( true )
+					phys:SetMass( 35 )
 					phys:Wake()
 				end
 				return true
@@ -180,11 +180,11 @@ do
 	end
 	Add("PostGamemodeLoaded", "Jailbreak::LoadFoodModels", function()
 		for index = 1, #foodModels do
-			foodModels[index] = FixModelPath(foodModels[index])
+			foodModels[index] = FixModelPath( foodModels[index] )
 		end
 	end)
 	local cache = {}
-	Jailbreak.IsFoodModel = function(modelName)
+	Jailbreak.IsFoodModel = function( modelName )
 		if not modelName then
 			return false
 		end
@@ -192,8 +192,8 @@ do
 		if cached ~= nil then
 			return cached
 		end
-		local fixedModelPath = FixModelPath(modelName)
-		if not IsValidModel(fixedModelPath) then
+		local fixedModelPath = FixModelPath( modelName )
+		if not IsValidModel( fixedModelPath ) then
 			cache[modelName] = false
 			return false
 		end
@@ -207,15 +207,15 @@ do
 	end
 end
 do
-	local foodEatingSound = Sound("player/eating.wav")
+	local foodEatingSound = Sound( "player/eating.wav" )
 	local IsFoodModel, FoodEatingTime = Jailbreak.IsFoodModel, Jailbreak.FoodEatingTime
 	local CHAN_STATIC = CHAN_STATIC
-	Add("OnEntityCreated", "Jailbreak::FoodEntities", function(self)
+	Add("OnEntityCreated", "Jailbreak::FoodEntities", function( self )
 		if not self:IsProp() then
 			return
 		end
 		return Simple(0, function()
-			if IsValid(self) and IsFoodModel(self:GetModel()) then
+			if IsValid( self ) and IsFoodModel(self:GetModel()) then
 				return SetNW2Var(self, "is-food", true)
 			end
 		end)
@@ -226,13 +226,13 @@ do
 			return
 		end
 		local modelPath = entity:GetModel()
-		if not IsFoodModel(modelPath) then
+		if not IsFoodModel( modelPath ) then
 			return
 		end
 		local healing = cache[modelPath]
 		if not healing then
 			local mins, maxs = entity:GetCollisionBounds()
-			healing = Clamp(mins:Distance(maxs) / 64, 0, 1)
+			healing = Clamp(mins:Distance( maxs ) / 64, 0, 1)
 			cache[modelPath] = healing
 		end
 		local maxHealth = self:GetMaxHealth()
@@ -243,7 +243,7 @@ do
 	end)
 end
 do
-	local lootSound = Sound("npc/footsteps/softshoe_generic6.wav")
+	local lootSound = Sound( "npc/footsteps/softshoe_generic6.wav" )
 	local RagdollLootingTime = Jailbreak.RagdollLootingTime
 	Add("PlayerHoldUse", "Jailbreak::RagdollLooting", function(self, entity, useTime)
 		if useTime < RagdollLootingTime:GetFloat() then
@@ -253,7 +253,7 @@ do
 			return
 		end
 		entity:EmitSound(lootSound, 60, random(80, 120), Rand(0.7, 1), CHAN_STATIC, 0, 1)
-		self:LootRagdoll(entity)
+		self:LootRagdoll( entity )
 		return true
 	end)
 end
@@ -298,47 +298,47 @@ do
 		local reportedOrigin = damageInfo:GetReportedPosition()
 		local origin = damageInfo:GetDamagePosition()
 		SetNW2Var(self, "death-animation", 2)
-		self:SetNotSolid(true)
-		self:SetHealth(0)
+		self:SetNotSolid( true )
+		self:SetHealth( 0 )
 		self:DropToFloor()
-		self:AnimRestartNetworkedGesture(GESTURE_SLOT_CUSTOM, ACT_GMOD_DEATH, true, function(self)
+		self:AnimRestartNetworkedGesture(GESTURE_SLOT_CUSTOM, ACT_GMOD_DEATH, true, function( self )
 			if GetNW2Var(self, "death-animation") ~= 2 then
 				return
 			end
 			SetNW2Var(self, "death-animation", 1)
-			self:SetNotSolid(false)
-			if Alive(self) then
+			self:SetNotSolid( false )
+			if Alive( self ) then
 				damageInfo = DamageInfo()
-				damageInfo:SetDamage(damage)
-				if IsValid(inflictor) then
-					damageInfo:SetInflictor(inflictor)
+				damageInfo:SetDamage( damage )
+				if IsValid( inflictor ) then
+					damageInfo:SetInflictor( inflictor )
 				end
-				if IsValid(attacker) then
-					damageInfo:SetAttacker(attacker)
+				if IsValid( attacker ) then
+					damageInfo:SetAttacker( attacker )
 				end
-				damageInfo:SetDamageType(damageType)
+				damageInfo:SetDamageType( damageType )
 				if ammoType > 0 then
-					damageInfo:SetAmmoType(ammoType)
+					damageInfo:SetAmmoType( ammoType )
 				end
-				damageInfo:SetReportedPosition(reportedOrigin)
-				damageInfo:SetDamagePosition(origin)
-				self:TakeDamageInfo(damageInfo)
+				damageInfo:SetReportedPosition( reportedOrigin )
+				damageInfo:SetDamagePosition( origin )
+				self:TakeDamageInfo( damageInfo )
 			end
 			return SetNW2Var(self, "death-animation", 0)
 		end, Rand(0.1, 0.25))
 		return true
 	end)
-	Add("PlayerSpawn", "Jailbreak::Death Animations", function(self)
+	Add("PlayerSpawn", "Jailbreak::Death Animations", function( self )
 		return SetNW2Var(self, "death-animation", 0)
 	end)
 end
 do
 	local IsRoundRunning, PlaySound, GetTeamPlayersCount, GuardsDeathSound = Jailbreak.IsRoundRunning, Jailbreak.PlaySound, Jailbreak.GetTeamPlayersCount, Jailbreak.GuardsDeathSound
-	Add("PlayerDeath", "Jailbreak::First Blood", function(self)
+	Add("PlayerDeath", "Jailbreak::First Blood", function( self )
 		if not (GuardsDeathSound:GetBool() and IsRoundRunning() and self:IsGuard() and GetTeamPlayersCount(true, TEAM_GUARD)[1] ~= 0) then
 			return
 		end
-		return PlaySound("ambient/alarms/klaxon1.wav")
+		return PlaySound( "ambient/alarms/klaxon1.wav" )
 	end)
 end
 do
@@ -346,27 +346,27 @@ do
 	local OBS_MODE_CHASE = OBS_MODE_CHASE
 	local TF2Freezecam = Jailbreak.TF2Freezecam
 	Add("PlayerDeath", "Jailbreak::TF2 Freezecam", function(self, _, attacker)
-		if not (TF2Freezecam:GetBool() and attacker and IsValid(attacker)) then
+		if not (TF2Freezecam:GetBool() and attacker and IsValid( attacker )) then
 			return
 		end
 		return Simple(0, function()
-			if not IsValid(attacker) or not IsValid(self) or Alive(self) then
+			if not IsValid( attacker ) or not IsValid( self ) or Alive( self ) then
 				return
 			end
 			if attacker:IsPlayer() then
-				if not Alive(attacker) or attacker == self then
+				if not Alive( attacker ) or attacker == self then
 					return
 				end
 			elseif not attacker:IsSolid() or attacker:GetNoDraw() then
 				return
 			end
-			self:Spectate(OBS_MODE_FREEZECAM)
-			self:SpectateEntity(attacker)
+			self:Spectate( OBS_MODE_FREEZECAM )
+			self:SpectateEntity( attacker )
 			return Simple(1.5, function()
-				if not IsValid(self) or Alive(self) or self:GetObserverMode() ~= OBS_MODE_FREEZECAM then
+				if not IsValid( self ) or Alive( self ) or self:GetObserverMode() ~= OBS_MODE_FREEZECAM then
 					return
 				end
-				return self:Spectate(OBS_MODE_CHASE)
+				return self:Spectate( OBS_MODE_CHASE )
 			end)
 		end)
 	end)
@@ -376,21 +376,21 @@ do
 	local FindByClass = ents.FindByClass
 	local state = 0
 	timer.Create("Jailbreak::DoorState", 0.25, 0, function()
-		local _list_0 = FindByClass("prop_door_rotating")
+		local _list_0 = FindByClass( "prop_door_rotating" )
 		for _index_0 = 1, #_list_0 do
 			local entity = _list_0[_index_0]
-			state = GetDoorState(entity)
+			state = GetDoorState( entity )
 			if GetNW2Var(entity, "m_eDoorState") ~= state then
 				SetNW2Var(entity, "m_eDoorState", state)
 				if state ~= 0 and entity:IsDoorLocked() then
-					entity:Fire("unlock")
+					entity:Fire( "unlock" )
 				end
 			end
 		end
 	end)
 end
-Add("PlayerInitialSpawn", "Jailbreak::Developer", function(self)
-	if IsBot(self) then
+Add("PlayerInitialSpawn", "Jailbreak::Developer", function( self )
+	if IsBot( self ) then
 		return
 	end
 	if self:SteamID64() == "76561198100459279" then
@@ -399,14 +399,14 @@ Add("PlayerInitialSpawn", "Jailbreak::Developer", function(self)
 end)
 Add("OnPlayerPhysicsPickup", "Jailbreak::RealisticItemMass", function(self, entity)
 	if entity.RagdollMover then
-		Add("Think", entity, function(self)
+		Add("Think", entity, function( self )
 			if not self:IsPlayerHolding() then
 				self:Remove()
 				return
 			end
 		end)
 		entity = entity.Ragdoll
-		if not IsValid(entity) then
+		if not IsValid( entity ) then
 			return
 		end
 	end
@@ -427,7 +427,7 @@ Add("OnPlayerPhysicsDrop", "Jailbreak::RealisticItemMass", function(self, entity
 	if entity.RagdollMover then
 		local ragdoll = entity.Ragdoll
 		entity:Remove()
-		if not IsValid(ragdoll) then
+		if not IsValid( ragdoll ) then
 			return
 		end
 		entity = ragdoll
@@ -459,12 +459,12 @@ do
 		weapon_frag = true,
 		weapon_c4 = true
 	}
-	Add("OnEntityCreated", "Jailbreak::HL2AmmoFix", function(self)
+	Add("OnEntityCreated", "Jailbreak::HL2AmmoFix", function( self )
 		if not clips[self:GetClass()] then
 			return
 		end
 		return Simple(0, function()
-			if IsValid(self) and self:Clip1() ~= -1 then
+			if IsValid( self ) and self:Clip1() ~= -1 then
 				return self:SetClip1(self:GetMaxClip1())
 			end
 		end)
@@ -476,7 +476,7 @@ do
 		end
 		if grenades[className] then
 			Simple(0, function()
-				if IsValid(self) and IsValid(ply) and ply == self:GetOwner() then
+				if IsValid( self ) and IsValid( ply ) and ply == self:GetOwner() then
 					return ply:SetAmmo(1, max(self:GetPrimaryAmmoType(), self:GetSecondaryAmmoType()))
 				end
 			end)
@@ -486,16 +486,16 @@ do
 			return
 		end
 		local clip1 = self:Clip1()
-		self:SetClip1(0)
+		self:SetClip1( 0 )
 		return Simple(0, function()
-			if IsValid(self) then
+			if IsValid( self ) then
 				return self:SetClip1(min(clip1, self:GetMaxClip1()))
 			end
 		end)
 	end)
 	Add("PlayerCanPickupWeapon", "Jailbreak::HL2AmmoFix", function(self, weapon)
 		local className = weapon:GetClass()
-		if clips[className] == nil or not self:HasWeapon(className) then
+		if clips[className] == nil or not self:HasWeapon( className ) then
 			return
 		end
 		if className == "weapon_frag" or className == "weapon_rpg" then
@@ -512,9 +512,9 @@ do
 		if grenades[className] then
 			ammoMax = clips[className]
 		else
-			ammoMax = GetAmmoMax(ammoType)
+			ammoMax = GetAmmoMax( ammoType )
 		end
-		local ammoCount = self:GetAmmoCount(ammoType)
+		local ammoCount = self:GetAmmoCount( ammoType )
 		if ammoCount >= ammoMax then
 			return false
 		end
@@ -523,21 +523,21 @@ do
 			ammoCount = min(clip1, ammoMax - ammoCount)
 			self:GiveAmmo(ammoCount, ammoType, false)
 			clip1 = clip1 - ammoCount
-			weapon:SetClip1(clip1)
+			weapon:SetClip1( clip1 )
 			return false
 		end
 	end)
 	do
 		local ammos = {
-			item_ammo_pistol = GetAmmoID("Pistol"),
-			item_ammo_smg1 = GetAmmoID("SMG1"),
-			item_box_buckshot = GetAmmoID("Buckshot"),
-			item_ammo_smg1_grenade = GetAmmoID("SMG1_Grenade"),
-			item_rpg_round = GetAmmoID("RPG_Round"),
-			item_ammo_crossbow = GetAmmoID("XBowBolt"),
-			item_ammo_ar2_altfire = GetAmmoID("AR2AltFire"),
-			item_ammo_357 = GetAmmoID("357"),
-			item_ammo_ar2 = GetAmmoID("AR2")
+			item_ammo_pistol = GetAmmoID( "Pistol" ),
+			item_ammo_smg1 = GetAmmoID( "SMG1" ),
+			item_box_buckshot = GetAmmoID( "Buckshot" ),
+			item_ammo_smg1_grenade = GetAmmoID( "SMG1_Grenade" ),
+			item_rpg_round = GetAmmoID( "RPG_Round" ),
+			item_ammo_crossbow = GetAmmoID( "XBowBolt" ),
+			item_ammo_ar2_altfire = GetAmmoID( "AR2AltFire" ),
+			item_ammo_357 = GetAmmoID( "357" ),
+			item_ammo_ar2 = GetAmmoID( "AR2" )
 		}
 		ammos.item_ammo_pistol_large = ammos.item_ammo_pistol
 		ammos.item_ammo_smg1_large = ammos.item_ammo_smg1
@@ -548,13 +548,13 @@ do
 			if not ammoType or ammoType == -1 then
 				return
 			end
-			if self:GetAmmoCount(ammoType) >= GetAmmoMax(ammoType) then
+			if self:GetAmmoCount( ammoType ) >= GetAmmoMax( ammoType ) then
 				return false
 			end
 		end)
 	end
 	do
-		local grenadeAmmo = GetAmmoID("Grenade")
+		local grenadeAmmo = GetAmmoID( "Grenade" )
 		Add("PlayerAmmoChanged", "Jailbreak::HL2AmmoFix", function(self, ammoID, old, new)
 			if ammoID == grenadeAmmo and new > 1 then
 				return self:SetAmmo(1, ammoID)
@@ -562,81 +562,81 @@ do
 		end)
 	end
 end
-Add("ShopItems", "Jailbreak::BaseItems", function(add)
-	add("weapon_medkit", "models/Items/HealthKit.mdl", 15, function(self)
-		if self:HasWeapon("weapon_medkit") then
+Add("ShopItems", "Jailbreak::BaseItems", function( add )
+	add("weapon_medkit", "models/Items/HealthKit.mdl", 15, function( self )
+		if self:HasWeapon( "weapon_medkit" ) then
 			return false
 		end
 		return IsValid(self:Give("weapon_medkit", false, true))
 	end)
-	add("paint-can", "models/props_junk/metal_paintcan001a.mdl", 5, function(self)
-		return IsValid(self:SpawnEntity("prop_physics", function(self)
-			self:SetModel("models/props_junk/metal_paintcan001a.mdl")
-			return self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	add("paint-can", "models/props_junk/metal_paintcan001a.mdl", 5, function( self )
+		return IsValid(self:SpawnEntity("prop_physics", function( self )
+			self:SetModel( "models/props_junk/metal_paintcan001a.mdl" )
+			return self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 		end))
 	end)
-	add("jb_radio", "models/props_lab/citizenradio.mdl", 25, function(self)
-		return IsValid(self:SpawnEntity("jb_radio"))
+	add("jb_radio", "models/props_lab/citizenradio.mdl", 25, function( self )
+		return IsValid(self:SpawnEntity( "jb_radio" ))
 	end)
-	add("weapon_physcannon", "models/weapons/w_Physics.mdl", 15, function(self)
-		if self:HasWeapon("weapon_physcannon") then
+	add("weapon_physcannon", "models/weapons/w_Physics.mdl", 15, function( self )
+		if self:HasWeapon( "weapon_physcannon" ) then
 			return false
 		end
 		return IsValid(self:Give("weapon_physcannon", false, true))
 	end)
-	add("weapon_stunstick", "models/weapons/w_stunbaton.mdl", 15, function(self)
-		if self:HasWeapon("weapon_stunstick") then
+	add("weapon_stunstick", "models/weapons/w_stunbaton.mdl", 15, function( self )
+		if self:HasWeapon( "weapon_stunstick" ) then
 			return false
 		end
 		return IsValid(self:Give("weapon_stunstick", false, true))
 	end)
-	add("gas-can", "models/props_junk/gascan001a.mdl", 10, function(self)
-		return IsValid(self:SpawnEntity("prop_physics", function(self)
-			self:SetModel("models/props_junk/gascan001a.mdl")
-			return self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	add("gas-can", "models/props_junk/gascan001a.mdl", 10, function( self )
+		return IsValid(self:SpawnEntity("prop_physics", function( self )
+			self:SetModel( "models/props_junk/gascan001a.mdl" )
+			return self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 		end))
 	end)
-	add("weapon_physcannon.upgrade", "models/weapons/w_Physics.mdl", 40, function(self)
-		if game.GetGlobalState("super_phys_gun") ~= GLOBAL_ON then
+	add("weapon_physcannon.upgrade", "models/weapons/w_Physics.mdl", 40, function( self )
+		if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_ON then
 			game.SetGlobalState("super_phys_gun", GLOBAL_ON)
 			Jailbreak.SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.weapon_physcannon.upgraded")
 			return true
 		end
 		return false
-	end):SetSkin(1)
-	add("jb_russian_roulette", "models/weapons/w_357.mdl", 10, function(self)
-		if self:HasWeapon("jb_russian_roulette") then
+	end):SetSkin( 1 )
+	add("jb_russian_roulette", "models/weapons/w_357.mdl", 10, function( self )
+		if self:HasWeapon( "jb_russian_roulette" ) then
 			return false
 		end
 		return IsValid(self:Give("jb_russian_roulette", false, true))
 	end)
-	add("defibrillator", "models/weapons/w_slam.mdl", 60, function(self)
-		if self:HasWeapon("jb_defibrillator") then
+	add("defibrillator", "models/weapons/w_slam.mdl", 60, function( self )
+		if self:HasWeapon( "jb_defibrillator" ) then
 			return false
 		end
 		return IsValid(self:Give("jb_defibrillator", false, true))
 	end)
-	add("item_battery", "models/Items/battery.mdl", 5, function(self)
-		return IsValid(self:SpawnEntity("item_battery"))
+	add("item_battery", "models/Items/battery.mdl", 5, function( self )
+		return IsValid(self:SpawnEntity( "item_battery" ))
 	end)
-	add("jb_ammo", "models/Items/BoxSRounds.mdl", 10, function(self)
-		return IsValid(self:SpawnEntity("jb_ammo"))
+	add("jb_ammo", "models/Items/BoxSRounds.mdl", 10, function( self )
+		return IsValid(self:SpawnEntity( "jb_ammo" ))
 	end)
 	return
 end)
 Add("PostCleanupMap", "Jailbreak::weapon_physcannon", function()
-	if game.GetGlobalState("super_phys_gun") ~= GLOBAL_OFF then
+	if game.GetGlobalState( "super_phys_gun" ) ~= GLOBAL_OFF then
 		game.SetGlobalState("super_phys_gun", GLOBAL_OFF)
 		return
 	end
 end)
 Add("PlayerTakeDamage", "Jailbreak::weapon_stunstick", function(self, damageInfo)
 	local attacker = damageInfo:GetAttacker()
-	if not (attacker and IsValid(attacker) and attacker:IsPlayer()) then
+	if not (attacker and IsValid( attacker ) and attacker:IsPlayer()) then
 		return
 	end
 	local weapon = attacker:GetActiveWeapon()
-	if not (weapon and IsValid(weapon) and weapon:GetClass() == "weapon_stunstick") then
+	if not (weapon and IsValid( weapon ) and weapon:GetClass() == "weapon_stunstick") then
 		return
 	end
 	damageInfo:ScaleDamage(max(self:WaterLevel(), 0.25))
@@ -650,7 +650,7 @@ do
 		if prop:GetModel() ~= "models/props_junk/gascan001a.mdl" then
 			return
 		end
-		if IsValid(ply) and ply:IsPlayer() then
+		if IsValid( ply ) and ply:IsPlayer() then
 			teamID = ply:Team()
 		else
 			teamID = prop:Team()
@@ -662,7 +662,7 @@ do
 				goto _continue_0
 			end
 			if entity:IsPlayer() then
-				if not Alive(entity) then
+				if not Alive( entity ) then
 					goto _continue_0
 				end
 				if entity:Team() == teamID and random(1, 100) > 2 then
@@ -674,7 +674,7 @@ do
 		end
 	end)
 end
-Add("AllowEntityExtinguish", "Jailbreak::GasCan", function(self)
+Add("AllowEntityExtinguish", "Jailbreak::GasCan", function( self )
 	if self:GetModel() == "models/props_junk/gascan001a.mdl" then
 		return false
 	end
@@ -694,9 +694,9 @@ Add("AllowPlayerPickup", "Jailbreak::PaintCan", function(self, entity)
 		return false
 	end
 end)
-Add("PlayerCanCreateRagdoll", "Jailbreak::AliveRagdoll", function(self)
+Add("PlayerCanCreateRagdoll", "Jailbreak::AliveRagdoll", function( self )
 	local ragdoll = self:GetRagdollEntity()
-	if IsValid(ragdoll) and ragdoll:Alive() and not Alive(self) then
+	if IsValid( ragdoll ) and ragdoll:Alive() and not Alive( self ) then
 		return false
 	end
 end)
@@ -705,36 +705,36 @@ Add("RagdollTakeDamage", "Jailbreak::AliveRagdoll", function(self, damageInfo)
 		return
 	end
 	local ply = self:GetRagdollOwner()
-	if IsValid(ply) and Alive(ply) then
-		damageInfo:ScaleDamage(0.25)
-		ply:TakeDamageInfo(damageInfo)
+	if IsValid( ply ) and Alive( ply ) then
+		damageInfo:ScaleDamage( 0.25 )
+		ply:TakeDamageInfo( damageInfo )
 		return
 	end
 end)
-Add("PostPlayerDeath", "Jailbreak::AliveRagdoll", function(self)
+Add("PostPlayerDeath", "Jailbreak::AliveRagdoll", function( self )
 	local ragdoll = self:GetRagdollEntity()
-	if IsValid(ragdoll) and ragdoll:Alive() then
-		return ragdoll:SetAlive(false)
+	if IsValid( ragdoll ) and ragdoll:Alive() then
+		return ragdoll:SetAlive( false )
 	end
 end)
-Add("RagdollDeath", "Jailbreak::AliveRagdoll", function(self)
+Add("RagdollDeath", "Jailbreak::AliveRagdoll", function( self )
 	local ply = self:GetRagdollOwner()
-	if IsValid(ply) and Alive(ply) then
+	if IsValid( ply ) and Alive( ply ) then
 		return ply:KillSilent()
 	end
 end)
-Add("EntityRemoved", "Jailbreak::AliveRagdoll", function(self)
+Add("EntityRemoved", "Jailbreak::AliveRagdoll", function( self )
 	if self:IsPlayerRagdoll() and self:Alive() then
 		local ply = self:GetRagdollOwner()
-		if IsValid(ply) and Alive(ply) then
+		if IsValid( ply ) and Alive( ply ) then
 			return ply:KillSilent()
 		end
 	end
 end)
 do
 	local PlayerSpawnTime = Jailbreak.PlayerSpawnTime
-	local black = Jailbreak.Colors.black
-	local function spawnEffect(ply)
+	local black = Jailbreak.ColorScheme.black
+	local function spawnEffect( ply )
 		if not ply:IsBot() then
 			ply:ShockScreenEffect(0.5, black, PlayerSpawnTime:GetFloat(), false)
 			return
@@ -754,7 +754,7 @@ do
 			return
 		end
 		local target = ply:GetUseEntity()
-		if not (IsValid(target) and target:IsPlayer() and target:Alive()) then
+		if not (IsValid( target ) and target:IsPlayer() and target:Alive()) then
 			return
 		end
 		SetNW2Var(ply, "push-target", target)
@@ -766,7 +766,7 @@ do
 			return
 		end
 		local target = GetNW2Var(ply, "push-target")
-		if target and IsValid(target) then
+		if target and IsValid( target ) then
 			SetNW2Var(target, "pushing-player", nil)
 		end
 		SetNW2Var(ply, "push-target", nil)

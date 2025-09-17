@@ -17,12 +17,12 @@ local gsub = string.gsub
 local ROUND_RUNNING = ROUND_RUNNING
 local ROUND_FINISHED = ROUND_FINISHED
 local TEAM_PRISONER = TEAM_PRISONER
-local Colors, SendChatText, GetTeamPlayers, IsRoundRunning = Jailbreak.Colors, Jailbreak.SendChatText, Jailbreak.GetTeamPlayers, Jailbreak.IsRoundRunning
+local Colors, SendChatText, GetTeamPlayers, IsRoundRunning = Jailbreak.ColorScheme, Jailbreak.SendChatText, Jailbreak.GetTeamPlayers, Jailbreak.IsRoundRunning
 local CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
 local CHAT_CUSTOM = CHAT_CUSTOM
 local white = Colors.white
 local events = Jailbreak.Events
-if not istable(events) then
+if not istable( events ) then
 	events = {}
 	Jailbreak.Events = events
 end
@@ -31,13 +31,13 @@ do
 	local _class_0
 	local _base_0 = {
 		ConVarFlags = bit.bor(FCVAR_ARCHIVE, FCVAR_NOTIFY),
-		GetStartState = function(self)
+		GetStartState = function( self )
 			return self.startState
 		end,
 		SetStartState = function(self, state)
 			self.startState = state
 		end,
-		GetFinishState = function(self)
+		GetFinishState = function( self )
 			return self.finishState
 		end,
 		SetFinishState = function(self, state)
@@ -46,33 +46,33 @@ do
 		ConVar = function(self, default)
 			return self:SetChance(CreateConVar("jb_event_" .. gsub(self.name, "[%p%s]+", "_") .. "_chance", tostring(Clamp(default, 0, 100)), self.ConVarFlags, "Chance of '" .. self.name .. "' event.", 0, 100))
 		end,
-		GetChance = function(self)
+		GetChance = function( self )
 			return self.chance
 		end,
 		SetChance = function(self, chance)
-			if TypeID(chance) ~= TYPE_CONVAR then
-				assert(isnumber(chance), "chance must be a number")
+			if TypeID( chance ) ~= TYPE_CONVAR then
+				assert(isnumber( chance ), "chance must be a number")
 			end
 			self.chance = chance
 		end,
-		GetType = function(self)
+		GetType = function( self )
 			return self.type
 		end,
 		SetType = function(self, str)
-			assert(isstring(str), "type must be a string")
+			assert(isstring( str ), "type must be a string")
 			self.type = str
 		end,
-		GetColor = function(self)
+		GetColor = function( self )
 			return self.color
 		end,
 		SetColor = function(self, color)
-			assert(IsColor(color), "color must be a Color")
+			assert(IsColor( color ), "color must be a Color")
 			self.color = color
 		end,
-		GetMessage = function(self)
+		GetMessage = function( self )
 			return self.color, "#jb.event." .. self.name
 		end,
-		SendMessage = function(self)
+		SendMessage = function( self )
 			return SendChatText(false, false, CHAT_CUSTOM, white, "#jb.round.modifier.added: ", self:GetMessage())
 		end,
 		Finish = function(self, state)
@@ -92,10 +92,10 @@ do
 			if not chance then
 				return
 			end
-			if TypeID(chance) == TYPE_CONVAR then
+			if TypeID( chance ) == TYPE_CONVAR then
 				chance = chance:GetInt()
 			end
-			if isnumber(chance) and ((chance == 0) or (chance ~= 100 and random(1, 100) > chance)) then
+			if isnumber( chance ) and ((chance == 0) or (chance ~= 100 and random(1, 100) > chance)) then
 				return
 			end
 			local status, writeMessage, stopEvents = xpcall(self.init, ErrorNoHaltWithStack, self, state)
@@ -110,12 +110,12 @@ do
 	end
 	_class_0 = setmetatable({
 		__init = function(self, name, init, finish)
-			assert(isstring(name), "name must be a string")
-			assert(isfunction(init), "init must be a function")
+			assert(isstring( name ), "name must be a string")
+			assert(isfunction( init ), "init must be a function")
 			self.startState = ROUND_PREPARING
 			self.finishState = ROUND_RUNNING
 			self.type = "default"
-			if isfunction(finish) then
+			if isfunction( finish ) then
 				self.finish = finish
 			end
 			self.color = white
@@ -149,15 +149,15 @@ registerEvent = function(name, init, finish)
 	return JailbreakEvent(name, init, finish)
 end
 Jailbreak.RegisterEvent = registerEvent
-Jailbreak.RunEvents = function(state)
+Jailbreak.RunEvents = function( state )
 	local stoppedTypes = {}
 	for _index_0 = 1, #events do
 		local event = events[_index_0]
-		event:Finish(state)
+		event:Finish( state )
 		if stoppedTypes[event.type] then
 			goto _continue_0
 		end
-		if event:Run(state) then
+		if event:Run( state ) then
 			stoppedTypes[event.type] = true
 		end
 		::_continue_0::
@@ -165,30 +165,30 @@ Jailbreak.RunEvents = function(state)
 end
 do
 	local event = registerEvent("female-prison", function()
-		Jailbreak.SetFemalePrison(true)
+		Jailbreak.SetFemalePrison( true )
 		return true, true
 	end, function()
-		return Jailbreak.SetFemalePrison(false)
+		return Jailbreak.SetFemalePrison( false )
 	end)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetType("playermodel")
-	event:SetColor(Colors.pink)
-	event:ConVar(15)
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetType( "playermodel" )
+	event:SetColor( Colors.pink )
+	event:ConVar( 15 )
 end
 do
 	local playerModels = player_manager.AllValidModels()
 	local Vector = Vector
 	local Random = table.Random
 	local event = registerEvent("masquerade", function()
-		Add("PlayerSetModel", "Jailbreak::MasqueradeEvent", function(self)
-			local modelPath = Random(playerModels)
+		Add("PlayerSetModel", "Jailbreak::MasqueradeEvent", function( self )
+			local modelPath = Random( playerModels )
 			if modelPath == nil then
 				return
 			end
-			self:SetModel(modelPath)
+			self:SetModel( modelPath )
 			return true
 		end)
-		Add("PlayerModelChanged", "Jailbreak::MasqueradeEvent", function(self)
+		Add("PlayerModelChanged", "Jailbreak::MasqueradeEvent", function( self )
 			if self:IsBot() then
 				return
 			end
@@ -207,9 +207,9 @@ do
 		Remove("PlayerModelChanged", "Jailbreak::MasqueradeEvent")
 		return Remove("PlayerSetModel", "Jailbreak::MasqueradeEvent")
 	end)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetType("playermodel")
-	event:ConVar(5)
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetType( "playermodel" )
+	event:ConVar( 5 )
 	local HSVToColor = HSVToColor
 	function event:SendMessage()
 		local seed = random(0, 360)
@@ -218,19 +218,19 @@ do
 			local ply = _list_0[_index_0]
 			local text = Jailbreak.GetPhrase(ply, "jb.event." .. self.name)
 			local message, index = {}, 0
-			for i = 1, utf8.len(text) do
+			for i = 1, utf8.len( text ) do
 				index = index + 1
 				message[index] = HSVToColor(i * seed % 360, 1, 1)
 				index = index + 1
 				message[index] = utf8.sub(text, i, i)
 			end
-			SendChatText(ply, false, CHAT_CUSTOM, white, "#jb.round.modifier.added: ", unpack(message))
+			SendChatText(ply, false, CHAT_CUSTOM, white, "#jb.round.modifier.added: ", unpack( message ))
 		end
 	end
 end
 do
 	local event = registerEvent("grass-is-lava", function()
-		Add("PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", function(self)
+		Add("PlayerDeathSound", "Jailbreak::GrassIsLavaEvent", function( self )
 			self:EmitSound("vo/npc/" .. (self:IsFemaleModel() and "fe" or "") .. "male01/ohno.wav", 90, random(80, 120), 1, CHAN_STATIC, 0, 1)
 			return true
 		end)
@@ -249,20 +249,20 @@ do
 			trace.start = self:EyePos()
 			trace.endpos = pos
 			trace.filter = self
-			TraceHull(trace)
+			TraceHull( trace )
 			if not (traceResult.Hit and traceResult.HitWorld) then
 				return
 			end
 			if traceResult.MatType == MAT_GRASS then
-				self:SetColor(Colors.black)
+				self:SetColor( Colors.black )
 				self:Ignite(0.25, 32)
 				local damageInfo = DamageInfo()
-				damageInfo:SetDamageType(DMG_BURN)
+				damageInfo:SetDamageType( DMG_BURN )
 				damageInfo:SetDamage(self:Health() + self:Armor())
 				damageInfo:SetDamageForce((trace.start - pos) * 10)
-				damageInfo:SetDamagePosition(pos)
-				damageInfo:SetAttacker(self)
-				self:TakeDamageInfo(damageInfo)
+				damageInfo:SetDamagePosition( pos )
+				damageInfo:SetAttacker( self )
+				self:TakeDamageInfo( damageInfo )
 				return true
 			end
 		end)
@@ -271,24 +271,24 @@ do
 		Remove("PlayerDeathSound", "Jailbreak::GrassIsLavaEvent")
 		return Remove("PlayerFootstep", "Jailbreak::GrassIsLavaEvent")
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetType("death")
-	event:ConVar(5)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetType( "death" )
+	event:ConVar( 5 )
 	function event:SendMessage()
 		local _list_0 = player.GetHumans()
 		for _index_0 = 1, #_list_0 do
 			local ply = _list_0[_index_0]
 			local text = Jailbreak.GetPhrase(ply, "jb.event." .. self.name)
 			local message, index = {}, 0
-			local length = utf8.len(text)
+			local length = utf8.len( text )
 			for i = 1, length do
 				index = index + 1
 				message[index] = HSVToColor((length - i) * 10 % 360, 1, 1)
 				index = index + 1
 				message[index] = utf8.sub(text, i, i)
 			end
-			SendChatText(ply, false, CHAT_CUSTOM, white, "#jb.round.modifier.added: ", unpack(message))
+			SendChatText(ply, false, CHAT_CUSTOM, white, "#jb.round.modifier.added: ", unpack( message ))
 		end
 	end
 end
@@ -298,7 +298,7 @@ do
 		Add("EntityTakeDamage", "Jailbreak::PowerfulPlayers", function(self, damageInfo)
 			local attacker = damageInfo:GetAttacker()
 			if attacker:IsValid() or attacker:IsPlayer() then
-				return damageInfo:ScaleDamage(2)
+				return damageInfo:ScaleDamage( 2 )
 			end
 		end)
 		for _, ply in player.Iterator() do
@@ -311,11 +311,11 @@ do
 		Remove("EntityTakeDamage", "Jailbreak::PowerfulPlayers")
 		Jailbreak.PowerfulPlayers = false
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetColor(Colors.red)
-	event:SetType("damage")
-	event:ConVar(5)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetColor( Colors.red )
+	event:SetType( "damage" )
+	event:ConVar( 5 )
 end
 do
 	local ceil = math.ceil
@@ -334,17 +334,17 @@ do
 				if not (ply and ply:IsValid()) then
 					goto _continue_0
 				end
-				if not ply:HasWeapon("weapon_knife") then
+				if not ply:HasWeapon( "weapon_knife" ) then
 					ply:Give("weapon_knife", false, true)
 				end
 				::_continue_0::
 			end
 		end)
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetFinishState(nil)
-	event:SetType("weapon")
-	event:ConVar(10)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetFinishState( nil )
+	event:SetType( "weapon" )
+	event:ConVar( 10 )
 end
 do
 	local event = registerEvent("hidden-angel", function()
@@ -357,14 +357,14 @@ do
 		if not (ply and ply:IsValid() and ply:Alive()) then
 			return false, false
 		end
-		ply:AllowFlight(true)
+		ply:AllowFlight( true )
 		SendChatText(ply, false, CHAT_SERVERMESSAGE, "#jb.event.hidden-angel.message")
 		return true, true
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetColor(Colors.dark_white)
-	event:SetType("movement")
-	event:ConVar(25)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetColor( Colors.dark_white )
+	event:SetType( "movement" )
+	event:ConVar( 25 )
 end
 do
 	local event = registerEvent("heaven", function()
@@ -379,7 +379,7 @@ do
 		SetGlobal2Bool("Jailbreak::Heaven", true)
 		for _index_0 = 1, #guards do
 			local ply = guards[_index_0]
-			ply:AllowFlight(true)
+			ply:AllowFlight( true )
 		end
 		Add("PlayerRagdollCreated", "Jailbreak::Heaven", function(_, ragdoll)
 			return Simple(1, function()
@@ -393,11 +393,11 @@ do
 		Remove("PlayerRagdollCreated", "Jailbreak::Heaven")
 		return SetGlobal2Bool("Jailbreak::Heaven", false)
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetColor(Colors.dark_white)
-	event:SetType("world")
-	event:ConVar(5)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetColor( Colors.dark_white )
+	event:SetType( "world" )
+	event:ConVar( 5 )
 end
 do
 	local event = registerEvent("hell", function()
@@ -412,58 +412,58 @@ do
 		SetGlobal2Bool("Jailbreak::Hell", true)
 		for _index_0 = 1, #prisoners do
 			local ply = prisoners[_index_0]
-			ply:SetEscaped(true)
-			ply:AllowFlight(true)
-			ply:GiveRandomWeapons(3)
-			ply:SetModel("models/player/charple.mdl")
+			ply:SetEscaped( true )
+			ply:AllowFlight( true )
+			ply:GiveRandomWeapons( 3 )
+			ply:SetModel( "models/player/charple.mdl" )
 		end
-		local _list_0 = ents.FindByClass("prop_door_rotating")
+		local _list_0 = ents.FindByClass( "prop_door_rotating" )
 		for _index_0 = 1, #_list_0 do
 			local entity = _list_0[_index_0]
-			entity:Fire("Open")
+			entity:Fire( "Open" )
 		end
-		local _list_1 = ents.FindByClass("func_door*")
+		local _list_1 = ents.FindByClass( "func_door*" )
 		for _index_0 = 1, #_list_1 do
 			local entity = _list_1[_index_0]
-			entity:Fire("Open")
+			entity:Fire( "Open" )
 		end
 		return true, true
 	end, function()
 		return SetGlobal2Bool("Jailbreak::Hell", false)
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetColor(Colors.red)
-	event:SetType("world")
-	event:ConVar(5)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetColor( Colors.red )
+	event:SetType( "world" )
+	event:ConVar( 5 )
 end
 do
 	local event = registerEvent("moon-gravity", function()
-		Jailbreak.__oldGravity = cvars.String("sv_gravity")
+		Jailbreak.__oldGravity = cvars.String( "sv_gravity" )
 		RunConsoleCommand("sv_gravity", "200")
 		return true, true
 	end, function()
 		return RunConsoleCommand("sv_gravity", Jailbreak.__oldGravity or "800")
 	end)
-	event:SetStartState(ROUND_RUNNING)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetColor(Colors.dark_white)
-	event:SetType("world")
-	event:ConVar(10)
+	event:SetStartState( ROUND_RUNNING )
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetColor( Colors.dark_white )
+	event:SetType( "world" )
+	event:ConVar( 10 )
 end
 do
 	local event = registerEvent("spooky-scary-skeletons", function()
-		Add("PlayerSetModel", "Jailbreak::SpookySkeletonsEvent", function(self)
-			self:SetModel("models/player/skeleton.mdl")
+		Add("PlayerSetModel", "Jailbreak::SpookySkeletonsEvent", function( self )
+			self:SetModel( "models/player/skeleton.mdl" )
 			return true
 		end)
-		Add("PlayerModelChanged", "Jailbreak::SpookySkeletonsEvent", function(self)
+		Add("PlayerModelChanged", "Jailbreak::SpookySkeletonsEvent", function( self )
 			self:SetSkin(self:IsPrisoner() and 2 or 1)
 			return true
 		end)
-		Add("PostPlayerSpawn", "Jailbreak::SpookySkeletonsEvent", function(self)
-			self:SetMaxHealth(50)
-			return self:SetHealth(50)
+		Add("PostPlayerSpawn", "Jailbreak::SpookySkeletonsEvent", function( self )
+			self:SetMaxHealth( 50 )
+			return self:SetHealth( 50 )
 		end)
 		return true, true
 	end, function()
@@ -471,8 +471,8 @@ do
 		Remove("PlayerModelChanged", "Jailbreak::SpookySkeletonsEvent")
 		return Remove("PostPlayerSpawn", "Jailbreak::SpookySkeletonsEvent")
 	end)
-	event:SetFinishState(ROUND_FINISHED)
-	event:SetColor(Colors.dark_white)
-	event:SetType("playermodel")
-	return event:ConVar(8)
+	event:SetFinishState( ROUND_FINISHED )
+	event:SetColor( Colors.dark_white )
+	event:SetType( "playermodel" )
+	return event:ConVar( 8 )
 end

@@ -1,8 +1,8 @@
 ENT.Type = "brush"
 ENT.Base = "base_brush"
 function ENT:Initialize()
-	self:SetSolid(SOLID_BBOX)
-	self:SetTrigger(true)
+	self:SetSolid( SOLID_BBOX )
+	self:SetTrigger( true )
 	self.Entities = {}
 end
 function ENT:StartTouch( entity)
@@ -48,16 +48,16 @@ do
 		local _list_0 = self.Entities
 		for _index_0 = 1, #_list_0 do
 			local entity = _list_0[_index_0]
-			if not IsValid(entity) then
+			if not IsValid( entity ) then
 				goto _continue_0
 			end
 			local velocity = (self.ImpulseDir or defaultVector) * (self.Force or 0)
 			if entity:IsPlayer() then
-				entity:SetVelocity(velocity)
+				entity:SetVelocity( velocity )
 			else
 				local phys = entity:GetPhysicsObject()
-				if IsValid(phys) then
-					phys:ApplyForceCenter(velocity)
+				if IsValid( phys ) then
+					phys:ApplyForceCenter( velocity )
 				end
 			end
 			::_continue_0::
@@ -68,11 +68,11 @@ do
 	local Angle = Angle
 	function ENT:KeyValue( key, value)
 		if "StartDisabled" == key then
-			self.Disabled = tobool(value)
+			self.Disabled = tobool( value )
 		elseif "impulse_dir" == key then
-			self.ImpulseDir = Angle(value):Forward()
+			self.ImpulseDir = Angle( value ):Forward()
 		elseif "force" == key then
-			self.Force = tonumber(value)
+			self.Force = tonumber( value )
 		elseif "targetname" == key then
 			self.TargetName = value
 		elseif "OnStartTouch" == key then

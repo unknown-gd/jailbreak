@@ -17,11 +17,11 @@ end
 function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
-		return func(self)
+		return func( self )
 	end
 end
 function ENT:KeyValue( key, value)
 	if "StartDisabled" == key then
-		self.Disabled = tobool(value)
+		self.Disabled = tobool( value )
 	end
 end

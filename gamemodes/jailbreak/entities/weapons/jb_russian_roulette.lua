@@ -40,7 +40,7 @@ function SWEP:PrimaryAttack()
 		return
 	end
 	self:SetClip1(clip1 - 1)
-	if clip1 ~= self:GetNW2Int("bullet-number") then
+	if clip1 ~= self:GetNW2Int( "bullet-number" ) then
 		self:EmitSound("weapons/pistol/pistol_empty.wav", 75, random(80, 120), 0.8, CHAN_STATIC, 0, 1)
 		return
 	end
@@ -51,17 +51,17 @@ function SWEP:PrimaryAttack()
 		damageInfo:SetDamagePosition(owner:EyePos())
 		damageInfo:SetDamage(owner:Health() + owner:Armor() + 1)
 		damageInfo:SetDamageForce(owner:GetAngles():Right() * 1000)
-		damageInfo:SetDamageType(DMG_BULLET)
-		damageInfo:SetAttacker(owner)
-		damageInfo:SetInflictor(self)
-		return owner:TakeDamageInfo(damageInfo)
+		damageInfo:SetDamageType( DMG_BULLET )
+		damageInfo:SetAttacker( owner )
+		damageInfo:SetInflictor( self )
+		return owner:TakeDamageInfo( damageInfo )
 	end
 end
 function SWEP:SecondaryAttack()
 	self:SetNextSecondaryFire(CurTime() + 1.5)
 	self:SetNextPrimaryFire(CurTime() + 0.25)
 	if SERVER then
-		self:SetClip1(6)
+		self:SetClip1( 6 )
 		self:SetNW2Int("bullet-number", random(1, 6))
 	end
 	return self:EmitSound("weapons/357/357_spin1.wav", 75, random(90, 110), 1, CHAN_STATIC, 0, 1)

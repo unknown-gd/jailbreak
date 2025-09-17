@@ -1,5 +1,5 @@
 local Jailbreak = Jailbreak
-local Colors, VMin, GameInProgress, VoiceChatProximity = Jailbreak.Colors, Jailbreak.VMin, Jailbreak.GameInProgress, Jailbreak.VoiceChatProximity
+local Colors, VMin, GameInProgress, VoiceChatProximity = Jailbreak.ColorScheme, Jailbreak.VMin, Jailbreak.GameInProgress, Jailbreak.VoiceChatProximity
 local RunConsoleCommand = RunConsoleCommand
 local min, floor, random, Round
 do
@@ -24,7 +24,7 @@ do
 		title = "#jb.walkie-talkie",
 		icon = "icon16/phone.png",
 		order = 500,
-		think = function(self)
+		think = function( self )
 			if not VoiceChatProximity:GetBool() then
 				if self:IsVisible() then
 					self:InvalidateParent()
@@ -36,7 +36,7 @@ do
 				local state = securityRadio:GetBool()
 				local image = state and "icon16/phone_sound.png" or "icon16/phone.png"
 				if self:GetImage() ~= image then
-					self:SetImage(image)
+					self:SetImage( image )
 				end
 				if self:IsVisible() then
 					return
@@ -48,7 +48,7 @@ do
 				return self:Hide()
 			end
 		end,
-		click = function(self)
+		click = function( self )
 			return securityRadio:SetBool(not securityRadio:GetBool())
 		end
 	})
@@ -59,7 +59,7 @@ do
 		title = "#jb.player.lose-consciousness",
 		icon = "icon16/user_delete.png",
 		order = 2500,
-		think = function(self)
+		think = function( self )
 			if not AllowPlayersLoseConsciousness:GetBool() then
 				if self:IsVisible() then
 					self:InvalidateParent()
@@ -82,26 +82,26 @@ do
 			local ragdoll = ply:GetRagdollEntity()
 			if not (ragdoll:IsValid() and ragdoll:Alive()) then
 				if self:GetImage() ~= "icon16/user_delete.png" then
-					self:SetImage("icon16/user_delete.png")
+					self:SetImage( "icon16/user_delete.png" )
 				end
-				local text = GetPhrase("jb.player.lose-consciousness")
+				local text = GetPhrase( "jb.player.lose-consciousness" )
 				if self.Label:GetText() ~= text then
-					self.Label:SetText(text)
-					self:SetTooltip(text)
+					self.Label:SetText( text )
+					self:SetTooltip( text )
 				end
 				return
 			end
 			if self:GetImage() ~= "icon16/user_add.png" then
-				self:SetImage("icon16/user_add.png")
+				self:SetImage( "icon16/user_add.png" )
 			end
-			local text = GetPhrase("jb.player.wake-up")
+			local text = GetPhrase( "jb.player.wake-up" )
 			if self.Label:GetText() ~= text then
-				self.Label:SetText(text)
-				return self:SetTooltip(text)
+				self.Label:SetText( text )
+				return self:SetTooltip( text )
 			end
 		end,
-		click = function(self)
-			return RunConsoleCommand("jb_lose_consciousness")
+		click = function( self )
+			return RunConsoleCommand( "jb_lose_consciousness" )
 		end
 	})
 end
@@ -111,7 +111,7 @@ do
 		title = "#jb.megaphone",
 		icon = "icon16/sound_mute.png",
 		order = 500,
-		think = function(self)
+		think = function( self )
 			if not VoiceChatProximity:GetBool() then
 				if self:IsVisible() then
 					self:InvalidateParent()
@@ -122,7 +122,7 @@ do
 			if Jailbreak.Player:IsWarden() then
 				local image = Megaphone:GetBool() and "icon16/sound.png" or "icon16/sound_mute.png"
 				if self:GetImage() ~= image then
-					self:SetImage(image)
+					self:SetImage( image )
 				end
 				if not self:IsVisible() then
 					self:InvalidateParent()
@@ -133,7 +133,7 @@ do
 				return self:Hide()
 			end
 		end,
-		click = function(self)
+		click = function( self )
 			return Megaphone:SetBool(not Megaphone:GetBool())
 		end
 	})
@@ -142,7 +142,7 @@ Set("DesktopWindows", "warden-request", {
 	title = "#jb.warden.join",
 	icon = "icon16/user_suit.png",
 	order = 1000,
-	think = function(self)
+	think = function( self )
 		if Jailbreak.IsRoundRunning() then
 			local ply = Jailbreak.Player
 			if ply:Alive() then
@@ -150,12 +150,12 @@ Set("DesktopWindows", "warden-request", {
 					if ply:IsWarden() then
 						local image = "icon16/user_go.png"
 						if self:GetImage() ~= image then
-							self:SetImage(image)
+							self:SetImage( image )
 						end
-						local text = GetPhrase("jb.warden.leave")
+						local text = GetPhrase( "jb.warden.leave" )
 						if self.Label:GetText() ~= text then
-							self.Label:SetText(text)
-							self:SetTooltip(text)
+							self.Label:SetText( text )
+							self:SetTooltip( text )
 						end
 						if not self:IsVisible() then
 							self:InvalidateParent()
@@ -166,12 +166,12 @@ Set("DesktopWindows", "warden-request", {
 				elseif ply:IsGuard() then
 					local image = "icon16/user_suit.png"
 					if self:GetImage() ~= image then
-						self:SetImage(image)
+						self:SetImage( image )
 					end
-					local text = GetPhrase("jb.warden.join")
+					local text = GetPhrase( "jb.warden.join" )
 					if self.Label:GetText() ~= text then
-						self.Label:SetText(text)
-						self:SetTooltip(text)
+						self.Label:SetText( text )
+						self:SetTooltip( text )
 					end
 					if not self:IsVisible() then
 						self:InvalidateParent()
@@ -186,22 +186,22 @@ Set("DesktopWindows", "warden-request", {
 			return self:Hide()
 		end
 	end,
-	click = function(self)
-		return RunConsoleCommand("jb_warden")
+	click = function( self )
+		return RunConsoleCommand( "jb_warden" )
 	end
 })
 Set("DesktopWindows", "shock-collars", {
 	title = "#jb.shock-collars",
 	icon = "icon16/lightning.png",
 	order = 500,
-	think = function(self)
+	think = function( self )
 		if GameInProgress() then
 			local ply = Jailbreak.Player
 			if ply:IsWarden() and ply:Alive() then
 				local state = Jailbreak.IsShockCollarsActive()
 				local image = state and "icon16/lightning.png" or "icon16/lightning_delete.png"
 				if self:GetImage() ~= image then
-					self:SetImage(image)
+					self:SetImage( image )
 				end
 				if not self:IsVisible() then
 					self:InvalidateParent()
@@ -215,8 +215,8 @@ Set("DesktopWindows", "shock-collars", {
 			return self:Hide()
 		end
 	end,
-	click = function(self)
-		return RunConsoleCommand("jb_shock_collars")
+	click = function( self )
+		return RunConsoleCommand( "jb_shock_collars" )
 	end
 })
 local margin = 0
@@ -225,21 +225,21 @@ do
 	local PANEL = {}
 	function PANEL:Init()
 		self.OverlayFade = nil
-		local label = self:Add("DLabel")
+		local label = self:Add( "DLabel" )
 		self.Label = label
 		label:SetExpensiveShadow(3, Color(0, 0, 0, 125))
-		label:SetFont("Jailbreak::Coins")
-		label:SetContentAlignment(1)
-		label:SetWrap(true)
-		label:Dock(FILL)
-		return self.Icon:Dock(FILL)
+		label:SetFont( "Jailbreak::Coins" )
+		label:SetContentAlignment( 1 )
+		label:SetWrap( true )
+		label:Dock( FILL )
+		return self.Icon:Dock( FILL )
 	end
 	function PANEL:Setup( item)
-		self:SetModelName(item.model)
+		self:SetModelName( item.model )
 		self:SetSkinID(item.skin or 0)
 		self.Icon:SetModel(item.model, item.skin, item.bodygroups)
 		self.Label:SetText("$" .. item.price)
-		self:SetTooltip(item.title)
+		self:SetTooltip( item.title )
 		self.ItemName = item.name
 		self.Price = item.price
 	end
@@ -248,9 +248,9 @@ do
 		return RunConsoleCommand("jb_buy", self.ItemName)
 	end
 	function PANEL:PerformLayout()
-		local size = VMin(10)
+		local size = VMin( 10 )
 		self:SetSize(size, size)
-		margin = VMin(0.5)
+		margin = VMin( 0.5 )
 		return self:DockPadding(margin, margin, margin, margin)
 	end
 	do
@@ -260,7 +260,7 @@ do
 		function PANEL:Think()
 			color = CanWardenAfford(self.Price or 0) and spectators or grey
 			if self.Label:GetTextColor() ~= color then
-				self.Label:SetTextColor(color)
+				self.Label:SetTextColor( color )
 				return self:InvalidateLayout()
 			end
 		end
@@ -292,7 +292,7 @@ Set("DesktopWindows", "warden-shop", {
 	icon = "icon16/cart.png",
 	onewindow = true,
 	order = 500,
-	think = function(self)
+	think = function( self )
 		if GameInProgress() then
 			local ply = Jailbreak.Player
 			if ply:IsWarden() and ply:Alive() then
@@ -312,15 +312,15 @@ Set("DesktopWindows", "warden-shop", {
 		end
 	end,
 	init = function(self, window)
-		window:SetTitle("#jb.warden.shop")
-		window:SetIcon("icon16/cart.png")
-		window:SetSize(VMin(60), VMin(40))
-		window:SetSizable(true)
+		window:SetTitle( "#jb.warden.shop" )
+		window:SetIcon( "icon16/cart.png" )
+		window:SetSize(VMin( 60 ), VMin( 40 ))
+		window:SetSizable( true )
 		window:Center()
-		window.PerformLayout = function(...)
-			window:SetMinWidth(VMin(40))
-			window:SetMinHeight(VMin(20))
-			return DFrame.PerformLayout(...)
+		window.PerformLayout = function( ... )
+			window:SetMinWidth(VMin( 40 ))
+			window:SetMinHeight(VMin( 20 ))
+			return DFrame.PerformLayout( ... )
 		end
 		hook.Add("LanguageChanged", window, function()
 			hook.Remove("LanguageChanged", window)
@@ -330,13 +330,13 @@ Set("DesktopWindows", "warden-shop", {
 		do
 			local menuBar = vgui.Create("DMenuBar", window)
 			menuBar:DockMargin(-3, -6, -3, 0)
-			menuBar:Dock(TOP)
+			menuBar:Dock( TOP )
 			do
-				local coins = menuBar:Add("DLabel")
-				coins:SetFont("Jailbreak::Coins")
-				coins:SetMouseInputEnabled(true)
-				coins:SetTextColor(black)
-				coins:Dock(RIGHT)
+				local coins = menuBar:Add( "DLabel" )
+				coins:SetFont( "Jailbreak::Coins" )
+				coins:SetMouseInputEnabled( true )
+				coins:SetTextColor( black )
+				coins:Dock( RIGHT )
 				local GetWardenCoins = Jailbreak.GetWardenCoins
 				local count = 0
 				function coins:Think()
@@ -345,33 +345,33 @@ Set("DesktopWindows", "warden-shop", {
 						self.Count = count
 						self:SetText("$" .. count)
 						self:SetTooltip("$" .. count)
-						return self:SizeToContentsX(VMin(1))
+						return self:SizeToContentsX(VMin( 1 ))
 					end
 				end
 			end
-			local other = menuBar:AddMenu("#jb.shop.other")
+			local other = menuBar:AddMenu( "#jb.shop.other" )
 			menuBar.Other = other
 			other:AddOption("#jb.shop.buy.random", function()
 				local item = ShopItems[random(1, #ShopItems)]
 				if not item then
-					MsgN("#jb.shop.no-items")
+					MsgN( "#jb.shop.no-items" )
 					return
 				end
 				return RunConsoleCommand("jb_buy", item.name)
 			end)
 			xpcall(hook.Run, ErrorNoHaltWithStack, "Jailbreak::WardenShopMenuBar", menuBar, window)
 		end
-		margin = VMin(0.5)
-		local scroll = window:Add("DScrollPanel")
+		margin = VMin( 0.5 )
+		local scroll = window:Add( "DScrollPanel" )
 		scroll:DockMargin(0, margin, 0, 0)
-		scroll:Dock(FILL)
-		local items = scroll:Add("DIconLayout")
-		items:Dock(FILL)
-		items:SetSpaceX(margin)
-		items:SetSpaceY(margin)
+		scroll:Dock( FILL )
+		local items = scroll:Add( "DIconLayout" )
+		items:Dock( FILL )
+		items:SetSpaceX( margin )
+		items:SetSpaceY( margin )
 		for _index_0 = 1, #ShopItems do
 			local item = ShopItems[_index_0]
-			items:Add("Jailbreak:ShopItem"):Setup(item)
+			items:Add( "Jailbreak:ShopItem" ):Setup( item )
 		end
 	end
 })
@@ -391,21 +391,21 @@ do
 		onewindow = true,
 		order = 200,
 		init = function(_, window)
-			window:SetTitle("#jb.player.options")
-			window:SetIcon("icon16/group_gear.png")
-			window:SetSize(VMin(80), VMin(50))
-			window:SetMinWidth(VMin(60))
-			window:SetMinHeight(VMin(30))
-			window:SetSizable(true)
+			window:SetTitle( "#jb.player.options" )
+			window:SetIcon( "icon16/group_gear.png" )
+			window:SetSize(VMin( 80 ), VMin( 50 ))
+			window:SetMinWidth(VMin( 60 ))
+			window:SetMinHeight(VMin( 30 ))
+			window:SetSizable( true )
 			window:Center()
-			local modelPreview = window:Add("DModelPanel")
-			modelPreview:Dock(FILL)
-			modelPreview:SetFOV(36)
-			modelPreview:SetCamPos(vector_origin)
+			local modelPreview = window:Add( "DModelPanel" )
+			modelPreview:Dock( FILL )
+			modelPreview:SetFOV( 36 )
+			modelPreview:SetCamPos( vector_origin )
 			modelPreview:SetDirectionalLight(BOX_RIGHT, Color( 255, 160, 80 ))
 			modelPreview:SetDirectionalLight(BOX_LEFT, Color( 80, 160, 255 ))
 			modelPreview:SetAmbientLight(Vector(-64, -64, -64))
-			modelPreview:SetAnimated(true)
+			modelPreview:SetAnimated( true )
 			modelPreview:SetLookAt(Vector(-100, 0, -22))
 			modelPreview.Angles = Angle()
 			function modelPreview:DragMousePress()
@@ -424,33 +424,33 @@ do
 					self.Angles[2] = self.Angles[2] - ((self.PressX or x) - x) / 2
 					self.PressX, self.PressY = x, y
 				end
-				return entity:SetAngles(self.Angles)
+				return entity:SetAngles( self.Angles )
 			end
-			local sheet = window:Add("DPropertySheet")
-			sheet:Dock(RIGHT)
+			local sheet = window:Add( "DPropertySheet" )
+			sheet:Dock( RIGHT )
 			sheet:SetSize(430, 0)
 			do
-				local panel = window:Add("DPanel")
+				local panel = window:Add( "DPanel" )
 				panel:DockPadding(8, 8, 8, 8)
-				local scrollPanel = panel:Add("DScrollPanel")
-				scrollPanel:Dock(FILL)
-				local icons = scrollPanel:Add("DIconLayout")
-				icons:Dock(FILL)
-				icons.PerformLayout = function(...)
-					margin = VMin(0.5)
-					icons:SetSpaceX(margin)
-					icons:SetSpaceY(margin)
-					return DIconLayout.PerformLayout(...)
+				local scrollPanel = panel:Add( "DScrollPanel" )
+				scrollPanel:Dock( FILL )
+				local icons = scrollPanel:Add( "DIconLayout" )
+				icons:Dock( FILL )
+				icons.PerformLayout = function( ... )
+					margin = VMin( 0.5 )
+					icons:SetSpaceX( margin )
+					icons:SetSpaceY( margin )
+					return DIconLayout.PerformLayout( ... )
 				end
 				do
-					local function selectModel(self)
-						return PlayerModel:SetString(self.ModelName)
+					local function selectModel( self )
+						return PlayerModel:SetString( self.ModelName )
 					end
-					local function openMenu(self)
+					local function openMenu( self )
 						local menu = DermaMenu()
 						menu:AddOption("#spawnmenu.menu.copy", function()
-							return SetClipboardText(self.ModelPath)
-						end):SetIcon("icon16/page_copy.png")
+							return SetClipboardText( self.ModelPath )
+						end):SetIcon( "icon16/page_copy.png" )
 						return menu:Open()
 					end
 					local isFemalePrison, allowedPlayerModels = Jailbreak.IsFemalePrison(), {}
@@ -466,14 +466,14 @@ do
 					end
 					local customAllowed = AllowCustomPlayerModels:GetBool()
 					for name, modelPath in SortedPairs(player_manager.AllValidModels()) do
-						modelPath = FixModelPath(modelPath)
+						modelPath = FixModelPath( modelPath )
 						if not (customAllowed or allowedPlayerModels[modelPath]) then
 							goto _continue_0
 						end
-						local icon = icons:Add("SpawnIcon")
-						icon:SetModel(modelPath)
+						local icon = icons:Add( "SpawnIcon" )
+						icon:SetModel( modelPath )
 						icon:SetSize(64, 64)
-						icon:SetTooltip(name)
+						icon:SetTooltip( name )
 						icon.ModelPath = modelPath
 						icon.ModelName = name
 						icon.DoClick = selectModel
@@ -484,33 +484,33 @@ do
 				sheet:AddSheet("#smwidget.model", panel, "icon16/user_edit.png")
 			end
 			do
-				local panel = window:Add("DPanel")
+				local panel = window:Add( "DPanel" )
 				panel:DockPadding(8, 8, 8, 8)
-				local scrollPanel = panel:Add("DScrollPanel")
-				scrollPanel:Dock(FILL)
-				scrollPanel.PerformLayout = function(...)
+				local scrollPanel = panel:Add( "DScrollPanel" )
+				scrollPanel:Dock( FILL )
+				scrollPanel.PerformLayout = function( ... )
 					local canvas = scrollPanel:GetCanvas()
 					if canvas and canvas:IsValid() then
-						margin = VMin(1)
+						margin = VMin( 1 )
 						canvas:DockPadding(margin, margin, margin, margin)
 					end
-					return DScrollPanel.PerformLayout(...)
+					return DScrollPanel.PerformLayout( ... )
 				end
 				do
-					local label = scrollPanel:Add("DLabel")
-					label:SetText("#smwidget.color_plr")
-					label:SetTextColor(black)
-					label:Dock(TOP)
-					local playerColor = scrollPanel:Add("DColorMixer")
-					playerColor:SetAlphaBar(false)
-					playerColor:SetPalette(false)
-					playerColor:Dock(TOP)
+					local label = scrollPanel:Add( "DLabel" )
+					label:SetText( "#smwidget.color_plr" )
+					label:SetTextColor( black )
+					label:Dock( TOP )
+					local playerColor = scrollPanel:Add( "DColorMixer" )
+					playerColor:SetAlphaBar( false )
+					playerColor:SetPalette( false )
+					playerColor:Dock( TOP )
 					playerColor:SetSize(200, min(window:GetTall() / 3, 260))
 					function playerColor:ValueChanged()
 						local vector = self:GetVector()
 						local entity = modelPreview.Entity
 						if entity and entity:IsValid() then
-							entity:SetPlayerColor(vector)
+							entity:SetPlayerColor( vector )
 						else
 							timer.Simple(0, function()
 								if playerColor:IsValid() then
@@ -518,20 +518,20 @@ do
 								end
 							end)
 						end
-						return PlayerColor:SetString(tostring(vector))
+						return PlayerColor:SetString(tostring( vector ))
 					end
 					playerColor:SetVector(Vector(PlayerColor:GetString()))
 				end
 				do
-					local label = scrollPanel:Add("DLabel")
-					label:SetText("#smwidget.color_wep")
+					local label = scrollPanel:Add( "DLabel" )
+					label:SetText( "#smwidget.color_wep" )
 					label:DockMargin(0, 32, 0, 0)
-					label:SetTextColor(black)
-					label:Dock(TOP)
-					local weaponColor = scrollPanel:Add("DColorMixer")
-					weaponColor:SetAlphaBar(false)
-					weaponColor:SetPalette(false)
-					weaponColor:Dock(TOP)
+					label:SetTextColor( black )
+					label:Dock( TOP )
+					local weaponColor = scrollPanel:Add( "DColorMixer" )
+					weaponColor:SetAlphaBar( false )
+					weaponColor:SetPalette( false )
+					weaponColor:Dock( TOP )
 					weaponColor:SetSize(200, min(window:GetTall() / 3, 260))
 					function weaponColor:ValueChanged()
 						return PlayerWeaponColor:SetString(tostring(self:GetVector()))
@@ -541,23 +541,23 @@ do
 				sheet:AddSheet("#smwidget.colors", panel, "icon16/paintcan.png")
 			end
 			do
-				local panel = window:Add("DPanel")
+				local panel = window:Add( "DPanel" )
 				panel:DockPadding(8, 8, 8, 8)
-				local scrollPanel = panel:Add("DScrollPanel")
-				scrollPanel:Dock(FILL)
-				scrollPanel.PerformLayout = function(...)
+				local scrollPanel = panel:Add( "DScrollPanel" )
+				scrollPanel:Dock( FILL )
+				scrollPanel.PerformLayout = function( ... )
 					local canvas = scrollPanel:GetCanvas()
 					if canvas and canvas:IsValid() then
-						margin = VMin(1)
+						margin = VMin( 1 )
 						canvas:DockPadding(margin, margin, margin, margin)
 					end
-					return DScrollPanel.PerformLayout(...)
+					return DScrollPanel.PerformLayout( ... )
 				end
 				local bodygroupsSheet = sheet:AddSheet("#smwidget.bodygroups", panel, "icon16/text_list_bullets.png")
 				local function UpdateBodyGroups(pnl, value)
 					local previewEntity = modelPreview.Entity
 					if previewEntity then
-						previewEntity:SetBodygroup(pnl.BodygroupID, Round(value))
+						previewEntity:SetBodygroup(pnl.BodygroupID, Round( value ))
 					end
 					local str = Explode(" ", PlayerBodyGroups:GetString())
 					if #str < pnl.BodygroupID + 1 then
@@ -565,18 +565,18 @@ do
 							str[index] = str[index] or 0
 						end
 					end
-					str[pnl.BodygroupID + 1] = Round(value)
+					str[pnl.BodygroupID + 1] = Round( value )
 					return PlayerBodyGroups:SetString(concat(str, " "))
 				end
 				local function SetSkin(self, value)
-					value = floor(value)
+					value = floor( value )
 					local previewEntity = modelPreview.Entity
 					if previewEntity then
-						previewEntity:SetSkin(value)
+						previewEntity:SetSkin( value )
 					end
-					return PlayerSkin:SetString(value)
+					return PlayerSkin:SetString( value )
 				end
-				local function SetupModel(modelName)
+				local function SetupModel( modelName )
 					if not scrollPanel:IsValid() then
 						return
 					end
@@ -584,108 +584,108 @@ do
 					if not modelPreview:IsValid() then
 						return
 					end
-					modelPreview:SetModel(FixModelPath(TranslatePlayerModel(modelName)))
+					modelPreview:SetModel(FixModelPath(TranslatePlayerModel( modelName )))
 					local previewEntity = modelPreview.Entity
 					if not previewEntity then
 						return
 					end
-					previewEntity:SetPos(previewOffset)
+					previewEntity:SetPos( previewOffset )
 					previewEntity:SetPlayerColor(Vector(PlayerColor:GetString()))
 					local bodygroupsTab = bodygroupsSheet.Tab
 					if bodygroupsTab and bodygroupsTab:IsValid() then
 						if bodygroupsTab:IsVisible() then
-							bodygroupsTab:SetVisible(false)
+							bodygroupsTab:SetVisible( false )
 							bodygroupsTab:InvalidateParent()
 						end
 						local skinCount = previewEntity:SkinCount() - 1
 						if skinCount > 0 then
-							local skins = scrollPanel:Add("DNumSlider")
-							skins:Dock(TOP)
-							skins:SetText("#jb.skin")
-							skins:SetDark(true)
-							skins:SetTall(50)
-							skins:SetDecimals(0)
-							skins:SetMax(skinCount)
+							local skins = scrollPanel:Add( "DNumSlider" )
+							skins:Dock( TOP )
+							skins:SetText( "#jb.skin" )
+							skins:SetDark( true )
+							skins:SetTall( 50 )
+							skins:SetDecimals( 0 )
+							skins:SetMax( skinCount )
 							skins:SetValue(PlayerSkin:GetInt())
 							skins.OnValueChanged = SetSkin
 							if not bodygroupsTab:IsVisible() then
-								bodygroupsTab:SetVisible(true)
+								bodygroupsTab:SetVisible( true )
 								bodygroupsTab:InvalidateParent()
 							end
 						end
 						local groups = Explode(" ", PlayerBodyGroups:GetString())
 						for index = 0, previewEntity:GetNumBodyGroups() - 1 do
-							if previewEntity:GetBodygroupCount(index) <= 1 then
+							if previewEntity:GetBodygroupCount( index ) <= 1 then
 								goto _continue_0
 							end
-							local bodygroup = scrollPanel:Add("DNumSlider")
-							bodygroup:Dock(TOP)
-							local str = previewEntity:GetBodygroupName(index)
+							local bodygroup = scrollPanel:Add( "DNumSlider" )
+							bodygroup:Dock( TOP )
+							local str = previewEntity:GetBodygroupName( index )
 							bodygroup:SetText(upper(sub(str, 1, 1)) .. sub(str, 2))
-							bodygroup:SetDark(true)
-							bodygroup:SetTall(50)
-							bodygroup:SetDecimals(0)
+							bodygroup:SetDark( true )
+							bodygroup:SetTall( 50 )
+							bodygroup:SetDecimals( 0 )
 							bodygroup.BodygroupID = index
-							bodygroup:SetMax(previewEntity:GetBodygroupCount(index) - 1)
+							bodygroup:SetMax(previewEntity:GetBodygroupCount( index ) - 1)
 							bodygroup:SetValue(groups[index + 1] or 0)
 							bodygroup.OnValueChanged = UpdateBodyGroups
 							previewEntity:SetBodygroup(index, groups[index + 1] or 0)
 							if not bodygroupsTab:IsVisible() then
-								bodygroupsTab:SetVisible(true)
+								bodygroupsTab:SetVisible( true )
 								bodygroupsTab:InvalidateParent()
 							end
 							::_continue_0::
 						end
 					end
 					sheet.tabScroller:InvalidateLayout()
-					local sequence = previewEntity:SelectWeightedSequence(ACT_HL2MP_IDLE)
+					local sequence = previewEntity:SelectWeightedSequence( ACT_HL2MP_IDLE )
 					if sequence > 0 then
-						return previewEntity:ResetSequence(sequence)
+						return previewEntity:ResetSequence( sequence )
 					end
 				end
 				hook.Add("PlayerModelChanged", window, function(_, modelName)
-					SetupModel(modelName)
+					SetupModel( modelName )
 					return
 				end)
-				SetupModel(Jailbreak.SelectedPlayerModel)
+				SetupModel( Jailbreak.SelectedPlayerModel )
 			end
 			do
-				local panel = window:Add("DPanel")
+				local panel = window:Add( "DPanel" )
 				panel:DockPadding(8, 8, 8, 8)
-				local scrollPanel = panel:Add("DScrollPanel")
-				scrollPanel:Dock(FILL)
-				scrollPanel.PerformLayout = function(...)
+				local scrollPanel = panel:Add( "DScrollPanel" )
+				scrollPanel:Dock( FILL )
+				scrollPanel.PerformLayout = function( ... )
 					local canvas = scrollPanel:GetCanvas()
 					if canvas and canvas:IsValid() then
-						margin = VMin(1)
+						margin = VMin( 1 )
 						canvas:DockPadding(margin, margin, margin, margin)
 					end
-					return DScrollPanel.PerformLayout(...)
+					return DScrollPanel.PerformLayout( ... )
 				end
 				do
-					local handsTransparency = scrollPanel:Add("DNumSlider")
-					handsTransparency:Dock(TOP)
-					handsTransparency:SetText("#jb.hands-transparency")
-					handsTransparency:SetDark(true)
-					handsTransparency:SetTall(50)
-					handsTransparency:SetDecimals(2)
-					handsTransparency:SetMax(1)
+					local handsTransparency = scrollPanel:Add( "DNumSlider" )
+					handsTransparency:Dock( TOP )
+					handsTransparency:SetText( "#jb.hands-transparency" )
+					handsTransparency:SetDark( true )
+					handsTransparency:SetTall( 50 )
+					handsTransparency:SetDecimals( 2 )
+					handsTransparency:SetMax( 1 )
 					handsTransparency:SetValue(Jailbreak.HandsTransparency:GetFloat())
 					function handsTransparency:OnValueChanged( value)
-						return Jailbreak.HandsTransparency:SetFloat(value)
+						return Jailbreak.HandsTransparency:SetFloat( value )
 					end
 				end
 				do
-					local notifyLifetime = scrollPanel:Add("DNumSlider")
-					notifyLifetime:Dock(TOP)
-					notifyLifetime:SetText("#jb.pickup-notify-lifetime")
-					notifyLifetime:SetDecimals(0)
-					notifyLifetime:SetDark(true)
-					notifyLifetime:SetTall(50)
-					notifyLifetime:SetMax(60)
+					local notifyLifetime = scrollPanel:Add( "DNumSlider" )
+					notifyLifetime:Dock( TOP )
+					notifyLifetime:SetText( "#jb.pickup-notify-lifetime" )
+					notifyLifetime:SetDecimals( 0 )
+					notifyLifetime:SetDark( true )
+					notifyLifetime:SetTall( 50 )
+					notifyLifetime:SetMax( 60 )
 					notifyLifetime:SetValue(Jailbreak.PickupNotifyLifetime:GetInt())
 					function notifyLifetime:OnValueChanged( value)
-						return Jailbreak.PickupNotifyLifetime:SetInt(value)
+						return Jailbreak.PickupNotifyLifetime:SetInt( value )
 					end
 				end
 				hook.Call("ClientOptionsLoaded", nil, scrollPanel)

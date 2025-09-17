@@ -1,17 +1,17 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-include("shared.lua")
+AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
 local random = math.random
 ENT.StartAmount = 128
 function ENT:Initialize()
 	self.m_iAmount = self.StartAmount
-	self:SetModel(self.Model)
-	self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
-	self:SetUseType(SIMPLE_USE)
-	self:DrawShadow(true)
+	self:SetModel( self.Model )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+	self:DrawShadow( true )
 	self:PhysWake()
 	return
 end
@@ -28,7 +28,7 @@ function ENT:Use( ply)
 	if weapon:Clip1() ~= -1 then
 		local clip1Type = weapon:GetPrimaryAmmoType()
 		if clip1Type >= 0 then
-			local acceptAmount = ply:GetPickupAmmoCount(clip1Type)
+			local acceptAmount = ply:GetPickupAmmoCount( clip1Type )
 			if acceptAmount > ammoAmount then
 				acceptAmount = ammoAmount
 			end
@@ -41,7 +41,7 @@ function ENT:Use( ply)
 	end
 	local clip2Type = weapon:GetSecondaryAmmoType()
 	if clip2Type >= 0 and acceptAmount ~= 0 then
-		local acceptAmount = ply:GetPickupAmmoCount(clip2Type)
+		local acceptAmount = ply:GetPickupAmmoCount( clip2Type )
 		if acceptAmount > ammoAmount then
 			acceptAmount = ammoAmount
 		end
@@ -64,8 +64,8 @@ function ENT:Use( ply)
 	self:Remove()
 	return
 end
-local sk_npc_dmg_fraggrenade = GetConVar("sk_npc_dmg_fraggrenade")
-local sk_fraggrenade_radius = GetConVar("sk_fraggrenade_radius")
+local sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
+local sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
 local Explosion = Jailbreak.Explosion
 function ENT:OnTakeDamage( damageInfo)
 	if self.m_bExploded or self.m_iAmount < 16 then

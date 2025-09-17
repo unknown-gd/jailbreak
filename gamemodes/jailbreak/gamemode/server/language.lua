@@ -34,11 +34,11 @@ do
 			bor, band, rshift = _obj_0.bor, _obj_0.band, _obj_0.rshift
 		end
 		local tonumber = tonumber
-		parseUnicode = function(str)
-			return gsub(str, "\\u([0-9a-f][0-9a-f][0-9a-f][0-9a-f])", function(value)
+		parseUnicode = function( str )
+			return gsub(str, "\\u( [0-9a-f][0-9a-f][0-9a-f][0-9a-f] )", function( value )
 				local byte = tonumber(value, 16)
 				if byte < 0x80 then
-					return char(byte)
+					return char( byte )
 				elseif byte < 0x800 then
 					local b1 = bor(0xC0, band(rshift(byte, 6), 0x1F))
 					local b2 = bor(0x80, band(byte, 0x3F))
@@ -66,8 +66,8 @@ do
 			["\\t"] = "\t",
 			["\\0"] = "\0"
 		}
-		parseEscapedChars = function(str)
-			return gsub(str, "\\.", function(value)
+		parseEscapedChars = function( str )
+			return gsub(str, "\\.", function( value )
 				return escapedChars[value] or value[2]
 			end)
 		end
@@ -82,7 +82,7 @@ do
 		end
 		local select = select
 		local print = print
-		loadLocalization = function(folderPath)
+		loadLocalization = function( folderPath )
 			local _list_0 = select(2, Find(folderPath .. "/*", "GAME"))
 			for _index_0 = 1, #_list_0 do
 				local languageCode = _list_0[_index_0]
@@ -96,7 +96,7 @@ do
 						if status ~= 0 or not data or #data < 3 then
 							return
 						end
-						for line in gmatch(data, "(.-)\n") do
+						for line in gmatch(data, "( .- )\n") do
 							if #line >= 3 then
 								local separatorPos = find(line, "=")
 								if not separatorPos then
@@ -113,12 +113,12 @@ do
 		Jailbreak.LoadLocalization = loadLocalization
 	end
 	Jailbreak.ReloadLocalization = function()
-		loadLocalization("resource/localization")
-		return loadLocalization("gamemodes/jailbreak/content/resource/localization")
+		loadLocalization( "resource/localization" )
+		return loadLocalization( "gamemodes/jailbreak/content/resource/localization" )
 	end
 end
 function Jailbreak:GetPhrase( placeholder)
-	local languageCode = self:GetInfo("gmod_language")
+	local languageCode = self:GetInfo( "gmod_language" )
 	if not languageCode or #languageCode == 0 then
 		return placeholder
 	end
@@ -129,10 +129,10 @@ function Jailbreak:GetPhrase( placeholder)
 	return fulltext
 end
 function Jailbreak:Translate( str)
-	if not (IsValid(self) and self:IsPlayer()) then
+	if not (IsValid( self ) and self:IsPlayer()) then
 		return str
 	end
-	return gsub(str, "#([%w%.-_]+)", function(placeholder)
+	return gsub(str, "#( [%w%.-_]+ )", function( placeholder )
 		local fulltext = getPhrase(languageCode, placeholder)
 		if fulltext == placeholder and sub(placeholder, 1, 3) == "jb." then
 			return sub(placeholder, 4)

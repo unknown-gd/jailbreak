@@ -35,13 +35,13 @@ local NULL = NULL
 do
 	local AllowJoinToGuards, GuardsDiff = Jailbreak.AllowJoinToGuards, Jailbreak.GuardsDiff
 	local Joinable = team.Joinable
-	Jailbreak.TeamIsJoinable = function(requestedTeamID)
-		if not Joinable(requestedTeamID) then
+	Jailbreak.TeamIsJoinable = function( requestedTeamID )
+		if not Joinable( requestedTeamID ) then
 			return false
 		end
 		local guardCount, prisonerCount = 0, 0
 		for _, ply in Iterator() do
-			local teamID = Team(ply)
+			local teamID = Team( ply )
 			if teamID == TEAM_GUARD then
 				guardCount = guardCount + 1
 			elseif teamID == TEAM_PRISONER then
@@ -71,13 +71,13 @@ end
 do
 	local CLIENT = CLIENT
 	local GetPhrase = CLIENT and language.GetPhrase
-	Jailbreak.GetWeaponName = function(weapon)
+	Jailbreak.GetWeaponName = function( weapon )
 		if not (weapon and weapon:IsValid() and weapon:IsWeapon()) then
 			return "#jb.unknown"
 		end
 		if CLIENT then
 			local placeholder = "jb." .. weapon:GetClass()
-			if GetPhrase(placeholder) ~= placeholder then
+			if GetPhrase( placeholder ) ~= placeholder then
 				return "#" .. placeholder
 			end
 		end
@@ -90,17 +90,17 @@ do
 end
 do
 	local gsub = string.gsub
-	Jailbreak.FixModelPath = function(modelPath)
-		return gsub(lower(modelPath), "[\\/]+", "/")
+	Jailbreak.FixModelPath = function( modelPath )
+		return gsub(lower( modelPath ), "[\\/]+", "/")
 	end
 end
 Jailbreak.GetPlayersCount = function(teamID, alive)
 	local count = 0
 	for _, ply in Iterator() do
-		if teamID ~= nil and Team(ply) ~= teamID then
+		if teamID ~= nil and Team( ply ) ~= teamID then
 			goto _continue_0
 		end
-		if alive ~= nil and Alive(ply) ~= alive then
+		if alive ~= nil and Alive( ply ) ~= alive then
 			goto _continue_0
 		end
 		count = count + 1
@@ -115,14 +115,14 @@ do
 		local teams = {
 			...
 		}
-		for index, teamID in ipairs(teams) do
+		for index, teamID in ipairs( teams ) do
 			length = 0
 			local tbl = {}
 			for _, ply in Iterator() do
-				if Team(ply) ~= teamID then
+				if Team( ply ) ~= teamID then
 					goto _continue_0
 				end
-				if alive ~= nil and Alive(ply) ~= alive then
+				if alive ~= nil and Alive( ply ) ~= alive then
 					goto _continue_0
 				end
 				length = length + 1
@@ -137,13 +137,13 @@ do
 		local teams = {
 			...
 		}
-		for index, teamID in ipairs(teams) do
+		for index, teamID in ipairs( teams ) do
 			length = 0
 			for _, ply in Iterator() do
-				if Team(ply) ~= teamID then
+				if Team( ply ) ~= teamID then
 					goto _continue_0
 				end
-				if alive ~= nil and Alive(ply) ~= alive then
+				if alive ~= nil and Alive( ply ) ~= alive then
 					goto _continue_0
 				end
 				length = length + 1
@@ -157,7 +157,7 @@ end
 do
 	local function getWarden()
 		local warden = Jailbreak.Warden
-		if warden and warden:IsValid() and warden:IsWarden() and Alive(warden) then
+		if warden and warden:IsValid() and warden:IsWarden() and Alive( warden ) then
 			return warden
 		end
 		for _, ply in Iterator() do
@@ -171,7 +171,7 @@ do
 	Jailbreak.GetWarden = getWarden
 	Jailbreak.HasWarden = function()
 		local warden = getWarden()
-		return warden:IsValid() and Alive(warden)
+		return warden:IsValid() and Alive( warden )
 	end
 end
 do
@@ -180,7 +180,7 @@ do
 	local ROUND_RUNNING = ROUND_RUNNING
 	local ROUND_FINISHED = ROUND_FINISHED
 	local function getRoundState()
-		return GetGlobal2Int("round-state")
+		return GetGlobal2Int( "round-state" )
 	end
 	Jailbreak.GetRoundState = getRoundState
 	function Jailbreak:IsWaitingPlayers()
@@ -202,7 +202,7 @@ do
 end
 do
 	local function getRoundTime()
-		return GetGlobal2Int("next-round-state")
+		return GetGlobal2Int( "next-round-state" )
 	end
 	Jailbreak.GetRoundTime = getRoundTime
 	function Jailbreak:GetRemainingTime()
@@ -210,17 +210,17 @@ do
 	end
 end
 Jailbreak.GetWinningTeam = function()
-	return GetGlobal2Int("winning-team")
+	return GetGlobal2Int( "winning-team" )
 end
 Jailbreak.IsShockCollarsActive = function()
-	return GetGlobal2Bool("shock-collars")
+	return GetGlobal2Bool( "shock-collars" )
 end
 do
 	local function getWardenCoins()
-		return GetGlobal2Int("warden-coins")
+		return GetGlobal2Int( "warden-coins" )
 	end
 	Jailbreak.GetWardenCoins = getWardenCoins
-	Jailbreak.CanWardenAfford = function(value)
+	Jailbreak.CanWardenAfford = function( value )
 		return getWardenCoins() >= value
 	end
 end
@@ -231,7 +231,7 @@ function Jailbreak:DelayedRemove( delay)
 		end
 	end)
 end
-Jailbreak.TF2Team = function(teamID)
+Jailbreak.TF2Team = function( teamID )
 	if 2 == teamID then
 		return TEAM_PRISONER
 	elseif 3 == teamID then
@@ -242,10 +242,10 @@ end
 do
 	local date = os.date
 	Jailbreak.IsFemalePrison = function()
-		if GetGlobal2Bool("female-prison") then
+		if GetGlobal2Bool( "female-prison" ) then
 			return true
 		end
-		local result = date("!*t")
+		local result = date( "!*t" )
 		return result.month == 3 and result.day == 8
 	end
 end
@@ -253,7 +253,7 @@ do
 	local AllowCustomPlayerModels, IsFemalePrison = Jailbreak.AllowCustomPlayerModels, Jailbreak.IsFemalePrison
 	local TranslateToPlayerModelName = player_manager.TranslateToPlayerModelName
 	local isFemalePrison = false
-	Jailbreak.FormatPlayerModelName = function(modelName)
+	Jailbreak.FormatPlayerModelName = function( modelName )
 		if AllowCustomPlayerModels:GetBool() then
 			return modelName
 		end
@@ -293,17 +293,17 @@ do
 	local Effect = util.Effect
 	function ENTITY:DoElectricSparks( origin, pitch, noSound)
 		if not origin then
-			local bone = self:LookupBone("ValveBiped.Bip01_Head1")
+			local bone = self:LookupBone( "ValveBiped.Bip01_Head1" )
 			if bone and bone >= 0 then
-				origin = self:GetBonePosition(bone)
+				origin = self:GetBonePosition( bone )
 			end
 			if not origin then
 				origin = self:EyePos()
 			end
 		end
 		local fx = EffectData()
-		fx:SetScale(0.5)
-		fx:SetOrigin(origin)
+		fx:SetScale( 0.5 )
+		fx:SetOrigin( origin )
 		fx:SetMagnitude(random(3, 5))
 		fx:SetRadius(random(1, 5))
 		Effect("ElectricSpark", fx)
@@ -314,7 +314,7 @@ do
 end
 do
 	local DefaultPlayerColor = Jailbreak.DefaultPlayerColor
-	local function getPlayerColor(self)
+	local function getPlayerColor( self )
 		return self.m_vPlayerColor or DefaultPlayerColor
 	end
 	ENTITY.GetPlayerColor, PLAYER.GetPlayerColor = getPlayerColor, getPlayerColor
@@ -322,7 +322,7 @@ end
 do
 	local isvector = isvector
 	Add("EntityNetworkedVarChanged", "Jailbreak::PlayerColor", function(self, key, _, value)
-		if key == "player-color" and isvector(value) then
+		if key == "player-color" and isvector( value ) then
 			self.m_vPlayerColor = value
 			Run("PlayerColorChanged", self, value)
 			return
@@ -339,8 +339,8 @@ do
 		end
 		Add("StartCommand", "Jailbreak::MovementBlocking", function(self, cmd)
 			if Call("AllowPlayerMove", nil, self) == false then
-				ClearMovement(cmd)
-				return ClearButtons(cmd)
+				ClearMovement( cmd )
+				return ClearButtons( cmd )
 			end
 		end)
 	end
@@ -355,7 +355,7 @@ do
 		local velocity, frameTime = Vector(), 0
 		function GM:Move( ply, mv)
 			if Call("AllowPlayerMove", nil, ply) == false then
-				velocity, frameTime = GetVelocity(mv), FrameTime()
+				velocity, frameTime = GetVelocity( mv ), FrameTime()
 				velocity[1] = Lerp(frameTime, velocity[1], 0)
 				velocity[2] = Lerp(frameTime, velocity[2], 0)
 				return SetVelocity(mv, velocity)
@@ -365,9 +365,9 @@ do
 end
 do
 	local ToColor = VECTOR.ToColor
-	local defaultColor = ToColor(Jailbreak.DefaultPlayerColor)
+	local defaultColor = ToColor( Jailbreak.DefaultPlayerColor )
 	Add("PlayerColorChanged", "Jailbreak::PlayerColor", function(self, vector)
-		self.m_cPlayerColor = ToColor(vector)
+		self.m_cPlayerColor = ToColor( vector )
 	end)
 	function ENTITY:GetModelColor()
 		if self:IsValid() then
@@ -389,7 +389,7 @@ setPlayerColor = function(self, vector)
 end
 ENTITY.SetPlayerColor, PLAYER.SetPlayerColor = setPlayerColor, setPlayerColor
 do
-	local classNames = list.GetForEdit("prop-classnames")
+	local classNames = list.GetForEdit( "prop-classnames" )
 	classNames.prop_physics_multiplayer = true
 	classNames.prop_physics_override = true
 	classNames.prop_dynamic_override = true
@@ -398,12 +398,12 @@ do
 	classNames.prop_physics = true
 	classNames.prop_detail = true
 	classNames.prop_static = true
-	Jailbreak.IsProp = function(className)
+	Jailbreak.IsProp = function( className )
 		return classNames[className] ~= nil
 	end
 	local GetClass = ENTITY.GetClass
 	function ENTITY:IsProp()
-		return classNames[GetClass(self)] ~= nil
+		return classNames[GetClass( self )] ~= nil
 	end
 	local GetModel = ENTITY.GetModel
 	function ENTITY:IsFemaleModel()
@@ -411,7 +411,7 @@ do
 		if not teamModels then
 			return false
 		end
-		local model = lower(GetModel(self))
+		local model = lower(GetModel( self ))
 		local _list_0 = teamModels[true]
 		for _index_0 = 1, #_list_0 do
 			local modelPath = _list_0[_index_0]
@@ -426,7 +426,7 @@ do
 		["models/props_junk/metal_paintcan001b.mdl"] = true
 	}
 	function ENTITY:IsPaintCan()
-		return classNames[GetClass(self)] ~= nil and paintCans[GetModel(self)] ~= nil
+		return classNames[GetClass( self )] ~= nil and paintCans[GetModel( self )] ~= nil
 	end
 end
 function ENTITY:IsButton()
@@ -444,7 +444,7 @@ end
 do
 	local DefaultColor = Color(255, 255, 100, 255)
 	local TeamInfo = team.GetAllTeams()
-	local function getTeamColor(teamID)
+	local function getTeamColor( teamID )
 		local teamInfo = TeamInfo[teamID]
 		if teamInfo ~= nil then
 			return teamInfo.Color
@@ -452,16 +452,16 @@ do
 		return DefaultColor
 	end
 	Jailbreak.GetTeamColor = getTeamColor
-	local function getTeamColorUpacked(teamID)
-		local color = getTeamColor(teamID)
+	local function getTeamColorUpacked( teamID )
+		local color = getTeamColor( teamID )
 		return color.r, color.g, color.b, color.a
 	end
 	Jailbreak.GetTeamColorUpacked = getTeamColorUpacked
 	function PLAYER:GetTeamColor()
-		return getTeamColor(Team(self))
+		return getTeamColor(Team( self ))
 	end
 	function PLAYER:GetTeamColorUpacked()
-		return getTeamColorUpacked(Team(self))
+		return getTeamColorUpacked(Team( self ))
 	end
 end
 function PLAYER:IsFullyConnected()
@@ -522,7 +522,7 @@ do
 		end
 		local isBot = self:IsBot()
 		local sid64 = isBot and self:Nick() or self:SteamID64()
-		local _list_0 = FindByClass("prop_ragdoll")
+		local _list_0 = FindByClass( "prop_ragdoll" )
 		for _index_0 = 1, #_list_0 do
 			local entity = _list_0[_index_0]
 			if entity:IsPlayerRagdoll() and GetNW2Var(entity, isBot and "owner-nickname" or "owner-steamid64") == sid64 then
@@ -530,7 +530,7 @@ do
 				return entity
 			end
 		end
-		local _list_1 = FindByClass("prop_physics")
+		local _list_1 = FindByClass( "prop_physics" )
 		for _index_0 = 1, #_list_1 do
 			local entity = _list_1[_index_0]
 			if entity:IsPlayerRagdoll() and GetNW2Var(entity, isBot and "owner-nickname" or "owner-steamid64") == sid64 then
@@ -542,21 +542,21 @@ do
 	end
 end
 function PLAYER:IsGuard()
-	return Team(self) == TEAM_GUARD
+	return Team( self ) == TEAM_GUARD
 end
 function PLAYER:IsPrisoner()
-	return Team(self) == TEAM_PRISONER
+	return Team( self ) == TEAM_PRISONER
 end
 function PLAYER:IsWarden()
 	return GetNW2Var(self, "is-warden", false)
 end
 do
-	local function hasShockCollar(self)
+	local function hasShockCollar( self )
 		return GetNW2Var(self, "shock-collar", false)
 	end
 	PLAYER.HasShockCollar = hasShockCollar
 	function PLAYER:ShockCollarIsEnabled()
-		return hasShockCollar(self) and GetNW2Var(self, "shock-collar-enabled", false)
+		return hasShockCollar( self ) and GetNW2Var(self, "shock-collar-enabled", false)
 	end
 end
 function PLAYER:HasSecurityKeys()
@@ -570,7 +570,7 @@ do
 	function PLAYER:GetNearPlayers( distance, isTeam, noSpeaker)
 		local teamID = false
 		if isTeam then
-			teamID = Team(self)
+			teamID = Team( self )
 		end
 		local players = {}
 		local _list_0 = FindInSphere(self:EyePos(), distance)
@@ -582,7 +582,7 @@ do
 			if noSpeaker and ply == self then
 				goto _continue_0
 			end
-			if isTeam and Team(ply) ~= teamID then
+			if isTeam and Team( ply ) ~= teamID then
 				goto _continue_0
 			end
 			players[#players + 1] = ply
@@ -628,8 +628,8 @@ do
 	local GetAmmoCount = PLAYER.GetAmmoCount
 	local GetAmmoMax = game.GetAmmoMax
 	local count = 0
-	local function getAmmoMax(ammoType)
-		count = GetAmmoMax(ammoType)
+	local function getAmmoMax( ammoType )
+		count = GetAmmoMax( ammoType )
 		if count < 0 or count > 256 then
 			return 256
 		end
@@ -637,7 +637,7 @@ do
 	end
 	Jailbreak.GetAmmoMax = getAmmoMax
 	function PLAYER:GetPickupAmmoCount( ammoType)
-		count = getAmmoMax(ammoType) - GetAmmoCount(self, ammoType)
+		count = getAmmoMax( ammoType ) - GetAmmoCount(self, ammoType)
 		if count < 0 then
 			return 0
 		end
@@ -645,7 +645,7 @@ do
 	end
 end
 function PLAYER:IsSpawning()
-	return Alive(self) and GetNW2Var(self, "is-spawning", false)
+	return Alive( self ) and GetNW2Var(self, "is-spawning", false)
 end
 function PLAYER:IsEscaped()
 	return GetNW2Var(self, "escaped", false)
@@ -663,7 +663,7 @@ do
 	local MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 	local GetMoveType = ENTITY.GetMoveType
 	function PLAYER:InNoclip()
-		return GetMoveType(self) == MOVETYPE_NOCLIP
+		return GetMoveType( self ) == MOVETYPE_NOCLIP
 	end
 	function PLAYER:SetNoclip( desiredState, force)
 		if desiredState == self:InNoclip() then

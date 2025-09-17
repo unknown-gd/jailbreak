@@ -6,7 +6,7 @@ local GM = GM
 local VoiceChatMinDistance, VoiceChatMaxDistance, GameInProgress = Jailbreak.VoiceChatMinDistance, Jailbreak.VoiceChatMaxDistance, Jailbreak.GameInProgress
 local white, red, dark_white
 do
-	local _obj_0 = Jailbreak.Colors
+	local _obj_0 = Jailbreak.ColorScheme
 	white, red, dark_white = _obj_0.white, _obj_0.red, _obj_0.dark_white
 end
 local CHAT_SERVERMESSAGE = CHAT_SERVERMESSAGE
@@ -19,7 +19,7 @@ local random = math.random
 local Add = hook.Add
 local sendChatText = nil
 do
-	util.AddNetworkString("Jailbreak::Chat")
+	util.AddNetworkString( "Jailbreak::Chat" )
 	local Start, WriteUInt, WriteBool, WriteTable, Send, Broadcast = net.Start, net.WriteUInt, net.WriteBool, net.WriteTable, net.Send, net.Broadcast
 	local isnumber = isnumber
 	local IsEntity = IsEntity
@@ -30,9 +30,9 @@ do
 	local TYPE_TABLE = TYPE_TABLE
 	local fallbackStr = "unsupported"
 	sendChatText = function(target, speaker, messageType, text, nickname, isDead, isTeamChat, ...)
-		Start("Jailbreak::Chat")
+		Start( "Jailbreak::Chat" )
 		local hasSpeaker = speaker and speaker:IsValid()
-		WriteBool(hasSpeaker)
+		WriteBool( hasSpeaker )
 		if hasSpeaker then
 			WriteUInt(speaker:EntIndex(), 8)
 		end
@@ -46,7 +46,7 @@ do
 		}, true)
 		if not hasSpeaker then
 			if target then
-				Send(target)
+				Send( target )
 			else
 				Broadcast()
 			end
@@ -59,14 +59,14 @@ do
 			end
 			target = GetHumans()
 		end
-		if not isstring(text) then
+		if not isstring( text ) then
 			text = fallbackStr
 		end
-		isTeamChat = isnumber(isTeamChat)
-		local _exp_0 = TypeID(target)
+		isTeamChat = isnumber( isTeamChat )
+		local _exp_0 = TypeID( target )
 		if TYPE_ENTITY == _exp_0 then
 			if Run("PlayerCanSeePlayersChat", text, isTeamChat, target, speaker) ~= false then
-				return Send(target)
+				return Send( target )
 			end
 		elseif TYPE_RECIPIENTFILTER == _exp_0 then
 			local players = {}
@@ -77,12 +77,12 @@ do
 					players[#players + 1] = listener
 				end
 			end
-			return Send(players)
+			return Send( players )
 		elseif TYPE_TABLE == _exp_0 then
 			local players = {}
 			for _index_0 = 1, #target do
 				local listener = target[_index_0]
-				if not (IsEntity(listener) and listener:IsValid() and listener:IsPlayer()) then
+				if not (IsEntity( listener ) and listener:IsValid() and listener:IsPlayer()) then
 					goto _continue_0
 				end
 				if Run("PlayerCanSeePlayersChat", text, isTeamChat, listener, speaker) ~= false then
@@ -90,11 +90,11 @@ do
 				end
 				::_continue_0::
 			end
-			return Send(players)
+			return Send( players )
 		end
 	end
 	function PLAYER:ChatPrint( text)
-		if not (isstring(text) and #text > 0) then
+		if not (isstring( text ) and #text > 0) then
 			text = fallbackStr
 		end
 		return sendChatText(self, false, CHAT_SERVERMESSAGE, text, white)
@@ -102,7 +102,7 @@ do
 end
 Jailbreak.SendChatText = sendChatText
 local chatCommands = Jailbreak.ChatCommands
-if not istable(chatCommands) then
+if not istable( chatCommands ) then
 	chatCommands = {}
 	Jailbreak.ChatCommands = chatCommands
 end
@@ -110,22 +110,22 @@ local setChatCommand = nil
 do
 	local isfunction = isfunction
 	setChatCommand = function(str, func, description)
-		if not (isstring(str) and isfunction(func)) then
+		if not (isstring( str ) and isfunction( func )) then
 			return
 		end
-		if not isstring(description) then
+		if not isstring( description ) then
 			description = "#jb.chat.command.no-description"
 		end
-		chatCommands[lower(str)] = {
+		chatCommands[lower( str )] = {
 			func,
 			description
 		}
 	end
 	Jailbreak.SetChatCommand = setChatCommand
 end
-setChatCommand("help", function(self)
+setChatCommand("help", function( self )
 	local text, counter = "#jb.chat.command.available\n", 1
-	for str, data in pairs(chatCommands) do
+	for str, data in pairs( chatCommands ) do
 		text = text .. (counter .. ". /" .. str .. " - " .. data[2] .. "\n")
 		counter = counter + 1
 	end
@@ -151,7 +151,7 @@ do
 		if #text == 0 then
 			return sendChatText(self, false, CHAT_SERVERMESSAGE, "#jb.chat.command.invalid", red)
 		else
-			return customEmotion(self, lower(text))
+			return customEmotion(self, lower( text ))
 		end
 	end
 	setChatCommand("e", emotion, "#jb.chat.command.emotion")
@@ -167,14 +167,14 @@ do
 	do
 		local match = string.match
 		setChatCommand("roll", function(self, text)
-			local int1, int2 = match(text, "(-?%d+)%s+(-?%d+)")
+			local int1, int2 = match(text, "( -?%d+ )%s+( -?%d+ )")
 			if not int1 then
 				int1 = 0
 			end
 			if not int2 then
 				int2 = 100
 			end
-			return emotion(self, "#jb.chat.rolled " .. random(tonumber(int1) or 0, tonumber(int2) or 0))
+			return emotion(self, "#jb.chat.rolled " .. random(tonumber( int1 ) or 0, tonumber( int2 ) or 0))
 		end, "#jb.chat.command.roll")
 	end
 end
@@ -214,11 +214,11 @@ do
 	local CHAT_TEXT = CHAT_TEXT
 	local min = math.min
 	function GM:PlayerSay( ply, text, isTeamChat)
-		text = Trim(text)
+		text = Trim( text )
 		if sub(text, 1, 1) == "/" then
-			local startPos, _, command = find(text, "^/([^%s]+)")
+			local startPos, _, command = find(text, "^/( [^%s]+ )")
 			if command then
-				local data = chatCommands[lower(command)]
+				local data = chatCommands[lower( command )]
 				if data then
 					return data[1](ply, Trim(sub(text, min(startPos + #command + 1, #text) + 1)), isTeamChat) or ""
 				else
@@ -271,9 +271,9 @@ do
 	end)
 end
 do
-	gameevent.Listen("player_disconnect")
+	gameevent.Listen( "player_disconnect" )
 	local CHAT_DISCONNECT = CHAT_DISCONNECT
-	Add("player_disconnect", "Jailbreak::LeaveNotification", function(data)
+	Add("player_disconnect", "Jailbreak::LeaveNotification", function( data )
 		local players, admins = {}, {}
 		local _list_0 = GetHumans()
 		for _index_0 = 1, #_list_0 do
@@ -293,10 +293,10 @@ do
 	end)
 end
 do
-	gameevent.Listen("player_changename")
+	gameevent.Listen( "player_changename" )
 	local CHAT_NAMECHANGE = CHAT_NAMECHANGE
 	local Player = Player
-	Add("player_changename", "Jailbreak::NameChangeNotification", function(data)
+	Add("player_changename", "Jailbreak::NameChangeNotification", function( data )
 		local admins = {}
 		local _list_0 = GetHumans()
 		for _index_0 = 1, #_list_0 do
@@ -305,14 +305,14 @@ do
 				admins[#admins + 1] = ply
 			end
 		end
-		local ply, color = Player(data.userid), dark_white
+		local ply, color = Player( data.userid ), dark_white
 		if ply:IsValid() then
 			color = ply:GetModelColor()
 		end
 		return sendChatText(admins, false, CHAT_NAMECHANGE, data.oldname, data.newname, color)
 	end)
 end
-Add("PlayerInitialSpawn", "Jailbreak::Communication", function(self)
+Add("PlayerInitialSpawn", "Jailbreak::Communication", function( self )
 	if not self:IsBot() then
 		self.AvailableSpeakers = {}
 	end
@@ -349,31 +349,31 @@ do
 		return self:EmitSound(state and "ui/buttonclick.wav" or "ui/buttonclickrelease.wav", 75, random(80, 120), 1, CHAN_STATIC, 0, 1, rf)
 	end)
 end
-setChatCommand("warden", function(self)
-	return self:ConCommand("jb_warden")
+setChatCommand("warden", function( self )
+	return self:ConCommand( "jb_warden" )
 end, "#jb.chat.command.warden")
 do
 	local ChangeTeam = Jailbreak.ChangeTeam
 	local function func(self, text)
-		return ChangeTeam(self, tonumber(text) or 0)
+		return ChangeTeam(self, tonumber( text ) or 0)
 	end
 	setChatCommand("changeteam", func, "#jb.chat.command.changeteam")
 	setChatCommand("team", func, "#jb.chat.command.changeteam")
 	do
 		local TEAM_PRISONER = TEAM_PRISONER
-		setChatCommand("prisoners", function(self)
+		setChatCommand("prisoners", function( self )
 			return ChangeTeam(self, TEAM_PRISONER)
 		end)
 	end
 	do
 		local TEAM_GUARD = TEAM_GUARD
-		setChatCommand("guards", function(self)
+		setChatCommand("guards", function( self )
 			return ChangeTeam(self, TEAM_GUARD)
 		end)
 	end
 	do
 		local TEAM_SPECTATOR = TEAM_SPECTATOR
-		setChatCommand("spectators", function(self)
+		setChatCommand("spectators", function( self )
 			return ChangeTeam(self, TEAM_SPECTATOR)
 		end)
 	end
@@ -391,7 +391,7 @@ end
 do
 	local sendVolumes = nil
 	do
-		util.AddNetworkString("JB::Communication")
+		util.AddNetworkString( "JB::Communication" )
 		local Start, WriteUInt, WriteEntity, WriteFloat, Send = net.Start, net.WriteUInt, net.WriteEntity, net.WriteFloat, net.Send
 		local VoiceChatUDP = Jailbreak.VoiceChatUDP
 		sendVolumes = function(listener, volumes)
@@ -403,10 +403,10 @@ do
 			WriteUInt(length, 10)
 			for i = 1, length do
 				local data = volumes[i]
-				WriteEntity(data[1])
-				WriteFloat(data[2])
+				WriteEntity( data[1] )
+				WriteFloat( data[2] )
 			end
-			return Send(listener)
+			return Send( listener )
 		end
 	end
 	local IsRoundRunning, VoiceChatSpeed, VoiceChatProximity = Jailbreak.IsRoundRunning, Jailbreak.VoiceChatSpeed, Jailbreak.VoiceChatProximity
@@ -415,12 +415,12 @@ do
 	local Distance = VECTOR.Distance
 	local EyePos = ENTITY.EyePos
 	local Empty = table.Empty
-	local sv_alltalk = GetConVar("sv_alltalk"):GetInt() > 2
+	local sv_alltalk = GetConVar( "sv_alltalk" ):GetInt() > 2
 	cvars.AddChangeCallback("sv_alltalk", function(_, __, value)
-		sv_alltalk = (tonumber(value) or 2) > 2
+		sv_alltalk = (tonumber( value ) or 2) > 2
 	end, "Jailbreak")
 	cvars.AddChangeCallback(VoiceChatSpeed:GetName(), function(_, __, value)
-		return timer.Adjust("JB::Communication", 1 / (tonumber(value) or 4))
+		return timer.Adjust("JB::Communication", 1 / (tonumber( value ) or 4))
 	end, "Jailbreak")
 	return timer.Create("JB::Communication", 1 / VoiceChatSpeed:GetInt(), 0, function()
 		local minDistance, maxDistance = VoiceChatMinDistance:GetInt(), VoiceChatMaxDistance:GetInt()
@@ -428,7 +428,7 @@ do
 		for _index_0 = 1, #players do
 			local listener = players[_index_0]
 			local speakers = listener.AvailableSpeakers
-			Empty(speakers)
+			Empty( speakers )
 			local listenerIndex = listener:EntIndex()
 			local volumes = {}
 			if sv_alltalk or not IsRoundRunning() then
@@ -447,9 +447,9 @@ do
 				sendVolumes(listener, volumes)
 				goto _continue_0
 			end
-			local origin = EyePos(listener)
+			local origin = EyePos( listener )
 			local rf = RecipientFilter()
-			rf:AddPAS(origin)
+			rf:AddPAS( origin )
 			local isInGame = listener:Alive()
 			local proximityVoiceChat = VoiceChatProximity:GetBool()
 			local hasRadio = isInGame and listener:HasSecurityRadio()
@@ -480,7 +480,7 @@ do
 				if proximityVoiceChat and ((hasRadio and speaker:UsingSecurityRadio()) or speaker:UsingMegaphone()) then
 					goto _continue_2
 				end
-				local volume = Round(1 - Clamp(max(0, Distance(origin, EyePos(speaker)) - minDistance) / maxDistance, 0, 1), 2)
+				local volume = Round(1 - Clamp(max(0, Distance(origin, EyePos( speaker )) - minDistance) / maxDistance, 0, 1), 2)
 				if volume > 0 then
 					volumes[#volumes + 1] = {
 						speaker,

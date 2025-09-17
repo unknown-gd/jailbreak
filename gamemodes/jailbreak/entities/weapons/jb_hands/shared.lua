@@ -6,12 +6,12 @@ local random = math.random
 SWEP.PrintName = "#jb.hands"
 SWEP.Spawnable = false
 if CLIENT then
-	SWEP.WepSelectIcon = surface.GetTextureID("weapons/jb_hands")
+	SWEP.WepSelectIcon = surface.GetTextureID( "weapons/jb_hands" )
 end
 SWEP.Slot = 0
 SWEP.SlotPos = 4
 SWEP.Weight = -5
-SWEP.ViewModel = Model("models/weapons/c_arms.mdl")
+SWEP.ViewModel = Model( "models/weapons/c_arms.mdl" )
 SWEP.WorldModel = ""
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -26,7 +26,7 @@ SWEP.ViewModelFOV = 60
 SWEP.DrawAmmo = false
 SWEP.UseHands = true
 function SWEP:Initialize()
-	return self:SetHoldType("normal")
+	return self:SetHoldType( "normal" )
 end
 function SWEP:SetupDataTables()
 	self:NetworkVar("Float", 0, "NextMeleeAttack")
@@ -53,12 +53,12 @@ function SWEP:PlaySequence( sequenceName, onFinish)
 	if not vm:IsValid() then
 		return
 	end
-	local seqid = vm:LookupSequence(sequenceName)
+	local seqid = vm:LookupSequence( sequenceName )
 	if not (seqid and seqid > 0) then
 		return
 	end
-	vm:SendViewModelMatchingSequence(seqid)
-	local duration = vm:SequenceDuration(seqid) / vm:GetPlaybackRate()
+	vm:SendViewModelMatchingSequence( seqid )
+	local duration = vm:SequenceDuration( seqid ) / vm:GetPlaybackRate()
 	local nextSequence = CurTime() + duration
 	Simple(duration, function()
 		if not self:IsValid() then
@@ -75,11 +75,11 @@ function SWEP:PlaySequence( sequenceName, onFinish)
 	return nextSequence, duration
 end
 function SWEP:SetNextFire( curTime)
-	self:SetNextPrimaryFire(curTime)
-	return self:SetNextSecondaryFire(curTime)
+	self:SetNextPrimaryFire( curTime )
+	return self:SetNextSecondaryFire( curTime )
 end
 do
-	local swingSound = Sound("WeaponFrag.Throw")
+	local swingSound = Sound( "WeaponFrag.Throw" )
 	local PLAYER_ATTACK1 = PLAYER_ATTACK1
 	local CHAN_STATIC = CHAN_STATIC
 	local seqFinish, delay, combo = 0, 0, 0
@@ -89,7 +89,7 @@ do
 		end
 		if self:GetHoldType() == "normal" then
 			if SERVER then
-				self:UseDoor(false)
+				self:UseDoor( false )
 			end
 			return
 		end
@@ -97,7 +97,7 @@ do
 			return
 		end
 		local owner = self:GetOwner()
-		owner:SetAnimation(PLAYER_ATTACK1)
+		owner:SetAnimation( PLAYER_ATTACK1 )
 		owner:EmitSound(swingSound, 50, random(80, 120), 1, CHAN_STATIC, 0, 1)
 		local anim = "fists_left"
 		if right then
@@ -107,10 +107,10 @@ do
 		if combo >= 2 then
 			anim = "fists_uppercut"
 		end
-		seqFinish, delay = self:PlaySequence(anim)
+		seqFinish, delay = self:PlaySequence( anim )
 		self:SetNextMeleeAttack(CurTime() + (delay / 4) / math.max(combo, 1))
-		self:SetNextFire(seqFinish)
-		return self:SetNextIdle(seqFinish)
+		self:SetNextFire( seqFinish )
+		return self:SetNextIdle( seqFinish )
 	end
 end
 function SWEP:SecondaryAttack()
@@ -118,9 +118,9 @@ function SWEP:SecondaryAttack()
 		return
 	end
 	if self:GetHoldType() ~= "normal" then
-		return self:PrimaryAttack(true)
+		return self:PrimaryAttack( true )
 	elseif SERVER then
-		return self:UseDoor(true)
+		return self:UseDoor( true )
 	end
 end
 SWEP.HitDistance = CreateConVar("jb_hands_distance", "48", bit.bor(FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED, FCVAR_DONTRECORD), "Distance of the player's fist punch.", 16, 4096)
@@ -132,18 +132,18 @@ do
 		mins = Vector(-10, -10, -8),
 		maxs = Vector(10, 10, 8)
 	}
-	local hitSound = Sound("Flesh.ImpactHard")
+	local hitSound = Sound( "Flesh.ImpactHard" )
 	local TraceHull = util.TraceHull
 	function SWEP:DealDamage()
 		local owner = self:GetOwner()
 		if not (owner:IsValid() and owner:IsPlayer() and owner:Alive()) then
 			return
 		end
-		owner:LagCompensation(true)
+		owner:LagCompensation( true )
 		trace.start = owner:GetShootPos()
 		trace.endpos = trace.start + owner:GetAimVector() * self.HitDistance:GetInt()
 		trace.filter = owner
-		TraceHull(trace)
+		TraceHull( trace )
 		if traceResult.Hit then
 			if not (game.SinglePlayer() and CLIENT) then
 				self:EmitSound(hitSound, 70, random(80, 120), 1, CHAN_BODY, 0, 1)
@@ -155,15 +155,15 @@ do
 		if SERVER then
 			self:HitEntity(traceResult.Entity, owner, traceResult.HitPos)
 		end
-		return owner:LagCompensation(false)
+		return owner:LagCompensation( false )
 	end
 end
 function SWEP:Show()
 	local vm = self:GetViewModel()
 	if vm:IsValid() then
-		vm:SetNoDraw(false)
+		vm:SetNoDraw( false )
 	end
-	self:SetHoldType("fist")
+	self:SetHoldType( "fist" )
 	self.PrintName = "#jb.fists"
 	self.Pulls = true
 	return self:SetNextIdle(self:PlaySequence("fists_draw", function()
@@ -172,35 +172,35 @@ function SWEP:Show()
 end
 function SWEP:Hide()
 	self.Pulls = true
-	self:SetNextIdle(0)
-	self:SetHoldType("normal")
+	self:SetNextIdle( 0 )
+	self:SetHoldType( "normal" )
 	self.PrintName = "#jb.hands"
 	return self:PlaySequence("fists_holster", function(_, vm)
-		vm:SetNoDraw(true)
+		vm:SetNoDraw( true )
 		self.Pulls = false
 	end)
 end
 function SWEP:Deploy()
 	self.SequenceFinished = true
 	self:SetNextFire(CurTime() + 1.5)
-	self:SetNextMeleeAttack(0)
-	self:SetNextIdle(0)
+	self:SetNextMeleeAttack( 0 )
+	self:SetNextIdle( 0 )
 	if self:GetHoldType() == "normal" then
 		local vm = self:GetViewModel()
 		if vm:IsValid() then
-			vm:SetNoDraw(true)
+			vm:SetNoDraw( true )
 		end
 	else
 		self:Show()
 	end
 	if SERVER then
-		self:SetCombo(0)
+		self:SetCombo( 0 )
 	end
 	return true
 end
 function SWEP:Holster( weapon)
-	self:SetNextMeleeAttack(0)
-	self:SetNextIdle(0)
+	self:SetNextMeleeAttack( 0 )
+	self:SetNextIdle( 0 )
 	return true
 end
 local curTime = 0
@@ -217,11 +217,11 @@ do
 		end
 		meleetime = self:GetNextMeleeAttack()
 		if meleetime > 0 and curTime > meleetime then
-			self:SetNextMeleeAttack(0)
+			self:SetNextMeleeAttack( 0 )
 			self:DealDamage()
 		end
 		if SERVER and curTime > self:GetNextPrimaryFire() + 0.1 then
-			return self:SetCombo(0)
+			return self:SetCombo( 0 )
 		end
 	end
 end

@@ -6,7 +6,7 @@ do
 end
 local dark_grey, black, white
 do
-	local _obj_0 = Jailbreak.Colors
+	local _obj_0 = Jailbreak.ColorScheme
 	dark_grey, black, white = _obj_0.dark_grey, _obj_0.black, _obj_0.white
 end
 local DrawRect, SetDrawColor
@@ -26,25 +26,25 @@ do
 	local FrameTime = FrameTime
 	local PANEL = {}
 	function PANEL:Init()
-		self:SetAlpha(0)
-		self:Dock(BOTTOM)
+		self:SetAlpha( 0 )
+		self:Dock( BOTTOM )
 		self.Player = NULL
-		local avatar = self:Add("AvatarImage")
+		local avatar = self:Add( "AvatarImage" )
 		self.Avatar = avatar
-		avatar:Dock(LEFT)
-		local label = self:Add("DLabel")
+		avatar:Dock( LEFT )
+		local label = self:Add( "DLabel" )
 		self.Label = label
 		label:SetExpensiveShadow(1, dark_grey)
 		label:SetFont("Jailbreak::Voice Chat")
-		label:SetContentAlignment(4)
-		label:SetTextColor(white)
-		label:Dock(FILL)
+		label:SetContentAlignment( 4 )
+		label:SetTextColor( white )
+		label:Dock( FILL )
 		self.VoiceData = {}
 		self.NextVoiceData = 0
 		self.VoiceDataLength = 0
 	end
 	function PANEL:PerformLayout( width)
-		local height, padding = VMin(4), VMin(0.5)
+		local height, padding = VMin( 4 ), VMin( 0.5 )
 		self.VoiceDataLength = ceil(max(width, 4) / padding)
 		self:DockPadding(padding, padding, padding, padding)
 		self:DockMargin(0, padding, 0, 0)
@@ -52,12 +52,12 @@ do
 		height = max(height, select(2, self.Label:GetTextSize()) + padding * 2)
 		local avatar = self.Avatar
 		local avatarHeight = avatar:GetTall()
-		avatar:SetWide(avatarHeight)
+		avatar:SetWide( avatarHeight )
 		local ply = self.Player
-		if IsValid(ply) then
-			avatar:SetPlayer(ply, Clamp(2 ^ floor(log(ceil(avatarHeight), 2)), 16, 512))
+		if IsValid( ply ) then
+			avatar:SetPlayer(ply, Clamp(2 ^ floor(log(ceil( avatarHeight ), 2)), 16, 512))
 		end
-		return self:SetTall(height)
+		return self:SetTall( height )
 	end
 	function PANEL:Setup( ply)
 		if not ply:IsValid() then
@@ -77,13 +77,13 @@ do
 		function PANEL:Think()
 			if self.NextVoiceData < CurTime() then
 				local ply = self.Player
-				if IsValid(ply) then
+				if IsValid( ply ) then
 					local voiceData = self.VoiceData
 					local length = #voiceData
 					if length > self.VoiceDataLength then
 						remove(voiceData, 1)
 					end
-					voiceData[length + 1] = max(0.05, VoiceFraction(ply))
+					voiceData[length + 1] = max(0.05, VoiceFraction( ply ))
 					self.NextVoiceData = CurTime() + 0.025
 				end
 			end
@@ -128,7 +128,7 @@ do
 			if volume ~= nil then
 				local r, g, b = 255, 255, 255
 				local ply = self.Player
-				if IsValid(ply) and ply:Alive() then
+				if IsValid( ply ) and ply:Alive() then
 					r, g, b = ply:GetTeamColorUpacked()
 				end
 				SetDrawColor(r, g, b, floor(volume * 255))
@@ -149,8 +149,8 @@ end
 do
 	local PANEL = {}
 	function PANEL:Init()
-		self:SetZPos(1000)
-		return self:Dock(RIGHT)
+		self:SetZPos( 1000 )
+		return self:Dock( RIGHT )
 	end
 	function PANEL:GetVoicePanel( ply)
 		local _list_0 = self:GetChildren()
@@ -162,17 +162,17 @@ do
 		end
 	end
 	function PANEL:StartVoice( ply)
-		local panel = self:GetVoicePanel(ply)
-		if not IsValid(panel) then
-			panel = self:Add("Jailbreak::VoiceNotify")
+		local panel = self:GetVoicePanel( ply )
+		if not IsValid( panel ) then
+			panel = self:Add( "Jailbreak::VoiceNotify" )
 		end
-		panel:Setup(ply)
+		panel:Setup( ply )
 		panel:FadeOut()
 		return self:InvalidateLayout()
 	end
 	function PANEL:EndVoice( ply)
-		local panel = self:GetVoicePanel(ply)
-		if IsValid(panel) then
+		local panel = self:GetVoicePanel( ply )
+		if IsValid( panel ) then
 			return panel:FadeIn()
 		end
 	end
@@ -180,7 +180,7 @@ do
 		local _list_0 = self:GetChildren()
 		for _index_0 = 1, #_list_0 do
 			local panel = _list_0[_index_0]
-			if not IsValid(panel.Player) then
+			if not IsValid( panel.Player ) then
 				if panel:GetAlpha() == 0 then
 					panel:Remove()
 				elseif not panel:IsInAnimation() then
@@ -190,7 +190,7 @@ do
 		end
 	end
 	function PANEL:PerformLayout()
-		local margin = VMin(1)
+		local margin = VMin( 1 )
 		self:DockMargin(0, margin, margin, margin)
 		return self:SetWide(Jailbreak.ScreenWidth / 6)
 	end
@@ -206,16 +206,16 @@ do
 		end
 		local voiceChat = Jailbreak.VoiceChat
 		if not VoiceChatNotifications:GetBool() then
-			if IsValid(voiceChat) then
+			if IsValid( voiceChat ) then
 				voiceChat:Remove()
 			end
 			return
 		end
-		if not IsValid(voiceChat) then
+		if not IsValid( voiceChat ) then
 			voiceChat = vgui.Create("Jailbreak::VoiceChat", GetHUDPanel())
 			Jailbreak.VoiceChat = voiceChat
 		end
-		voiceChat:StartVoice(ply)
+		voiceChat:StartVoice( ply )
 		return true
 	end
 end
@@ -226,8 +226,8 @@ function GM:PlayerEndVoice( ply)
 		return
 	end
 	local voiceChat = Jailbreak.VoiceChat
-	if IsValid(voiceChat) then
-		return voiceChat:EndVoice(ply)
+	if IsValid( voiceChat ) then
+		return voiceChat:EndVoice( ply )
 	end
 end
 do
@@ -238,7 +238,7 @@ do
 	end
 	local SetVoiceVolumeScale = PLAYER.SetVoiceVolumeScale
 	net.Receive("JB::Communication", function()
-		for i = 1, ReadUInt(10) do
+		for i = 1, ReadUInt( 10 ) do
 			local ply, volume = ReadEntity(), ReadFloat()
 			if ply:IsValid() then
 				SetVoiceVolumeScale(ply, volume)
@@ -289,11 +289,11 @@ do
 	local fraction, flexLessMode = 0, 0
 	local tempAngle, angle = Angle(), 0
 	function GM:MouthMoveAnimation( ply)
-		local flexes = cache[GetModel(ply)]
+		local flexes = cache[GetModel( ply )]
 		if flexes == nil then
 			flexes = {}
 			local length = 0
-			for flexID = 0, GetFlexNum(ply) - 1 do
+			for flexID = 0, GetFlexNum( ply ) - 1 do
 				local flexName = GetFlexName(ply, flexID)
 				if not flexName then
 					goto _continue_0
@@ -310,7 +310,7 @@ do
 					flexes[length] = {
 						flexID,
 						flexName,
-						ply:GetFlexBounds(flexID)
+						ply:GetFlexBounds( flexID )
 					}
 				end
 				::_continue_0::
@@ -318,10 +318,10 @@ do
 			if length == 0 then
 				flexes = false
 			end
-			cache[GetModel(ply)] = flexes
+			cache[GetModel( ply )] = flexes
 		end
-		if IsSpeaking(ply) then
-			fraction = VoiceFraction(ply)
+		if IsSpeaking( ply ) then
+			fraction = VoiceFraction( ply )
 		else
 			fraction = 0
 		end

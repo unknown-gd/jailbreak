@@ -15,7 +15,7 @@ do
 end
 do
 	local RunConsoleCommand = RunConsoleCommand
-	Jailbreak.ChangeTeam = function(teamID)
+	Jailbreak.ChangeTeam = function( teamID )
 		return RunConsoleCommand("changeteam", teamID)
 	end
 end
@@ -26,16 +26,16 @@ do
 		sub, gsub = _obj_0.sub, _obj_0.gsub
 	end
 	local GetPhrase = language.GetPhrase
-	local function filter(placeholder)
-		local fulltext = GetPhrase(placeholder)
+	local function filter( placeholder )
+		local fulltext = GetPhrase( placeholder )
 		if fulltext == placeholder and sub(placeholder, 1, 3) == "jb." then
 			return GetPhrase(sub(placeholder, 4))
 		end
 		return fulltext
 	end
 	Jailbreak.GetPhrase = filter
-	Jailbreak.Translate = function(str)
-		return gsub(str, "#([%w%.-_]+)", filter)
+	Jailbreak.Translate = function( str )
+		return gsub(str, "#( [%w%.-_]+ )", filter)
 	end
 end
 do
@@ -56,13 +56,13 @@ do
 		Jailbreak.ScreenCenterX, Jailbreak.ScreenCenterY = width / 2, height / 2
 		return Run("ScreenResolutionChanged", width, height)
 	end)
-	Jailbreak.VMin = function(number)
+	Jailbreak.VMin = function( number )
 		if number ~= nil then
 			return ceil(vmin * number)
 		end
 		return vmin
 	end
-	Jailbreak.VMax = function(number)
+	Jailbreak.VMax = function( number )
 		if number ~= nil then
 			return ceil(vmax * number)
 		end
@@ -71,7 +71,7 @@ do
 end
 do
 	local fonts = Jailbreak.Fonts
-	if not istable(fonts) then
+	if not istable( fonts ) then
 		fonts = {}
 		Jailbreak.Fonts = fonts
 	end
@@ -94,7 +94,7 @@ do
 		outline = false
 	}
 	Jailbreak.Font = function(fontName, font, size)
-		fontData.font, fontData.size = font, VMin(size)
+		fontData.font, fontData.size = font, VMin( size )
 		for index = 1, #fonts do
 			if fonts[index].fontName == fontName then
 				remove(fonts, index)
@@ -111,7 +111,7 @@ do
 	hook.Add("ScreenResolutionChanged", "Jailbreak::Fonts", function()
 		for _index_0 = 1, #fonts do
 			local data = fonts[_index_0]
-			fontData.font, fontData.size = data.font, VMin(data.size)
+			fontData.font, fontData.size = data.font, VMin( data.size )
 			CreateFont(data.fontName, fontData)
 		end
 	end)
@@ -148,10 +148,10 @@ do
 	end
 end
 do
-	gameevent.Listen("player_spawn")
+	gameevent.Listen( "player_spawn" )
 	local Player = Player
-	hook.Add("player_spawn", "Jailbreak::SpawnEffect", function(data)
-		local ply = Player(data.userid)
+	hook.Add("player_spawn", "Jailbreak::SpawnEffect", function( data )
+		local ply = Player( data.userid )
 		if not (ply and ply:IsValid()) then
 			return
 		end
@@ -176,14 +176,14 @@ end
 do
 	local isfunction = isfunction
 	function PLAYER:AnimRestartNetworkedGesture( slot, activity, autokill, finished)
-		local sequenceID = self:SelectWeightedSequence(activity)
+		local sequenceID = self:SelectWeightedSequence( activity )
 		if sequenceID < 0 then
 			return
 		end
-		if isfunction(finished) then
-			Simple(self:SequenceDuration(sequenceID), function()
+		if isfunction( finished ) then
+			Simple(self:SequenceDuration( sequenceID ), function()
 				if self:IsValid() then
-					return finished(self)
+					return finished( self )
 				end
 			end)
 		end
@@ -203,7 +203,7 @@ do
 		if not index then
 			return true
 		end
-		return EntIndex(self) == index
+		return EntIndex( self ) == index
 	end
 end
 do
@@ -219,15 +219,15 @@ do
 	end
 	local Empty = table.Empty
 	net.Receive("Jailbreak::Shop", function()
-		table.Empty(shopItems)
-		for index = 1, ReadUInt(16) do
+		table.Empty( shopItems )
+		for index = 1, ReadUInt( 16 ) do
 			local name = ReadString()
 			shopItems[index] = {
 				name = name,
 				title = "#jb." .. name,
 				model = ReadString(),
-				price = ReadUInt(16),
-				skin = ReadUInt(8),
+				price = ReadUInt( 16 ),
+				skin = ReadUInt( 8 ),
 				bodygroups = ReadString()
 			}
 		end
@@ -243,7 +243,7 @@ do
 			self.ResultTo = values.resultvar
 		end,
 		bind = function(self, material, entity)
-			return SetVector(material, self.ResultTo, GetPlayerColor(entity))
+			return SetVector(material, self.ResultTo, GetPlayerColor( entity ))
 		end
 	})
 end

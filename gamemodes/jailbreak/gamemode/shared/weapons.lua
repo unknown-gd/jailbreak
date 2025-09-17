@@ -1,5 +1,5 @@
 local avaliableWeapons = Jailbreak.AvaliableWeapons
-if not istable(avaliableWeapons) then
+if not istable( avaliableWeapons ) then
 	avaliableWeapons = {}
 	Jailbreak.AvaliableWeapons = avaliableWeapons
 end
@@ -293,24 +293,24 @@ do
 	local IsValidModel, PrecacheModel = util.IsValidModel, util.PrecacheModel
 	local GetStored = weapons.GetStored
 	function GM:PreGamemodeLoaded()
-		for className, alternatives in pairs(altrenativeWeapons.Classes) do
+		for className, alternatives in pairs( altrenativeWeapons.Classes ) do
 			avaliableWeapons[#avaliableWeapons + 1] = className
 			local alternative = WeaponHandler(className, alternatives, altrenativeWeapons.Offsets).Alternative
 			if not alternative then
 				goto _continue_0
 			end
-			local weapon = GetStored(alternative)
+			local weapon = GetStored( alternative )
 			if not weapon then
 				goto _continue_0
 			end
 			weapon.DrawWeaponInfoBox = false
 			local viewModel = weapon.ViewModel
-			if viewModel and #viewModel ~= 0 and IsValidModel(viewModel) then
-				PrecacheModel(viewModel)
+			if viewModel and #viewModel ~= 0 and IsValidModel( viewModel ) then
+				PrecacheModel( viewModel )
 			end
 			local worldModel = weapon.WorldModel
-			if worldModel and #worldModel ~= 0 and IsValidModel(worldModel) then
-				PrecacheModel(worldModel)
+			if worldModel and #worldModel ~= 0 and IsValidModel( worldModel ) then
+				PrecacheModel( worldModel )
 			end
 			::_continue_0::
 		end

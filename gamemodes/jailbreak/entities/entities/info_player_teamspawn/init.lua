@@ -17,9 +17,9 @@ do
 	local tobool = tobool
 	function ENT:KeyValue( key, value)
 		if "TeamNum" == key then
-			return self:SetTeam(TF2Team(tonumber(value) or 0))
+			return self:SetTeam(TF2Team(tonumber( value ) or 0))
 		elseif "StartDisabled" == key then
-			self.Disabled = tobool(value)
+			self.Disabled = tobool( value )
 		end
 	end
 end

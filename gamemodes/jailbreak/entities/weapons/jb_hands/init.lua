@@ -1,6 +1,6 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-include("shared.lua")
+AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
 local ceil, random
 do
 	local _obj_0 = math
@@ -22,7 +22,7 @@ function SWEP:UseDoor( open)
 	trace.start = owner:GetShootPos()
 	trace.endpos = trace.start + owner:GetAimVector() * 72
 	trace.filter = owner
-	TraceLine(trace)
+	TraceLine( trace )
 	if not traceResult.Hit then
 		return
 	end
@@ -59,7 +59,7 @@ do
 	SWEP.MaxDamage = CreateConVar("jb_hands_damage_max", "12", ConVarFlags, "Maximal damage from a fist punch.", 0, 16384)
 end
 do
-	local phys_pushscale = GetConVar("phys_pushscale")
+	local phys_pushscale = GetConVar( "phys_pushscale" )
 	local NULL = NULL
 	function SWEP:HitEntity( entity, owner, origin)
 		local vm = owner:GetViewModel()
@@ -81,29 +81,29 @@ do
 					attacker = self
 				end
 				local damageInfo = DamageInfo()
-				damageInfo:SetInflictor(self)
-				damageInfo:SetAttacker(attacker)
-				damageInfo:SetDamageType(DMG_SLASH)
+				damageInfo:SetInflictor( self )
+				damageInfo:SetAttacker( attacker )
+				damageInfo:SetDamageType( DMG_SLASH )
 				damageInfo:SetDamage(random(self.MinDamage:GetInt(), self.MaxDamage:GetInt()))
-				damageInfo:SetDamagePosition(origin)
+				damageInfo:SetDamagePosition( origin )
 				if anim == "fists_left" then
 					damageInfo:SetDamageForce((owner:GetForward() + owner:GetRight()) * 128 * scale)
 				elseif anim == "fists_right" then
 					damageInfo:SetDamageForce((owner:GetForward() - owner:GetRight()) * 128 * scale)
 				elseif anim == "fists_uppercut" then
 					damageInfo:SetDamageForce((owner:GetForward() + owner:GetUp()) * 128 * scale)
-					damageInfo:ScaleDamage(2)
+					damageInfo:ScaleDamage( 2 )
 				end
-				SuppressHostEvents(NULL)
-				entity:TakeDamageInfo(damageInfo)
-				SuppressHostEvents(owner)
+				SuppressHostEvents( NULL )
+				entity:TakeDamageInfo( damageInfo )
+				SuppressHostEvents( owner )
 			end
 			hit = true
 		end
 		if hit and anim ~= "fists_uppercut" then
 			return self:SetCombo(self:GetCombo() + 1)
 		else
-			return self:SetCombo(0)
+			return self:SetCombo( 0 )
 		end
 	end
 end
@@ -119,21 +119,21 @@ function SWEP:HitMaterial( matType, owner, origin)
 	local damage = self.Materials[matType]
 	if damage ~= nil then
 		local damageInfo = DamageInfo()
-		damageInfo:SetInflictor(self)
-		damageInfo:SetAttacker(owner)
-		damageInfo:SetDamagePosition(origin)
+		damageInfo:SetInflictor( self )
+		damageInfo:SetAttacker( owner )
+		damageInfo:SetDamagePosition( origin )
 		damageInfo:SetDamage(ceil(owner:Health() * (damage / 100)))
 		damageInfo:SetDamageForce(owner:GetAimVector() * -(Jailbreak.PowerfulPlayers and 1000 or 128))
 		util.ScreenShake(owner:EyePos(), 12, 120, 0.5, 32)
 		if matType == MAT_COMPUTER then
-			damageInfo:SetDamageType(DMG_SHOCK)
+			damageInfo:SetDamageType( DMG_SHOCK )
 			if owner:ShockCollarIsEnabled() then
-				damageInfo:ScaleDamage(2)
+				damageInfo:ScaleDamage( 2 )
 			end
 		else
-			damageInfo:SetDamageType(DMG_SLASH)
+			damageInfo:SetDamageType( DMG_SLASH )
 		end
-		return owner:TakeDamageInfo(damageInfo)
+		return owner:TakeDamageInfo( damageInfo )
 	end
 end
 function SWEP:OnDrop()

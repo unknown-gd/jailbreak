@@ -28,9 +28,9 @@ local EyePos = EyePos
 local tobool = tobool
 local pairs = pairs
 local Lerp = Lerp
-local developer = cvars.Number("developer") > 2
+local developer = cvars.Number( "developer" ) > 2
 cvars.AddChangeCallback("developer", function(_, __, value)
-	developer = tonumber(value) > 2
+	developer = tonumber( value ) > 2
 end, addonName)
 local ghosts = _G[addonName]
 if not ghosts then
@@ -40,7 +40,7 @@ end
 local ghostCount = #ghosts
 local modelsCache = setmetatable({}, {
 	__index = function(self, modelPath)
-		util.PrecacheModel(modelPath)
+		util.PrecacheModel( modelPath )
 		rawset(self, modelPath, modelPath)
 		return modelPath
 	end
@@ -50,61 +50,61 @@ scripted_ents.Register({
 	AutomaticFrameAdvance = true,
 	WantsTranslucency = true,
 	Type = "anim",
-	Initialize = function(self)
-		self:SetModel(defaultModel)
-		self:DrawShadow(true)
-		self:SetIK(true)
+	Initialize = function( self )
+		self:SetModel( defaultModel )
+		self:DrawShadow( true )
+		self:SetIK( true )
 		return
 	end,
-	Think = function(self)
+	Think = function( self )
 		local data = self.data
 		if not (data and data.visible) then
-			if not GetNoDraw(self) then
+			if not GetNoDraw( self ) then
 				SetNoDraw(self, true)
 			end
 			return
 		end
-		if GetNoDraw(self) then
+		if GetNoDraw( self ) then
 			SetNoDraw(self, false)
 		end
-		FrameAdvance(self)
-		if GetPos(self) ~= data.origin then
+		FrameAdvance( self )
+		if GetPos( self ) ~= data.origin then
 			SetPos(self, data.origin)
 		end
-		if GetAngles(self) ~= data.angles then
+		if GetAngles( self ) ~= data.angles then
 			SetAngles(self, data.angles)
 		end
 		if data.act then
-			local id = self:SelectWeightedSequence(data.act)
+			local id = self:SelectWeightedSequence( data.act )
 			if id >= 0 then
 				data.sequence = id
 			end
 			data.act = nil
 		end
 		local sequence = data.sequence
-		if not isnumber(sequence) then
-			if isstring(sequence) then
-				local id = self:LookupSequence(sequence)
+		if not isnumber( sequence ) then
+			if isstring( sequence ) then
+				local id = self:LookupSequence( sequence )
 				if id >= 0 then
 					sequence = id
 				end
 			end
 			if not sequence then
-				local id = self:SelectWeightedSequence(ACT_HL2MP_IDLE)
+				local id = self:SelectWeightedSequence( ACT_HL2MP_IDLE )
 				sequence = (id >= 0) and id or "idle"
 			end
 			data.sequence = sequence
 		end
-		if sequence == "idle" or GetSequence(self) ~= sequence then
+		if sequence == "idle" or GetSequence( self ) ~= sequence then
 			SetSequence(self, sequence)
 		end
-		if data.cycle_end and GetCycle(self) > data.cycle_end then
+		if data.cycle_end and GetCycle( self ) > data.cycle_end then
 			SetCycle(self, data.cycle_start or data.cycle_end)
 		end
 		if data.spectate then
 			SetPoseParameter(self, "head_pitch", data.head_pitch)
 			SetPoseParameter(self, "head_yaw", data.head_yaw)
-			InvalidateBoneCache(self)
+			InvalidateBoneCache( self )
 		end
 		return
 	end,
@@ -112,23 +112,23 @@ scripted_ents.Register({
 	Draw = DrawModel,
 	SetupModel = function(self, data)
 		if Exists(data.modelpath, "GAME") then
-			self:SetModel(modelsCache[data.modelpath])
-			self:SetBodyGroups(data.bodygroups)
-			self:SetModelScale(data.scale)
-			self:SetColor(data.color)
-			self:SetSkin(data.skin)
+			self:SetModel( modelsCache[data.modelpath] )
+			self:SetBodyGroups( data.bodygroups )
+			self:SetModelScale( data.scale )
+			self:SetColor( data.color )
+			self:SetSkin( data.skin )
 			self:SetupBones()
-			if isfunction(self.SetPlayerColor) then
-				self:SetPlayerColor(data.player_color)
+			if isfunction( self.SetPlayerColor ) then
+				self:SetPlayerColor( data.player_color )
 			end
-			data.head_pitch, data.head_pitch_min, data.head_pitch_max = self:GetPoseInfo("head_pitch")
-			data.head_yaw, data.head_yaw_min, data.head_yaw_max = self:GetPoseInfo("head_yaw")
+			data.head_pitch, data.head_pitch_min, data.head_pitch_max = self:GetPoseInfo( "head_pitch" )
+			data.head_yaw, data.head_yaw_min, data.head_yaw_max = self:GetPoseInfo( "head_yaw" )
 			return
 		end
 	end,
 	GetPoseInfo = function(self, name)
-		local min, max = self:GetPoseParameterRange(self:LookupPoseParameter(name))
-		return Remap(self:GetPoseParameter(name), 0, 1, min, max), min, max
+		local min, max = self:GetPoseParameterRange(self:LookupPoseParameter( name ))
+		return Remap(self:GetPoseParameter( name ), 0, 1, min, max), min, max
 	end
 }, "unknown_ghost")
 local performNames
@@ -172,14 +172,14 @@ end)
 local downloadAddon = nil
 do
 	local downloading = {}
-	downloadAddon = function(wsid)
+	downloadAddon = function( wsid )
 		local state = downloading[wsid]
 		if state and (state == true or (CurTime() - state) > 60) then
 			return
 		end
 		downloading[wsid] = true
-		return steamworks.DownloadUGC(wsid, function(filePath)
-			if not game.MountGMA(filePath) then
+		return steamworks.DownloadUGC(wsid, function( filePath )
+			if not game.MountGMA( filePath ) then
 				downloading[wsid] = CurTime()
 				return
 			end
@@ -189,10 +189,10 @@ do
 					goto _continue_0
 				end
 				local entity = data.entity
-				if not (entity and IsValid(entity)) then
+				if not (entity and IsValid( entity )) then
 					goto _continue_0
 				end
-				entity:SetupModel(data)
+				entity:SetupModel( data )
 				::_continue_0::
 			end
 		end)
@@ -213,7 +213,7 @@ timer.Create(addonName .. "::Perform", 0.25, 0, function()
 				data.visible = false
 			end
 			local entity = data.entity
-			if entity and IsValid(entity) then
+			if entity and IsValid( entity ) then
 				entity:Remove()
 			end
 			goto _continue_0
@@ -225,18 +225,18 @@ timer.Create(addonName .. "::Perform", 0.25, 0, function()
 			goto _continue_0
 		end
 		if not Exists(data.modelpath, "GAME") then
-			downloadAddon(data.wsid)
+			downloadAddon( data.wsid )
 			goto _continue_0
 		end
 		if not data.visible then
 			data.visible = true
 		end
 		local entity = data.entity
-		if not (entity and IsValid(entity)) then
-			entity = CreateClientside("unknown_ghost")
+		if not (entity and IsValid( entity )) then
+			entity = CreateClientside( "unknown_ghost" )
 			data.entity = entity
 			entity:Spawn()
-			entity:SetupModel(data)
+			entity:SetupModel( data )
 			entity.data = data
 			entity.GetPlayerColor = function()
 				return data.player_color
@@ -256,7 +256,7 @@ hook.Add("Think", addonName .. "::Spectate", function()
 			goto _continue_0
 		end
 		local entity = data.entity
-		if not (entity and IsValid(entity)) then
+		if not (entity and IsValid( entity )) then
 			goto _continue_0
 		end
 		local origin = nil
@@ -272,14 +272,14 @@ hook.Add("Think", addonName .. "::Spectate", function()
 			end
 		end
 		local dir = (eyePos - origin)
-		Normalize(dir)
-		if Dot(dir, Forward(data.angles)) < -0.25 then
+		Normalize( dir )
+		if Dot(dir, Forward( data.angles )) < -0.25 then
 			data.head_yaw = Lerp(fraction, data.head_yaw, 0)
 			return
 		end
-		dir = Angle(dir) - data.angles
-		data.head_yaw = Lerp(fraction, data.head_yaw, Clamp(NormalizeAngle(dir[2]), data.head_yaw_min, data.head_yaw_max))
-		data.head_pitch = Lerp(fraction, data.head_pitch, Clamp(NormalizeAngle(dir[1]), data.head_pitch_min, data.head_pitch_max))
+		dir = Angle( dir ) - data.angles
+		data.head_yaw = Lerp(fraction, data.head_yaw, Clamp(NormalizeAngle( dir[2] ), data.head_yaw_min, data.head_yaw_max))
+		data.head_pitch = Lerp(fraction, data.head_pitch, Clamp(NormalizeAngle( dir[1] ), data.head_pitch_min, data.head_pitch_max))
 		::_continue_0::
 	end
 end)
@@ -288,7 +288,7 @@ local vector_origin = vector_origin
 local angle_zero = angle_zero
 local parameters = {
 	method = "GET",
-	failed = function(reason)
+	failed = function( reason )
 		if developer then
 			ErrorNoHaltWithStack("Request failed: " .. reason)
 		end
@@ -301,14 +301,14 @@ local parameters = {
 			end
 			return
 		end
-		local data = util.JSONToTable(json)
+		local data = util.JSONToTable( json )
 		if not data then
 			if developer then
 				ErrorNoHaltWithStack("JSON parse failed")
 			end
 			return
 		end
-		if not istable(data.ghosts) then
+		if not istable( data.ghosts ) then
 			if developer then
 				ErrorNoHaltWithStack("Invalid unknown ghost data")
 			end
@@ -324,7 +324,7 @@ local parameters = {
 				goto _continue_0
 			end
 			local entity = ghostData.entity
-			if entity and IsValid(entity) then
+			if entity and IsValid( entity ) then
 				entity:Remove()
 			end
 			ghosts[i] = nil
@@ -334,14 +334,14 @@ local parameters = {
 		local _list_0 = data.ghosts
 		for _index_0 = 1, #_list_0 do
 			local ghostData = _list_0[_index_0]
-			if istable(ghostData.groups) then
+			if istable( ghostData.groups ) then
 				local _list_1 = ghostData.groups
 				for _index_1 = 1, #_list_1 do
 					local groupName = _list_1[_index_1]
-					if not (isstring(groupName) and istable(groups[groupName])) then
+					if not (isstring( groupName ) and istable( groups[groupName] )) then
 						goto _continue_2
 					end
-					for key, value in pairs(groups[groupName]) do
+					for key, value in pairs( groups[groupName] ) do
 						if ghostData[key] == nil then
 							ghostData[key] = value
 						end
@@ -350,10 +350,10 @@ local parameters = {
 				end
 			end
 			ghostData.groups = nil
-			if isstring(ghostData.group) then
+			if isstring( ghostData.group ) then
 				local tbl = groups[ghostData.group]
-				if istable(tbl) then
-					for key, value in pairs(tbl) do
+				if istable( tbl ) then
+					for key, value in pairs( tbl ) do
 						if ghostData[key] == nil then
 							ghostData[key] = value
 						end
@@ -362,13 +362,13 @@ local parameters = {
 			end
 			ghostData.group = nil
 			local modelPath = ghostData.modelpath
-			if not isstring(modelPath) then
+			if not isstring( modelPath ) then
 				if developer then
 					ErrorNoHaltWithStack("Invalid unknown ghost modelpath")
 				end
 				goto _continue_1
 			end
-			if not isstring(ghostData.wsid) then
+			if not isstring( ghostData.wsid ) then
 				ghostData.wsid = nil
 			end
 			if not (Exists(modelPath, "GAME") or ghostData.wsid) then
@@ -377,30 +377,30 @@ local parameters = {
 				end
 				goto _continue_1
 			end
-			if not isvector(ghostData.origin) then
+			if not isvector( ghostData.origin ) then
 				if developer then
 					ErrorNoHaltWithStack("Invalid unknown ghost origin")
 				end
 				goto _continue_1
 			end
-			if not isangle(ghostData.angles) then
+			if not isangle( ghostData.angles ) then
 				ghostData.angles = angle_zero
 			end
-			if not isnumber(ghostData.skin) then
+			if not isnumber( ghostData.skin ) then
 				ghostData.skin = 0
 			end
-			if not isstring(ghostData.bodygroups) then
+			if not isstring( ghostData.bodygroups ) then
 				ghostData.bodygroups = ""
 			end
-			ghostData.color = isvector(ghostData.color) and ghostData.color:ToColor() or color_white
-			if not isvector(ghostData.player_color) then
+			ghostData.color = isvector( ghostData.color ) and ghostData.color:ToColor() or color_white
+			if not isvector( ghostData.player_color ) then
 				ghostData.player_color = vector_origin
 			end
-			if not isnumber(ghostData.scale) then
+			if not isnumber( ghostData.scale ) then
 				ghostData.scale = 1
 			end
 			local maxDistance = ghostData.max_distance
-			if not isnumber(maxDistance) then
+			if not isnumber( maxDistance ) then
 				maxDistance = 0
 			end
 			if maxDistance == 0 then
@@ -410,23 +410,23 @@ local parameters = {
 			else
 				ghostData.max_distance = maxDistance ^ 2
 			end
-			ghostData.spectate = tobool(ghostData.spectate)
-			if not isnumber(ghostData.act) then
+			ghostData.spectate = tobool( ghostData.spectate )
+			if not isnumber( ghostData.act ) then
 				ghostData.act = nil
 			end
-			if not isstring(ghostData.sequence) then
+			if not isstring( ghostData.sequence ) then
 				ghostData.sequence = nil
 			end
-			if not isnumber(ghostData.cycle_end) then
+			if not isnumber( ghostData.cycle_end ) then
 				ghostData.cycle_end = nil
 			end
-			if not isnumber(ghostData.cycle_start) then
+			if not isnumber( ghostData.cycle_start ) then
 				ghostData.cycle_start = nil
 			end
-			if not isstring(ghostData.name) then
+			if not isstring( ghostData.name ) then
 				ghostData.name = nil
 			end
-			if isnumber(ghostData.chance) then
+			if isnumber( ghostData.chance ) then
 				ghostData.enabled = random(1, 100) <= Clamp(ghostData.chance, 0, 100)
 			else
 				ghostData.enabled = true
@@ -448,23 +448,23 @@ local parameters = {
 }
 local cl_unknown_ghost_source = CreateClientConVar("cl_unknown_ghost_source", "https://raw.githubusercontent.com/PrikolMen/unknown-ghosts/main/%s.json", true, false)
 local requestData
-requestData = function(isCustomURL)
+requestData = function( isCustomURL )
 	parameters.url = string.format(isCustomURL and cl_unknown_ghost_source:GetString() or cl_unknown_ghost_source:GetDefault(), game.GetMap())
-	HTTP(parameters)
+	HTTP( parameters )
 	return
 end
 hook.Add("InitPostEntity", addonName, requestData)
-concommand.Add("cl_unknown_ghost_reload", function(ply)
+concommand.Add("cl_unknown_ghost_reload", function( ply )
 	if ply:IsSuperAdmin() or ply:IsListenServerHost() then
-		requestData(true)
+		requestData( true )
 		return
 	end
 end)
-return concommand.Add("cl_unknown_ghost_position", function(ply)
+return concommand.Add("cl_unknown_ghost_position", function( ply )
 	local angles = ply:EyeAngles()
-	angles:SetUnpacked(0, math.floor(angles[2]), 0)
+	angles:SetUnpacked(0, math.floor( angles[2] ), 0)
 	local origin = ply:GetPos()
-	origin:SetUnpacked(math.floor(origin[1]), math.floor(origin[2]), math.floor(origin[3]))
+	origin:SetUnpacked(math.floor( origin[1] ), math.floor( origin[2] ), math.floor( origin[3] ))
 	return print(util.TableToJSON({
 		modelpath = ply:GetModel(),
 		spectate = true,

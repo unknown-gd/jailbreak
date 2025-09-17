@@ -24,8 +24,8 @@ local _base_0 = {
 		if filter ~= nil and not filter(entity, self) then
 			return
 		end
-		local newEntity = Create(self.ClassName)
-		if not IsValid(newEntity) then
+		local newEntity = Create( self.ClassName )
+		if not IsValid( newEntity ) then
 			return
 		end
 		newEntity:SetPos(entity:WorldSpaceCenter())
@@ -38,43 +38,43 @@ local _base_0 = {
 		local _list_0 = entity:GetBodyGroups()
 		for _index_0 = 1, #_list_0 do
 			local bodygroup = _list_0[_index_0]
-			newEntity:SetBodygroup(bodygroup.id, entity:GetBodygroup(bodygroup.id))
+			newEntity:SetBodygroup(bodygroup.id, entity:GetBodygroup( bodygroup.id ))
 		end
 		newEntity:SetFlexScale(entity:GetFlexScale())
 		for flexID = 0, entity:GetFlexNum() do
-			newEntity:SetFlexWeight(flexID, entity:GetFlexWeight(flexID))
+			newEntity:SetFlexWeight(flexID, entity:GetFlexWeight( flexID ))
 		end
 		newEntity:SetPlayerColor(entity:GetPlayerColor())
 		newEntity:SetMaterial(entity:GetMaterial())
 		newEntity:SetColor(entity:GetColor())
 		newEntity:SetSkin(entity:GetSkin())
 		for index = 1, #entity:GetMaterials() do
-			local materialPath = entity:GetSubMaterial(index)
+			local materialPath = entity:GetSubMaterial( index )
 			if materialPath ~= "" then
 				newEntity:SetSubMaterial(index, materialPath)
 			end
 		end
 		newEntity:SetCollisionGroup(entity:GetCollisionGroup())
 		for bone = 0, entity:GetBoneCount() - 1 do
-			newEntity:ManipulateBonePosition(bone, entity:GetManipulateBonePosition(bone))
-			newEntity:ManipulateBoneAngles(bone, entity:GetManipulateBoneAngles(bone))
-			newEntity:ManipulateBoneJiggle(bone, entity:GetManipulateBoneJiggle(bone))
-			newEntity:ManipulateBoneScale(bone, entity:GetManipulateBoneScale(bone))
+			newEntity:ManipulateBonePosition(bone, entity:GetManipulateBonePosition( bone ))
+			newEntity:ManipulateBoneAngles(bone, entity:GetManipulateBoneAngles( bone ))
+			newEntity:ManipulateBoneJiggle(bone, entity:GetManipulateBoneJiggle( bone ))
+			newEntity:ManipulateBoneScale(bone, entity:GetManipulateBoneScale( bone ))
 		end
 		if newEntity:IsRagdoll() then
 			for physNum = 0, newEntity:GetPhysicsObjectCount() - 1 do
-				local phys = newEntity:GetPhysicsObjectNum(physNum)
-				if not IsValid(phys) then
+				local phys = newEntity:GetPhysicsObjectNum( physNum )
+				if not IsValid( phys ) then
 					goto _continue_0
 				end
-				local bone = newEntity:TranslatePhysBoneToBone(physNum)
+				local bone = newEntity:TranslatePhysBoneToBone( physNum )
 				if bone and bone >= 0 then
-					local origin, angles = entity:GetBonePosition(bone)
-					phys:SetAngles(angles)
-					phys:SetPos(origin)
+					local origin, angles = entity:GetBonePosition( bone )
+					phys:SetAngles( angles )
+					phys:SetPos( origin )
 				end
-				local phys2 = entity:GetPhysicsObjectNum(physNum)
-				if IsValid(phys2) then
+				local phys2 = entity:GetPhysicsObjectNum( physNum )
+				if IsValid( phys2 ) then
 					phys:SetVelocity(phys2:GetVelocity())
 					if phys2:IsAsleep() then
 						phys:Sleep()
@@ -86,7 +86,7 @@ local _base_0 = {
 			end
 		else
 			local phys, phys2 = newEntity:GetPhysicsObject(), entity:GetPhysicsObject()
-			if IsValid(phys) and IsValid(phys2) then
+			if IsValid( phys ) and IsValid( phys2 ) then
 				phys:SetVelocity(phys2:GetVelocity())
 				if phys2:IsAsleep() then
 					phys:Sleep()
@@ -97,12 +97,12 @@ local _base_0 = {
 		end
 		return entity:Remove()
 	end,
-	PerformAll = function(self)
+	PerformAll = function( self )
 		for _, entity in Iterator() do
-			self:Perform(entity)
+			self:Perform( entity )
 		end
 	end,
-	Remove = function(self)
+	Remove = function( self )
 		local className = self.ClassName
 		Remove("OnEntityCreated", "EntityReplacer::" .. className)
 		return Remove("PostCleanupMap", "EntityReplacer::" .. className)
@@ -113,23 +113,23 @@ if _base_0.__index == nil then
 end
 _class_0 = setmetatable({
 	__init = function(self, pattern, className, filter, init)
-		assert(isstring(pattern), "Second argument must be a 'string'!")
+		assert(isstring( pattern ), "Second argument must be a 'string'!")
 		self.Pattern = pattern
-		assert(isstring(className), "Third argument must be a 'string'!")
+		assert(isstring( className ), "Third argument must be a 'string'!")
 		self.ClassName = className
-		if isfunction(filter) then
+		if isfunction( filter ) then
 			self.Filter = filter
 		end
-		if isfunction(init) then
+		if isfunction( init ) then
 			self.Init = init
 		end
 		Add("PostCleanupMap", "EntityReplacer::" .. className, function()
 			return self:PerformAll()
 		end)
-		return Add("OnEntityCreated", "EntityReplacer::" .. className, function(entity)
+		return Add("OnEntityCreated", "EntityReplacer::" .. className, function( entity )
 			return Simple(0.25, function()
 				if entity:IsValid() then
-					return self:Perform(entity)
+					return self:Perform( entity )
 				end
 			end)
 		end)

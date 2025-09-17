@@ -1,7 +1,7 @@
 ENT.Type = "brush"
-ENT.Sound = Sound("Regenerate.Touch")
+ENT.Sound = Sound( "Regenerate.Touch" )
 function ENT:Initialize()
-	self:SetTrigger(true)
+	self:SetTrigger( true )
 	self.Players = {}
 end
 function ENT:Regenerate( ply)
@@ -11,14 +11,14 @@ function ENT:Regenerate( ply)
 		local weapon = _list_0[_index_0]
 		local clip1Type = weapon:GetPrimaryAmmoType()
 		if clip1Type >= 0 then
-			local amount = ply:GetPickupAmmoCount(clip1Type)
+			local amount = ply:GetPickupAmmoCount( clip1Type )
 			if amount ~= 0 then
 				ply:GiveAmmo(amount, clip1Type, false)
 			end
 		end
 		local clip2Type = weapon:GetSecondaryAmmoType()
 		if clip2Type >= 0 then
-			local amount = ply:GetPickupAmmoCount(clip2Type)
+			local amount = ply:GetPickupAmmoCount( clip2Type )
 			if amount ~= 0 then
 				ply:GiveAmmo(amount, clip2Type, false)
 			end
@@ -37,10 +37,10 @@ function ENT:EndTouch( entity)
 	end
 end
 function ENT:AssociatedAction( func)
-	local _list_0 = ents.FindByName(self.AssociatedName)
+	local _list_0 = ents.FindByName( self.AssociatedName )
 	for _index_0 = 1, #_list_0 do
 		local entity = _list_0[_index_0]
-		func(entity)
+		func( entity )
 	end
 end
 function ENT:Open()
@@ -48,8 +48,8 @@ function ENT:Open()
 		return
 	end
 	self.Opened = true
-	return self:AssociatedAction(function(entity)
-		entity:ResetSequence("open")
+	return self:AssociatedAction(function( entity )
+		entity:ResetSequence( "open" )
 		return entity:EmitSound(self.Sound, 150)
 	end)
 end
@@ -58,8 +58,8 @@ function ENT:Close()
 		return
 	end
 	self.Opened = false
-	return self:AssociatedAction(function(entity)
-		return entity:ResetSequence("close")
+	return self:AssociatedAction(function( entity )
+		return entity:ResetSequence( "close" )
 	end)
 end
 function ENT:ToggleOpen()
@@ -80,7 +80,7 @@ function ENT:Think()
 	end
 	for _index_0 = 1, #players do
 		local ply = players[_index_0]
-		self:Regenerate(ply)
+		self:Regenerate( ply )
 	end
 	self:NextThink(CurTime() + 1)
 	self:ToggleOpen()
@@ -101,13 +101,13 @@ end
 function ENT:AcceptInput( key, activator, caller, data)
 	local func = self[key]
 	if func then
-		return func(self)
+		return func( self )
 	end
 end
 function ENT:KeyValue( key, value)
 	if "associatedmodel" == key then
 		self.AssociatedName = value
 	elseif "StartDisabled" == key then
-		self.Disabled = tobool(value)
+		self.Disabled = tobool( value )
 	end
 end

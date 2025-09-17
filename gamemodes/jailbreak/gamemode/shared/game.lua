@@ -11,11 +11,11 @@ do
 	local IsRoundPreparing, GuardsFriendlyFire = Jailbreak.IsRoundPreparing, Jailbreak.GuardsFriendlyFire
 	local HasGodMode = PLAYER.HasGodMode
 	function GM:CanPlayerTakeDamage( ply, damageInfo, teamID)
-		if HasGodMode(ply) or not Alive(ply) then
+		if HasGodMode( ply ) or not Alive( ply ) then
 			return false
 		end
 		local attacker = damageInfo:GetAttacker()
-		if not (IsValid(attacker) and attacker:IsPlayer()) then
+		if not (IsValid( attacker ) and attacker:IsPlayer()) then
 			return true
 		end
 		if attacker == ply then
@@ -33,11 +33,11 @@ end
 do
 	local SetPlaybackRate = ENTITY.SetPlaybackRate
 	function GM:UpdateAnimation( ply, velocity, maxSeqGroundSpeed)
-		local speed = Length(velocity)
+		local speed = Length( velocity )
 		local rate = 1.0
-		if GetTable(ply).m_bWasNoclipping or GetNW2Bool(ply, "in-flight") then
+		if GetTable( ply ).m_bWasNoclipping or GetNW2Bool(ply, "in-flight") then
 			rate = speed < 32 and 0.25 or 0
-		elseif WaterLevel(ply) > 1 then
+		elseif WaterLevel( ply ) > 1 then
 			rate = 0.5
 		else
 			if speed > 0.2 then
@@ -46,11 +46,11 @@ do
 			if rate > 2 then
 				rate = 2
 			end
-			if WaterLevel(ply) >= 2 then
+			if WaterLevel( ply ) >= 2 then
 				if rate < 0.5 then
 					rate = 0.5
 				end
-			elseif not IsOnGround(ply) and speed >= 1000 then
+			elseif not IsOnGround( ply ) and speed >= 1000 then
 				rate = 0.1
 			end
 		end
@@ -59,7 +59,7 @@ do
 			if not ply:IsLocalPlayer() then
 				Run("PerformPlayerVoice", ply)
 			end
-			if Alive(ply) then
+			if Alive( ply ) then
 				Run("MouthMoveAnimation", ply)
 				return Run("GrabEarAnimation", ply)
 			end
@@ -67,10 +67,10 @@ do
 	end
 end
 function GM:ShouldCollide( entity, ply)
-	if not (ply:IsPlayer() and Alive(ply)) then
+	if not (ply:IsPlayer() and Alive( ply )) then
 		return
 	end
-	if GetClass(entity) == "func_respawnroomvisualizer" and not entity:IsDisabled() then
+	if GetClass( entity ) == "func_respawnroomvisualizer" and not entity:IsDisabled() then
 		return ply:Team() ~= entity:Team()
 	end
 end
@@ -103,11 +103,11 @@ do
 		local tostring = tostring
 		local tonumber = tonumber
 		jb_instant_kill_on_headshot = CreateConVar("jb_instant_kill_on_headshot", "0", FCVAR_FLAGS, "If true, players will always be instantly killed on headshots.", 0, 1)
-		for index, default in pairs(hitGroups) do
+		for index, default in pairs( hitGroups ) do
 			local conVarName = "jb_hitgroup" .. index .. "_scale"
-			hitGroups[index] = CreateConVar(conVarName, tostring(default), FCVAR_FLAGS, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000):GetFloat()
+			hitGroups[index] = CreateConVar(conVarName, tostring( default ), FCVAR_FLAGS, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000):GetFloat()
 			AddChangeCallback(conVarName, function(_, __, str)
-				hitGroups[index] = tonumber(str) or 0
+				hitGroups[index] = tonumber( str ) or 0
 			end, "Jailbreak::HitGroups")
 		end
 	end
@@ -116,8 +116,8 @@ do
 		local damageScale = 0
 		function GM:ScaleHitGroupDamage( hitGroup, damageInfo)
 			damageScale = hitGroups[hitGroup]
-			if isnumber(damageScale) then
-				return damageInfo:ScaleDamage(damageScale)
+			if isnumber( damageScale ) then
+				return damageInfo:ScaleDamage( damageScale )
 			end
 		end
 	end
@@ -133,7 +133,7 @@ do
 	end
 end
 do
-	local sv_cheats, host_timescale = GetConVar("sv_cheats"), GetConVar("host_timescale")
+	local sv_cheats, host_timescale = GetConVar( "sv_cheats" ), GetConVar( "host_timescale" )
 	local GetDemoPlaybackTimeScale = engine.GetDemoPlaybackTimeScale
 	local GetTimeScale = game.GetTimeScale
 	local Clamp = math.Clamp
@@ -148,7 +148,7 @@ do
 			pitch = pitch * timeScale
 		end
 		local entity = data.Entity
-		if IsValid(entity) then
+		if IsValid( entity ) then
 			if entity:IsPlayer() then
 				local result = Run("PlayerEmitSound", entity, data)
 				if result ~= nil then
@@ -206,13 +206,13 @@ do
 		}
 		local isSwimming, isNoclipping, isOnGround = false, false, false
 		local calcIdeal, seqOverride, playerSpeed = 0, 0, 0
-		local vehicles = list.GetForEdit("Vehicles")
+		local vehicles = list.GetForEdit( "Vehicles" )
 		function GM:CalcMainActivity( ply, velocity)
 			calcIdeal, seqOverride = ACT_MP_STAND_IDLE, -1
-			isOnGround = IsOnGround(ply)
-			local tbl = GetTable(ply)
-			if InVehicle(ply) and IsValid(GetParent(ply)) then
-				local vehicle = GetVehicle(ply)
+			isOnGround = IsOnGround( ply )
+			local tbl = GetTable( ply )
+			if InVehicle( ply ) and IsValid(GetParent( ply )) then
+				local vehicle = GetVehicle( ply )
 				if vehicle.HandleAnimation == nil then
 					local data = vehicles[vehicle:GetVehicleClass()]
 					if data and data.Members and data.Members.HandleAnimation then
@@ -222,23 +222,23 @@ do
 					end
 				end
 				if vehicle.HandleAnimation ~= true then
-					seqOverride = vehicle:HandleAnimation(ply) or seqOverride
+					seqOverride = vehicle:HandleAnimation( ply ) or seqOverride
 					if seqOverride ~= -1 then
 						goto finish
 					end
 				end
-				local className = GetClass(vehicle)
+				local className = GetClass( vehicle )
 				if className == "prop_vehicle_jeep" then
 					seqOverride = LookupSequence(ply, "drive_jeep")
 				elseif className == "prop_vehicle_airboat" then
 					seqOverride = LookupSequence(ply, "drive_airboat")
-				elseif className == "prop_vehicle_prisoner_pod" and GetModel(vehicle) == "models/vehicles/prisoner_pod_inner.mdl" then
+				elseif className == "prop_vehicle_prisoner_pod" and GetModel( vehicle ) == "models/vehicles/prisoner_pod_inner.mdl" then
 					seqOverride = LookupSequence(ply, "drive_pd")
 				else
-					if GetAllowWeaponsInVehicle(ply) then
-						local weapon = GetActiveWeapon(ply)
-						if IsValid(weapon) then
-							local holdtype = GetHoldType(weapon)
+					if GetAllowWeaponsInVehicle( ply ) then
+						local weapon = GetActiveWeapon( ply )
+						if IsValid( weapon ) then
+							local holdtype = GetHoldType( weapon )
 							seqOverride = LookupSequence(ply, holdtype == "smg" and "sit_smg1" or ("sit_" .. holdtype))
 						end
 					end
@@ -246,15 +246,15 @@ do
 				end
 				goto finish
 			end
-			isNoclipping, isSwimming = InNoclip(ply), WaterLevel(ply) > 1
+			isNoclipping, isSwimming = InNoclip( ply ), WaterLevel( ply ) > 1
 			if isNoclipping or isSwimming or GetNW2Bool(ply, "in-flight") then
 				calcIdeal = ACT_MP_SWIM
 				goto finish
 			end
 			if IsFlagSet(ply, 4) then
-				if Length2DSqr(velocity) < 0.25 then
-					local weapon = GetActiveWeapon(ply)
-					if weapon and IsValid(weapon) and GetHoldType(weapon) ~= "normal" then
+				if Length2DSqr( velocity ) < 0.25 then
+					local weapon = GetActiveWeapon( ply )
+					if weapon and IsValid( weapon ) and GetHoldType( weapon ) ~= "normal" then
 						calcIdeal = ACT_MP_CROUCH_IDLE
 					else
 						calcIdeal, seqOverride = ACT_MP_JUMP, LookupSequence(ply, "pose_ducking_01")
@@ -264,16 +264,16 @@ do
 				end
 			elseif isOnGround then
 				if tbl.m_bWasOnGround then
-					playerSpeed = Length2DSqr(velocity)
-					if playerSpeed > GetWalkSpeed(ply) then
-						if playerSpeed >= GetRunSpeed(ply) * 0.95 then
-							local weapon = GetActiveWeapon(ply)
-							if weapon and IsValid(weapon) then
-								if IsPrisoner(ply) and GetHoldType(weapon) == "normal" then
+					playerSpeed = Length2DSqr( velocity )
+					if playerSpeed > GetWalkSpeed( ply ) then
+						if playerSpeed >= GetRunSpeed( ply ) * 0.95 then
+							local weapon = GetActiveWeapon( ply )
+							if weapon and IsValid( weapon ) then
+								if IsPrisoner( ply ) and GetHoldType( weapon ) == "normal" then
 									calcIdeal = ACT_HL2MP_RUN_PANICKED
 									goto finish
 								end
-								if singleHandHoldTypes[GetHoldType(weapon)] then
+								if singleHandHoldTypes[GetHoldType( weapon )] then
 									calcIdeal = ACT_HL2MP_RUN_FAST
 									goto finish
 								end

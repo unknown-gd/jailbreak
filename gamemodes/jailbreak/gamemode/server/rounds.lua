@@ -24,14 +24,14 @@ do
 		end
 	end
 	Jailbreak.SetRoundState = setRoundState
-	setWinningTeam = function(teamID)
+	setWinningTeam = function( teamID )
 		if Teams[teamID] then
 			team.AddScore(teamID, 1)
 		end
 		return SetGlobal2Int("winning-team", teamID)
 	end
 	Jailbreak.SetWinningTeam = setWinningTeam
-	setRoundTime = function(int)
+	setRoundTime = function( int )
 		return SetGlobal2Int("next-round-state", CurTime() + int)
 	end
 	Jailbreak.SetRoundTime = setRoundTime
@@ -40,21 +40,21 @@ do
 	local GetPlayersCount = Jailbreak.GetPlayersCount
 	local Create = timer.Create
 	local lastPrisonersCount = 0
-	local function playerChangedTeam(self)
+	local function playerChangedTeam( self )
 		local teamID = self:Team()
 		return Create("Jailbreak::TeamPlayerCountChanged", 0.25, 1, function()
 			local _exp_0 = GetRoundState()
 			if ROUND_PREPARING == _exp_0 then
-				if Teams[teamID] and GetPlayersCount(teamID) == 0 then
-					return setRoundState(ROUND_WAITING_PLAYERS)
+				if Teams[teamID] and GetPlayersCount( teamID ) == 0 then
+					return setRoundState( ROUND_WAITING_PLAYERS )
 				end
 			elseif ROUND_RUNNING == _exp_0 then
 				local teams = GetTeamPlayersCount(true, TEAM_GUARD, TEAM_PRISONER)
 				if teams[1] == 0 or teams[2] == 0 then
-					return setRoundState(ROUND_FINISHED)
+					return setRoundState( ROUND_FINISHED )
 				else
 					if teamID == TEAM_PRISONER and teams[2] == 1 and teams[2] < lastPrisonersCount then
-						PlaySound("ambient/levels/caves/ol04_gearengage.wav")
+						PlaySound( "ambient/levels/caves/ol04_gearengage.wav" )
 					end
 					lastPrisonersCount = teams[2]
 				end
@@ -67,20 +67,20 @@ do
 	hook.Add("TeamPlayerDisconnected", "Jailbreak::TeamPlayerCountChanged", playerChangedTeam)
 end
 do
-	local SafeCleanUpMap, Colors, RunEvents, SetShockCollars, ClearObserveTargets, TeamIsJoinable, PermanentGuards, SetWardenCoins, WardenCoins = Jailbreak.SafeCleanUpMap, Jailbreak.Colors, Jailbreak.RunEvents, Jailbreak.SetShockCollars, Jailbreak.ClearObserveTargets, Jailbreak.TeamIsJoinable, Jailbreak.PermanentGuards, Jailbreak.SetWardenCoins, Jailbreak.WardenCoins
+	local SafeCleanUpMap, Colors, RunEvents, SetShockCollars, ClearObserveTargets, TeamIsJoinable, PermanentGuards, SetWardenCoins, WardenCoins = Jailbreak.SafeCleanUpMap, Jailbreak.ColorScheme, Jailbreak.RunEvents, Jailbreak.SetShockCollars, Jailbreak.ClearObserveTargets, Jailbreak.TeamIsJoinable, Jailbreak.PermanentGuards, Jailbreak.SetWardenCoins, Jailbreak.WardenCoins
 	function GM:RoundStateChanged( old, new)
-		RunEvents(new)
+		RunEvents( new )
 		do
-			local _exp_0 = (new)
+			local _exp_0 = ( new )
 			if ROUND_WAITING_PLAYERS == _exp_0 then
-				SetShockCollars(false)
+				SetShockCollars( false )
 				ClearObserveTargets()
 				for _, ply in Iterator() do
 					if ply:Alive() then
 						ply:KillSilent()
 					end
 					if ply:IsBot() or (ply:IsGuard() and not PermanentGuards:GetBool()) then
-						ply:SetTeam(TEAM_PRISONER)
+						ply:SetTeam( TEAM_PRISONER )
 					end
 				end
 				SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new)
@@ -88,24 +88,24 @@ do
 			elseif ROUND_PREPARING == _exp_0 then
 				for _, ply in Iterator() do
 					if ply:IsBot() then
-						ply:SetTeam(TEAM_PRISONER)
+						ply:SetTeam( TEAM_PRISONER )
 					end
 					if Teams[ply:Team()] then
 						ply:Spawn()
 					end
 				end
 				SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.horizon)
-				SetShockCollars(false)
+				SetShockCollars( false )
 				SafeCleanUpMap()
 			elseif ROUND_RUNNING == _exp_0 then
-				PlaySound("ambient/alarms/warningbell1.wav")
+				PlaySound( "ambient/alarms/warningbell1.wav" )
 				SetWardenCoins(WardenCoins:GetInt())
 				for _, ply in Iterator() do
 					if ply:IsBot() then
 						local teamID = ply:Team()
 						for index = 1, 2 do
-							if index ~= teamID and TeamIsJoinable(index) then
-								ply:SetTeam(index)
+							if index ~= teamID and TeamIsJoinable( index ) then
+								ply:SetTeam( index )
 								ply:KillSilent()
 								break
 							end
@@ -114,7 +114,7 @@ do
 				end
 				local teams = GetTeamPlayersCount(true, TEAM_GUARD, TEAM_PRISONER)
 				if teams[1] == 0 or teams[2] == 0 then
-					setRoundState(ROUND_WAITING_PLAYERS)
+					setRoundState( ROUND_WAITING_PLAYERS )
 					return
 				end
 				local guards = {}
@@ -132,37 +132,37 @@ do
 					end
 				end
 				if #guards == 1 then
-					guards[1]:SetWarden(true)
+					guards[1]:SetWarden( true )
 				end
-				SetShockCollars(true)
+				SetShockCollars( true )
 				local roundTime = RoundTime:GetInt()
 				if roundTime > 0 then
-					setRoundTime(roundTime)
+					setRoundTime( roundTime )
 				end
 				SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new, Colors.asparagus)
-				Run("GameStarted")
+				Run( "GameStarted" )
 			elseif ROUND_FINISHED == _exp_0 then
 				local teams = GetTeamPlayersCount(true, TEAM_GUARD, TEAM_PRISONER)
 				if teams[1] > teams[2] then
-					SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. "." .. TEAM_GUARD, Jailbreak.GetTeamColor(TEAM_GUARD))
-					setWinningTeam(TEAM_GUARD)
+					SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. "." .. TEAM_GUARD, Jailbreak.GetTeamColor( TEAM_GUARD ))
+					setWinningTeam( TEAM_GUARD )
 				elseif teams[1] < teams[2] then
-					SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. "." .. TEAM_PRISONER, Jailbreak.GetTeamColor(TEAM_PRISONER))
-					setWinningTeam(TEAM_PRISONER)
+					SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. "." .. TEAM_PRISONER, Jailbreak.GetTeamColor( TEAM_PRISONER ))
+					setWinningTeam( TEAM_PRISONER )
 				else
 					SendChatText(false, false, CHAT_SERVERMESSAGE, "#jb.round.changed." .. new .. ".0", Colors.dark_white)
-					setWinningTeam(0)
+					setWinningTeam( 0 )
 				end
 				setRoundTime(PrepareTime:GetInt())
-				PlaySound("ambient/alarms/warningbell1.wav")
-				Run("GameFinished")
+				PlaySound( "ambient/alarms/warningbell1.wav" )
+				Run( "GameFinished" )
 			end
 		end
 		return
 	end
 end
 do
-	local black = Jailbreak.Colors.black
+	local black = Jailbreak.ColorScheme.black
 	function GM:TeamPlayerDeath( ply, teamID)
 		if not ply:IsBot() then
 			ply:ShockScreenEffect(0.25, black, 1, false)
@@ -199,7 +199,7 @@ do
 		if IsWaitingPlayers() then
 			local teams = GetTeamPlayersCount(true, TEAM_GUARD, TEAM_PRISONER)
 			if teams[1] > 0 and teams[2] > 0 then
-				setRoundState(ROUND_PREPARING)
+				setRoundState( ROUND_PREPARING )
 				return setRoundTime(PrepareTime:GetInt())
 			end
 		end
@@ -214,17 +214,17 @@ do
 		end
 		local _exp_0 = GetRoundState()
 		if ROUND_PREPARING == _exp_0 then
-			return setRoundState(ROUND_RUNNING)
+			return setRoundState( ROUND_RUNNING )
 		elseif ROUND_RUNNING == _exp_0 then
 			if RoundTime:GetInt() == 0 then
 				return
 			end
 			AddScore(TEAM_GUARD, 1)
-			setWinningTeam(TEAM_GUARD)
+			setWinningTeam( TEAM_GUARD )
 			setRoundState(ROUND_FINISHED, true)
 			return setRoundTime(PrepareTime:GetInt())
 		elseif ROUND_FINISHED == _exp_0 then
-			return setRoundState(ROUND_WAITING_PLAYERS)
+			return setRoundState( ROUND_WAITING_PLAYERS )
 		end
 	end
 end

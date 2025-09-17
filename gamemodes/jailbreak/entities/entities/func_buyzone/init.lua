@@ -1,6 +1,6 @@
 ENT.Type = "brush"
 function ENT:Initialize()
-	return self:SetTrigger(true)
+	return self:SetTrigger( true )
 end
 function ENT:StartTouch( entity)
 	if entity:IsPlayer() and entity:Alive() then

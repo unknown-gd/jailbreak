@@ -9,7 +9,7 @@ local isnumber = isnumber
 local tonumber = tonumber
 local pairs = pairs
 local mapName = game.GetMap()
-local mapNameShort = match(mapName, "^%w+_(%w+)_?")
+local mapNameShort = match(mapName, "^%w+_( %w+ )_?")
 local channels = {
 	CHAN_REPLACE = -1,
 	CHAN_AUTO = 0,
@@ -65,11 +65,11 @@ local _base_0 = {
 	Channels = channels,
 	Pitchs = pitchs,
 	Perform = function(self, content)
-		local sounds = KeyValuesToTable(content)
+		local sounds = KeyValuesToTable( content )
 		if not sounds then
 			return
 		end
-		for name, data in pairs(sounds) do
+		for name, data in pairs( sounds ) do
 			local soundData = {
 				name = name,
 				channel = channels[data.channel or "CHAN_AUTO"] or 0,
@@ -81,7 +81,7 @@ local _base_0 = {
 			local rndwave = data.rndwave
 			if rndwave then
 				local tbl, len = {}, 0
-				for _, value in pairs(rndwave) do
+				for _, value in pairs( rndwave ) do
 					len = len + 1
 					tbl[len] = value
 				end
@@ -89,7 +89,7 @@ local _base_0 = {
 			end
 			local pitch = data.pitch
 			if pitch then
-				if isstring(pitch) then
+				if isstring( pitch ) then
 					local common = pitchs[pitch]
 					if common then
 						soundData.pitch = common
@@ -97,14 +97,14 @@ local _base_0 = {
 						pitch = Split(pitch, ",")
 						soundData.pitch = pitch
 						for index = 1, #pitch do
-							pitch[index] = tonumber(pitch[index])
+							pitch[index] = tonumber( pitch[index] )
 						end
 					end
-				elseif isnumber(pitch) then
+				elseif isnumber( pitch ) then
 					soundData.pitch = pitch
 				end
 			end
-			Add(soundData)
+			Add( soundData )
 		end
 	end
 }
@@ -113,7 +113,7 @@ if _base_0.__index == nil then
 end
 _class_0 = setmetatable({
 	__init = function(self, gameName)
-		if not IsMounted(gameName) then
+		if not IsMounted( gameName ) then
 			return
 		end
 		local _list_0 = Find("scripts/soundscapes_*.txt", gameName)

@@ -3,7 +3,7 @@ function ENT:Initialize()
 	self.Negated = false
 end
 function ENT:PassesFilter( entity, ply)
-	if not (IsValid(ply) and ply:IsPlayer() and ply:Alive()) then
+	if not (IsValid( ply ) and ply:IsPlayer() and ply:Alive()) then
 		return false
 	end
 	local requestedTeam = self.TeamNum
@@ -20,13 +20,13 @@ function ENT:PassesFilter( entity, ply)
 end
 function ENT:KeyValue( key, value)
 	if "Negated" == key then
-		self.Negated = tobool(value)
+		self.Negated = tobool( value )
 	elseif "TeamNum" == key then
-		self.TeamNum = Jailbreak.TF2Team(tonumber(value) or 0)
+		self.TeamNum = Jailbreak.TF2Team(tonumber( value ) or 0)
 	end
 end
 function ENT:AcceptInput( key, _, __, value)
 	if key == "SetTeam" then
-		self.TeamNum = Jailbreak.TF2Team(tonumber(value) or 0)
+		self.TeamNum = Jailbreak.TF2Team(tonumber( value ) or 0)
 	end
 end

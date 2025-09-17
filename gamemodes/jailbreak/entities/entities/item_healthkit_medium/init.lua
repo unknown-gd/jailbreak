@@ -1,7 +1,7 @@
-AddCSLuaFile("cl_init.lua")
+AddCSLuaFile( "cl_init.lua" )
 ENT.Base = "item_base"
 ENT.Model = "models/items/medkit_medium.mdl"
-ENT.Sound = Sound("HealthKit.Touch")
+ENT.Sound = Sound( "HealthKit.Touch" )
 ENT.Healing = 0.5
 function ENT:PlayerGotItem( ply)
 	if ply:Health() >= ply:GetMaxHealth() then

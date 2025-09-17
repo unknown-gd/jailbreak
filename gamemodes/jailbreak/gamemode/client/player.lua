@@ -15,7 +15,7 @@ function GM:ShouldDrawLocalPlayer( ply)
 		end
 		return true
 	end
-	if IsPlayingTaunt(ply) and Alive(ply) then
+	if IsPlayingTaunt( ply ) and Alive( ply ) then
 		Jailbreak.PlayingTaunt = true
 		return true
 	end
@@ -41,7 +41,7 @@ do
 		mask = MASK_SHOT
 	}
 	local view = Jailbreak.PlayerView
-	if not istable(view) then
+	if not istable( view ) then
 		view = {}
 		Jailbreak.PlayerView = view
 	end
@@ -57,7 +57,7 @@ do
 			return view
 		end
 		local entity = nil
-		if Alive(ply) then
+		if Alive( ply ) then
 			if ply:IsLoseConsciousness() then
 				if Jailbreak.TauntViewAngles then
 					Jailbreak.TauntViewAngles = nil
@@ -72,9 +72,9 @@ do
 				if not entity:IsValid() then
 					return view
 				end
-				local attachmentID = entity:LookupAttachment("eyes")
+				local attachmentID = entity:LookupAttachment( "eyes" )
 				if attachmentID >= 0 then
-					local attachment = entity:GetAttachment(attachmentID)
+					local attachment = entity:GetAttachment( attachmentID )
 					if attachment then
 						view.origin = attachment.Pos
 						view.angles = attachment.Ang
@@ -105,7 +105,7 @@ do
 			end
 			return view
 		end
-		if not Alive(ply) then
+		if not Alive( ply ) then
 			if Jailbreak.TauntViewAngles then
 				Jailbreak.TauntViewAngles = nil
 			end
@@ -127,9 +127,9 @@ do
 			if Jailbreak.TauntEyeAngles then
 				Jailbreak.TauntEyeAngles = nil
 			end
-			local attachmentID = entity:LookupAttachment("eyes")
+			local attachmentID = entity:LookupAttachment( "eyes" )
 			if attachmentID >= 0 then
-				local attachment = entity:GetAttachment(attachmentID)
+				local attachment = entity:GetAttachment( attachmentID )
 				if attachment then
 					view.origin = attachment.Pos
 					view.angles = attachment.Ang
@@ -154,15 +154,15 @@ do
 			if boneID and boneID >= 0 then
 				origin = GetBonePosition(ply, boneID)
 			end
-			local targetOrigin = origin - Forward(viewAngles) * distance
+			local targetOrigin = origin - Forward( viewAngles ) * distance
 			trace.start = origin
 			trace.endpos = targetOrigin
 			trace.filter = entity
-			TraceHull(trace)
+			TraceHull( trace )
 			targetOrigin = traceResult.HitPos + traceResult.HitNormal
 			local eyeAngles = Jailbreak.TauntEyeAngles
 			if not eyeAngles then
-				eyeAngles = Angle(viewAngles)
+				eyeAngles = Angle( viewAngles )
 				Jailbreak.TauntEyeAngles = eyeAngles
 			end
 			local fraction = Jailbreak.TauntFraction
@@ -201,7 +201,7 @@ do
 		if weapon and weapon:IsValid() then
 			local func = weapon.CalcView
 			if func then
-				origin, angles, fov = func(weapon, ply, Vector(view.origin), Angle(view.angles), view.fov)
+				origin, angles, fov = func(weapon, ply, Vector( view.origin ), Angle( view.angles ), view.fov)
 				view.origin, view.angles, view.fov = origin or view.origin, angles or view.angles, fov or view.fov
 			end
 		end
@@ -218,7 +218,7 @@ do
 	local Clamp = math.Clamp
 	local frameTime = 0
 	function GM:CreateMove( cmd)
-		if CreateMove(cmd) then
+		if CreateMove( cmd ) then
 			return true
 		end
 		if Jailbreak.PlayingTaunt then
@@ -226,13 +226,13 @@ do
 			if viewAngles then
 				frameTime = FrameTime()
 				local _update_0 = 1
-				viewAngles[_update_0] = viewAngles[_update_0] + (GetMouseY(cmd) * frameTime)
+				viewAngles[_update_0] = viewAngles[_update_0] + (GetMouseY( cmd ) * frameTime)
 				local _update_1 = 2
-				viewAngles[_update_1] = viewAngles[_update_1] - (GetMouseX(cmd) * frameTime)
+				viewAngles[_update_1] = viewAngles[_update_1] - (GetMouseX( cmd ) * frameTime)
 			end
 			local distance = Jailbreak.TauntDistance
 			if distance then
-				Jailbreak.TauntDistance = Clamp(distance - GetMouseWheel(cmd) * (distance * 0.1), 16, 1024)
+				Jailbreak.TauntDistance = Clamp(distance - GetMouseWheel( cmd ) * (distance * 0.1), 16, 1024)
 			end
 			local eyeAngles = Jailbreak.TauntEyeAngles
 			if eyeAngles then
@@ -257,14 +257,14 @@ do
 	local CullMode = render.CullMode
 	function GM:PostDrawViewModel( vm, ply, weapon)
 		if weapon.UseHands or not weapon:IsScripted() then
-			local hands = GetHands(ply)
+			local hands = GetHands( ply )
 			if hands and hands:IsValid() and hands:GetParent():IsValid() then
 				if not Run("PreDrawPlayerHands", hands, vm, ply, weapon) then
 					if weapon.ViewModelFlip then
-						CullMode(MATERIAL_CULLMODE_CW)
+						CullMode( MATERIAL_CULLMODE_CW )
 					end
-					DrawModel(hands)
-					CullMode(MATERIAL_CULLMODE_CCW)
+					DrawModel( hands )
+					CullMode( MATERIAL_CULLMODE_CCW )
 				end
 				Run("PostDrawPlayerHands", hands, vm, ply, weapon)
 			end
@@ -282,12 +282,12 @@ do
 	local tonumber = tonumber
 	local SetBlend = render.SetBlend
 	cvars.AddChangeCallback(HandsTransparency:GetName(), function(_, __, value)
-		handsAlpha = 1 - (tonumber(value) or 0)
+		handsAlpha = 1 - (tonumber( value ) or 0)
 	end, "Jailbreak::HandsTransparency")
 	function GM:PreDrawPlayerHands()
-		return SetBlend(handsAlpha)
+		return SetBlend( handsAlpha )
 	end
 	function GM:PostDrawPlayerHands()
-		return SetBlend(1)
+		return SetBlend( 1 )
 	end
 end

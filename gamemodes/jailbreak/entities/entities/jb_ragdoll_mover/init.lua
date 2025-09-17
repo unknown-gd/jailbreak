@@ -1,13 +1,13 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-include("shared.lua")
+AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
 ENT.DoNotDuplicate = true
 ENT.DisableDuplicator = true
 local mins, maxs = Vector(-1, -1, -1), Vector(1, 1, 1)
 function ENT:Initialize()
-	self:SetCollisionGroup(12)
+	self:SetCollisionGroup( 12 )
 	self:PhysicsInitBox(mins, maxs, "dirt")
-	self:DrawShadow(false)
+	self:DrawShadow( false )
 	local phys = self:GetPhysicsObject()
 	if phys and phys:IsValid() then
 		local ragdoll = self.Ragdoll

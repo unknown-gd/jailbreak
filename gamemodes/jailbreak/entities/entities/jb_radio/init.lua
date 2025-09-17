@@ -1,15 +1,15 @@
-AddCSLuaFile("cl_init.lua")
-AddCSLuaFile("shared.lua")
-include("shared.lua")
-util.AddNetworkString("Jailbreak::Radio")
+AddCSLuaFile( "cl_init.lua" )
+AddCSLuaFile( "shared.lua" )
+include( "shared.lua" )
+util.AddNetworkString( "Jailbreak::Radio" )
 function ENT:Initialize()
-	self:SetModel(self.Model)
-	self:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-	self:SetMoveType(MOVETYPE_VPHYSICS)
-	self:PhysicsInit(SOLID_VPHYSICS)
-	self:SetSolid(SOLID_VPHYSICS)
-	self:SetUseType(SIMPLE_USE)
-	return self:DrawShadow(true)
+	self:SetModel( self.Model )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+	return self:DrawShadow( true )
 end
 do
 	local Start, WriteEntity, Send
@@ -18,9 +18,9 @@ do
 		Start, WriteEntity, Send = _obj_0.Start, _obj_0.WriteEntity, _obj_0.Send
 	end
 	function ENT:Use( ply)
-		Start("Jailbreak::Radio")
-		WriteEntity(self)
-		return Send(ply)
+		Start( "Jailbreak::Radio" )
+		WriteEntity( self )
+		return Send( ply )
 	end
 end
 do

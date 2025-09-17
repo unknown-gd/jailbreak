@@ -1,6 +1,6 @@
-include("shared.lua")
+include( "shared.lua" )
 function SWEP:Initialize()
-	return self:SetHoldType("duel")
+	return self:SetHoldType( "duel" )
 end
 local CurTime = CurTime
 local TraceLine = util.TraceLine
@@ -16,13 +16,13 @@ function SWEP:PrimaryAttack()
 	trace.start = owner:GetShootPos()
 	trace.endpos = trace.start + owner:GetAimVector() * 128
 	trace.filter = owner
-	TraceLine(trace)
+	TraceLine( trace )
 	if not traceResult.Hit then
 		return
 	end
 	local ragdoll = traceResult.Entity
 	if ragdoll:IsValid() then
-		ragdoll:DoElectricSparks(traceResult.HitPos)
+		ragdoll:DoElectricSparks( traceResult.HitPos )
 		return self:SetNextPrimaryFire(CurTime() + self.UsageDelay:GetFloat())
 	end
 end

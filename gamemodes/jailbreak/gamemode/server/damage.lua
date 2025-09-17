@@ -20,7 +20,7 @@ do
 	function GM:PlayerTakeDamage( ply, damageInfo, teamID)
 		if ply:HasShockCollar() and damageInfo:IsShockDamage() then
 			ply:DoElectricSparks()
-			ply:TakeShockCollar(true)
+			ply:TakeShockCollar( true )
 			ply:SendNotify("#jb.notify.shock-collar.broken", NOTIFY_ERROR, 10)
 			return
 		end
@@ -28,19 +28,19 @@ do
 			return
 		end
 		local attacker = damageInfo:GetAttacker()
-		if not (IsValid(attacker) and attacker:IsPlayer() and attacker:ShockCollarIsEnabled()) or attacker == ply then
+		if not (IsValid( attacker ) and attacker:IsPlayer() and attacker:ShockCollarIsEnabled()) or attacker == ply then
 			return
 		end
 		local damage, damageType = damageInfo:GetDamage(), damageInfo:GetDamageType()
 		local newDamage = damage * ShockCollarAttackerDamage:GetFloat()
 		if newDamage >= 1 then
 			attacker:DoElectricSparks()
-			damageInfo:SetDamage(newDamage)
-			damageInfo:SetDamageType(DMG_SONIC)
-			attacker:TakeDamageInfo(damageInfo)
+			damageInfo:SetDamage( newDamage )
+			damageInfo:SetDamageType( DMG_SONIC )
+			attacker:TakeDamageInfo( damageInfo )
 			attacker:ShockScreenEffect(0.25, white, 0.25, true)
 		end
-		damageInfo:SetDamageType(damageType)
+		damageInfo:SetDamageType( damageType )
 		return damageInfo:SetDamage(damage * ShockCollarVictimDamage:GetFloat())
 	end
 end
@@ -58,8 +58,8 @@ do
 			damageInfo:SetDamage(damageInfo:GetDamage() + damageInfo:GetDamageForce():Length() / 256)
 		elseif damageInfo:IsCloseRangeDamage() then
 			local attacker = damageInfo:GetAttacker()
-			if IsValid(attacker) and attacker:IsPlayer() and Jailbreak.PowerfulPlayers then
-				damageInfo:ScaleDamage(3)
+			if IsValid( attacker ) and attacker:IsPlayer() and Jailbreak.PowerfulPlayers then
+				damageInfo:ScaleDamage( 3 )
 			end
 		end
 		if entity:IsPlayer() then
@@ -72,8 +72,8 @@ do
 			return Run("RagdollTakeDamage", entity, damageInfo, className)
 		end
 		if damageInfo:IsNeverGibDamage() then
-			damageInfo:SetDamageForce(vector_origin)
-			damageInfo:ScaleDamage(0.25)
+			damageInfo:SetDamageForce( vector_origin )
+			damageInfo:ScaleDamage( 0.25 )
 		end
 		if className == "func_button" then
 			return Run("ButtonTakeDamage", entity, damageInfo, className)
@@ -81,7 +81,7 @@ do
 		if className == "prop_door_rotating" then
 			return Run("DoorTakeDamage", entity, damageInfo, className)
 		end
-		if IsProp(className) then
+		if IsProp( className ) then
 			return Run("PropTakeDamage", entity, damageInfo, className)
 		end
 		if entity:IsWeapon() then
@@ -108,22 +108,22 @@ function GM:PostEntityTakeDamage( entity, damageInfo, isRealDamage)
 			elseif length > 2 then
 				velocity = velocity * (2 / length)
 			end
-			damageInfo:SetDamageForce(velocity)
+			damageInfo:SetDamageForce( velocity )
 		end
 		local inflictor = damageInfo:GetInflictor()
-		if IsValid(inflictor) and inflictor:IsWeapon() and inflictor:IsScripted() then
-			entity:SetVelocity(velocity)
+		if IsValid( inflictor ) and inflictor:IsWeapon() and inflictor:IsScripted() then
+			entity:SetVelocity( velocity )
 		end
 		return
 	end
 	local inflictor = damageInfo:GetInflictor()
-	if IsValid(inflictor) and inflictor:IsRagdoll() then
-		damageInfo:SetDamageForce(vector_origin)
+	if IsValid( inflictor ) and inflictor:IsRagdoll() then
+		damageInfo:SetDamageForce( vector_origin )
 		return
 	end
 	local origin = damageInfo:GetDamagePosition()
 	for physNum = 0, entity:GetPhysicsObjectCount() - 1 do
-		local phys = entity:GetPhysicsObjectNum(physNum)
+		local phys = entity:GetPhysicsObjectNum( physNum )
 		if phys and phys:IsValid() and phys:IsMoveable() and phys:IsMotionEnabled() then
 			phys:ApplyForceOffset(velocity / phys:GetMass(), origin)
 			if phys:IsAsleep() then
@@ -133,8 +133,8 @@ function GM:PostEntityTakeDamage( entity, damageInfo, isRealDamage)
 	end
 end
 do
-	local sk_npc_dmg_fraggrenade = GetConVar("sk_npc_dmg_fraggrenade")
-	local sk_fraggrenade_radius = GetConVar("sk_fraggrenade_radius")
+	local sk_npc_dmg_fraggrenade = GetConVar( "sk_npc_dmg_fraggrenade" )
+	local sk_fraggrenade_radius = GetConVar( "sk_fraggrenade_radius" )
 	local Explosion = Jailbreak.Explosion
 	function GM:ClassTakeDamage( entity, damageInfo, className)
 		if className == "npc_grenade_frag" and not entity.m_bExploded then
@@ -170,7 +170,7 @@ do
 	local DoorsHealth = Jailbreak.DoorsHealth
 	function GM:DoorTakeDamage( door, damageInfo)
 		local model = door:GetModel()
-		if #model == 0 or not IsValidModel(model) then
+		if #model == 0 or not IsValidModel( model ) then
 			return
 		end
 		local maxHealth = door:GetMaxHealth()
@@ -179,34 +179,34 @@ do
 			if maxHealth <= 0 then
 				return
 			end
-			door:SetMaxHealth(maxHealth)
-			door:SetHealth(maxHealth)
+			door:SetMaxHealth( maxHealth )
+			door:SetHealth( maxHealth )
 		end
 		local health = max(0, door:Health() - damageInfo:GetDamage())
-		door:SetHealth(health)
+		door:SetHealth( health )
 		if health >= 1 then
 			return
 		end
 		local center = door:OBBCenter()
 		center[1], center[2] = 0, 0
-		local origin = door:LocalToWorld(center)
-		if not IsInWorld(origin) then
+		local origin = door:LocalToWorld( center )
+		if not IsInWorld( origin ) then
 			door:Remove()
 			return true
 		end
-		local prop = Create("prop_physics")
-		prop:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+		local prop = Create( "prop_physics" )
+		prop:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 		prop:SetAngles(door:GetAngles())
 		prop:SetSkin(door:GetSkin())
-		prop:SetModel(model)
-		prop:SetPos(origin)
+		prop:SetModel( model )
+		prop:SetPos( origin )
 		prop:Spawn()
 		prop:EmitSound("physics/wood/wood_crate_break" .. random(1, 5) .. ".wav", 70, random(80, 120), 1, CHAN_STATIC, 0, 1)
 		door:Remove()
 		origin = damageInfo:GetDamagePosition()
 		util.ScreenShake(origin, 5, 10, 0.5, 150)
 		prop:DoElectricSparks(origin, nil, true)
-		prop:TakeDamageInfo(damageInfo)
+		prop:TakeDamageInfo( damageInfo )
 		return
 	end
 end
@@ -217,7 +217,7 @@ do
 			return true
 		end
 		local attacker = damageInfo:GetAttacker()
-		if not (IsValid(attacker) and attacker:IsPlayer() and random(0, 1) == 1) then
+		if not (IsValid( attacker ) and attacker:IsPlayer() and random(0, 1) == 1) then
 			return true
 		end
 		button:DoElectricSparks(damageInfo:GetDamagePosition(), 150)
@@ -230,9 +230,9 @@ do
 		dir[3] = 1
 		damageInfo:SetDamage(attacker:GetMaxHealth() / Rand(2, 3))
 		damageInfo:SetDamageForce(dir * 100)
-		damageInfo:SetDamageType(DMG_SHOCK)
-		damageInfo:SetAttacker(button)
-		attacker:TakeDamageInfo(damageInfo)
+		damageInfo:SetDamageType( DMG_SHOCK )
+		damageInfo:SetAttacker( button )
+		attacker:TakeDamageInfo( damageInfo )
 		return true
 	end
 end
@@ -279,18 +279,18 @@ do
 	local cache = {}
 	function GM:PropTakeDamage( entity, damageInfo)
 		if damageInfo:IsCrushDamage() then
-			damageInfo:SetDamageForce(vector_origin)
+			damageInfo:SetDamageForce( vector_origin )
 		end
 		if entity.m_bCustomHealth == nil then
 			if entity:GetMaxHealth() == 1 and entity:Health() == 0 then
 				local health = cache[entity:GetModel()]
 				if not health then
 					local mins, maxs = entity:GetCollisionBounds()
-					health = ceil(mins:Distance(maxs) * (materials[entity:GetMaterialType() or 0] or 1))
+					health = ceil(mins:Distance( maxs ) * (materials[entity:GetMaterialType() or 0] or 1))
 					cache[entity:GetModel()] = health
 				end
-				entity:SetHealth(health)
-				entity:SetMaxHealth(health)
+				entity:SetHealth( health )
+				entity:SetMaxHealth( health )
 				entity.m_bCustomHealth = true
 			else
 				entity.m_bCustomHealth = false
@@ -303,29 +303,29 @@ do
 		if health < 1 then
 			local velocity = entity:GetVelocity() + damageInfo:GetDamageForce()
 			if entity:PrecacheGibs() > 0 then
-				entity:GibBreakClient(velocity)
+				entity:GibBreakClient( velocity )
 			end
 			local dropModels = dropList[entity:GetModel()]
 			if dropModels ~= nil then
 				local count = dropModels.Count
-				if istable(count) then
+				if istable( count ) then
 					count = random(count[1], count[2])
-				elseif not isnumber(count) then
+				elseif not isnumber( count ) then
 					count = 1
 				end
 				dropModels = dropModels.Models
-				local isTable = istable(dropModels)
-				if isTable or isstring(dropModels) then
+				local isTable = istable( dropModels )
+				if isTable or isstring( dropModels ) then
 					local mins, maxs = entity:GetCollisionBounds()
 					local speed = velocity:Length()
 					mins = mins * 0.8
 					maxs = maxs * 0.8
 					for i = 1, count do
-						local prop = Create("prop_physics")
+						local prop = Create( "prop_physics" )
 						if isTable then
 							prop:SetModel(dropModels[random(1, #dropModels)])
 						else
-							prop:SetModel(dropModels)
+							prop:SetModel( dropModels )
 						end
 						prop:SetPos(entity:LocalToWorld(Vector(random(mins[1], maxs[1]), random(mins[2], maxs[2]), random(mins[3], maxs[3]))))
 						prop:SetAngles(Angle(random(-180, 180), random(-180, 180), random(-180, 180)))
@@ -338,30 +338,30 @@ do
 				end
 			end
 			local inflictor = damageInfo:GetInflictor()
-			if IsValid(inflictor) and inflictor:GetClass() == "prop_combine_ball" then
+			if IsValid( inflictor ) and inflictor:GetClass() == "prop_combine_ball" then
 				entity:Dissolve()
 				return
 			end
 			entity:Remove()
 			return true
 		end
-		entity:SetHealth(health)
+		entity:SetHealth( health )
 		if (health / entity:GetMaxHealth()) > 0.5 then
 			return
 		end
 		local changed = false
 		if entity:GetMoveType() ~= MOVETYPE_VPHYSICS then
-			entity:SetMoveType(MOVETYPE_VPHYSICS)
+			entity:SetMoveType( MOVETYPE_VPHYSICS )
 			changed = true
 		end
 		if entity:GetClass() == "prop_dynamic" then
-			entity:PhysicsInit(SOLID_VPHYSICS)
+			entity:PhysicsInit( SOLID_VPHYSICS )
 			changed = true
 		end
 		local phys = entity:GetPhysicsObject()
 		if phys and phys:IsValid() then
 			if not phys:IsMotionEnabled() then
-				phys:EnableMotion(true)
+				phys:EnableMotion( true )
 				changed = true
 			end
 			if phys:IsAsleep() then
@@ -375,7 +375,7 @@ do
 	end
 end
 do
-	local player_old_armor = GetConVar("player_old_armor")
+	local player_old_armor = GetConVar( "player_old_armor" )
 	function GM:PerformArmorDamage( entity, armor, damageInfo)
 		if armor <= 0 then
 			return 0
@@ -384,7 +384,7 @@ do
 			return armor
 		end
 		if damageInfo:IsCloseRangeDamage() and damageInfo:GetAttacker() == entity then
-			damageInfo:ScaleDamage(0.25)
+			damageInfo:ScaleDamage( 0.25 )
 		end
 		local isEnabled = player_old_armor:GetBool()
 		local flBonus = isEnabled and 0.5 or 1
@@ -402,7 +402,7 @@ do
 		else
 			armor = armor - flArmor
 		end
-		damageInfo:SetDamage(flNew)
+		damageInfo:SetDamage( flNew )
 		return armor
 	end
 end
@@ -415,7 +415,7 @@ do
 	end
 end
 function GM:GetFallDamage( ply, speed)
-	if ply:GetNW2Bool("in-flight") then
+	if ply:GetNW2Bool( "in-flight" ) then
 		return 0
 	end
 	return max(0, ceil(0.2418 * speed - 141.75))
@@ -425,7 +425,7 @@ do
 	local BloodSplashes = Jailbreak.BloodSplashes
 	function GM:RagdollTakeDamage( ragdoll, damageInfo)
 		if damageInfo:IsNeverGibDamage() then
-			damageInfo:ScaleDamage(0.25)
+			damageInfo:ScaleDamage( 0.25 )
 		end
 		if damageInfo:IsBulletDamage() then
 			local force = damageInfo:GetDamageForce()
@@ -436,7 +436,7 @@ do
 			damageInfo:SetDamage(damageInfo:GetDamage() * 0.25)
 		end
 		if damageInfo:IsCrushDamage() then
-			damageInfo:SetDamageForce(vector_origin)
+			damageInfo:SetDamageForce( vector_origin )
 			local damage = floor(damageInfo:GetDamage() * 0.1)
 			if damage > 100 then
 				damage = 100
@@ -444,7 +444,7 @@ do
 			if damage < 1 then
 				return true
 			end
-			damageInfo:SetDamage(damage)
+			damageInfo:SetDamage( damage )
 		end
 		local armor = ragdoll.Armor
 		if armor ~= nil and armor > 0 then
@@ -452,7 +452,7 @@ do
 		end
 		local health = ragdoll:Health()
 		local nextHealth = floor(health - damageInfo:GetDamage())
-		ragdoll:SetHealth(nextHealth)
+		ragdoll:SetHealth( nextHealth )
 		if ragdoll:Alive() then
 			local startHealth = ragdoll.StartHealth
 			if not startHealth then
@@ -461,7 +461,7 @@ do
 			end
 			if (nextHealth / startHealth) < 0.75 then
 				ragdoll:EmitSound("Player.Death", 75, random(80, 120), 1, CHAN_STATIC, 0, 1)
-				ragdoll:SetAlive(false)
+				ragdoll:SetAlive( false )
 				Run("RagdollDeath", ragdoll)
 			end
 		end
@@ -478,18 +478,18 @@ do
 			local _list_0 = ragdoll.Weapons
 			for _index_0 = 1, #_list_0 do
 				local weapon = _list_0[_index_0]
-				if not IsValid(weapon) then
+				if not IsValid( weapon ) then
 					goto _continue_0
 				end
 				weapon:SetParent()
-				weapon:SetNoDraw(false)
-				weapon:SetNotSolid(false)
+				weapon:SetNoDraw( false )
+				weapon:SetNotSolid( false )
 				origin, angles = LocalToWorld(Vector(random(mins[1], maxs[1], random(mins[2], maxs[2]), random(mins[3], maxs[3]))), Angle(Rand(-90, 90), Rand(-180, 180), Rand(-180, 180)), origin, angles)
-				weapon:SetAngles(angles)
-				weapon:SetPos(origin)
+				weapon:SetAngles( angles )
+				weapon:SetPos( origin )
 				local phys = weapon:GetPhysicsObject()
 				if phys and phys:IsValid() then
-					phys:SetVelocity(velocity)
+					phys:SetVelocity( velocity )
 					phys:Wake()
 				end
 				weapon.m_bPickupForbidden = nil
@@ -498,14 +498,14 @@ do
 			ragdoll.Weapons = nil
 		end
 		if ragdoll:PrecacheGibs() > 0 then
-			ragdoll:GibBreakClient(velocity)
+			ragdoll:GibBreakClient( velocity )
 		elseif random(1, 2) == 1 then
 			ragdoll:EmitSound("physics/body/body_medium_break" .. random(2, 4) .. ".wav", 70, random(80, 120), 1, CHAN_STATIC, 0, 1)
 		else
 			ragdoll:EmitSound("physics/flesh/flesh_squishy_impact_hard" .. random(1, 4) .. ".wav", 70, random(80, 120), 1, CHAN_STATIC, 0, 1)
 		end
 		local inflictor = damageInfo:GetInflictor()
-		if IsValid(inflictor) and inflictor:GetClass() == "prop_combine_ball" then
+		if IsValid( inflictor ) and inflictor:GetClass() == "prop_combine_ball" then
 			ragdoll:Dissolve()
 			return
 		end

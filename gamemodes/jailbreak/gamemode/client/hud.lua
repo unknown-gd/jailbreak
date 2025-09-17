@@ -1,7 +1,7 @@
 local Jailbreak = Jailbreak
 local Run = hook.Run
 local GM = GM
-local Colors, VMin, GetTeamColor, GetTeamColorUpacked = Jailbreak.Colors, Jailbreak.VMin, Jailbreak.GetTeamColor, Jailbreak.GetTeamColorUpacked
+local Colors, VMin, GetTeamColor, GetTeamColorUpacked = Jailbreak.ColorScheme, Jailbreak.VMin, Jailbreak.GetTeamColor, Jailbreak.GetTeamColorUpacked
 local asparagus, white, black, dark_grey, light_grey, red, dark_white, horizon, butterfly_bush, au_chico = Colors.asparagus, Colors.white, Colors.black, Colors.dark_grey, Colors.light_grey, Colors.red, Colors.dark_white, Colors.horizon, Colors.butterfly_bush, Colors.au_chico
 local DrawRect, SetMaterial, SetDrawColor, SetFont, GetTextSize, DrawText, SetTextColor, SetTextPos, SetAlphaMultiplier, DrawTexturedRectRotated
 do
@@ -60,9 +60,9 @@ do
 		if not (viewEntity:IsPlayer() and viewEntity:Alive()) then
 			return
 		end
-		IgnoreZ(true)
+		IgnoreZ( true )
 		for index = 0, 2 do
-			local viewModel = viewEntity:GetViewModel(index)
+			local viewModel = viewEntity:GetViewModel( index )
 			if viewModel and viewModel:IsValid() then
 				viewModel:DrawModel()
 			end
@@ -71,7 +71,7 @@ do
 		if hands and hands:IsValid() then
 			hands:DrawModel()
 		end
-		return IgnoreZ(false)
+		return IgnoreZ( false )
 	end
 end
 do
@@ -97,41 +97,41 @@ do
 			end
 			text = format(text, remainingTime)
 		end
-		SetFont("Jailbreak::RoundState")
+		SetFont( "Jailbreak::RoundState" )
 		local screenCenterX = Jailbreak.ScreenCenterX
-		local textWidth, textHeight = GetTextSize(text)
-		local x, y = screenCenterX - textWidth / 2, VMin(1)
+		local textWidth, textHeight = GetTextSize( text )
+		local x, y = screenCenterX - textWidth / 2, VMin( 1 )
 		SetTextPos(x - 1, y - 1)
 		SetTextColor(black.r, black.g, black.b, 50)
-		DrawText(text)
+		DrawText( text )
 		SetTextPos(x + 3, y + 3)
 		SetTextColor(black.r, black.g, black.b, 120)
-		DrawText(text)
-		SetTextColor(white)
+		DrawText( text )
+		SetTextColor( white )
 		SetTextPos(x, y)
-		DrawText(text)
+		DrawText( text )
 		y = y + textHeight
 		if state == ROUND_FINISHED then
 			local teamID = GetWinningTeam()
 			local r, g, b = dark_white.r, dark_white.g, dark_white.b
 			if Teams[teamID] then
-				text = format(GetPhrase("#jb.victory"), GetPhrase("jb.team." .. teamID))
-				r, g, b = GetTeamColorUpacked(teamID)
+				text = format(GetPhrase( "#jb.victory" ), GetPhrase("jb.team." .. teamID))
+				r, g, b = GetTeamColorUpacked( teamID )
 			else
-				text = GetPhrase("#jb.draw")
+				text = GetPhrase( "#jb.draw" )
 			end
 			text = "[" .. text .. "]"
-			textWidth, textHeight = GetTextSize(text)
+			textWidth, textHeight = GetTextSize( text )
 			x, y = screenCenterX - textWidth / 2, y
 			SetTextPos(x - 1, y - 1)
 			SetTextColor(black.r, black.g, black.b, 50)
-			DrawText(text)
+			DrawText( text )
 			SetTextPos(x + 3, y + 3)
 			SetTextColor(black.r, black.g, black.b, 120)
-			DrawText(text)
+			DrawText( text )
 			SetTextColor(r, g, b, 255)
 			SetTextPos(x, y)
-			return DrawText(text)
+			return DrawText( text )
 		end
 	end)
 end
@@ -149,11 +149,11 @@ do
 		if not Jailbreak.DrawHUD then
 			return
 		end
-		Start(view)
-		Run("HUDPaint3D")
+		Start( view )
+		Run( "HUDPaint3D" )
 		End3D()
 		if TargetID:GetBool() then
-			Run("HUDDrawTargetID")
+			Run( "HUDDrawTargetID" )
 		end
 		if DeathNotice:GetBool() then
 			return Run("DrawDeathNotice", 0.85, 0.04)
@@ -219,7 +219,7 @@ do
 		else
 			trace.filter = nil
 		end
-		TraceLine(trace)
+		TraceLine( trace )
 		if not traceResult.Hit or traceResult.HitWorld then
 			return
 		end
@@ -241,7 +241,7 @@ do
 			r, g, b = entity:GetModelColorUnpacked()
 			entityType = 2
 		elseif entity:IsWeapon() then
-			text = GetWeaponName(entity)
+			text = GetWeaponName( entity )
 			entityType = 3
 		elseif entity:IsFood() then
 			text = "#jb.food"
@@ -251,11 +251,11 @@ do
 			entityType = 5
 		else
 			local className = entity:GetClass()
-			if IsProp(className) then
+			if IsProp( className ) then
 				text, entityType = models[entity:GetModel()], 6
 			elseif targetIDClasses[className] then
 				local placeholder = "jb." .. className
-				text = GetPhrase(placeholder)
+				text = GetPhrase( placeholder )
 				if text == placeholder then
 					return
 				end
@@ -265,36 +265,36 @@ do
 		if entityType == 0 then
 			return
 		end
-		local x, y = 0, mouseY + VMin(2)
+		local x, y = 0, mouseY + VMin( 2 )
 		if text ~= nil then
-			SetFont("Jailbreak::TargetID")
-			local textWidth, textHeight = GetTextSize(text)
+			SetFont( "Jailbreak::TargetID" )
+			local textWidth, textHeight = GetTextSize( text )
 			x = mouseX - textWidth / 2
 			SetTextPos(x - 1, y - 1)
 			SetTextColor(black.r, black.g, black.b, 50)
-			DrawText(text)
+			DrawText( text )
 			SetTextPos(x + 3, y + 3)
 			SetTextColor(black.r, black.g, black.b, 120)
-			DrawText(text)
+			DrawText( text )
 			SetTextColor(r, g, b)
 			SetTextPos(x, y)
-			DrawText(text)
+			DrawText( text )
 			y = y + textHeight
 			if entityType == 1 and entity:IsDeveloper() then
 				text = "#jb.player.developer"
 				SetFont("Jailbreak::TargetID - Team")
-				textWidth, textHeight = GetTextSize(text)
+				textWidth, textHeight = GetTextSize( text )
 				x = mouseX - textWidth / 2
 				SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b, 100)
 				for sx = -2, 2 do
 					for sy = -2, 2 do
 						SetTextPos(x + sx, y + sy)
-						DrawText(text)
+						DrawText( text )
 					end
 				end
 				SetTextColor(butterfly_bush.r, butterfly_bush.g, butterfly_bush.b)
 				SetTextPos(x, y)
-				DrawText(text)
+				DrawText( text )
 				y = y + textHeight
 			end
 		end
@@ -310,23 +310,23 @@ do
 				else
 					text = "#jb.unknown"
 				end
-				r, g, b = GetTeamColorUpacked(teamID)
+				r, g, b = GetTeamColorUpacked( teamID )
 			else
 				text = entity:Alive() and "#jb.player.unconscious" or "#jb.player.dead"
 				r, g, b = dark_white.r, dark_white.g, dark_white.b
 			end
 			SetFont("Jailbreak::TargetID - Team")
-			local textWidth, textHeight = GetTextSize(text)
+			local textWidth, textHeight = GetTextSize( text )
 			x = mouseX - textWidth / 2
 			SetTextPos(x - 1, y - 1)
 			SetTextColor(black.r, black.g, black.b, 50)
-			DrawText(text)
+			DrawText( text )
 			SetTextPos(x + 3, y + 3)
 			SetTextColor(black.r, black.g, black.b, 120)
-			DrawText(text)
+			DrawText( text )
 			SetTextColor(r, g, b)
 			SetTextPos(x, y)
-			DrawText(text)
+			DrawText( text )
 			y = y + textHeight
 		end
 		text = nil
@@ -356,31 +356,31 @@ do
 			if health >= 1 then
 				local frac = max(0, Round(1 - (health / entity:GetMaxHealth()), 2))
 				if frac ~= 0 then
-					text = GetPhrase("#jb.entity.damaged") .. " " .. (frac * 100) .. "%"
+					text = GetPhrase( "#jb.entity.damaged" ) .. " " .. (frac * 100) .. "%"
 					r, g, b = dark_white.r, dark_white.g, dark_white.b
 				end
 			end
 		end
 		if text ~= nil then
 			SetFont("Jailbreak::TargetID - Health")
-			local textWidth, textHeight = GetTextSize(text)
+			local textWidth, textHeight = GetTextSize( text )
 			x = mouseX - textWidth / 2
 			SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b, 100)
 			for sx = -2, 2 do
 				for sy = -2, 2 do
 					SetTextPos(x + sx, y + sy)
-					DrawText(text)
+					DrawText( text )
 				end
 			end
 			SetTextColor(r, g, b)
 			SetTextPos(x, y)
-			DrawText(text)
+			DrawText( text )
 			y = y + textHeight
 		end
-		if trace.start:DistToSqr(traceResult.HitPos) > useDistance then
+		if trace.start:DistToSqr( traceResult.HitPos ) > useDistance then
 			return
 		end
-		local keyName = input.LookupBinding("use")
+		local keyName = input.LookupBinding( "use" )
 		if ply:IsPlayer() and keyName ~= nil and ply:Alive() then
 			local progress
 			text, progress = nil, 0
@@ -394,7 +394,7 @@ do
 				if useTime ~= 0 then
 					progress = Clamp(useTime / RagdollLootingTime:GetInt(), 0, 1)
 				end
-				text = GetPhrase("jb.player.search")
+				text = GetPhrase( "jb.player.search" )
 			elseif entityType == 5 then
 				text = "#jb.player.press-button"
 			elseif entityType == 3 then
@@ -410,7 +410,7 @@ do
 				if useTime ~= 0 then
 					progress = Clamp(useTime / FoodEatingTime:GetInt(), 0, 1)
 				end
-				text = GetPhrase("jb.player.eat")
+				text = GetPhrase( "jb.player.eat" )
 			else
 				local className = entity:GetClass()
 				if className == "prop_door_rotating" or className == "func_door_rotating" then
@@ -424,10 +424,10 @@ do
 				end
 			end
 			if text ~= nil then
-				keyName = upper(keyName)
+				keyName = upper( keyName )
 				SetFont("Jailbreak::TargetID - Use")
-				local textWidth, textHeight = GetTextSize(text)
-				local margin = VMin(0.5)
+				local textWidth, textHeight = GetTextSize( text )
+				local margin = VMin( 0.5 )
 				local width, height = textWidth * 1.2, textHeight * 1.25
 				x = mouseX - (width + margin + height) / 2
 				y = y + ((height - textHeight) / 2 + margin)
@@ -439,7 +439,7 @@ do
 					local rectHeight = ceil(height * progress)
 					DrawRect(x, (y - (height - textHeight) / 2 + height) - rectHeight, height, rectHeight)
 				else
-					if ply:KeyDown(32) then
+					if ply:KeyDown( 32 ) then
 						SetDrawColor(light_grey.r, light_grey.g, light_grey.b, 240)
 						SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b)
 					else
@@ -448,21 +448,21 @@ do
 					end
 					DrawRect(x, y - (height - textHeight) / 2, height, height)
 				end
-				SetTextPos(x + (height - GetTextSize(keyName)) / 2, y)
-				DrawText(keyName)
+				SetTextPos(x + (height - GetTextSize( keyName )) / 2, y)
+				DrawText( keyName )
 				x = x + (height + margin)
 				SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 				DrawRect(x, y - (height - textHeight) / 2, width, height)
 				x = x + ((width - textWidth) / 2)
 				SetTextColor(dark_white.r, dark_white.g, dark_white.b)
 				SetTextPos(x, y)
-				return DrawText(text)
+				return DrawText( text )
 			end
 		end
 	end
 end
 do
-	local speakingIcon = Material("icon16/sound.png")
+	local speakingIcon = Material( "icon16/sound.png" )
 	do
 		Jailbreak.Font("Jailbreak::VoiceChatIcon", "Roboto Mono Medium", 3)
 		local alpha = 0
@@ -480,31 +480,31 @@ do
 			if alpha == 0 then
 				return
 			end
-			SetAlphaMultiplier(alpha)
-			local iconSize = VMin(12)
+			SetAlphaMultiplier( alpha )
+			local iconSize = VMin( 12 )
 			local x, y = Jailbreak.ScreenCenterX, Jailbreak.ScreenHeight - iconSize / 2
 			local rotation = sin(CurTime() * 3) * 30
-			SetMaterial(speakingIcon)
+			SetMaterial( speakingIcon )
 			SetDrawColor(black.r, black.g, black.b, 50)
 			DrawTexturedRectRotated(x - 1, y - 1, iconSize, iconSize, rotation)
 			SetDrawColor(black.r, black.g, black.b, 120)
 			DrawTexturedRectRotated(x + 3, y + 3, iconSize, iconSize, rotation)
 			SetDrawColor(255, 255, 255, 255)
 			DrawTexturedRectRotated(x, y, iconSize, iconSize, rotation)
-			SetFont("Jailbreak::VoiceChatIcon")
-			local text = GetPhrase("jb.hud.speaking")
-			local textWidth, textHeight = GetTextSize(text)
+			SetFont( "Jailbreak::VoiceChatIcon" )
+			local text = GetPhrase( "jb.hud.speaking" )
+			local textWidth, textHeight = GetTextSize( text )
 			x, y = (Jailbreak.ScreenWidth - textWidth) / 2, Jailbreak.ScreenHeight - iconSize - textHeight
 			SetTextPos(x - 1, y - 1)
 			SetTextColor(black.r, black.g, black.b, 50)
-			DrawText(text)
+			DrawText( text )
 			SetTextPos(x + 3, y + 3)
 			SetTextColor(black.r, black.g, black.b, 120)
-			DrawText(text)
+			DrawText( text )
 			SetTextColor( 255, 255, 255 )
 			SetTextPos(x, y)
-			DrawText(text)
-			return SetAlphaMultiplier(1)
+			DrawText( text )
+			return SetAlphaMultiplier( 1 )
 		end)
 	end
 	do
@@ -513,10 +513,10 @@ do
 		local render_DrawSprite = render.DrawSprite
 		local LocalToWorld = LocalToWorld
 		local angle_zero = angle_zero
-		local typingIcon = Material("icon16/comment_edit.png")
-		local radioIcon = Material("icon16/phone_sound.png")
+		local typingIcon = Material( "icon16/comment_edit.png" )
+		local radioIcon = Material( "icon16/phone_sound.png" )
 		local isSpeaking = false
-		Add("PostPlayerDraw", "Jailbreak::StatusIcons", function(self)
+		Add("PostPlayerDraw", "Jailbreak::StatusIcons", function( self )
 			if not (StatusIcons:GetBool() and self:Alive()) then
 				return
 			end
@@ -525,12 +525,12 @@ do
 				return
 			end
 			local origin = nil
-			local bone = self:LookupBone("ValveBiped.Bip01_Head1")
+			local bone = self:LookupBone( "ValveBiped.Bip01_Head1" )
 			if bone and bone >= 0 then
 				local angles
-				origin, angles = self:GetBonePosition(bone)
+				origin, angles = self:GetBonePosition( bone )
 				local hitboxset = self:GetHitboxSet()
-				for hitbox = 0, self:GetHitBoxCount(hitboxset) do
+				for hitbox = 0, self:GetHitBoxCount( hitboxset ) do
 					if bone == self:GetHitBoxBone(hitbox, hitboxset) then
 						local mins, maxs = self:GetHitBoxBounds(hitbox, hitboxset)
 						origin = LocalToWorld((maxs + mins) / 2, angle_zero, origin, angles) + angles:Forward() * (maxs[3] - mins[3]) * 1.5
@@ -558,7 +558,7 @@ do
 	local date = os.date
 	local PANEL = {}
 	function PANEL:Init()
-		local placeholder = GetPhrase("jb.unknown")
+		local placeholder = GetPhrase( "jb.unknown" )
 		self.PlaceholderName = placeholder
 		self.HeaderColor = dark_white
 		self.EntityName = placeholder
@@ -575,10 +575,10 @@ do
 		self.HealthRects = {}
 		self.ArmorRects = {}
 		Add("LanguageChanged", self, self.InvalidateLayout)
-		return self:InvalidateLayout(true)
+		return self:InvalidateLayout( true )
 	end
 	function PANEL:Think()
-		local time = date("%H:%M")
+		local time = date( "%H:%M" )
 		if self.Time ~= time then
 			self.Time = time
 			self:InvalidateLayout()
@@ -662,15 +662,15 @@ do
 		end
 	end
 	function PANEL:PerformLayout()
-		self.PlaceholderName = GetPhrase("jb.unknown")
-		local margin, offset = VMin(0.25), VMin(1)
+		self.PlaceholderName = GetPhrase( "jb.unknown" )
+		local margin, offset = VMin( 0.25 ), VMin( 1 )
 		local width = Jailbreak.ScreenWidth / 6
-		SetFont("Jailbreak::HUD")
+		SetFont( "Jailbreak::HUD" )
 		local headerText = self.EntityName
 		if #headerText > 48 then
 			headerText = sub(headerText, 1, 48) .. "..."
 		end
-		local headerTextWidth, headerTextHeight = GetTextSize(headerText)
+		local headerTextWidth, headerTextHeight = GetTextSize( headerText )
 		local headerHeight = margin + headerTextHeight + margin
 		local headerTextX = offset
 		width = max(width, headerTextX + headerTextWidth)
@@ -678,34 +678,34 @@ do
 		self.HeaderText = headerText
 		self.HeaderHeight = headerHeight
 		self.BackgroundY = headerHeight
-		local timeWidth, timeHeight = GetTextSize(self.Time)
+		local timeWidth, timeHeight = GetTextSize( self.Time )
 		local height
 		width, height = max(width, headerTextX + headerTextWidth + margin + timeWidth + offset), headerHeight
 		local rectCount = ceil((width - offset) / (offset + margin))
 		width = offset + rectCount * (offset + margin) + offset - margin
 		self.TimeX, self.TimeY = width - timeWidth - offset, (headerHeight - timeHeight) / 2
 		if self.Alive then
-			self.HeaderColor = GetTeamColor(self.TeamID)
+			self.HeaderColor = GetTeamColor( self.TeamID )
 			local healthRects = self.HealthRects
 			for index = 1, #healthRects do
 				healthRects[index] = nil
 			end
 			local healthFrac = self.Health / self.MaxHealth
 			local health = rectCount * Clamp(healthFrac, 0, 1)
-			local healthCount = ceil(health)
+			local healthCount = ceil( health )
 			local isOverhealth, overhealth, overhealthCount = false, nil, nil
 			if healthFrac > 1 then
 				isOverhealth = true
 				overhealth = rectCount * Clamp(healthFrac - 1, 0, 1)
-				overhealthCount = ceil(overhealth)
+				overhealthCount = ceil( overhealth )
 			end
 			local x, y = offset, height + offset
 			self.HealthRectX, self.HealthRectY = x - margin, y - margin
-			SetFont("Jailbreak::HUD")
-			local healthText, armorText = format(GetPhrase("jb.hud.health"), self.Health, self.MaxHealth), format(GetPhrase("jb.hud.armor"), self.Armor, self.MaxArmor)
+			SetFont( "Jailbreak::HUD" )
+			local healthText, armorText = format(GetPhrase( "jb.hud.health" ), self.Health, self.MaxHealth), format(GetPhrase( "jb.hud.armor" ), self.Armor, self.MaxArmor)
 			self.HealthText, self.ArmorText = healthText, armorText
-			local healthTextWidth, healthTextHeight = GetTextSize(healthText)
-			local armorTextWidth, armorTextHeight = GetTextSize(armorText)
+			local healthTextWidth, healthTextHeight = GetTextSize( healthText )
+			local armorTextWidth, armorTextHeight = GetTextSize( armorText )
 			local rectHeight = margin + max(healthTextHeight, armorTextHeight) + margin
 			local barsWidth, barsHeight = width - offset * 2 + margin * 2, margin + rectHeight + margin
 			self.BarsWidth, self.BarsHeight = barsWidth, barsHeight
@@ -747,12 +747,12 @@ do
 				end
 				local armorFrac = armor / self.MaxArmor
 				armor = rectCount * Clamp(armorFrac, 0, 1)
-				local armorCount = ceil(armor)
+				local armorCount = ceil( armor )
 				local isOverarmor, overarmor, overarmorCount = false, nil, nil
 				if armorFrac > 1 then
 					isOverarmor = true
 					overarmor = rectCount * Clamp(armorFrac - 1, 0, 1)
-					overarmorCount = ceil(overarmor)
+					overarmorCount = ceil( overarmor )
 				end
 				x, y = offset, y + offset + rectHeight + margin
 				self.ArmorRectX, self.ArmorRectY = x - margin, y - margin
@@ -790,9 +790,9 @@ do
 			height = height + backgroundHeight
 		else
 			self.HeaderColor = dark_white
-			local text = GetPhrase("jb.player.dead")
+			local text = GetPhrase( "jb.player.dead" )
 			self.RectText = text
-			local rectTextWidth, rectTextHeight = GetTextSize(text)
+			local rectTextWidth, rectTextHeight = GetTextSize( text )
 			local backgroundHeight = margin + rectTextHeight + margin
 			self.RectTextY = headerHeight + (backgroundHeight - rectTextHeight) / 2
 			self.BackgroundHeight = backgroundHeight
@@ -808,12 +808,12 @@ do
 		DrawRect(0, 0, width, self.HeaderHeight)
 		SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 		DrawRect(0, self.BackgroundY, width, self.BackgroundHeight)
-		SetFont("Jailbreak::HUD")
+		SetFont( "Jailbreak::HUD" )
 		SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b)
 		SetTextPos(self.HeaderTextX, self.HeaderTextY)
-		DrawText(self.HeaderText)
+		DrawText( self.HeaderText )
 		SetTextPos(self.TimeX, self.TimeY)
-		DrawText(self.Time)
+		DrawText( self.Time )
 		if self.Alive then
 			SetDrawColor(light_grey.r, light_grey.g, light_grey.b, 25)
 			DrawRect(self.HealthRectX, self.HealthRectY, self.BarsWidth, self.BarsHeight)
@@ -825,19 +825,19 @@ do
 				SetDrawColor(color.r, color.g, color.b, color.a)
 				DrawRect(rect[1], rect[2], rect[3], rect[4])
 			end
-			SetFont("Jailbreak::HUD")
+			SetFont( "Jailbreak::HUD" )
 			local x, y = self.HealthTextX, self.HealthTextY
 			local text = self.HealthText
 			SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b, 100)
 			for sx = -2, 2 do
 				for sy = -2, 2 do
 					SetTextPos(x + sx, y + sy)
-					DrawText(text)
+					DrawText( text )
 				end
 			end
 			SetTextColor(dark_white.r, dark_white.g, dark_white.b)
 			SetTextPos(x, y)
-			DrawText(text)
+			DrawText( text )
 			if self.Armor > 0 then
 				SetDrawColor(light_grey.r, light_grey.g, light_grey.b, 25)
 				DrawRect(self.ArmorRectX, self.ArmorRectY, self.BarsWidth, self.BarsHeight)
@@ -854,36 +854,36 @@ do
 				for sx = -2, 2 do
 					for sy = -2, 2 do
 						SetTextPos(x + sx, y + sy)
-						DrawText(text)
+						DrawText( text )
 					end
 				end
 				SetTextColor(dark_white.r, dark_white.g, dark_white.b)
 				SetTextPos(x, y)
-				return DrawText(text)
+				return DrawText( text )
 			end
 		else
 			SetTextColor(dark_white.r, dark_white.g, dark_white.b)
 			SetTextPos(self.RectTextX, self.RectTextY)
-			return DrawText(self.RectText)
+			return DrawText( self.RectText )
 		end
 	end
 	Register("Jailbreak::HUDInfo", PANEL, "Panel")
 end
 do
-	local lightning_delete = Material("icon16/lightning_delete.png")
-	local lightning_add = Material("icon16/lightning_add.png")
-	local lightning = Material("icon16/lightning.png")
+	local lightning_delete = Material( "icon16/lightning_delete.png" )
+	local lightning_add = Material( "icon16/lightning_add.png" )
+	local lightning = Material( "icon16/lightning.png" )
 	local PANEL = {}
 	function PANEL:Init()
 		self.LineColor = dark_white
 		self.Color = dark_grey
-		self:SetAlpha(0)
+		self:SetAlpha( 0 )
 		self.SuitPowerFraction = 1
 		self.Direction = true
 		self.Value = 100
 		self.RotateOffset = 0
 		self.IconRotate = 0
-		return self:InvalidateLayout(true)
+		return self:InvalidateLayout( true )
 	end
 	function PANEL:Think()
 		local entity = Jailbreak.ViewEntity
@@ -892,7 +892,7 @@ do
 		end
 		if not entity:Alive() then
 			if self:GetAlpha() ~= 0 then
-				self:SetAlpha(0)
+				self:SetAlpha( 0 )
 			end
 			return
 		end
@@ -918,17 +918,17 @@ do
 		if fraction == 1 then
 			if alpha > 0 then
 				alpha = max(0, alpha - FrameTime() * 255 * 2)
-				return self:SetAlpha(alpha)
+				return self:SetAlpha( alpha )
 			end
 		elseif alpha < 255 then
 			alpha = min(255, alpha + FrameTime() * 255 * 4)
-			return self:SetAlpha(alpha)
+			return self:SetAlpha( alpha )
 		end
 	end
 	function PANEL:PerformLayout()
-		local width, height = VMin(4), self:GetTall()
-		local margin = VMin(0.25)
-		local lineHeight = VMin(1.5)
+		local width, height = VMin( 4 ), self:GetTall()
+		local margin = VMin( 0.25 )
+		local lineHeight = VMin( 1.5 )
 		local lineBackgroundWidth, lineBackgroundHeight = width - margin * 2, lineHeight - margin
 		local lineBackgroundX, lineBackgroundY = margin, height - (lineHeight + margin)
 		self.LineBackgroundWidth, self.LineBackgroundHeight = lineBackgroundWidth, lineBackgroundHeight
@@ -939,7 +939,7 @@ do
 		self.IconX, self.IconY = width / 2, (height - lineHeight) / 2
 		self.IconSize = iconSize
 		self.RotateOffset = Rand(1, 10)
-		return self:SetWide(width)
+		return self:SetWide( width )
 	end
 	function PANEL:Paint( width, height)
 		local fraction = self.SuitPowerFraction
@@ -949,17 +949,17 @@ do
 		SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 		DrawRect(0, 0, width, height)
 		if fraction == 1 then
-			SetMaterial(lightning)
+			SetMaterial( lightning )
 		elseif self.Direction then
-			SetMaterial(lightning_add)
+			SetMaterial( lightning_add )
 		else
-			SetMaterial(lightning_delete)
+			SetMaterial( lightning_delete )
 		end
 		SetDrawColor( 255, 255, 255 )
 		DrawTexturedRectRotated(self.IconX, self.IconY, self.IconSize, self.IconSize, self.IconRotate)
 		SetDrawColor(light_grey.r, light_grey.g, light_grey.b, 25)
 		DrawRect(self.LineBackgroundX, self.LineBackgroundY, self.LineBackgroundWidth, self.LineBackgroundHeight)
-		SetDrawColor(self.LineColor)
+		SetDrawColor( self.LineColor )
 		return DrawRect(self.LineX, self.LineY, self.LineWidth * fraction, self.LineHeight)
 	end
 	Register("Jailbreak::HUDPower", PANEL, "Panel")
@@ -978,7 +978,7 @@ do
 		self.AmmoTextX, self.AmmoTextY = 0, 0
 		self.RectHeight = 0
 		Add("LanguageChanged", self, self.InvalidateLayout)
-		return self:InvalidateLayout(true)
+		return self:InvalidateLayout( true )
 	end
 	function PANEL:Think()
 		local entity = Jailbreak.ViewEntity
@@ -987,7 +987,7 @@ do
 				self.HeaderColor = dark_white
 				self:InvalidateLayout()
 			end
-			local weaponName = GetPhrase("jb.nothing")
+			local weaponName = GetPhrase( "jb.nothing" )
 			if self.WeaponName ~= weaponName then
 				self.WeaponName = weaponName
 				self:InvalidateLayout()
@@ -996,7 +996,7 @@ do
 				self.AmmoTextColor = dark_white
 				self:InvalidateLayout()
 			end
-			local text = GetPhrase("jb.unknown")
+			local text = GetPhrase( "jb.unknown" )
 			if self.AmmoText ~= text then
 				self.AmmoText = text
 				self:InvalidateLayout()
@@ -1010,7 +1010,7 @@ do
 		end
 		local weapon = entity:GetActiveWeapon()
 		if not weapon:IsValid() then
-			local weaponName = GetPhrase("jb.nothing")
+			local weaponName = GetPhrase( "jb.nothing" )
 			if self.WeaponName ~= weaponName then
 				self.WeaponName = weaponName
 				self:InvalidateLayout()
@@ -1019,7 +1019,7 @@ do
 				self.AmmoTextColor = dark_white
 				self:InvalidateLayout()
 			end
-			local text = GetPhrase("jb.unknown")
+			local text = GetPhrase( "jb.unknown" )
 			if self.AmmoText ~= text then
 				self.AmmoText = text
 				self.Clip1, self.Clip2 = -1, -1
@@ -1028,7 +1028,7 @@ do
 			end
 			return
 		end
-		local weaponName = GetWeaponName(weapon)
+		local weaponName = GetWeaponName( weapon )
 		if self.WeaponName ~= weaponName then
 			self.WeaponName = weaponName
 			self:InvalidateLayout()
@@ -1045,7 +1045,7 @@ do
 		end
 		local primaryAmmoType, primaryAmmoCount = weapon:GetPrimaryAmmoType(), -1
 		if primaryAmmoType >= 0 then
-			primaryAmmoCount = entity:GetAmmoCount(primaryAmmoType)
+			primaryAmmoCount = entity:GetAmmoCount( primaryAmmoType )
 		end
 		if self.PrimaryCount ~= primaryAmmoCount then
 			self.PrimaryCount = primaryAmmoCount
@@ -1053,7 +1053,7 @@ do
 		end
 		local secondaryAmmoType, secondaryAmmoCount = weapon:GetSecondaryAmmoType(), -1
 		if secondaryAmmoType >= 0 then
-			secondaryAmmoCount = entity:GetAmmoCount(secondaryAmmoType)
+			secondaryAmmoCount = entity:GetAmmoCount( secondaryAmmoType )
 		end
 		if self.SecondaryCount ~= secondaryAmmoCount then
 			self.SecondaryCount = secondaryAmmoCount
@@ -1061,10 +1061,10 @@ do
 		end
 	end
 	function PANEL:PerformLayout()
-		local width, height = VMin(4), 0
-		local margin1, margin2 = VMin(0.25), VMin(1)
-		SetFont("Jailbreak::HUD")
-		local weaponNameWidth, weaponNameHeight = GetTextSize(self.WeaponName)
+		local width, height = VMin( 4 ), 0
+		local margin1, margin2 = VMin( 0.25 ), VMin( 1 )
+		SetFont( "Jailbreak::HUD" )
+		local weaponNameWidth, weaponNameHeight = GetTextSize( self.WeaponName )
 		width = max(width, margin2 + weaponNameWidth + margin2)
 		height = height + (margin1 + weaponNameHeight + margin1)
 		local text = ""
@@ -1088,13 +1088,13 @@ do
 			text = text .. (" ( " .. secondaryCount .. " )")
 		end
 		if #text == 0 then
-			text = GetPhrase("jb.unknown")
+			text = GetPhrase( "jb.unknown" )
 			self.AmmoTextColor = dark_white
 		else
 			self.AmmoTextColor = white
 		end
 		self.AmmoText = text
-		local ammoTextWidth, ammoTextHeight = GetTextSize(text)
+		local ammoTextWidth, ammoTextHeight = GetTextSize( text )
 		height = height + (margin1 + ammoTextHeight + margin1)
 		width = max(width, margin2 + ammoTextWidth + margin2)
 		local headerHeight = margin1 + weaponNameHeight + margin1
@@ -1111,30 +1111,30 @@ do
 		DrawRect(0, 0, width, self.HeaderHeight)
 		SetDrawColor(dark_grey.r, dark_grey.g, dark_grey.b, 240)
 		DrawRect(0, self.HeaderHeight, width, self.RectHeight)
-		SetFont("Jailbreak::HUD")
+		SetFont( "Jailbreak::HUD" )
 		SetTextColor(dark_grey.r, dark_grey.g, dark_grey.b)
 		SetTextPos(self.WeaponNameX, self.WeaponNameY)
-		DrawText(self.WeaponName)
+		DrawText( self.WeaponName )
 		SetTextPos(self.AmmoTextX, self.AmmoTextY)
-		SetTextColor(self.AmmoTextColor)
-		return DrawText(self.AmmoText)
+		SetTextColor( self.AmmoTextColor )
+		return DrawText( self.AmmoText )
 	end
 	Register("Jailbreak::HUDAmmo", PANEL, "Panel")
 end
 do
 	local PANEL = {}
 	function PANEL:Init()
-		self.Info = self:Add("Jailbreak::HUDInfo")
-		self.Power = self:Add("Jailbreak::HUDPower")
-		self.Ammo = self:Add("Jailbreak::HUDAmmo")
-		self:Dock(BOTTOM)
-		self:InvalidateLayout(true)
-		return self:SetVisible(Jailbreak.DrawHUD)
+		self.Info = self:Add( "Jailbreak::HUDInfo" )
+		self.Power = self:Add( "Jailbreak::HUDPower" )
+		self.Ammo = self:Add( "Jailbreak::HUDAmmo" )
+		self:Dock( BOTTOM )
+		self:InvalidateLayout( true )
+		return self:SetVisible( Jailbreak.DrawHUD )
 	end
 	function PANEL:PerformLayout()
-		local margin = VMin(1)
+		local margin = VMin( 1 )
 		self:DockMargin(margin, 0, margin, margin)
-		self:SetZPos(-1000)
+		self:SetZPos( -1000 )
 		local width = self:GetWide()
 		local info, power, ammo = self.Info, self.Power, self.Ammo
 		info:SetPos(0, 0)
@@ -1148,7 +1148,7 @@ do
 	Register("Jailbreak::HUD", PANEL, "Panel")
 end
 Add("PlayerInitialized", "Jailbreak::HUD", function()
-	if not IsValid(Jailbreak.HUD) then
+	if not IsValid( Jailbreak.HUD ) then
 		Jailbreak.HUD = Create("Jailbreak::HUD", GetHUDPanel())
 	end
 end)
@@ -1162,17 +1162,17 @@ do
 	local PickupNotifyLifetime = Jailbreak.PickupNotifyLifetime
 	local PANEL = {}
 	function PANEL:Init()
-		self:SetAlpha(0)
-		self:Dock(BOTTOM)
-		local icon = self:Add("DImage")
+		self:SetAlpha( 0 )
+		self:Dock( BOTTOM )
+		local icon = self:Add( "DImage" )
 		self.Icon = icon
-		icon:Dock(LEFT)
-		local label = self:Add("DLabel")
+		icon:Dock( LEFT )
+		local label = self:Add( "DLabel" )
 		self.Label = label
-		label:SetFont("Jailbreak::PickupNotices")
-		label:SetContentAlignment(5)
-		label:Dock(FILL)
-		return self:InvalidateLayout(true)
+		label:SetFont( "Jailbreak::PickupNotices" )
+		label:SetContentAlignment( 5 )
+		label:Dock( FILL )
+		return self:InvalidateLayout( true )
 	end
 	function PANEL:Think()
 		local time = self.Time
@@ -1192,15 +1192,15 @@ do
 		end
 	end
 	function PANEL:PerformLayout()
-		self:DockMargin(0, 0, 0, VMin(0.2))
-		local margin = VMin(0.5)
+		self:DockMargin(0, 0, 0, VMin( 0.2 ))
+		local margin = VMin( 0.5 )
 		self:DockPadding(margin, margin, margin, margin)
 		local textHeight = select(2, self.Label:GetTextSize())
 		local height = margin + textHeight + margin
-		self:SetTall(height)
-		self.ProgressHeight = VMin(0.2)
+		self:SetTall( height )
+		self.ProgressHeight = VMin( 0.2 )
 		self.Label:DockMargin(margin, 0, 0, 0)
-		return self.Icon:SetWide(textHeight)
+		return self.Icon:SetWide( textHeight )
 	end
 	do
 		local tonumber = tonumber
@@ -1208,7 +1208,7 @@ do
 			self.Time = CurTime()
 			local label = self.Label
 			if label and label:IsValid() then
-				label:SetText(format(GetPhrase("jb.hud.pickup"), GetPhrase(itemName)) .. " x" .. ((tonumber(match(label:GetText(), "x(%d+)$")) or 0) + amount))
+				label:SetText(format(GetPhrase( "jb.hud.pickup" ), GetPhrase( itemName )) .. " x" .. ((tonumber(match(label:GetText(), "x( %d+ )$")) or 0) + amount))
 			end
 			local iconPath = "icon16/information.png"
 			if PICKUP_WEAPON == pickupType then
@@ -1221,7 +1221,7 @@ do
 				iconPath = "icon16/shield.png"
 			end
 			self.Icon:SetImage(Run("PickupNotifyIcon", itemName, pickupType, amount) or iconPath)
-			return self:InvalidateLayout(true)
+			return self:InvalidateLayout( true )
 		end
 	end
 	local progress, progressHeight = 0, 0
@@ -1251,7 +1251,7 @@ do
 	function PANEL:AddNotify( itemName, pickupType, amount)
 		local notify = self.Notices[itemName]
 		if not (notify and notify:IsValid()) then
-			notify = self:Add("Jailbreak::PickupNotify")
+			notify = self:Add( "Jailbreak::PickupNotify" )
 			self.Notices[itemName] = notify
 		end
 		return notify:Setup(itemName, pickupType, amount)
@@ -1263,7 +1263,7 @@ do
 	local function pickupNotify(itemName, pickupType, amount)
 		local pickupNotices = Jailbreak.PickupNotices
 		if not (pickupNotices and pickupNotices:IsValid()) then
-			pickupNotices = Create("Jailbreak::PickupNotices")
+			pickupNotices = Create( "Jailbreak::PickupNotices" )
 			if not (pickupNotices and pickupNotices:IsValid()) then
 				return
 			end
@@ -1275,7 +1275,7 @@ do
 	Jailbreak.PickupNotify = pickupNotify
 	function GM:HUDWeaponPickedUp( weapon)
 		if weapon and weapon:IsValid() and weapon:IsWeapon() then
-			pickupNotify(GetWeaponName(weapon), PICKUP_WEAPON, 1)
+			pickupNotify(GetWeaponName( weapon ), PICKUP_WEAPON, 1)
 			return
 		end
 	end

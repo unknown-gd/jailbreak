@@ -1,8 +1,8 @@
-AddCSLuaFile("cl_init.lua")
+AddCSLuaFile( "cl_init.lua" )
 local ceil = math.ceil
 ENT.Base = "item_base"
 ENT.Model = "models/items/ammopack_medium.mdl"
-ENT.Sound = Sound("AmmoPack.Touch")
+ENT.Sound = Sound( "AmmoPack.Touch" )
 ENT.Ammo = 0.5
 function ENT:PlayerGotItem( ply)
 	local gived = false
@@ -12,7 +12,7 @@ function ENT:PlayerGotItem( ply)
 		if weapon:Clip1() ~= -1 then
 			local clip1Type = weapon:GetPrimaryAmmoType()
 			if clip1Type >= 0 then
-				local amount = ply:GetPickupAmmoCount(clip1Type)
+				local amount = ply:GetPickupAmmoCount( clip1Type )
 				if amount ~= 0 then
 					ply:GiveAmmo(ceil(amount * self.Ammo), clip1Type, false)
 					gived = true
@@ -22,7 +22,7 @@ function ENT:PlayerGotItem( ply)
 		if weapon:Clip2() ~= -1 then
 			local clip2Type = weapon:GetSecondaryAmmoType()
 			if clip2Type >= 0 then
-				local amount = ply:GetPickupAmmoCount(clip2Type)
+				local amount = ply:GetPickupAmmoCount( clip2Type )
 				if amount ~= 0 then
 					ply:GiveAmmo(ceil(amount * self.Ammo), clip2Type, false)
 					gived = true

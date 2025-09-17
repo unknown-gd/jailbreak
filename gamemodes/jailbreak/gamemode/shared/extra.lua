@@ -6,39 +6,49 @@ local SERVER = SERVER
 local CLIENT = CLIENT
 local Add = hook.Add
 local GetVelocity, SetVelocity
+
 do
 	local _obj_0 = CMOVEDATA
 	GetVelocity, SetVelocity = _obj_0.GetVelocity, _obj_0.SetVelocity
 end
+
 local GetNW2Var, SetNW2Var = ENTITY.GetNW2Var, ENTITY.SetNW2Var
+
 local Alive = PLAYER.Alive
 do
+
 	local IN_ATTACK = IN_ATTACK
 	local IN_WALK = IN_WALK
 	Add("StartCommand", "Jailbreak::Markers", function(self, cmd)
-		if Alive(self) and cmd:KeyDown(IN_WALK) then
-			cmd:RemoveKey(IN_ATTACK)
-			return cmd:RemoveKey(IN_ATTACK2)
+		if Alive( self ) and cmd:KeyDown( IN_WALK ) then
+			cmd:RemoveKey( IN_ATTACK )
+			return cmd:RemoveKey( IN_ATTACK2 )
 		end
 	end)
+
 end
-Add("AllowPlayerMove", "Jailbreak::Death Animations", function(self)
+
+Add("AllowPlayerMove", "Jailbreak::Death Animations", function( self )
 	if GetNW2Var(self, "death-animation") == 0 then
 		return
 	end
 	return false
 end)
+
 Add("PlayerEmitSound", "Jailbreak::Death Animations", function(self, data)
 	if GetNW2Var(self, "death-animation") ~= 0 then
 		return false
 	end
 end)
-Add("CanPlayerTakeDamage", "Jailbreak::Death Animations", function(self)
+
+Add("CanPlayerTakeDamage", "Jailbreak::Death Animations", function( self )
 	if GetNW2Var(self, "death-animation") == 2 then
 		return false
 	end
 end)
+
 do
+
 	local IN_JUMP = IN_JUMP
 	local IN_DUCK = IN_DUCK
 	local IN_SPEED = IN_SPEED
@@ -46,12 +56,13 @@ do
 	local IN_BACK = IN_BACK
 	local IN_MOVELEFT = IN_MOVELEFT
 	local IN_MOVERIGHT = IN_MOVERIGHT
-	local sv_gravity = GetConVar("sv_gravity")
+	local sv_gravity = GetConVar( "sv_gravity" )
 	local FrameTime = FrameTime
 	local IsOnGround = ENTITY.IsOnGround
 	local Lerp = Lerp
 	local band = bit.band
 	local abs = math.abs
+
 	Add("Move", "Jailbreak::Developer", function(self, mv)
 		if not self:IsFlightAllowed() then
 			if not CLIENT and GetNW2Var(self, "in-flight") then
@@ -59,12 +70,12 @@ do
 			end
 			return
 		end
-		if IsOnGround(self) then
+		if IsOnGround( self ) then
 			if not CLIENT and GetNW2Var(self, "in-flight") then
 				return SetNW2Var(self, "in-flight", false)
 			end
 		elseif GetNW2Var(self, "in-flight") then
-			local velocity = GetVelocity(mv)
+			local velocity = GetVelocity( mv )
 			local angles = mv:GetMoveAngles()
 			local buttons = mv:GetButtons()
 			if band(buttons, IN_FORWARD) ~= 0 then
@@ -98,24 +109,26 @@ do
 				velocity[3] = Lerp(frameTime, velocity[3], 0)
 				buttons = buttons - IN_SPEED
 			end
-			if abs(velocity[1]) < 1 then
+			if abs( velocity[1] ) < 1 then
 				velocity[1] = 0
 			end
-			if abs(velocity[2]) < 1 then
+			if abs( velocity[2] ) < 1 then
 				velocity[2] = 0
 			end
-			if abs(velocity[3]) < 1 then
+			if abs( velocity[3] ) < 1 then
 				velocity[3] = 0
 			end
 			local _update_0 = 3
 			velocity[_update_0] = velocity[_update_0] + ((self:GetGravity() + 1) * sv_gravity:GetFloat() * 0.5 * frameTime)
 			SetVelocity(mv, velocity)
-			return mv:SetButtons(buttons)
-		elseif not CLIENT and mv:KeyPressed(IN_JUMP) then
+			return mv:SetButtons( buttons )
+		elseif not CLIENT and mv:KeyPressed( IN_JUMP ) then
 			return SetNW2Var(self, "in-flight", true)
 		end
 	end)
+
 end
+
 Add("Move", "Jailbreak::Shock", function(self, mv)
 	local shockTime = GetNW2Var(self, "shock-time")
 	if not shockTime or CurTime() > shockTime then
@@ -124,60 +137,76 @@ Add("Move", "Jailbreak::Shock", function(self, mv)
 	mv:SetMaxSpeed(self:GetWalkSpeed() / 4)
 	return
 end)
+
 Add("PlayerEmitSound", "Jailbreak::SilentDeath", function(self, data)
-	if not Alive(self) then
+	if not Alive( self ) then
 		return false
 	end
 end)
+
 do
+
 	local IsSpawning = PLAYER.IsSpawning
-	Add("AllowPlayerMove", "Jailbreak::PlayerSpawning", function(self)
-		if IsSpawning(self) then
+
+	Add("AllowPlayerMove", "Jailbreak::PlayerSpawning", function( self )
+		if IsSpawning( self ) then
 			return false
 		end
 	end)
+
 end
+
 do
+
 	local IsPlayingTaunt = PLAYER.IsPlayingTaunt
-	Add("StartCommand", "Jailbreak::Taunts", function(self, cmd)
-		if IsPlayingTaunt(self) then
-			return cmd:SetImpulse(0)
+
+	Add( "StartCommand", "Jailbreak::Taunts", function(self, cmd)
+		if IsPlayingTaunt( self ) then
+			cmd:SetImpulse( 0 )
 		end
-	end, PRE_HOOK)
+	end, PRE_HOOK )
+
 	Add("SetupMove", "Jailbreak::Taunts", function(self, _, cmd)
-		if IsPlayingTaunt(self) then
+		if IsPlayingTaunt( self ) then
 			cmd:ClearMovement()
-			return cmd:ClearButtons()
+			cmd:ClearButtons()
 		end
-	end, PRE_HOOK)
+	end, PRE_HOOK )
+
 end
+
 do
 	local OBS_MODE_NONE = OBS_MODE_NONE
 	local GetObserverMode = PLAYER.GetObserverMode
-	Add("AllowPlayerMove", "Jailbreak::AliveSpectator", function(self)
-		if Alive(self) and GetObserverMode(self) ~= OBS_MODE_NONE then
+	Add("AllowPlayerMove", "Jailbreak::AliveSpectator", function( self )
+		if Alive( self ) and GetObserverMode( self ) ~= OBS_MODE_NONE then
 			return false
 		end
 	end)
 end
-Add("PlayerFootstep", "Jailbreak::LoseConsciousness", function(ply)
+
+Add("PlayerFootstep", "Jailbreak::LoseConsciousness", function( ply )
 	if ply:IsLoseConsciousness() then
 		return true
 	end
 end)
+
 do
+
 	local Length2D, SetUnpacked
 	do
 		local _obj_0 = VECTOR
 		Length2D, SetUnpacked = _obj_0.Length2D, _obj_0.SetUnpacked
 	end
+
 	local speed = 0
-	return Add("Move", "Jailbreak::PlayerPush", function(self, mv)
+
+	Add("Move", "Jailbreak::PlayerPush", function(self, mv)
 		local target = GetNW2Var(self, "push-target")
 		if target and target:IsValid() and target:Alive() then
-			local velocity = GetVelocity(mv)
+			local velocity = GetVelocity( mv )
 			local direction
-			speed, direction = Length2D(velocity), nil
+			speed, direction = Length2D( velocity ), nil
 			if speed == 0 then
 				speed, direction = self:GetWalkSpeed(), self:GetAimVector()
 			else
@@ -200,9 +229,10 @@ do
 				return
 			end
 			pushVelocity = pushVelocity * 1.125
-			pushVelocity[3] = GetVelocity(mv)[3]
+			pushVelocity[3] = GetVelocity( mv )[3]
 			SetVelocity(mv, pushVelocity)
 			return
 		end
 	end)
+
 end

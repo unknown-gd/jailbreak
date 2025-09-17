@@ -11,7 +11,7 @@ local assert = assert
 local Create = ents.Create
 local Set = list.Set
 local Handlers = WeaponHandlers
-if not istable(Handlers) then
+if not istable( Handlers ) then
 	Handlers = {}
 	WeaponHandlers = Handlers
 end
@@ -35,9 +35,9 @@ if SERVER then
 		end
 		local className = handler.Alternative
 		local spawnOffsets = handler.SpawnOffsets
-		if istable(spawnOffsets) then
+		if istable( spawnOffsets ) then
 			spawnOffsets = spawnOffsets[className]
-			if not istable(spawnOffsets) then
+			if not istable( spawnOffsets ) then
 				spawnOffsets = nil
 			end
 		else
@@ -47,7 +47,7 @@ if SERVER then
 			if not (self:IsValid() and not self:GetOwner():IsValid()) then
 				return
 			end
-			local entity = Create(className)
+			local entity = Create( className )
 			if not entity:IsValid() then
 				return
 			end
@@ -55,8 +55,8 @@ if SERVER then
 			if spawnOffsets ~= nil then
 				origin, angles = LocalToWorld(spawnOffsets[1], spawnOffsets[2], origin, angles)
 			end
-			entity:SetPos(origin)
-			entity:SetAngles(angles)
+			entity:SetPos( origin )
+			entity:SetAngles( angles )
 			entity:AddFlags(self:GetFlags())
 			entity:AddEFlags(self:GetEFlags())
 			entity:AddSolidFlags(self:GetSolidFlags())
@@ -76,8 +76,8 @@ if SERVER then
 					newPhys:Wake()
 				end
 			end
-			self:SetParent(entity)
-			return self:SetNotSolid(true)
+			self:SetParent( entity )
+			return self:SetNotSolid( true )
 		end)
 	end
 	function TemporaryWeapon:Equip( owner)
@@ -103,18 +103,18 @@ end
 do
 	local _class_0
 	local _base_0 = {
-		Weapons = list.GetForEdit("Weapon"),
+		Weapons = list.GetForEdit( "Weapon" ),
 		Exists = function(self, className)
-			return istable(self.Weapons[className])
+			return istable( self.Weapons[className] )
 		end,
 		GetClassSpawnOffsets = function(self, className)
 			return self.SpawnOffsets[className]
 		end,
 		SetClassSpawnOffsets = function(self, className, vector, angles)
-			if not isvector(vector) then
+			if not isvector( vector ) then
 				vector = vector_origin
 			end
-			if not isangle(angles) then
+			if not isangle( angles ) then
 				angles = angle_zero
 			end
 			self.SpawnOffsets[className] = {
@@ -123,10 +123,10 @@ do
 			}
 		end,
 		SetClassSpawnOffsets = function(self, value)
-			assert(istable(value), "Second argument must be a 'table'!")
+			assert(istable( value ), "Second argument must be a 'table'!")
 			self.SpawnOffsets = value
 		end,
-		Register = function(self)
+		Register = function( self )
 			if not self.Registered then
 				local className = self.ClassName
 				Register(TemporaryWeapon, className)
@@ -135,19 +135,19 @@ do
 			end
 		end,
 		AddAlternative = function(self, className)
-			if not self.Registered and self:Exists(className) then
+			if not self.Registered and self:Exists( className ) then
 				self.Alternative = className
 				return self:Register()
 			end
 		end,
 		AddAlternatives = function(self, alternatives)
-			assert(istable(alternatives), "Second argument must be a 'table'!")
+			assert(istable( alternatives ), "Second argument must be a 'table'!")
 			for _index_0 = 1, #alternatives do
 				local className = alternatives[_index_0]
 				if self.Registered then
 					break
 				end
-				self:AddAlternative(className)
+				self:AddAlternative( className )
 			end
 		end
 	}
@@ -156,19 +156,19 @@ do
 	end
 	_class_0 = setmetatable({
 		__init = function(self, className, alternative, spawnOffsets, force)
-			assert(isstring(className), "Second argument must be a 'string'!")
+			assert(isstring( className ), "Second argument must be a 'string'!")
 			Handlers[className] = self
 			self.ClassName = className
-			self.Registered = self:Exists(className) and not force
+			self.Registered = self:Exists( className ) and not force
 			if self.Registered then
 				return
 			end
-			if isstring(alternative) then
-				self:AddAlternative(alternative)
-			elseif istable(alternative) then
-				self:AddAlternatives(alternative)
+			if isstring( alternative ) then
+				self:AddAlternative( alternative )
+			elseif istable( alternative ) then
+				self:AddAlternatives( alternative )
 			end
-			if istable(spawnOffsets) then
+			if istable( spawnOffsets ) then
 				self.SpawnOffsets = spawnOffsets
 			else
 				self.SpawnOffsets = {}

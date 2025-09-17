@@ -17,23 +17,23 @@ local EyePos = EyePos
 local find = string.find
 local TEAM_PRISONER = TEAM_PRISONER
 local TEAM_GUARD = TEAM_GUARD
-local UserOrangeIcon = Material("icon16/user_orange.png")
-local UserSuitIcon = Material("icon16/user_suit.png")
-local UserIcon = Material("icon16/user.png")
-local BricksIcon = Material("icon16/bricks.png")
-local OrangeFlagIcon = Material("icon16/flag_orange.png")
-local BlueFlagIcon = Material("icon16/flag_blue.png")
-local DoorIcon = Material("icon16/door.png")
-local ImageIcon = Material("icon16/image.png")
-local PhotoIcon = Material("icon16/photo.png")
-local GunIcon = Material("icon16/gun.png")
-local ErrorIcon = Material("icon16/error.png")
-local PaintCanIcon = Material("icon16/paintcan.png")
+local UserOrangeIcon = Material( "icon16/user_orange.png" )
+local UserSuitIcon = Material( "icon16/user_suit.png" )
+local UserIcon = Material( "icon16/user.png" )
+local BricksIcon = Material( "icon16/bricks.png" )
+local OrangeFlagIcon = Material( "icon16/flag_orange.png" )
+local BlueFlagIcon = Material( "icon16/flag_blue.png" )
+local DoorIcon = Material( "icon16/door.png" )
+local ImageIcon = Material( "icon16/image.png" )
+local PhotoIcon = Material( "icon16/photo.png" )
+local GunIcon = Material( "icon16/gun.png" )
+local ErrorIcon = Material( "icon16/error.png" )
+local PaintCanIcon = Material( "icon16/paintcan.png" )
 local markers = {}
 local classNames = {
-	["class C_BaseEntity"] = Material("icon16/keyboard.png"),
-	sent_soccerball = Material("icon16/sport_basketball.png"),
-	prop_ragdoll = Material("icon16/user_delete.png"),
+	["class C_BaseEntity"] = Material( "icon16/keyboard.png" ),
+	sent_soccerball = Material( "icon16/sport_basketball.png" ),
+	prop_ragdoll = Material( "icon16/user_delete.png" ),
 	prop_combine_ball = ErrorIcon,
 	npc_grenade_frag = ErrorIcon,
 	npc_satchel = ErrorIcon,
@@ -136,18 +136,18 @@ do
 						remove(markers, index)
 						goto _continue_0
 					end
-					origin = entity:LocalToWorld(origin)
+					origin = entity:LocalToWorld( origin )
 				else
 					remove(markers, index)
 					goto _continue_0
 				end
 			end
-			local scale = max(4, (origin:Distance(eyePos) / Jailbreak.ScreenWidth) * 64) * fraction
+			local scale = max(4, (origin:Distance( eyePos ) / Jailbreak.ScreenWidth) * 64) * fraction
 			local amplitude = data.amplitude
 			proxyVector[1] = origin[1]
 			proxyVector[2] = origin[2]
 			proxyVector[3] = origin[3] + 1 + sin(CurTime() * (4 + amplitude)) * (1.5 + amplitude) * fraction
-			SetMaterial(data.material)
+			SetMaterial( data.material )
 			DrawSprite(proxyVector, scale, scale, white)
 			::_continue_0::
 		end
@@ -157,7 +157,7 @@ do
 	local IN_WALK = IN_WALK
 	return hook.Add("PreventScreenClicks", "Jailbreak::Markers", function()
 		local ply = Jailbreak.Player
-		if ply:IsValid() and ply:KeyDown(IN_WALK) then
+		if ply:IsValid() and ply:KeyDown( IN_WALK ) then
 			return true
 		end
 	end)
