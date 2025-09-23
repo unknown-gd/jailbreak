@@ -205,7 +205,7 @@ do
 
 	local team_SetUp, team_SetSpawnPoint = team.SetUp, team.SetSpawnPoint
 
-	function GM:CreateTeams ()
+	function GM:CreateTeams()
 
 		team_SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, color_scheme.prisoners, true )
 
