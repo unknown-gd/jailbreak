@@ -1,10 +1,14 @@
 local EffectData = EffectData
+
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
 local ceil, max
 do
 	local _obj_0 = math
 	ceil, max = _obj_0.ceil, _obj_0.max
 end
+
 local IsValid = IsValid
 local Simple = timer.Simple
 local ENTITY = ENTITY
@@ -13,31 +17,34 @@ local Run = hook.Run
 local util = util
 local Effect = util.Effect
 local GetClass = ENTITY.GetClass
+
 util.AddNetworkString( "Jailbreak::Networking" )
+
 resource.AddWorkshop( "3211331044" )
 resource.AddWorkshop( "3212160573" )
 resource.AddWorkshop( "2950445307" )
 resource.AddWorkshop( "2661291057" )
 resource.AddWorkshop( "643148462" )
+
 NOTIFY_GENERIC = 0
 NOTIFY_ERROR = 1
 NOTIFY_UNDO = 2
 NOTIFY_HINT = 3
 NOTIFY_CLEANUP = 4
+
 do
-	local Start, WriteUInt, WriteString, Broadcast
-	do
-		local _obj_0 = net
-		Start, WriteUInt, WriteString, Broadcast = _obj_0.Start, _obj_0.WriteUInt, _obj_0.WriteString, _obj_0.Broadcast
+
+	local net_Start, net_WriteUInt, net_WriteString, net_Broadcast = net.Start, net.WriteUInt, net.WriteString, net.Broadcast
+
+ 	function Jailbreak.PlaySound( soundPath )
+		net_Start( "Jailbreak::Networking" )
+		net_WriteUInt( 3, 4 )
+		net_WriteString( soundPath )
+		net_Broadcast()
 	end
-	Jailbreak.PlaySound = function( soundPath )
-		Start( "Jailbreak::Networking" )
-		WriteUInt(3, 4)
-		WriteString( soundPath )
-		Broadcast()
-		return
-	end
+
 end
+
 do
 	local BlastDamage = util.BlastDamage
 	Jailbreak.Explosion = function(inflictor, attacker, origin, radius, damage)

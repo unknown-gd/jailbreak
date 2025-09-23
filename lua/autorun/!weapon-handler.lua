@@ -110,18 +110,18 @@ do
 		GetClassSpawnOffsets = function(self, className)
 			return self.SpawnOffsets[className]
 		end,
-		SetClassSpawnOffsets = function(self, className, vector, angles)
-			if not isvector( vector ) then
-				vector = vector_origin
-			end
-			if not isangle( angles ) then
-				angles = angle_zero
-			end
-			self.SpawnOffsets[className] = {
-				vector,
-				angles
-			}
-		end,
+		-- SetClassSpawnOffsets = function(self, className, vector, angles)
+		-- 	if not isvector( vector ) then
+		-- 		vector = vector_origin
+		-- 	end
+		-- 	if not isangle( angles ) then
+		-- 		angles = angle_zero
+		-- 	end
+		-- 	self.SpawnOffsets[className] = {
+		-- 		vector,
+		-- 		angles
+		-- 	}
+		-- end,
 		SetClassSpawnOffsets = function(self, value)
 			assert(istable( value ), "Second argument must be a 'table'!")
 			self.SpawnOffsets = value

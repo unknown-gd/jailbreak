@@ -3,22 +3,22 @@ local include = _G.include
 
 do
 
-	local AddCSLuaFile = _G.AddCSLuaFile
-	local file_Find = _G.file.Find
+    local AddCSLuaFile = _G.AddCSLuaFile
+    local file_Find = _G.file.Find
 
-	AddCSLuaFile( "shared.lua" )
+    AddCSLuaFile( "shared.lua" )
 
-	local shared_files = file_Find( "jailbreak/gamemode/shared/*.lua", "lsv" )
+    local shared_files = file_Find( "jailbreak/gamemode/shared/*.lua", "lsv" )
 
-	for i = 1, #shared_files do
-		AddCSLuaFile( "shared/" .. shared_files[ i ] )
-	end
+    for i = 1, #shared_files do
+        AddCSLuaFile( "shared/" .. shared_files[ i ] )
+    end
 
-	local client_files = file_Find( "jailbreak/gamemode/client/*.lua", "lsv" )
+    local client_files = file_Find( "jailbreak/gamemode/client/*.lua", "lsv" )
 
-	for i = 1, #client_files do
-		AddCSLuaFile( "client/" .. client_files[ i ] )
-	end
+    for i = 1, #client_files do
+        AddCSLuaFile( "client/" .. client_files[ i ] )
+    end
 
 end
 
@@ -28,103 +28,48 @@ include( "shared.lua" )
 local Jailbreak = _G.Jailbreak
 
 if Jailbreak.ObserveTargets == nil then
-	Jailbreak.ObserveTargets = {}
+    Jailbreak.ObserveTargets = {}
 end
 
 Jailbreak.DefaultTeamColors = {
-	[ _G.TEAM_PRISONER ] = Vector( 0.62, 0.35, 0.07 ),
-	[ _G.TEAM_GUARD ] = Vector( 0, 0, 0 )
+    [ _G.TEAM_PRISONER ] = Vector( 0.62, 0.35, 0.07 ),
+    [ _G.TEAM_GUARD ] = Vector( 0, 0, 0 )
 }
 
 do
+    local FCVAR_SERVER = _G.bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
+    local CreateConVar = _G.CreateConVar
 
-	local FCVAR_SERVER = _G.bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
-	local CreateConVar = _G.CreateConVar
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", FCVAR_SERVER, "The speed of the player while walking.", 0, 3000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", FCVAR_SERVER, "The speed of the player while running.", 0, 3000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.PlayerJumpPower = CreateConVar( "jb_player_jump_power", "256", FCVAR_SERVER, "The jump power of the player.", 0, 3000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", FCVAR_SERVER, "Allow custom player colors.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.AllowCustomWeaponColors = CreateConVar( "jb_allow_custom_weapon_colors", "1", FCVAR_SERVER, "Allow custom weapon colors.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.AllowSprayEveryone = CreateConVar( "jb_allow_spray_everyone", "0", FCVAR_SERVER, "Allow use spray to everyone.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", FCVAR_SERVER, "Guards armor amount on spawn.", 0, 1000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.PermanentGuards = CreateConVar( "jb_permanent_guards", "1", FCVAR_SERVER, "If enabled, disables guard rotation.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.GuardsDeathSound = CreateConVar( "jb_guards_death_sound", "0", FCVAR_SERVER, "If enabled, an alarm will sound when the guard dies.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.WardenCoins = CreateConVar( "jb_warden_coins", "100", FCVAR_SERVER, "Warden coins amount on spawn.", 0, 16384 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.EmotionDistance = CreateConVar( "jb_chat_emotion_distance", "300", FCVAR_SERVER, "Distance of emotion messages.", 32, 65536 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.OutOfCharacter = CreateConVar( "jb_chat_ooc", "1", FCVAR_SERVER, "Allows non-game global chat to be used by everyone.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.AllowTeamChat = CreateConVar( "jb_chat_allow_team_chat", "0", FCVAR_SERVER, "Allows team chat.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.VoiceChatUDP = CreateConVar( "jb_voice_chat_udp", "1", FCVAR_SERVER, "Use faster udp voice chat packets instead of tcp.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.VoiceChatSpeed = CreateConVar( "jb_voice_chat_speed", "4", FCVAR_SERVER, "Speed of voice chat packets sending.", 0, 10 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.PrepareTime = CreateConVar( "jb_prepare_time", "10", FCVAR_SERVER, "The time before the start of the round that is given for preparation.", 5, 2 * 60 * 60 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.RoundTime = CreateConVar( "jb_round_time", "0", FCVAR_SERVER, "Round time in seconds.", 0, 12 * 60 * 60 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", FCVAR_SERVER, "Damage to the victim from the electric collar.", 0, 1000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", FCVAR_SERVER, "Damage to the attacker from the electric collar.", 0, 1000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.RagdollHealth = CreateConVar( "jb_ragdoll_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the player ragdoll.", 50, 10000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.RagdollRemove = CreateConVar( "jb_ragdoll_remove", "0", FCVAR_SERVER, "If enabled, player ragdoll will be removed on player spawn.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.AllowRagdollSpectate = CreateConVar( "jb_allow_ragdoll_spectate", "0", FCVAR_SERVER, "Enables ragdoll spectate.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.DropActiveWeaponOnDeath = CreateConVar( "jb_drop_active_weapon_on_death", "1", FCVAR_SERVER, "If enabled, the active weapon will be dropped on player death.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.AllowWeaponsInVehicle = CreateConVar( "jb_allow_weapons_in_vehicle", "0", FCVAR_SERVER, "Allows players to use weapons in vehicles.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.FreezeWeaponsOnSpawn = CreateConVar( "jb_freeze_weapons_on_spawn", "1", FCVAR_SERVER, "Freezes weapon clusters on spawn.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "0", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
-
-	---@diagnostic disable-next-line: param-type-mismatch
-	Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 style freezecam on death.", 0, 1 )
-
+    ---@diagnostic disable: param-type-mismatch
+    Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", FCVAR_SERVER, "The speed of the player while walking.", 0, 3000 )
+    Jailbreak.PlayerRunSpeed = CreateConVar( "jb_player_run_speed", "280", FCVAR_SERVER, "The speed of the player while running.", 0, 3000 )
+    Jailbreak.PlayerJumpPower = CreateConVar( "jb_player_jump_power", "256", FCVAR_SERVER, "The jump power of the player.", 0, 3000 )
+    Jailbreak.AllowCustomPlayerColors = CreateConVar( "jb_allow_custom_player_colors", "1", FCVAR_SERVER, "Allow custom player colors.", 0, 1 )
+    Jailbreak.AllowCustomWeaponColors = CreateConVar( "jb_allow_custom_weapon_colors", "1", FCVAR_SERVER, "Allow custom weapon colors.", 0, 1 )
+    Jailbreak.AllowSprayEveryone = CreateConVar( "jb_allow_spray_everyone", "0", FCVAR_SERVER, "Allow use spray to everyone.", 0, 1 )
+    Jailbreak.GuardsArmor = CreateConVar( "jb_guards_armor", "0", FCVAR_SERVER, "Guards armor amount on spawn.", 0, 1000 )
+    Jailbreak.PermanentGuards = CreateConVar( "jb_permanent_guards", "1", FCVAR_SERVER, "If enabled, disables guard rotation.", 0, 1 )
+    Jailbreak.GuardsDeathSound = CreateConVar( "jb_guards_death_sound", "0", FCVAR_SERVER, "If enabled, an alarm will sound when the guard dies.", 0, 1 )
+    Jailbreak.WardenCoins = CreateConVar( "jb_warden_coins", "100", FCVAR_SERVER, "Warden coins amount on spawn.", 0, 16384 )
+    Jailbreak.EmotionDistance = CreateConVar( "jb_chat_emotion_distance", "300", FCVAR_SERVER, "Distance of emotion messages.", 32, 65536 )
+    Jailbreak.OutOfCharacter = CreateConVar( "jb_chat_ooc", "1", FCVAR_SERVER, "Allows non-game global chat to be used by everyone.", 0, 1 )
+    Jailbreak.AllowTeamChat = CreateConVar( "jb_chat_allow_team_chat", "0", FCVAR_SERVER, "Allows team chat.", 0, 1 )
+    Jailbreak.VoiceChatUDP = CreateConVar( "jb_voice_chat_udp", "1", FCVAR_SERVER, "Use faster udp voice chat packets instead of tcp.", 0, 1 )
+    Jailbreak.VoiceChatSpeed = CreateConVar( "jb_voice_chat_speed", "4", FCVAR_SERVER, "Speed of voice chat packets sending.", 0, 10 )
+    Jailbreak.PrepareTime = CreateConVar( "jb_prepare_time", "10", FCVAR_SERVER, "The time before the start of the round that is given for preparation.", 5, 2 * 60 * 60 )
+    Jailbreak.RoundTime = CreateConVar( "jb_round_time", "0", FCVAR_SERVER, "Round time in seconds.", 0, 12 * 60 * 60 )
+    Jailbreak.ShockCollarVictimDamage = CreateConVar( "jb_shock_collar_victim_damage", "0.25", FCVAR_SERVER, "Damage to the victim from the electric collar.", 0, 1000 )
+    Jailbreak.ShockCollarAttackerDamage = CreateConVar( "jb_shock_collar_attacker_damage", "0.5", FCVAR_SERVER, "Damage to the attacker from the electric collar.", 0, 1000 )
+    Jailbreak.RagdollHealth = CreateConVar( "jb_ragdoll_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the player ragdoll.", 50, 10000 )
+    Jailbreak.RagdollRemove = CreateConVar( "jb_ragdoll_remove", "0", FCVAR_SERVER, "If enabled, player ragdoll will be removed on player spawn.", 0, 1 )
+    Jailbreak.AllowRagdollSpectate = CreateConVar( "jb_allow_ragdoll_spectate", "0", FCVAR_SERVER, "Enables ragdoll spectate.", 0, 1 )
+    Jailbreak.DoorsHealth = CreateConVar( "jb_doors_health", "1000", FCVAR_SERVER, "The value is responsible for the health of the door.", 50, 10000 )
+    Jailbreak.DropActiveWeaponOnDeath = CreateConVar( "jb_drop_active_weapon_on_death", "1", FCVAR_SERVER, "If enabled, the active weapon will be dropped on player death.", 0, 1 )
+    Jailbreak.AllowWeaponsInVehicle = CreateConVar( "jb_allow_weapons_in_vehicle", "0", FCVAR_SERVER, "Allows players to use weapons in vehicles.", 0, 1 )
+    Jailbreak.FreezeWeaponsOnSpawn = CreateConVar( "jb_freeze_weapons_on_spawn", "1", FCVAR_SERVER, "Freezes weapon clusters on spawn.", 0, 1 )
+    Jailbreak.DeathAnimations = CreateConVar( "jb_death_animations", "0", FCVAR_SERVER, "Enables silly player death animations.", 0, 1 )
+    Jailbreak.TF2Freezecam = CreateConVar( "jb_tf2_freezecam", "1", FCVAR_SERVER, "Enables TF2 style freezecam on death.", 0, 1 )
+    ---@diagnostic enable: param-type-mismatch
 end
 
 include( "server/language.lua" )
@@ -140,34 +85,38 @@ include( "server/game.lua" )
 
 do
 
-	local hook_Run = _G.hook.Run
+    local hook_Run = _G.hook.Run
 
-	function GM:InitPostEntity()
-		RunConsoleCommand( "sv_defaultdeployspeed", "1" )
-		RunConsoleCommand( "mp_show_voice_icons", "0" )
-		RunConsoleCommand( "sv_gravity", "800" )
+    function GM:InitPostEntity()
+        RunConsoleCommand( "sv_defaultdeployspeed", "1" )
+        RunConsoleCommand( "mp_show_voice_icons", "0" )
+        RunConsoleCommand( "sv_gravity", "800" )
 
-		if #ents.FindByClass( "info_player_teamspawn" ) ~= 0 then
-			Jailbreak.m_bTF2Medieval = #ents.FindByClass( "tf_logic_medieval" ) ~= 0
-			xpcall( SoundHandler, ErrorNoHaltWithStack, "tf" )
-			resource.AddWorkshop( "105181283" )
-			Jailbreak.GameName = "tf"
-		elseif ( #ents.FindByClass( "info_player_counterterrorist" ) + #ents.FindByClass( "info_player_counterterrorist" ) ) ~= 0 then
-			xpcall( SoundHandler, ErrorNoHaltWithStack, "cstrike" )
-			Jailbreak.GameName = "cstrike"
-		end
+        if #ents.FindByClass( "info_player_teamspawn" ) ~= 0 then
 
-		timer.Simple( 0, Jailbreak.ReloadLocalization )
+            Jailbreak.m_bTF2Medieval = #ents.FindByClass( "tf_logic_medieval" ) ~= 0
+            xpcall( SoundHandler, ErrorNoHaltWithStack, "tf" )
+            resource.AddWorkshop( "105181283" )
+            Jailbreak.GameName = "tf"
 
-		local mapName = _G.game.GetMap()
-		Jailbreak.MapName = mapName
+        elseif (#ents.FindByClass( "info_player_counterterrorist" ) + #ents.FindByClass( "info_player_counterterrorist" )) ~= 0 then
 
-		hook_Run( "MapInitialized", mapName )
-	end
+            xpcall( SoundHandler, ErrorNoHaltWithStack, "cstrike" )
+            Jailbreak.GameName = "cstrike"
 
-	function GM:PostCleanupMap()
-		hook_Run( "MapInitialized", Jailbreak.MapName )
-	end
+        end
+
+        timer.Simple( 0, Jailbreak.ReloadLocalization )
+
+        local mapName = _G.game.GetMap()
+        Jailbreak.MapName = mapName
+
+        hook_Run( "MapInitialized", mapName )
+    end
+
+    function GM:PostCleanupMap()
+        hook_Run( "MapInitialized", Jailbreak.MapName )
+    end
 
 end
 
