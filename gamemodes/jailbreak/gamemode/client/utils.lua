@@ -1,20 +1,22 @@
 ---@class Jailbreak
 local Jailbreak = Jailbreak
 
-local Simple = timer.Simple
+---@class Entity
 local ENTITY = ENTITY
+
+---@class Player
 local PLAYER = PLAYER
+
+local GetNW2Var = ENTITY.GetNW2Var
+local Simple = timer.Simple
 local max = math.max
 local Run = hook.Run
-local GetNW2Var = ENTITY.GetNW2Var
-do
-	local String = cvars.String
-	cvars.AddChangeCallback( "gmod_language", function( _, __, value )
-		return timer.Create( "Jailbreak::LanguageChanged", 0.025, 1, function()
-			return Run( "LanguageChanged", String( "gmod_language", "en" ), value )
-		end )
-	end, "Jailbreak::LanguageChanged" )
-end
+
+cvars.AddChangeCallback( "gmod_language", function( _, __, value )
+	timer.Create( "Jailbreak::LanguageChanged", 0.025, 1, function()
+		Run( "LanguageChanged", cvars.String( "gmod_language", "en" ), value )
+	end )
+end, "Jailbreak::LanguageChanged" )
 
 function Jailbreak.ChangeTeam( teamID )
 	return RunConsoleCommand( "changeteam", teamID )
@@ -205,23 +207,30 @@ do
 		return self:AnimRestartGesture( slot, activity, autokill )
 	end
 end
+
 do
-	local EntIndex = ENTITY.EntIndex
-	ENTITY.IsDoorLocked = function( self )
+
+	local entity_GetIndex = ENTITY.EntIndex
+
+	function ENTITY:IsDoorLocked()
 		return GetNW2Var( self, "m_bLocked", false )
 	end
-	ENTITY.GetDoorState = function( self )
+
+	function ENTITY:GetDoorState()
 		return GetNW2Var( self, "m_eDoorState", 0 )
 	end
-	ENTITY.IsLocalPlayer = function( self )
-		local index = Jailbreak.PlayerIndex
-		if not index then
-			return true
-		end
 
-		return EntIndex( self ) == index
+	function ENTITY:IsLocalPlayer()
+		local index = Jailbreak.PlayerIndex
+		if index == nil then
+			return true
+		else
+			return entity_GetIndex( self ) == index
+		end
 	end
+
 end
+
 do
 	local shopItems = Jailbreak.ShopItems
 	if not shopItems then

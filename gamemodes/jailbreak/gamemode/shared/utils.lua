@@ -714,15 +714,15 @@ do
 
 end
 
-function PLAYER:IsGuard()
+function ENTITY:IsGuard()
 	return self:Team() == TEAM_GUARD
 end
 
-function PLAYER:IsPrisoner()
+function ENTITY:IsPrisoner()
 	return self:Team() == TEAM_PRISONER
 end
 
-function PLAYER:IsWarden()
+function ENTITY:IsWarden()
 	return GetNW2Var( self, "is-warden", false )
 end
 

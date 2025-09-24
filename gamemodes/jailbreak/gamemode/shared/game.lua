@@ -3,16 +3,19 @@ local ENTITY, PLAYER = ENTITY, PLAYER
 ---@class Jailbreak
 local Jailbreak = Jailbreak
 
-local GM = GM
+local TEAM_GUARD = TEAM_GUARD
+local CLIENT = CLIENT
+
 local GetClass, GetTable, WaterLevel, IsOnGround, IsValid, GetNW2Bool, IsFlagSet = ENTITY.GetClass, ENTITY.GetTable, ENTITY.WaterLevel, ENTITY.IsOnGround, ENTITY.IsValid, ENTITY.GetNW2Bool, ENTITY.IsFlagSet
 local Length = VECTOR.Length
 local Alive = PLAYER.Alive
-local CLIENT = CLIENT
 local Run = hook.Run
-local TEAM_GUARD = TEAM_GUARD
+
 do
+
 	local IsRoundPreparing, GuardsFriendlyFire = Jailbreak.IsRoundPreparing, Jailbreak.GuardsFriendlyFire
 	local HasGodMode = PLAYER.HasGodMode
+
 	function GM:CanPlayerTakeDamage( ply, damageInfo, teamID )
 		if HasGodMode( ply ) or not Alive( ply ) then
 			return false
@@ -37,12 +40,17 @@ do
 
 		return true
 	end
+
 end
+
 do
+
 	local SetPlaybackRate = ENTITY.SetPlaybackRate
+
 	function GM:UpdateAnimation( ply, velocity, maxSeqGroundSpeed )
 		local speed = Length( velocity )
 		local rate = 1.0
+
 		if GetTable( ply ).m_bWasNoclipping or GetNW2Bool( ply, "in-flight" ) then
 			rate = speed < 32 and 0.25 or 0
 		elseif WaterLevel( ply ) > 1 then
@@ -77,27 +85,36 @@ do
 			end
 		end
 	end
+
 end
+
 function GM:ShouldCollide( entity, ply )
 	if not (ply:IsPlayer() and Alive( ply )) then
 		return
 	end
 
+	---@diagnostic disable-next-line: undefined-field
 	if GetClass( entity ) == "func_respawnroomvisualizer" and not entity:IsDisabled() then
 		return ply:Team() ~= entity:Team()
 	end
 end
 
 do
-	local PlayerSlowWalkSpeed = Jailbreak.PlayerSlowWalkSpeed
+
+	local jb_player_slow_walk_speed = GetConVar( "jb_player_slow_walk_speed" )
+
 	function GM:PlayerFootstep( ply, pos, foot, soundPath, volume, recipientFilter )
-		if IsFlagSet( ply, 4 ) or Length( ply:GetVelocity() ) < PlayerSlowWalkSpeed:GetInt() then
+		if IsFlagSet( ply, 4 ) or Length( ply:GetVelocity() ) < jb_player_slow_walk_speed:GetInt() then
 			return true
 		end
 	end
+
 end
+
 do
+
 	local HITGROUP_HEAD = HITGROUP_HEAD
+
 	local hitGroups = {
 		[ HITGROUP_GENERIC ] = 1,
 		[ HITGROUP_HEAD ] = 5,
@@ -109,32 +126,38 @@ do
 		[ HITGROUP_RIGHTLEG ] = 0.25,
 		[ HITGROUP_GEAR ] = 0.25
 	}
-	local jb_instant_kill_on_headshot = nil
+
+	local jb_instant_kill_on_headshot
 	do
+
 		local FCVAR_FLAGS = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED )
-		local CreateConVar = CreateConVar
+
 		local AddChangeCallback = cvars.AddChangeCallback
+		local CreateConVar = CreateConVar
 		local tostring = tostring
 		local tonumber = tonumber
+
 		jb_instant_kill_on_headshot = CreateConVar( "jb_instant_kill_on_headshot", "0", FCVAR_FLAGS, "If true, players will always be instantly killed on headshots.", 0, 1 )
+
 		for index, default in pairs( hitGroups ) do
 			local conVarName = "jb_hitgroup" .. index .. "_scale"
+
 			hitGroups[ index ] = CreateConVar( conVarName, tostring( default ), FCVAR_FLAGS, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 ):GetFloat()
+
 			AddChangeCallback( conVarName, function( _, __, str )
 				hitGroups[ index ] = tonumber( str ) or 0
 			end, "Jailbreak::HitGroups" )
 		end
+
 	end
-	do
-		local isnumber = isnumber
-		local damageScale = 0
-		function GM:ScaleHitGroupDamage( hitGroup, damageInfo )
-			damageScale = hitGroups[ hitGroup ]
-			if isnumber( damageScale ) then
-				return damageInfo:ScaleDamage( damageScale )
-			end
+
+	function GM:ScaleHitGroupDamage( hitGroup, damageInfo )
+		local damage_scale = hitGroups[ hitGroup ]
+		if damage_scale ~= nil then
+			return damageInfo:ScaleDamage( damage_scale )
 		end
 	end
+
 	function GM:ScalePlayerDamage( ply, hitGroup, damageInfo )
 		if hitGroup == HITGROUP_HEAD and jb_instant_kill_on_headshot:GetBool() then
 			damageInfo:SetDamage( ply:Health() + 1 )
@@ -146,20 +169,26 @@ do
 			return true
 		end
 	end
+
 end
+
 do
+
 	local sv_cheats, host_timescale = GetConVar( "sv_cheats" ), GetConVar( "host_timescale" )
 	local GetDemoPlaybackTimeScale = engine.GetDemoPlaybackTimeScale
 	local GetTimeScale = game.GetTimeScale
 	local Clamp = math.Clamp
+
 	function GM:EntityEmitSound( data )
 		local pitch = data.Pitch
+
 		local timeScale = GetTimeScale()
 		if timeScale ~= 1 then
 			pitch = pitch * timeScale
 		end
 
 		timeScale = sv_cheats:GetBool() and host_timescale:GetFloat() or 1
+
 		if timeScale ~= 1 then
 			pitch = pitch * timeScale
 		end
@@ -191,14 +220,18 @@ do
 
 		if CLIENT then
 			timeScale = GetDemoPlaybackTimeScale()
+
 			if timeScale ~= 1 then
 				data.Pitch = Clamp( data.Pitch * timeScale, 0, 255 )
 				return true
 			end
 		end
 	end
+
 end
+
 do
+
 	local ACT_MP_CROUCH_IDLE = ACT_MP_CROUCH_IDLE
 	local ACT_MP_STAND_IDLE = ACT_MP_STAND_IDLE
 	local ACT_MP_CROUCHWALK = ACT_MP_CROUCHWALK
@@ -208,13 +241,18 @@ do
 	local ACT_MP_WALK = ACT_MP_WALK
 	local ACT_MP_RUN = ACT_MP_RUN
 	local ACT_LAND = ACT_LAND
+
 	do
+
 		local InVehicle, GetWalkSpeed, GetRunSpeed, GetActiveWeapon, IsPrisoner, GetVehicle, GetAllowWeaponsInVehicle, InNoclip = PLAYER.InVehicle, PLAYER.GetWalkSpeed, PLAYER.GetRunSpeed, PLAYER.GetActiveWeapon, PLAYER.IsPrisoner, PLAYER.GetVehicle, PLAYER.GetAllowWeaponsInVehicle, PLAYER.InNoclip
 		local LookupSequence, GetParent, GetModel = ENTITY.LookupSequence, ENTITY.GetParent, ENTITY.GetModel
+
 		local ACT_HL2MP_RUN_PANICKED = ACT_HL2MP_RUN_PANICKED
 		local ACT_HL2MP_RUN_FAST = ACT_HL2MP_RUN_FAST
+
 		local GetHoldType = WEAPON.GetHoldType
 		local Length2DSqr = VECTOR.Length2DSqr
+
 		local singleHandHoldTypes = {
 			grenade = true,
 			normal = true,
@@ -223,9 +261,11 @@ do
 			fist = true,
 			slam = true
 		}
+
 		local isSwimming, isNoclipping, isOnGround = false, false, false
 		local calcIdeal, seqOverride, playerSpeed = 0, 0, 0
 		local vehicles = list.GetForEdit( "Vehicles" )
+
 		function GM:CalcMainActivity( ply, velocity )
 			calcIdeal, seqOverride = ACT_MP_STAND_IDLE, -1
 			isOnGround = IsOnGround( ply )
@@ -235,8 +275,10 @@ do
 				if vehicle.HandleAnimation == nil then
 					local data = vehicles[ vehicle:GetVehicleClass() ]
 					if data and data.Members and data.Members.HandleAnimation then
+						---@diagnostic disable-next-line: inject-field
 						vehicle.HandleAnimation = data.Members.HandleAnimation
 					else
+						---@diagnostic disable-next-line: inject-field
 						vehicle.HandleAnimation = true
 					end
 				end
@@ -322,8 +364,11 @@ do
 			tbl.CalcIdeal, tbl.CalcSeqOverride = calcIdeal, seqOverride
 			return calcIdeal, seqOverride
 		end
+
 	end
+
 	do
+
 		local idleActivityTranslate = {
 			[ ACT_MP_STAND_IDLE ] = ACT_HL2MP_IDLE,
 			[ ACT_MP_WALK ] = ACT_HL2MP_IDLE + 1,
@@ -338,8 +383,10 @@ do
 			[ ACT_MP_SWIM ] = ACT_HL2MP_IDLE + 9,
 			[ ACT_LAND ] = ACT_LAND
 		}
+
 		local TranslateWeaponActivity = PLAYER.TranslateWeaponActivity
 		local nextAct = 0
+
 		function GM:TranslateActivity( ply, act )
 			nextAct = TranslateWeaponActivity( ply, act )
 			if act == nextAct then
@@ -348,5 +395,7 @@ do
 
 			return nextAct
 		end
+
 	end
+
 end
