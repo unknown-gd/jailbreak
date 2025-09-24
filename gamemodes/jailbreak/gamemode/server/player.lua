@@ -379,7 +379,8 @@ do
 	local WeaponHandlers = WeaponHandlers or {}
 
 	---@param class_name string
-	---@return
+	---@return Entity entity
+	---@return boolean is_weapon
 	function PLAYER:Give( class_name, noAmmo, force )
 		local handler = WeaponHandlers[ class_name ]
 		if handler then
@@ -387,12 +388,12 @@ do
 		end
 
 		if self:HasWeapon( class_name ) then
-			return NULL
+			return NULL, false
 		end
 
 		local weapon = Create( class_name )
 		if not (weapon and weapon:IsValid()) then
-			return NULL
+			return NULL, false
 		end
 
 		weapon:SetAngles( self:GetAngles() )
@@ -401,12 +402,14 @@ do
 		weapon:Activate()
 
 		if not weapon:IsWeapon() then
-			return weapon
+			return weapon, false
 		end
+
+		---@cast weapon Weapon
 
 		if not force and Run( "PlayerCanPickupWeapon", self, weapon ) == false then
 			weapon:Remove()
-			return NULL
+			return NULL, false
 		end
 
 		if noAmmo then
@@ -416,7 +419,7 @@ do
 
 		self:PickupWeapon( weapon, false )
 
-		return weapon
+		return weapon, true
 	end
 
 end

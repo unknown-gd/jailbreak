@@ -3,6 +3,9 @@ local EffectData = EffectData
 ---@class Jailbreak
 local Jailbreak = Jailbreak
 
+---@class Entity
+local ENTITY = ENTITY
+
 local ceil, max
 do
 	local _obj_0 = math
@@ -11,7 +14,7 @@ end
 
 local IsValid = IsValid
 local Simple = timer.Simple
-local ENTITY = ENTITY
+
 local pairs = pairs
 local Run = hook.Run
 local util = util
@@ -46,22 +49,30 @@ do
 end
 
 do
+
 	local BlastDamage = util.BlastDamage
+
 	Jailbreak.Explosion = function( inflictor, attacker, origin, radius, damage )
 		local fx = EffectData()
 		fx:SetOrigin( origin )
+
 		local scale = ceil( radius / 125 )
 		fx:SetRadius( scale )
 		fx:SetScale( scale )
 		fx:SetMagnitude( ceil( damage / 18.75 ) )
+
 		Effect( "Sparks", fx )
 		Effect( "Explosion", fx )
+
 		BlastDamage( inflictor, attacker, origin, radius, damage )
-		return
 	end
+
 end
+
 do
+
 	local Teams = Jailbreak.Teams
+
 	local function changeTeam( self, teamID, force )
 		local oldTeamID = self:Team()
 		if not force then
@@ -81,43 +92,52 @@ do
 		end
 
 		self:SetTeam( teamID )
-		return
 	end
+
 	Jailbreak.ChangeTeam = changeTeam
 	GM.PlayerRequestTeam = changeTeam
-end
-do
-	local SetGlobal2Bool = SetGlobal2Bool
-	do
-		local IsFemalePrison = Jailbreak.IsFemalePrison
-		Jailbreak.SetFemalePrison = function( bool )
-			if bool == IsFemalePrison() then
-				return
-			end
 
-			SetGlobal2Bool( "female-prison", bool )
-			return
-		end
-	end
+end
+
+do
+
+	local SetGlobal2Bool = SetGlobal2Bool
+
 	do
+
+		local IsFemalePrison = Jailbreak.IsFemalePrison
+
+		function Jailbreak.SetFemalePrison( bool )
+			if bool ~= IsFemalePrison() then
+				SetGlobal2Bool( "female-prison", bool )
+			end
+		end
+
+	end
+
+	do
+
 		local IsShockCollarsActive = Jailbreak.IsShockCollarsActive
+
 		Jailbreak.SetShockCollars = function( bool, silent )
 			if bool == IsShockCollarsActive() then
 				return
 			end
 
 			SetGlobal2Bool( "shock-collars", bool )
+
 			if not silent then
 				Run( "ShockCollarsToggled", bool )
 			end
-
-			return
 		end
 	end
 end
+
 do
-	local SetGlobal2Int = SetGlobal2Int
+
 	local GetWardenCoins = Jailbreak.GetWardenCoins
+	local SetGlobal2Int = SetGlobal2Int
+
 	local function setWardenCoins( value, silent )
 		local oldValue = GetWardenCoins()
 		if oldValue == value then
@@ -128,20 +148,22 @@ do
 		if not silent then
 			Run( "WardenCoins", oldValue, value )
 		end
-
-		return
 	end
+
 	Jailbreak.SetWardenCoins = setWardenCoins
+
 	Jailbreak.TakeWardenCoins = function( value, silent )
 		setWardenCoins( max( 0, GetWardenCoins() - value ), silent )
-		return
 	end
+
 	Jailbreak.GiveWardenCoins = function( value, silent )
 		setWardenCoins( max( 0, GetWardenCoins() + value ), silent )
-		return
 	end
+
 end
+
 do
+
 	local shopItems = Jailbreak.ShopItems
 	if not shopItems then
 		shopItems = {}
@@ -207,7 +229,9 @@ do
 		_base_0.__class = _class_0
 		ShopItem = _class_0
 	end
+
 	Jailbreak.ShopItem = ShopItem
+
 	Jailbreak.AddShopItem = function( name, model, price, action )
 		if not name or #name == 0 then
 			name = "shopitem"
@@ -225,24 +249,31 @@ do
 		item:SetAction( action )
 		return item
 	end
+
 	Simple( 0.5, function()
 		table.Empty( shopItems )
 		Run( "ShopItems", Jailbreak.AddShopItem )
-		return
 	end )
+
 end
+
 do
+
 	local timer_Create = timer.Create
 	local CleanUpMap = game.CleanUpMap
+
 	Jailbreak.SafeCleanUpMap = function()
-		return timer_Create( "Jailbreak::CleanUpMap", 0.25, 1, function()
+		timer_Create( "Jailbreak::CleanUpMap", 0.25, 1, function()
 			CleanUpMap( false )
-			return
 		end )
 	end
+
 end
+
 do
+
 	local GetPhysicsObjectCount, GetPhysicsObjectNum = ENTITY.GetPhysicsObjectCount, ENTITY.GetPhysicsObjectNum
+
 	function ENTITY:GetPhysicsMass()
 		local objectMass = 0
 		for physNum = 0, GetPhysicsObjectCount( self ) - 1 do
@@ -254,7 +285,9 @@ do
 
 		return ceil( objectMass )
 	end
+
 end
+
 function ENTITY:Dissolve()
 	local dissolver = ENTITY.Dissolver
 	if not IsValid( dissolver ) then
@@ -270,14 +303,18 @@ function ENTITY:Dissolve()
 	end
 
 	dissolver:SetPos( self:WorldSpaceCenter() )
+
 	local temporaryName = "dissolver" .. dissolver:EntIndex() .. "_request" .. self:EntIndex()
 	self:SetName( temporaryName )
+
 	dissolver:Fire( "dissolve", temporaryName, 0 )
+
 	timer.Create( "Jailbreak::Dissolver", 0.25, 1, function()
 		if self:IsValid() then
-			return self:SetName( "" )
+			self:SetName( "" )
 		end
 	end )
+
 	return true
 end
 
@@ -337,6 +374,7 @@ do
 		return 0
 	end
 end
+
 function ENTITY:SetTeam( teamID )
 	return self:SetNW2Int( "player-team", teamID )
 end
@@ -346,34 +384,55 @@ function ENTITY:SetAlive( alive )
 end
 
 do
+
+	---@class CTakeDamageInfo
 	local CTAKE_DAMAGE_INFO = CTAKE_DAMAGE_INFO
+
 	local GetDamageType = CTAKE_DAMAGE_INFO.GetDamageType
 	local band = bit.band
+
 	do
+
 		local DMG_NEVERGIB = DMG_NEVERGIB
+
 		function CTAKE_DAMAGE_INFO:IsNeverGibDamage()
 			return band( GetDamageType( self ), DMG_NEVERGIB ) == DMG_NEVERGIB
 		end
+
 	end
+
 	do
+
 		local DMG_BURN = DMG_BURN
+
 		function CTAKE_DAMAGE_INFO:IsBurnDamage()
 			return band( GetDamageType( self ), DMG_BURN ) ~= 0
 		end
+
 	end
+
 	do
+
 		local DMG_CLOSE_RANGE = bit.bor( DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH )
+
 		function CTAKE_DAMAGE_INFO:IsCloseRangeDamage()
 			return band( GetDamageType( self ), DMG_CLOSE_RANGE ) ~= 0
 		end
+
 	end
+
 	do
+
 		local DMG_DISSOLVE = DMG_DISSOLVE
+
 		function CTAKE_DAMAGE_INFO:IsDissolveDamage()
 			return band( GetDamageType( self ), DMG_DISSOLVE ) == DMG_DISSOLVE
 		end
+
 	end
+
 	do
+
 		local damageTypes = {
 			DMG_DROWN,
 			DMG_POISON,
@@ -384,10 +443,11 @@ do
 			DMG_SONIC,
 			DMG_BURN
 		}
+
 		local damageTypesLength = #damageTypes
-		local damageType = 0
+
 		function CTAKE_DAMAGE_INFO:IsNonPhysicalDamage()
-			damageType = GetDamageType( self )
+			local damageType = GetDamageType( self )
 			for index = 1, damageTypesLength do
 				if band( damageType, damageTypes[ index ] ) ~= 0 then
 					return true
@@ -396,20 +456,31 @@ do
 
 			return false
 		end
+
 	end
+
 	do
+
 		local DMG_CRUSH = DMG_CRUSH
+
 		function CTAKE_DAMAGE_INFO:IsCrushDamage()
 			return band( GetDamageType( self ), DMG_CRUSH ) == DMG_CRUSH
 		end
+
 	end
+
 	do
+
 		local DMG_SHOCK = DMG_SHOCK
+
 		function CTAKE_DAMAGE_INFO:IsShockDamage()
 			return band( GetDamageType( self ), DMG_SHOCK ) == DMG_SHOCK
 		end
+
 	end
+
 end
+
 do
 	local tobool = tobool
 	local lower = string.lower
@@ -439,9 +510,9 @@ do
 	local trace = {
 		output = traceResult
 	}
-	function Jailbreak:BloodSplashes( damageInfo, death, velocity )
+	function Jailbreak.BloodSplashes( entity, damageInfo, death, velocity )
 		if not velocity then
-			velocity = self:GetVelocity() + damageInfo:GetDamageForce()
+			velocity = entity:GetVelocity() + damageInfo:GetDamageForce()
 		end
 
 		local damagePosition = damageInfo:GetDamagePosition()
@@ -455,7 +526,7 @@ do
 		fx:SetOrigin( damagePosition )
 		Effect( "BloodImpact", fx, true, true )
 		trace.start = damagePosition
-		trace.filter = self
+		trace.filter = entity
 		if not death then
 			trace.endpos = damagePosition + velocity
 			TraceLine( trace )
@@ -468,8 +539,8 @@ do
 		end
 
 		local decal = damageInfo:IsShockDamage() and "FadingScorch" or "Blood"
-		for bone = 0, self:GetBoneCount() - 1 do
-			local origin = self:GetBonePosition( bone )
+		for bone = 0, entity:GetBoneCount() - 1 do
+			local origin = entity:GetBonePosition( bone )
 			trace.endpos = origin + (origin - damagePosition) * speed
 			TraceLine( trace )
 			if traceResult.Hit then

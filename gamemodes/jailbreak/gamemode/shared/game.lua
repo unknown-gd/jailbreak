@@ -137,11 +137,13 @@ do
 		local tostring = tostring
 		local tonumber = tonumber
 
+		---@diagnostic disable-next-line: param-type-mismatch
 		jb_instant_kill_on_headshot = CreateConVar( "jb_instant_kill_on_headshot", "0", FCVAR_FLAGS, "If true, players will always be instantly killed on headshots.", 0, 1 )
 
 		for index, default in pairs( hitGroups ) do
 			local conVarName = "jb_hitgroup" .. index .. "_scale"
 
+			---@diagnostic disable-next-line: param-type-mismatch
 			hitGroups[ index ] = CreateConVar( conVarName, tostring( default ), FCVAR_FLAGS, "https://wiki.facepunch.com/gmod/Enums/HITGROUP", 0, 1000 ):GetFloat()
 
 			AddChangeCallback( conVarName, function( _, __, str )

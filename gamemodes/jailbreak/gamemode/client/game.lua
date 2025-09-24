@@ -22,9 +22,10 @@ hook.Add( "RenderScene", "Jailbreak::PlayerInitialized", function()
 		return true
 	end
 end )
+
 function GM:PlayerInitialized()
 	RunConsoleCommand( "dsp_player", "1" )
-	return RunConsoleCommand( "dsp_room", "1" )
+	RunConsoleCommand( "dsp_room", "1" )
 end
 
 function GM:InitPostEntity()
@@ -32,18 +33,15 @@ function GM:InitPostEntity()
 	local mapName = game.GetMap()
 	Jailbreak.MapName = mapName
 	Run( "MapInitialized", mapName )
-	return
 end
 
 function GM:PostCleanupMap()
 	RunConsoleCommand( "r_cleardecals" )
 	Run( "MapInitialized", Jailbreak.MapName )
-	return
 end
 
 function GM:OnSpawnMenuOpen()
 	RunConsoleCommand( "lastinv" )
-	return
 end
 
 function GM:PostProcessPermitted()
@@ -51,42 +49,59 @@ function GM:PostProcessPermitted()
 end
 
 do
+
 	Jailbreak.DrawHUD = GetConVar( "cl_drawhud" ):GetBool()
+
 	cvars.AddChangeCallback( "cl_drawhud", function( _, __, value )
 		Jailbreak.DrawHUD = value ~= "0"
+
 		local panel = Jailbreak.HUD
 		if panel and panel:IsValid() then
 			return panel:SetVisible( Jailbreak.DrawHUD )
 		end
 	end, "Jailbreak::DrawHUD" )
+
 end
+
 do
+
 	local PlayerModel = Jailbreak.PlayerModel
+
 	do
+
 		local requestedName = PlayerModel:GetString()
 		local modelName = Jailbreak.FormatPlayerModelName( requestedName )
+
 		Jailbreak.SelectedPlayerModel = modelName
+
 		if modelName ~= requestedName then
 			PlayerModel:SetString( modelName )
 			Run( "PlayerModelChanged", modelName )
 		end
+
 	end
+
 	cvars.AddChangeCallback( PlayerModel:GetName(), function( _, __, requestedName )
 		Jailbreak.PlayerBodyGroups:SetInt( 0 )
 		Jailbreak.PlayerSkin:SetInt( 0 )
+
 		local modelName = Jailbreak.FormatPlayerModelName( requestedName )
 		Jailbreak.SelectedPlayerModel = modelName
+
 		if modelName ~= requestedName then
 			PlayerModel:SetString( modelName )
 		end
 
 		Run( "PlayerModelChanged", modelName )
-		return
 	end, "Jailbreak::PlayerModel" )
+
 end
+
 do
+
 	local LookupKeyBinding, IsKeyDown = input.LookupKeyBinding, input.IsKeyDown
 	local IsFirstTimePredicted = IsFirstTimePredicted
+
 	function GM:PlayerButtonUp( ply, keyCode )
 		if not IsFirstTimePredicted() then
 			return
@@ -109,15 +124,20 @@ do
 			RunConsoleCommand( "jb_marker" )
 		end
 	end
+
 end
+
 do
+
 	local ReadString, ReadUInt, ReadTable, ReadEntity, ReadBool = net.ReadString, net.ReadUInt, net.ReadTable, net.ReadEntity, net.ReadBool
 	local AddLegacy = notification.AddLegacy
 	local Translate = Jailbreak.Translate
-	local CHAN_STATIC = CHAN_STATIC
 	local random = math.random
-	local Colors = Jailbreak.ColorScheme
 	local unpack = unpack
+
+	local Colors = Jailbreak.ColorScheme
+	local CHAN_STATIC = CHAN_STATIC
+
 	local notifyColors = {
 		[ NOTIFY_GENERIC ] = Colors.vivid_orange,
 		[ NOTIFY_CLEANUP ] = Colors.horizon,
@@ -125,40 +145,38 @@ do
 		[ NOTIFY_UNDO ] = Colors.blue,
 		[ NOTIFY_HINT ] = Colors.guards
 	}
+
 	net.Receive( "Jailbreak::Networking", function()
-		local _exp_0 = ReadUInt( 4 )
-		if 0 == _exp_0 then
+		local action_id = ReadUInt( 4 )
+		if action_id == 0 then
 			local gameName = ReadString()
 			SoundHandler( gameName )
 			Jailbreak.GameName = gameName
-		elseif 1 == _exp_0 then
+		elseif action_id == 1 then
 			return Run( "PickupNotifyReceived", ReadString(), ReadUInt( 6 ), ReadUInt( 16 ) )
-		elseif 2 == _exp_0 then
+		elseif action_id == 2 then
 			local text, notifyType = format( Translate( ReadString() ), unpack( ReadTable( true ) ) ), ReadUInt( 3 )
 			AddLegacy( text, notifyType, ReadUInt( 16 ) )
 			return MsgC( notifyColors[ notifyType ], "Notify: ", text, "\n" )
-		elseif 3 == _exp_0 then
+		elseif action_id == 3 then
 			local ply = Jailbreak.Player
 			if ply:IsValid() then
 				return ply:EmitSound( ReadString(), 75, random( 90, 110 ), 1, CHAN_STATIC, 0, 1 )
 			end
-		elseif 4 == _exp_0 then
+		elseif action_id == 4 then
 			local entity = ReadEntity()
-			if entity and (function()
-					local _base_0 = entity
-					local _fn_0 = _base_0.IsValid
-					return _fn_0 and function( ... )
-						return _fn_0( _base_0, ... )
-					end
-				end)() and entity:IsPlayer() then
-				return entity:AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool() )
+			if entity and entity:IsValid() and entity:IsPlayer() then
+				---@cast entity Player
+				entity:AnimRestartGesture( ReadUInt( 3 ), ReadUInt( 11 ), ReadBool() )
 			end
-		elseif 5 == _exp_0 then
+		elseif action_id == 5 then
 			RunConsoleCommand( "jb_megaphone", GetConVar( "jb_megaphone" ):GetDefault() )
-			return RunConsoleCommand( "jb_security_radio", GetConVar( "jb_security_radio" ):GetDefault() )
+			RunConsoleCommand( "jb_security_radio", GetConVar( "jb_security_radio" ):GetDefault() )
 		end
 	end )
+
 end
-return concommand.Add( "jb_credits", function()
-	return MsgC( unpack( Jailbreak.Credits ) )
+
+concommand.Add( "jb_credits", function()
+	MsgC( unpack( Jailbreak.Credits ) )
 end )
