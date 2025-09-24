@@ -1,4 +1,6 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
 local Simple = timer.Simple
 local ENTITY = ENTITY
 local PLAYER = PLAYER

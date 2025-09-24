@@ -1,10 +1,13 @@
+---@class Jailbreak
+local Jailbreak = Jailbreak
+
 local ErrorNoHaltWithStack = ErrorNoHaltWithStack
 local random, Clamp, Rand
 do
 	local _obj_0 = math
 	random, Clamp, Rand = _obj_0.random, _obj_0.Clamp, _obj_0.Rand
 end
-local Jailbreak = Jailbreak
+
 local Add, Remove
 do
 	local _obj_0 = hook

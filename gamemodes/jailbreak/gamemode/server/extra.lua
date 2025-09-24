@@ -1,5 +1,8 @@
-local ENTITY, PLAYER = ENTITY, PLAYER
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
+local ENTITY, PLAYER = ENTITY, PLAYER
+
 local Clamp, Rand, random, min, max, floor
 do
 	local _obj_0 = math

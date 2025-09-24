@@ -1,51 +1,46 @@
-local Jailbreak = Jailbreak
+local entity_GetNetworkValue, entity_SetNetworkValue = ENTITY.GetNW2Var, ENTITY.SetNW2Var
+local move_GetVelocity, move_SetVelocity = CMOVEDATA.GetVelocity, CMOVEDATA.SetVelocity
+local CLIENT, SERVER = CLIENT, SERVER
+local player_IsAlive = PLAYER.Alive
+local hook_Add = hook.Add
 local CurTime = CurTime
-local ENTITY = ENTITY
-local PLAYER = PLAYER
-local SERVER = SERVER
-local CLIENT = CLIENT
-local Add = hook.Add
-local GetVelocity, SetVelocity
+
+---@class Jailbreak
+local Jailbreak = Jailbreak
 
 do
-	local _obj_0 = CMOVEDATA
-	GetVelocity, SetVelocity = _obj_0.GetVelocity, _obj_0.SetVelocity
-end
 
-local GetNW2Var, SetNW2Var = ENTITY.GetNW2Var, ENTITY.SetNW2Var
-
-local Alive = PLAYER.Alive
-do
-
+	local move_KeyDown = CMOVEDATA.KeyDown
+	local IN_ATTACK2 = IN_ATTACK2
 	local IN_ATTACK = IN_ATTACK
 	local IN_WALK = IN_WALK
-	Add("StartCommand", "Jailbreak::Markers", function(self, cmd)
-		if Alive( self ) and cmd:KeyDown( IN_WALK ) then
+
+	hook_Add( "StartCommand", "Jailbreak::Markers", function( ply, cmd )
+		if player_IsAlive( ply ) and move_KeyDown( cmd, IN_WALK ) then
 			cmd:RemoveKey( IN_ATTACK )
-			return cmd:RemoveKey( IN_ATTACK2 )
+			cmd:RemoveKey( IN_ATTACK2 )
 		end
-	end)
+	end )
 
 end
 
-Add("AllowPlayerMove", "Jailbreak::Death Animations", function( self )
-	if GetNW2Var(self, "death-animation") == 0 then
-		return
-	end
-	return false
-end)
-
-Add("PlayerEmitSound", "Jailbreak::Death Animations", function(self, data)
-	if GetNW2Var(self, "death-animation") ~= 0 then
+hook_Add( "AllowPlayerMove", "Jailbreak::Death Animations", function( ply )
+	if entity_GetNetworkValue( ply, "death-animation" ) ~= 0 then
 		return false
 	end
-end)
+end )
 
-Add("CanPlayerTakeDamage", "Jailbreak::Death Animations", function( self )
-	if GetNW2Var(self, "death-animation") == 2 then
+hook_Add( "PlayerEmitSound", "Jailbreak::Death Animations", function( ply, data )
+	if entity_GetNetworkValue( ply, "death-animation" ) ~= 0 then
 		return false
 	end
-end)
+end )
+
+hook_Add( "CanPlayerTakeDamage", "Jailbreak::Death Animations", function( ply )
+	if entity_GetNetworkValue( ply, "death-animation" ) == 2 then
+		return false
+	end
+end )
 
 do
 
@@ -63,96 +58,109 @@ do
 	local band = bit.band
 	local abs = math.abs
 
-	Add("Move", "Jailbreak::Developer", function(self, mv)
-		if not self:IsFlightAllowed() then
-			if not CLIENT and GetNW2Var(self, "in-flight") then
-				SetNW2Var(self, "in-flight", false)
+	hook_Add( "Move", "Jailbreak::Developer", function( ply, mv )
+		if not ply:IsFlightAllowed() then
+			if not CLIENT and entity_GetNetworkValue( ply, "in-flight" ) then
+				entity_SetNetworkValue( ply, "in-flight", false )
 			end
+
 			return
 		end
-		if IsOnGround( self ) then
-			if not CLIENT and GetNW2Var(self, "in-flight") then
-				return SetNW2Var(self, "in-flight", false)
+
+		if IsOnGround( ply ) then
+			if not CLIENT and entity_GetNetworkValue( ply, "in-flight" ) then
+				return entity_SetNetworkValue( ply, "in-flight", false )
 			end
-		elseif GetNW2Var(self, "in-flight") then
-			local velocity = GetVelocity( mv )
+		elseif entity_GetNetworkValue( ply, "in-flight" ) then
+			local velocity = move_GetVelocity( mv )
 			local angles = mv:GetMoveAngles()
 			local buttons = mv:GetButtons()
-			if band(buttons, IN_FORWARD) ~= 0 then
+			if band( buttons, IN_FORWARD ) ~= 0 then
 				velocity = velocity + (angles:Forward() * 16)
 				buttons = buttons - IN_FORWARD
 			end
-			if band(buttons, IN_BACK) ~= 0 then
+
+			if band( buttons, IN_BACK ) ~= 0 then
 				velocity = velocity + (angles:Forward() * -16)
 				buttons = buttons - IN_BACK
 			end
-			if band(buttons, IN_MOVELEFT) ~= 0 then
+
+			if band( buttons, IN_MOVELEFT ) ~= 0 then
 				velocity = velocity + (angles:Right() * -16)
 				buttons = buttons - IN_MOVELEFT
 			end
-			if band(buttons, IN_MOVERIGHT) ~= 0 then
+
+			if band( buttons, IN_MOVERIGHT ) ~= 0 then
 				velocity = velocity + (angles:Right() * 16)
 				buttons = buttons - IN_MOVERIGHT
 			end
-			if band(buttons, IN_JUMP) ~= 0 then
+
+			if band( buttons, IN_JUMP ) ~= 0 then
 				velocity = velocity + (angles:Up() * 16)
 				buttons = buttons - IN_JUMP
 			end
-			if band(buttons, IN_DUCK) ~= 0 then
+
+			if band( buttons, IN_DUCK ) ~= 0 then
 				velocity = velocity + (angles:Up() * -16)
 				buttons = buttons - IN_DUCK
 			end
+
 			local frameTime = FrameTime()
-			if band(buttons, IN_SPEED) ~= 0 then
-				velocity[1] = Lerp(frameTime, velocity[1], 0)
-				velocity[2] = Lerp(frameTime, velocity[2], 0)
-				velocity[3] = Lerp(frameTime, velocity[3], 0)
+			if band( buttons, IN_SPEED ) ~= 0 then
+				velocity[ 1 ] = Lerp( frameTime, velocity[ 1 ], 0 )
+				velocity[ 2 ] = Lerp( frameTime, velocity[ 2 ], 0 )
+				velocity[ 3 ] = Lerp( frameTime, velocity[ 3 ], 0 )
 				buttons = buttons - IN_SPEED
 			end
-			if abs( velocity[1] ) < 1 then
-				velocity[1] = 0
+
+			if abs( velocity[ 1 ] ) < 1 then
+				velocity[ 1 ] = 0
 			end
-			if abs( velocity[2] ) < 1 then
-				velocity[2] = 0
+
+			if abs( velocity[ 2 ] ) < 1 then
+				velocity[ 2 ] = 0
 			end
-			if abs( velocity[3] ) < 1 then
-				velocity[3] = 0
+
+			if abs( velocity[ 3 ] ) < 1 then
+				velocity[ 3 ] = 0
 			end
+
 			local _update_0 = 3
-			velocity[_update_0] = velocity[_update_0] + ((self:GetGravity() + 1) * sv_gravity:GetFloat() * 0.5 * frameTime)
-			SetVelocity(mv, velocity)
+			velocity[ _update_0 ] = velocity[ _update_0 ] + ((ply:GetGravity() + 1) * sv_gravity:GetFloat() * 0.5 * frameTime)
+			move_SetVelocity( mv, velocity )
 			return mv:SetButtons( buttons )
 		elseif not CLIENT and mv:KeyPressed( IN_JUMP ) then
-			return SetNW2Var(self, "in-flight", true)
+			return entity_SetNetworkValue( ply, "in-flight", true )
 		end
-	end)
+	end )
 
 end
 
-Add("Move", "Jailbreak::Shock", function(self, mv)
-	local shockTime = GetNW2Var(self, "shock-time")
+hook_Add( "Move", "Jailbreak::Shock", function( ply, mv )
+	local shockTime = entity_GetNetworkValue( ply, "shock-time" )
 	if not shockTime or CurTime() > shockTime then
 		return
 	end
-	mv:SetMaxSpeed(self:GetWalkSpeed() / 4)
-	return
-end)
 
-Add("PlayerEmitSound", "Jailbreak::SilentDeath", function(self, data)
-	if not Alive( self ) then
+	mv:SetMaxSpeed( ply:GetWalkSpeed() / 4 )
+	return
+end )
+
+hook_Add( "PlayerEmitSound", "Jailbreak::SilentDeath", function( ply, data )
+	if not player_IsAlive( ply ) then
 		return false
 	end
-end)
+end )
 
 do
 
 	local IsSpawning = PLAYER.IsSpawning
 
-	Add("AllowPlayerMove", "Jailbreak::PlayerSpawning", function( self )
-		if IsSpawning( self ) then
+	hook_Add( "AllowPlayerMove", "Jailbreak::PlayerSpawning", function( ply )
+		if IsSpawning( ply ) then
 			return false
 		end
-	end)
+	end )
 
 end
 
@@ -160,14 +168,14 @@ do
 
 	local IsPlayingTaunt = PLAYER.IsPlayingTaunt
 
-	Add( "StartCommand", "Jailbreak::Taunts", function(self, cmd)
-		if IsPlayingTaunt( self ) then
+	hook_Add( "StartCommand", "Jailbreak::Taunts", function( ply, cmd )
+		if IsPlayingTaunt( ply ) then
 			cmd:SetImpulse( 0 )
 		end
 	end, PRE_HOOK )
 
-	Add("SetupMove", "Jailbreak::Taunts", function(self, _, cmd)
-		if IsPlayingTaunt( self ) then
+	hook_Add( "SetupMove", "Jailbreak::Taunts", function( ply, _, cmd )
+		if IsPlayingTaunt( ply ) then
 			cmd:ClearMovement()
 			cmd:ClearButtons()
 		end
@@ -178,18 +186,18 @@ end
 do
 	local OBS_MODE_NONE = OBS_MODE_NONE
 	local GetObserverMode = PLAYER.GetObserverMode
-	Add("AllowPlayerMove", "Jailbreak::AliveSpectator", function( self )
-		if Alive( self ) and GetObserverMode( self ) ~= OBS_MODE_NONE then
+	hook_Add( "AllowPlayerMove", "Jailbreak::AliveSpectator", function( ply )
+		if player_IsAlive( ply ) and GetObserverMode( ply ) ~= OBS_MODE_NONE then
 			return false
 		end
-	end)
+	end )
 end
 
-Add("PlayerFootstep", "Jailbreak::LoseConsciousness", function( ply )
+hook_Add( "PlayerFootstep", "Jailbreak::LoseConsciousness", function( ply )
 	if ply:IsLoseConsciousness() then
 		return true
 	end
-end)
+end )
 
 do
 
@@ -201,38 +209,39 @@ do
 
 	local speed = 0
 
-	Add("Move", "Jailbreak::PlayerPush", function(self, mv)
-		local target = GetNW2Var(self, "push-target")
-		if target and target:IsValid() and target:Alive() then
-			local velocity = GetVelocity( mv )
+	hook_Add( "Move", "Jailbreak::PlayerPush", function( ply, mv )
+		local target = entity_GetNetworkValue( ply, "push-target" )
+		if target and target:IsValid() and player_IsAlive( target ) then
+			local velocity = move_GetVelocity( mv )
 			local direction
 			speed, direction = Length2D( velocity ), nil
 			if speed == 0 then
-				speed, direction = self:GetWalkSpeed(), self:GetAimVector()
+				speed, direction = ply:GetWalkSpeed(), ply:GetAimVector()
 			else
 				direction = velocity:GetNormalized()
-				SetUnpacked(velocity, velocity[1] * 0.5, velocity[2] * 0.5, velocity[3])
-				SetVelocity(mv, velocity)
+				SetUnpacked( velocity, velocity[ 1 ] * 0.5, velocity[ 2 ] * 0.5, velocity[ 3 ] )
+				move_SetVelocity( mv, velocity )
 			end
-			self.m_vPushVelocity = direction * speed
+
+			ply.m_vPushVelocity = direction * speed
 			return
 		end
-		local pusher = GetNW2Var(self, "pushing-player")
-		if pusher and pusher:IsValid() and pusher:Alive() then
-			if SERVER and self:GetPos():DistToSqr(pusher:GetPos()) > 5184 then
-				SetNW2Var(pusher, "push-target", nil)
-				SetNW2Var(self, "pushing-player", nil)
+
+		local pushing_player = entity_GetNetworkValue( ply, "pushing-player" )
+		if pushing_player and pushing_player:IsValid() and player_IsAlive( pushing_player ) then
+			if SERVER and ply:GetPos():DistToSqr( pushing_player:GetPos() ) > 5184 then
+				entity_SetNetworkValue( pushing_player, "push-target", nil )
+				entity_SetNetworkValue( ply, "pushing-player", nil )
 				return
 			end
-			local pushVelocity = pusher.m_vPushVelocity
-			if not pushVelocity then
-				return
+
+			local push_velocity = pushing_player.m_vPushVelocity
+			if push_velocity ~= nil then
+				push_velocity = push_velocity * 1.125
+				push_velocity[ 3 ] = move_GetVelocity( mv )[ 3 ]
+				move_SetVelocity( mv, push_velocity )
 			end
-			pushVelocity = pushVelocity * 1.125
-			pushVelocity[3] = GetVelocity( mv )[3]
-			SetVelocity(mv, pushVelocity)
-			return
 		end
-	end)
+	end )
 
 end

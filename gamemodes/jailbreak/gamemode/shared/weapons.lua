@@ -3,10 +3,12 @@ if not istable( avaliableWeapons ) then
 	avaliableWeapons = {}
 	Jailbreak.AvaliableWeapons = avaliableWeapons
 end
+
 local WeaponHandler = WeaponHandler
 if not WeaponHandler then
 	return
 end
+
 local Vector, Angle = Vector, Angle
 local altrenativeWeapons = {
 	Classes = {
@@ -259,32 +261,32 @@ local altrenativeWeapons = {
 	},
 	Offsets = {
 		arccw_ur_deagle = {
-			Vector(-10, 0, 8),
-			Angle(0, 0, 0)
+			Vector( -10, 0, 8 ),
+			Angle( 0, 0, 0 )
 		},
 		arccw_ur_m1911 = {
-			Vector(-10, 0, 6),
-			Angle(0, 0, 0)
+			Vector( -10, 0, 6 ),
+			Angle( 0, 0, 0 )
 		},
 		weapon_crowbar = {
-			Vector(0, 0, 10),
-			Angle(90, 0, 0)
+			Vector( 0, 0, 10 ),
+			Angle( 90, 0, 0 )
 		},
 		arccw_ur_mp5 = {
-			Vector(0, 0, 0),
-			Angle(0, 0, 180)
+			Vector( 0, 0, 0 ),
+			Angle( 0, 0, 180 )
 		},
 		arccw_ud_m79 = {
-			Vector(0, 0, 0),
-			Angle(-90, 0, 0)
+			Vector( 0, 0, 0 ),
+			Angle( -90, 0, 0 )
 		},
 		arccw_ud_m16 = {
-			Vector(0, 0, 10),
-			Angle(30, 0, 0)
+			Vector( 0, 0, 10 ),
+			Angle( 30, 0, 0 )
 		},
 		arccw_ur_ak = {
-			Vector(-5, 0, 8),
-			Angle(30, 0, 0)
+			Vector( -5, 0, 8 ),
+			Angle( 30, 0, 0 )
 		}
 	}
 }
@@ -294,24 +296,28 @@ do
 	local GetStored = weapons.GetStored
 	function GM:PreGamemodeLoaded()
 		for className, alternatives in pairs( altrenativeWeapons.Classes ) do
-			avaliableWeapons[#avaliableWeapons + 1] = className
-			local alternative = WeaponHandler(className, alternatives, altrenativeWeapons.Offsets).Alternative
+			avaliableWeapons[ #avaliableWeapons + 1 ] = className
+			local alternative = WeaponHandler( className, alternatives, altrenativeWeapons.Offsets ).Alternative
 			if not alternative then
 				goto _continue_0
 			end
+
 			local weapon = GetStored( alternative )
 			if not weapon then
 				goto _continue_0
 			end
+
 			weapon.DrawWeaponInfoBox = false
 			local viewModel = weapon.ViewModel
 			if viewModel and #viewModel ~= 0 and IsValidModel( viewModel ) then
 				PrecacheModel( viewModel )
 			end
+
 			local worldModel = weapon.WorldModel
 			if worldModel and #worldModel ~= 0 and IsValidModel( worldModel ) then
 				PrecacheModel( worldModel )
 			end
+
 			::_continue_0::
 		end
 	end
@@ -348,11 +354,13 @@ do
 		weapon_smokegrenade = 4,
 		weapon_c4 = 5
 	}
-	return hook.Add("Initialize", "Jailbreak::WeaponSlotsForCSS", function()
+
+	hook.Add( "Initialize", "Jailbreak::WeaponSlotsForCSS", function()
 		local _list_0 = weapons.GetList()
 		for _index_0 = 1, #_list_0 do
-			local swep = _list_0[_index_0]
-			swep.Slot = slots[swep.ClassName] or swep.Slot or 0
+			local swep = _list_0[ _index_0 ]
+			swep.Slot = slots[ swep.ClassName ] or swep.Slot or 0
 		end
-	end)
+	end )
+
 end

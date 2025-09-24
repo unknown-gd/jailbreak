@@ -1,4 +1,6 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
 local ceil, floor, log, max, min, Clamp
 do
 	local _obj_0 = math

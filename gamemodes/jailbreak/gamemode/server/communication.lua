@@ -1,4 +1,7 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
+
 local string = string
 local math = math
 local net = net

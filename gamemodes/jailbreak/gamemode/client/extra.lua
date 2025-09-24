@@ -1,4 +1,6 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
 local hook_Add = hook.Add
 
 do
@@ -11,44 +13,45 @@ do
 	local DrawBloom = DrawBloom
 
 	local heaven = {
-		["$pp_colour_addr"] = 0,
-		["$pp_colour_addg"] = 0,
-		["$pp_colour_addb"] = 0,
-		["$pp_colour_brightness"] = 0.05,
-		["$pp_colour_contrast"] = 1.25,
-		["$pp_colour_colour"] = 1.25,
-		["$pp_colour_mulr"] = 0.025,
-		["$pp_colour_mulg"] = 0.025,
-		["$pp_colour_mulb"] = 0
+		[ "$pp_colour_addr" ] = 0,
+		[ "$pp_colour_addg" ] = 0,
+		[ "$pp_colour_addb" ] = 0,
+		[ "$pp_colour_brightness" ] = 0.05,
+		[ "$pp_colour_contrast" ] = 1.25,
+		[ "$pp_colour_colour" ] = 1.25,
+		[ "$pp_colour_mulr" ] = 0.025,
+		[ "$pp_colour_mulg" ] = 0.025,
+		[ "$pp_colour_mulb" ] = 0
 	}
 
 	local hell = {
-		["$pp_colour_addr"] = 0.05,
-		["$pp_colour_addg"] = 0,
-		["$pp_colour_addb"] = 0,
-		["$pp_colour_brightness"] = -0.05,
-		["$pp_colour_contrast"] = 1.25,
-		["$pp_colour_colour"] = 0.8,
-		["$pp_colour_mulr"] = 1.5,
-		["$pp_colour_mulg"] = 0,
-		["$pp_colour_mulb"] = 0
+		[ "$pp_colour_addr" ] = 0.05,
+		[ "$pp_colour_addg" ] = 0,
+		[ "$pp_colour_addb" ] = 0,
+		[ "$pp_colour_brightness" ] = -0.05,
+		[ "$pp_colour_contrast" ] = 1.25,
+		[ "$pp_colour_colour" ] = 0.8,
+		[ "$pp_colour_mulr" ] = 1.5,
+		[ "$pp_colour_mulg" ] = 0,
+		[ "$pp_colour_mulb" ] = 0
 	}
 
-	hook_Add("RenderScreenspaceEffects", "Jailbreak::Heaven & Hell", function()
+	hook_Add( "RenderScreenspaceEffects", "Jailbreak::Heaven & Hell", function()
 		if GetGlobal2Bool( "Jailbreak::Heaven" ) then
 			DrawColorModify( heaven )
-			DrawToyTown(2, Jailbreak.ScreenHeight / 2)
-			DrawSunbeams(0.1, 0.013, 0.14, 0.2, 0.6)
-			DrawBloom(1, 1, 8, 8, 1, 1, 1, 1, 1)
+			DrawToyTown( 2, Jailbreak.ScreenHeight / 2 )
+			DrawSunbeams( 0.1, 0.013, 0.14, 0.2, 0.6 )
+			DrawBloom( 1, 1, 8, 8, 1, 1, 1, 1, 1 )
 			return
 		end
+
 		if GetGlobal2Bool( "Jailbreak::Hell" ) then
 			DrawColorModify( hell )
-			DrawBloom(1, 1, 8, 8, 1, 1, 1, 1, 1)
-			DrawSharpen(0.8, 0.8)
+			DrawBloom( 1, 1, 8, 8, 1, 1, 1, 1, 1 )
+			DrawSharpen( 0.8, 0.8 )
 			return
 		end
-	end)
+	end )
 
 	local FogStart, FogEnd, FogMode, FogMaxDensity, FogColor
 	do
@@ -56,7 +59,7 @@ do
 		FogStart, FogEnd, FogMode, FogMaxDensity, FogColor = _obj_0.FogStart, _obj_0.FogEnd, _obj_0.FogMode, _obj_0.FogMaxDensity, _obj_0.FogColor
 	end
 
-	hook_Add("SetupWorldFog", "Jailbreak::Heaven & Hell", function()
+	hook_Add( "SetupWorldFog", "Jailbreak::Heaven & Hell", function()
 		if GetGlobal2Bool( "Jailbreak::Heaven" ) then
 			FogStart( 512 )
 			FogEnd( 2048 )
@@ -65,6 +68,7 @@ do
 			FogColor( 255, 255, 255 )
 			return true
 		end
+
 		if GetGlobal2Bool( "Jailbreak::Hell" ) then
 			FogStart( 256 )
 			FogEnd( 1048 )
@@ -73,7 +77,7 @@ do
 			FogColor( 33, 33, 33 )
 			return true
 		end
-	end)
+	end )
 
 end
 
@@ -81,9 +85,9 @@ do
 
 	local FrameTime = FrameTime
 
-	hook_Add( "InputMouseApply", "Jailbreak::jb_ragdoll_mover", function(cmd, x, y, viewAngles)
+	hook_Add( "InputMouseApply", "Jailbreak::jb_ragdoll_mover", function( cmd, x, y, viewAngles )
 		local ply = Jailbreak.Player
-		if not ( ply:IsValid() and ply:Alive() ) then
+		if not (ply:IsValid() and ply:Alive()) then
 			return
 		end
 
@@ -93,7 +97,7 @@ do
 				return true
 			end
 
-			local frameTime = entity:GetNW2Int("entity-mass", 0)
+			local frameTime = entity:GetNW2Int( "entity-mass", 0 )
 			if frameTime < 1 then
 				frameTime = 1
 			end
@@ -101,10 +105,10 @@ do
 			frameTime = FrameTime() / frameTime
 
 			local _update_0 = 1
-			viewAngles[_update_0] = viewAngles[_update_0] + (y * frameTime)
+			viewAngles[ _update_0 ] = viewAngles[ _update_0 ] + (y * frameTime)
 
 			local _update_1 = 2
-			viewAngles[_update_1] = viewAngles[_update_1] - (x * frameTime)
+			viewAngles[ _update_1 ] = viewAngles[ _update_1 ] - (x * frameTime)
 			cmd:SetViewAngles( viewAngles )
 
 			return true
@@ -135,32 +139,32 @@ do
 		button:SetText( "#jb.apply" )
 		button.DoClick = function()
 			local color = mixer:GetColor()
-			RunConsoleCommand("jb_paint_entity_apply", self.EntIndex or 0, color.r .. " " .. color.g .. " " .. color.b)
+			RunConsoleCommand( "jb_paint_entity_apply", self.EntIndex or 0, color.r .. " " .. color.g .. " " .. color.b )
 			return self:Close()
 		end
 	end
 
-	function PANEL:PerformLayout( ...)
+	function PANEL:PerformLayout( ... )
 		local size = VMin( 40 )
 
-		self:SetSize(size, size)
+		self:SetSize( size, size )
 		self:SetMinWidth( size )
 		self:SetMinHeight( size )
 
 		local mixer = self.Mixer
 		if mixer and mixer:IsValid() then
-			mixer:DockMargin(0, 0, 0, VMin( 0.5 ))
+			mixer:DockMargin( 0, 0, 0, VMin( 0.5 ) )
 		end
 
 		local button = self.Button
 		if button and button:IsValid() then
-			button:SetTall(VMin( 5 ))
+			button:SetTall( VMin( 5 ) )
 		end
 
-		DFrame.PerformLayout(self, ...)
+		DFrame.PerformLayout( self, ... )
 	end
 
-	vgui.Register("Jailbreak::PaintMenu", PANEL, "DFrame")
+	vgui.Register( "Jailbreak::PaintMenu", PANEL, "DFrame" )
 
 end
 
@@ -168,7 +172,7 @@ do
 
 	local panel = nil
 
-	concommand.Add( "jb_paint_entity", function(self, _, args)
+	concommand.Add( "jb_paint_entity", function( self, _, args )
 		if panel and panel:IsValid() then
 			panel:Remove()
 			return
@@ -179,11 +183,11 @@ do
 		end
 
 		local entity = Entity( tonumber( args[ 1 ] or "0", 10 ) or 0 )
-		if not ( entity and entity:IsValid() and entity:IsPaintCan() ) then
+		if not (entity and entity:IsValid() and entity:IsPaintCan()) then
 			return
 		end
 
-		if entity:GetPos():Distance(self:GetPos()) > 72 then
+		if entity:GetPos():Distance( self:GetPos() ) > 72 then
 			return
 		end
 
@@ -193,15 +197,16 @@ do
 
 end
 
-hook_Add("NotifyShouldTransmit", "Jailbreak::AutoMute", function(entity, shouldTransmit)
+hook_Add( "NotifyShouldTransmit", "Jailbreak::AutoMute", function( entity, shouldTransmit )
 	if not shouldTransmit or not entity:IsPlayer() or entity.m_bBlacklistMuted then
 		return
 	end
+
 	if not entity:IsMuted() and entity:GetFriendStatus() == "blocked" then
 		entity.m_bBlacklistMuted = true
 		return entity:SetMuted( true )
 	end
-end)
+end )
 
 if render.GetDXLevel() < 80 then
 	return
@@ -238,8 +243,8 @@ local material = Material( "models/wireframe" )
 local PlayerSpawnTime = Jailbreak.PlayerSpawnTime
 local blend, clipping, frac = 0, false, 0
 
-hook_Add("PrePlayerDraw", "Jailbreak::SpawnEffect", function(self, flags)
-	frac = 1 - Clamp((CurTime() - GetSpawnTime( self )) / PlayerSpawnTime:GetFloat(), 0, 1)
+hook_Add( "PrePlayerDraw", "Jailbreak::SpawnEffect", function( self, flags )
+	frac = 1 - Clamp( (CurTime() - GetSpawnTime( self )) / PlayerSpawnTime:GetFloat(), 0, 1 )
 
 	if frac == 0 then
 		return
@@ -249,23 +254,24 @@ hook_Add("PrePlayerDraw", "Jailbreak::SpawnEffect", function(self, flags)
 	local normal = (mins - maxs)
 	Normalize( normal )
 	clipping = EnableClipping( true )
-	PushCustomClipPlane(normal, Dot(normal, LerpVector(frac, LocalToWorld(self, maxs), LocalToWorld(self, mins))))
+	PushCustomClipPlane( normal, Dot( normal, LerpVector( frac, LocalToWorld( self, maxs ), LocalToWorld( self, mins ) ) ) )
 	UpdateRefractTexture()
 	blend = GetBlend()
 	local color = GetPlayerColor( self )
-	SetColorModulation(color[1], color[2], color[3])
-	material:SetFloat("$refractamount", frac * 0.1)
+	SetColorModulation( color[ 1 ], color[ 2 ], color[ 3 ] )
+	material:SetFloat( "$refractamount", frac * 0.1 )
 	MaterialOverride( material )
-	SetBlend(1 - frac)
+	SetBlend( 1 - frac )
 end )
 
-hook_Add("PostPlayerDraw", "Jailbreak::SpawnEffect", function(self, flags)
+hook_Add( "PostPlayerDraw", "Jailbreak::SpawnEffect", function( self, flags )
 	if frac == 0 then
 		return
 	end
-	SetColorModulation(1, 1, 1)
+
+	SetColorModulation( 1, 1, 1 )
 	MaterialOverride()
 	SetBlend( blend )
 	PopCustomClipPlane()
 	EnableClipping( clipping )
-end)
+end )

@@ -1,4 +1,6 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
 local Markers, MarkersLifetime = Jailbreak.Markers, Jailbreak.MarkersLifetime
 local SetMaterial, DrawSprite
 do
@@ -31,7 +33,7 @@ local ErrorIcon = Material( "icon16/error.png" )
 local PaintCanIcon = Material( "icon16/paintcan.png" )
 local markers = {}
 local classNames = {
-	["class C_BaseEntity"] = Material( "icon16/keyboard.png" ),
+	[ "class C_BaseEntity" ] = Material( "icon16/keyboard.png" ),
 	sent_soccerball = Material( "icon16/sport_basketball.png" ),
 	prop_ragdoll = Material( "icon16/user_delete.png" ),
 	prop_combine_ball = ErrorIcon,
@@ -47,11 +49,12 @@ do
 		local _obj_0 = net
 		ReadEntity, ReadBool, ReadVector = _obj_0.ReadEntity, _obj_0.ReadBool, _obj_0.ReadVector
 	end
-	net.Receive("Jailbreak::Markers", function()
+	net.Receive( "Jailbreak::Markers", function()
 		local owner = ReadEntity()
 		if not (owner:IsValid() and owner:Alive()) then
 			return
 		end
+
 		local material = owner:IsPrisoner() and OrangeFlagIcon or BlueFlagIcon
 		local entity = nil
 		if ReadBool() then
@@ -63,14 +66,17 @@ do
 					if entity:GetOwner():IsValid() then
 						return
 					end
+
 					material = GunIcon
 				elseif entity:IsPlayer() then
 					if entity:IsLocalPlayer() then
 						return
 					end
+
 					if not entity:Alive() then
 						return
 					end
+
 					local _exp_0 = entity:Team()
 					if TEAM_GUARD == _exp_0 then
 						material = UserSuitIcon
@@ -81,14 +87,14 @@ do
 					end
 				else
 					local className = entity:GetClass()
-					local classIcon = classNames[className]
+					local classIcon = classNames[ className ]
 					if classIcon then
 						material = classIcon
-					elseif find(className, "^func_breakable", 1, false) then
+					elseif find( className, "^func_breakable", 1, false ) then
 						material = ImageIcon
-					elseif find(className, "^%w+_door", 1, false) then
+					elseif find( className, "^%w+_door", 1, false ) then
 						material = DoorIcon
-					elseif find(className, "^prop_physics.*", 1, false) then
+					elseif find( className, "^prop_physics.*", 1, false ) then
 						material = PhotoIcon
 					else
 						material = BricksIcon
@@ -96,69 +102,76 @@ do
 				end
 			end
 		end
-		markers[#markers + 1] = {
+
+		markers[ #markers + 1 ] = {
 			deathtime = CurTime() + MarkersLifetime:GetInt(),
-			amplitude = Rand(0.5, 1.5),
+			amplitude = Rand( 0.5, 1.5 ),
 			origin = ReadVector(),
 			material = material,
 			entity = entity,
 			owner = owner
 		}
-	end)
+	end )
 end
 do
 	local proxyVector, eyePos = Vector()
-	hook.Add("HUDPaint3D", "Jailbreak::Markers", function()
+	hook.Add( "HUDPaint3D", "Jailbreak::Markers", function()
 		if not Markers:GetBool() then
 			return
 		end
+
 		eyePos = EyePos()
 		for index = 1, #markers do
-			local data = markers[index]
+			local data = markers[ index ]
 			if not data then
 				goto _continue_0
 			end
+
 			local owner = data.owner
 			if not owner:IsValid() then
-				remove(markers, index)
+				remove( markers, index )
 				goto _continue_0
 			end
-			local fraction = max(0, (data.deathtime - CurTime()) / MarkersLifetime:GetInt())
+
+			local fraction = max( 0, (data.deathtime - CurTime()) / MarkersLifetime:GetInt() )
 			if fraction == 0 then
-				remove(markers, index)
+				remove( markers, index )
 				goto _continue_0
 			end
+
 			local origin = data.origin
 			local entity = data.entity
 			if entity then
 				if entity:IsValid() then
 					if (entity:IsPlayer() and not entity:Alive()) or (entity:IsWeapon() and entity:GetOwner():IsValid()) then
-						remove(markers, index)
+						remove( markers, index )
 						goto _continue_0
 					end
+
 					origin = entity:LocalToWorld( origin )
 				else
-					remove(markers, index)
+					remove( markers, index )
 					goto _continue_0
 				end
 			end
-			local scale = max(4, (origin:Distance( eyePos ) / Jailbreak.ScreenWidth) * 64) * fraction
+
+			local scale = max( 4, (origin:Distance( eyePos ) / Jailbreak.ScreenWidth) * 64 ) * fraction
 			local amplitude = data.amplitude
-			proxyVector[1] = origin[1]
-			proxyVector[2] = origin[2]
-			proxyVector[3] = origin[3] + 1 + sin(CurTime() * (4 + amplitude)) * (1.5 + amplitude) * fraction
+			proxyVector[ 1 ] = origin[ 1 ]
+			proxyVector[ 2 ] = origin[ 2 ]
+			proxyVector[ 3 ] = origin[ 3 ] + 1 + sin( CurTime() * (4 + amplitude) ) * (1.5 + amplitude) * fraction
 			SetMaterial( data.material )
-			DrawSprite(proxyVector, scale, scale, white)
+			DrawSprite( proxyVector, scale, scale, white )
 			::_continue_0::
 		end
-	end)
+	end )
 end
 do
 	local IN_WALK = IN_WALK
-	return hook.Add("PreventScreenClicks", "Jailbreak::Markers", function()
+	return hook.Add( "PreventScreenClicks", "Jailbreak::Markers", function()
 		local ply = Jailbreak.Player
 		if ply:IsValid() and ply:KeyDown( IN_WALK ) then
 			return true
 		end
-	end)
+	end )
 end

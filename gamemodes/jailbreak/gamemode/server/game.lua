@@ -1,3 +1,6 @@
+---@class Jailbreak
+local Jailbreak = Jailbreak
+
 local random, max, min, floor, Rand = math.random, math.max, math.min, math.floor, math.Rand
 local Teams, GameInProgress = Jailbreak.Teams, Jailbreak.GameInProgress
 local SetNW2Var = ENTITY.SetNW2Var
@@ -11,30 +14,32 @@ local OBS_MODE_ROAMING = OBS_MODE_ROAMING
 local OBS_MODE_CHASE = OBS_MODE_CHASE
 local TEAM_PRISONER = TEAM_PRISONER
 local TEAM_GUARD = TEAM_GUARD
-function GM:ShowTeam( ply)
+function GM:ShowTeam( ply )
 	return ply:ConCommand( "jb_showteam" )
 end
+
 do
 	local RENDERMODE_TRANSCOLOR = RENDERMODE_TRANSCOLOR
-	function GM:PlayerInitialSpawn( ply, transiton)
-		ply:SetNoCollideWithTeammates(Jailbreak.GameName == "tf")
+	function GM:PlayerInitialSpawn( ply, transiton )
+		ply:SetNoCollideWithTeammates( Jailbreak.GameName == "tf" )
 		ply:SetRenderMode( RENDERMODE_TRANSCOLOR )
 		ply:SetAvoidPlayers( true )
 		ply:SetCanZoom( false )
 		local ragdoll = ply:FindRagdollEntity()
 		if ragdoll:IsValid() then
-			SetNW2Var(ragdoll, "ragdoll-owner", ply)
+			SetNW2Var( ragdoll, "ragdoll-owner", ply )
 		else
 			ply:SetTeam( TEAM_PRISONER )
 		end
+
 		ply.m_bInitialSpawn = true
 	end
 end
 do
 	local RagdollRemove, GuardsArmor, AllowWeaponsInVehicle = Jailbreak.RagdollRemove, Jailbreak.GuardsArmor, Jailbreak.AllowWeaponsInVehicle
 	local white = Jailbreak.ColorScheme.white
-	function GM:PlayerSpawn( ply, transiton)
-		ply:SetAllowWeaponsInVehicle(AllowWeaponsInVehicle:GetBool())
+	function GM:PlayerSpawn( ply, transiton )
+		ply:SetAllowWeaponsInVehicle( AllowWeaponsInVehicle:GetBool() )
 		ply:RemoveFromObserveTargets()
 		ply:SetColor( white )
 		ply:SetupMovement()
@@ -44,35 +49,40 @@ do
 		local ragdoll = ply:FindRagdollEntity()
 		if ragdoll:IsValid() and ragdoll:Alive() then
 			ply:SpawnFromRagdoll( ragdoll )
-			Run("PostPlayerSpawn", ply)
+			Run( "PostPlayerSpawn", ply )
 			ragdoll:SetAlive( false )
 			ragdoll:Remove()
 			return
 		end
+
 		if ply.m_bInitialSpawn ~= nil then
 			ply.m_bInitialSpawn = nil
 			if GameInProgress() then
 				if ragdoll:IsValid() then
 					ply:SpawnFromRagdoll( ragdoll )
 				end
+
 				ply:KillSilent()
 				return
 			end
 		end
+
 		local teamID = ply:Team()
-		if not Teams[teamID] then
+		if not Teams[ teamID ] then
 			ply:KillSilent()
 			return
 		end
+
 		if RagdollRemove:GetBool() then
 			ply:RemoveRagdoll()
 		end
-		Run("PlayerSetModel", ply)
+
+		Run( "PlayerSetModel", ply )
 		ply:SetMaxHealth( 100 )
 		ply:SetHealth( 100 )
 		if teamID == TEAM_GUARD then
 			local armor = GuardsArmor:GetInt()
-			ply:SetMaxArmor(max(100, armor))
+			ply:SetMaxArmor( max( 100, armor ) )
 			ply:SetArmor( armor )
 			ply:GiveSecurityRadio()
 			ply:GiveSecurityKeys()
@@ -81,10 +91,12 @@ do
 			ply:SetMaxArmor( 100 )
 			ply:SetArmor( 0 )
 		end
+
 		if not transiton then
-			Run("PlayerLoadout", ply)
+			Run( "PlayerLoadout", ply )
 		end
-		return Run("PostPlayerSpawn", ply)
+
+		return Run( "PostPlayerSpawn", ply )
 	end
 end
 do
@@ -93,85 +105,98 @@ do
 	local FindByClass = ents.FindByClass
 	local vector_origin = vector_origin
 	local cache, lastIndex, length, teamID = {}, 0, 0, 0
-	hook.Add("PostCleanupMap", "Jailbreak::ClearSpawnPointCache", function()
+	hook.Add( "PostCleanupMap", "Jailbreak::ClearSpawnPointCache", function()
 		Empty( cache )
 		lastIndex = 0
-	end)
-	function GM:PlayerSelectSpawn( ply, transition)
+	end )
+	function GM:PlayerSelectSpawn( ply, transition )
 		if transiton then
 			return
 		end
+
 		teamID = ply:Team()
-		if not Teams[teamID] then
-			teamID = random(1, 2)
+		if not Teams[ teamID ] then
+			teamID = random( 1, 2 )
 		end
-		local spawnPoints = cache[teamID]
+
+		local spawnPoints = cache[ teamID ]
 		if not spawnPoints then
 			spawnPoints, length = {}, 0
 			local _list_0 = GetSpawnPoint( teamID )
 			for _index_0 = 1, #_list_0 do
-				local className = _list_0[_index_0]
+				local className = _list_0[ _index_0 ]
 				local _list_1 = FindByClass( className )
 				for _index_1 = 1, #_list_1 do
-					local entity = _list_1[_index_1]
+					local entity = _list_1[ _index_1 ]
 					if className ~= "info_player_teamspawn" or (not entity.Disabled and entity:Team() == teamID) then
 						length = length + 1
-						spawnPoints[length] = entity
+						spawnPoints[ length ] = entity
 					end
 				end
 			end
+
 			if length > 1 then
 				Shuffle( spawnPoints )
 			end
-			cache[teamID] = spawnPoints
+
+			cache[ teamID ] = spawnPoints
 		end
+
 		length = #spawnPoints
 		if length ~= 0 then
 			if length == 1 then
-				return spawnPoints[1]
+				return spawnPoints[ 1 ]
 			end
+
 			lastIndex = lastIndex + 1
 			if lastIndex > length then
 				lastIndex = 1
 			end
-			local spawnPoint = spawnPoints[lastIndex]
+
+			local spawnPoint = spawnPoints[ lastIndex ]
 			if spawnPoint and spawnPoint:IsValid() then
 				return spawnPoint
 			end
 		end
+
 		return ply:SetPos( vector_origin )
 	end
 end
-function GM:SetupMove( ply, _, cmd)
+function GM:SetupMove( ply, _, cmd )
 	if ply:IsFullyConnected() or not (cmd:IsForced() or ply:IsBot()) then
 		return
 	end
-	SetNW2Var(ply, "fully-connected", true)
-	return Run("PlayerInitialized", ply)
+
+	SetNW2Var( ply, "fully-connected", true )
+	return Run( "PlayerInitialized", ply )
 end
+
 do
 	local AllowCustomPlayerModels, IsFemalePrison = Jailbreak.AllowCustomPlayerModels, Jailbreak.IsFemalePrison
 	local TranslatePlayerModel = player_manager.TranslatePlayerModel
 	local match = string.match
 	local length = 0
-	function GM:PlayerSetModel( ply)
-		local modelPath = TranslatePlayerModel(ply:GetInfo( "jb_playermodel" ))
+	function GM:PlayerSetModel( ply )
+		local modelPath = TranslatePlayerModel( ply:GetInfo( "jb_playermodel" ) )
 		if AllowCustomPlayerModels:GetBool() and ply:SetModel( modelPath ) then
 			return
 		end
-		local models = Jailbreak.PlayerModels[ply:Team()][IsFemalePrison()]
+
+		local models = Jailbreak.PlayerModels[ ply:Team() ][ IsFemalePrison() ]
 		length = #models
 		if length == 1 then
-			ply:SetModel( models[1] )
+			ply:SetModel( models[ 1 ] )
 			return
 		end
-		local requestedName = match(modelPath, "( [%w%_%-]+ )%.mdl$")
+
+		local requestedName = match( modelPath, "( [%w%_%-]+ )%.mdl$" )
 		for index = 1, length do
-			if (models[index] == modelPath or match(models[index], "( [%w%_%-]+ )%.mdl$") == requestedName) and ply:SetModel( models[index] ) then
+			if (models[ index ] == modelPath or match( models[ index ], "( [%w%_%-]+ )%.mdl$" ) == requestedName) and ply:SetModel( models[ index ] ) then
 				return
 			end
 		end
-		ply:SetModel(models[random(1, length)])
+
+		ply:SetModel( models[ random( 1, length ) ] )
 		return
 	end
 end
@@ -179,115 +204,129 @@ do
 	local AllowCustomPlayerColors, AllowCustomWeaponColors, DefaultTeamColors = Jailbreak.AllowCustomPlayerColors, Jailbreak.AllowCustomWeaponColors, Jailbreak.DefaultTeamColors
 	local Explode = string.Explode
 	local tonumber = tonumber
-	local defaultWeaponColor = Vector(0.001, 0.001, 0.001)
-	function GM:PlayerModelChanged( ply)
+	local defaultWeaponColor = Vector( 0.001, 0.001, 0.001 )
+	function GM:PlayerModelChanged( ply )
 		local isBot = ply:IsBot()
 		if isBot then
-			ply:SetSkin(random(0, ply:SkinCount()))
+			ply:SetSkin( random( 0, ply:SkinCount() ) )
 			local _list_0 = ply:GetBodyGroups()
 			for _index_0 = 1, #_list_0 do
-				local bodygroup = _list_0[_index_0]
-				ply:SetBodygroup(bodygroup.id, random(0, bodygroup.num - 1))
+				local bodygroup = _list_0[ _index_0 ]
+				ply:SetBodygroup( bodygroup.id, random( 0, bodygroup.num - 1 ) )
 			end
 		else
-			ply:SetSkin(ply:GetInfoNum("jb_playerskin", 0))
-			local groups = Explode(" ", ply:GetInfo( "jb_playerbodygroups" ) or "")
+			ply:SetSkin( ply:GetInfoNum( "jb_playerskin", 0 ) )
+			local groups = Explode( " ", ply:GetInfo( "jb_playerbodygroups" ) or "" )
 			for i = 0, ply:GetNumBodyGroups() - 1 do
-				ply:SetBodygroup(i, tonumber(groups[i + 1]) or 0)
+				ply:SetBodygroup( i, tonumber( groups[ i + 1 ] ) or 0 )
 			end
 		end
+
 		if not AllowCustomPlayerColors:GetBool() then
-			ply:SetPlayerColor(DefaultTeamColors[ply:Team()])
+			ply:SetPlayerColor( DefaultTeamColors[ ply:Team() ] )
 		elseif isBot then
-			ply:SetPlayerColor(Vector(Rand(0, 1), Rand(0, 1), Rand(0, 1)))
+			ply:SetPlayerColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
 		else
-			ply:SetPlayerColor(Vector(ply:GetInfo( "cl_playercolor" )))
+			ply:SetPlayerColor( Vector( ply:GetInfo( "cl_playercolor" ) ) )
 		end
+
 		if not AllowCustomWeaponColors:GetBool() then
-			ply:SetWeaponColor(DefaultTeamColors[ply:Team()])
+			ply:SetWeaponColor( DefaultTeamColors[ ply:Team() ] )
 		elseif isBot then
-			ply:SetWeaponColor(Vector(Rand(0, 1), Rand(0, 1), Rand(0, 1)))
+			ply:SetWeaponColor( Vector( Rand( 0, 1 ), Rand( 0, 1 ), Rand( 0, 1 ) ) )
 		else
-			local weaponColor = Vector(ply:GetInfo( "cl_weaponcolor" ))
+			local weaponColor = Vector( ply:GetInfo( "cl_weaponcolor" ) )
 			if weaponColor:Length() < 0.001 then
 				weaponColor = defaultWeaponColor
 			end
+
 			ply:SetWeaponColor( weaponColor )
 		end
+
 		return
 	end
 end
 do
 	local TranslatePlayerHands, TranslateToPlayerModelName = player_manager.TranslatePlayerHands, player_manager.TranslateToPlayerModelName
-	function GM:PlayerSetHandsModel( ply, hands)
-		local info = TranslatePlayerHands(TranslateToPlayerModelName(ply:GetModel()))
+	function GM:PlayerSetHandsModel( ply, hands )
+		local info = TranslatePlayerHands( TranslateToPlayerModelName( ply:GetModel() ) )
 		if info == nil then
 			return
 		end
+
 		hands:SetModel( info.model )
 		hands:SetBodyGroups( info.body )
-		hands:SetPlayerColor(ply:GetPlayerColor())
-		hands:SetSkin(info.matchBodySkin and ply:GetSkin() or info.skin)
+		hands:SetPlayerColor( ply:GetPlayerColor() )
+		hands:SetSkin( info.matchBodySkin and ply:GetSkin() or info.skin )
 		return
 	end
 end
 do
 	local IsWaitingPlayers = Jailbreak.IsWaitingPlayers
-	function GM:DoPlayerDeath( ply, attacker, damageInfo)
-		if not Teams[ply:Team()] then
+	function GM:DoPlayerDeath( ply, attacker, damageInfo )
+		if not Teams[ ply:Team() ] then
 			return
 		end
+
 		if attacker:IsValid() and attacker:IsPlayer() and attacker ~= ply then
 			attacker:AddFrags( 1 )
 		end
+
 		if IsWaitingPlayers() then
 			ply:RemoveRagdoll()
 		end
+
 		local ragdoll = ply:CreateRagdoll()
 		if not ragdoll:IsValid() then
 			return
 		end
-		Simple(0.25, function()
+
+		Simple( 0.25, function()
 			if ragdoll:IsValid() and ply:IsValid() and not ply:Alive() then
 				return ply:ObserveEntity( ragdoll )
 			end
-		end)
+		end )
 		if damageInfo:IsDissolveDamage() then
 			ragdoll:Dissolve()
 			return
 		end
+
 		ragdoll:TakeDamageInfo( damageInfo )
 		return
 	end
 end
-function GM:PlayerDeath( ply, inflictor, attacker)
+function GM:PlayerDeath( ply, inflictor, attacker )
 	local teamID = ply:Team()
-	if Teams[teamID] then
-		Run("TeamPlayerDeath", ply, teamID)
+	if Teams[ teamID ] then
+		Run( "TeamPlayerDeath", ply, teamID )
 		return
 	end
 end
-function GM:PlayerSilentDeath( ply)
+
+function GM:PlayerSilentDeath( ply )
 	local teamID = ply:Team()
-	if Teams[teamID] then
-		Run("TeamPlayerDeath", ply, teamID)
+	if Teams[ teamID ] then
+		Run( "TeamPlayerDeath", ply, teamID )
 		return
 	end
 end
-function GM:PostPlayerDeath( ply)
+
+function GM:PostPlayerDeath( ply )
 	ply:AddDeaths( 1 )
 	ply:ResetToggles()
 	ply:Extinguish()
 	ply:DropObject()
 	return
 end
+
 do
 	local OBS_MODE_NONE = OBS_MODE_NONE
-	function GM:PlayerDeathThink( ply)
-		if Teams[ply:Team()] and not GameInProgress() then
+	function GM:PlayerDeathThink( ply )
+		if Teams[ ply:Team() ] and not GameInProgress() then
 			ply:Spawn()
 			return
 		end
+
 		if ply:GetObserverMode() == OBS_MODE_NONE then
 			ply:Spectate( OBS_MODE_ROAMING )
 			return
@@ -300,24 +339,26 @@ do
 	local TraceLine = util.TraceLine
 	local Create = ents.Create
 	local MovementKeys = {
-		[IN_FORWARD] = true,
-		[IN_BACK] = true,
-		[IN_MOVELEFT] = true,
-		[IN_MOVERIGHT] = true
+		[ IN_FORWARD ] = true,
+		[ IN_BACK ] = true,
+		[ IN_MOVELEFT ] = true,
+		[ IN_MOVERIGHT ] = true
 	}
 	local traceResult = {}
 	local trace = {
 		output = traceResult
 	}
-	function GM:KeyPress( ply, key)
+	function GM:KeyPress( ply, key )
 		if ply:Alive() then
 			if key ~= IN_USE or ply:IsHoldingEntity() then
 				return
 			end
-			Simple(0.05 + (ply:Ping() or 0) / 1000, function()
+
+			Simple( 0.05 + (ply:Ping() or 0) / 1000, function()
 				if not (ply:IsValid() and ply:Alive()) or ply:KeyDown( IN_USE ) or ply:IsHoldingEntity() then
 					return
 				end
+
 				trace.filter = ply
 				trace.start = ply:EyePos()
 				trace.endpos = trace.start + ply:GetAimVector() * 72
@@ -325,54 +366,64 @@ do
 				if not traceResult.Hit then
 					return
 				end
+
 				local entity = traceResult.Entity
 				if not entity:IsValid() then
 					return
 				end
+
 				if entity:IsRagdoll() then
-					local physID = max(0, traceResult.PhysicsBone)
+					local physID = max( 0, traceResult.PhysicsBone )
 					local phys = entity:GetPhysicsObjectNum( physID )
 					if not (phys and phys:IsValid() and phys:IsMoveable()) then
 						return
 					end
+
 					local mover = Create( "jb_ragdoll_mover" )
-					mover:SetPos(phys:LocalToWorld(phys:GetMassCenter()))
+					mover:SetPos( phys:LocalToWorld( phys:GetMassCenter() ) )
 					mover.Ragdoll = entity
 					mover:SetOwner( ply )
 					mover:Spawn()
-					mover.Weld = Weld(mover, entity, 0, physID, 0, true, true)
+					mover.Weld = Weld( mover, entity, 0, physID, 0, true, true )
 					return ply:PickupObject( mover )
 				elseif entity:IsFood() then
 					return ply:PickupObject( entity )
 				end
-			end)
+			end )
 			return
 		end
-		if MovementKeys[key] then
+
+		if MovementKeys[ key ] then
 			if ply:GetObserverMode() ~= OBS_MODE_ROAMING then
 				ply:ObserveEntity()
 			end
+
 			return
 		end
+
 		if key == IN_ATTACK then
 			ply:MoveObserveIndex( 1 )
 			return
 		end
+
 		if key == IN_ATTACK2 then
 			ply:MoveObserveIndex( -1 )
 			return
 		end
+
 		if key == IN_JUMP then
 			local target = ply:GetObserverTarget()
 			if not (target:IsValid() and ((target:IsPlayer() and target:Alive()) or target:IsNPC())) then
 				return
 			end
+
 			local observerMode = ply:GetObserverMode()
 			if observerMode == OBS_MODE_CHASE then
 				ply:Spectate( OBS_MODE_IN_EYE )
 				ply:SetupHands( target )
 				return
 			end
+
 			if observerMode == OBS_MODE_IN_EYE then
 				ply:Spectate( OBS_MODE_CHASE )
 				return
@@ -382,28 +433,31 @@ do
 end
 do
 	local IsRoundPreparing = Jailbreak.IsRoundPreparing
-	function GM:CanPlayerSuicide( ply)
+	function GM:CanPlayerSuicide( ply )
 		if IsRoundPreparing() then
 			return false
 		end
+
 		return ply:Alive()
 	end
 end
 do
 	local CHAN_VOICE_BASE = CHAN_VOICE_BASE
-	function GM:PlayerDeathSound( ply)
+	function GM:PlayerDeathSound( ply )
 		if ply:IsGuard() then
-			ply:EmitSound("Player.Death", 75, random(80, 120), 1, CHAN_VOICE_BASE, 0, 1)
+			ply:EmitSound( "Player.Death", 75, random( 80, 120 ), 1, CHAN_VOICE_BASE, 0, 1 )
 		end
+
 		return true
 	end
 end
-function GM:PlayerDisconnected( ply)
+function GM:PlayerDisconnected( ply )
 	local teamID = ply:Team()
-	if Teams[teamID] then
-		return Run("TeamPlayerDisconnected", ply, teamID)
+	if Teams[ teamID ] then
+		return Run( "TeamPlayerDisconnected", ply, teamID )
 	end
 end
+
 do
 	local Start, WriteUInt, WriteString, Send
 	do
@@ -412,193 +466,226 @@ do
 	end
 	local CHAT_CONNECTED = CHAT_CONNECTED
 	local SendChatText = Jailbreak.SendChatText
-	function GM:PlayerInitialized( ply)
+	function GM:PlayerInitialized( ply )
 		if ply:IsBot() then
-			SendChatText(false, false, CHAT_CONNECTED, ply:GetModelColor(), ply:Nick())
+			SendChatText( false, false, CHAT_CONNECTED, ply:GetModelColor(), ply:Nick() )
 			return
 		end
-		SendChatText(false, false, CHAT_CONNECTED, ply:GetModelColor(), ply:Nick(), ply:SteamID())
+
+		SendChatText( false, false, CHAT_CONNECTED, ply:GetModelColor(), ply:Nick(), ply:SteamID() )
 		local gameName = Jailbreak.GameName
 		if not gameName then
 			return
 		end
+
 		Start( "Jailbreak::Networking" )
-		WriteUInt(0, 4)
+		WriteUInt( 0, 4 )
 		WriteString( gameName )
 		return Send( ply )
 	end
 end
 do
 	local TeamIsJoinable = Jailbreak.TeamIsJoinable
-	function GM:PlayerCanJoinTeam( ply, teamID, oldTeamID)
+	function GM:PlayerCanJoinTeam( ply, teamID, oldTeamID )
 		if teamID == oldTeamID then
 			return false, "#jb.error.already-on-team", 3
 		end
+
 		if not TeamIsJoinable( teamID ) then
 			return false, "#jb.error.cant-do-that", 5
 		end
+
 		return true
 	end
 end
 do
 	local AllowSprayEveryone = Jailbreak.AllowSprayEveryone
-	function GM:PlayerSpray( ply)
+	function GM:PlayerSpray( ply )
 		if not ply:Alive() then
 			return true
 		end
+
 		if AllowSprayEveryone:GetBool() or ply:IsPrisoner() then
 			return false
 		end
-		ply:SendNotify("#jb.error.cant-do-that", NOTIFY_ERROR, 2)
+
+		ply:SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 2 )
 		return true
 	end
 end
 do
 	local MOVETYPE_WALK = MOVETYPE_WALK
-	function GM:PlayerShouldTaunt( ply)
+	function GM:PlayerShouldTaunt( ply )
 		if ply:Alive() and ply:IsOnGround() and not (ply:Crouching() or ply:InVehicle()) and ply:GetMoveType() == MOVETYPE_WALK and ply:WaterLevel() < 2 then
 			return true
 		end
-		ply:SendNotify("#jb.error.cant-do-that", NOTIFY_ERROR, 2)
+
+		ply:SendNotify( "#jb.error.cant-do-that", NOTIFY_ERROR, 2 )
 		return false
 	end
 end
-function GM:AllowPlayerPickup( ply, entity)
+function GM:AllowPlayerPickup( ply, entity )
 	return ply:Alive() and not entity:IsFood()
 end
-function GM:PlayerCanPickupItem( ply, entity)
+
+function GM:PlayerCanPickupItem( ply, entity )
 	return ply:Alive()
 end
-function GM:PlayerNoClip( ply, desiredState)
+
+function GM:PlayerNoClip( ply, desiredState )
 	if not desiredState then
 		return true
 	end
+
 	return ply:IsSuperAdmin() and ply:Alive() and not ply:IsPlayingTaunt()
 end
-function GM:PlayerSwitchFlashlight( ply, newState)
+
+function GM:PlayerSwitchFlashlight( ply, newState )
 	if not newState then
 		return true
 	end
+
 	return ply:Alive() and ply:CanUseFlashlight()
 end
-function GM:PlayerUse( ply, entity)
+
+function GM:PlayerUse( ply, entity )
 	if not ply:Alive() then
 		return
 	end
+
 	if ply:IsHoldingEntity() then
 		return false
 	end
+
 	if entity:IsPlayer() then
 		return false
 	end
+
 	local curTime, lastUseTime = CurTime(), ply.LastUseTime or 0
 	ply.LastUseTime = curTime
 	local className = entity:GetClass()
 	local isReleased = (curTime - lastUseTime) > 0.025
 	if not lastUseTime or isReleased then
-		SetNW2Var(ply, "start-use-time", curTime)
-		Run("PlayerHoldUse", ply, entity, 0)
+		SetNW2Var( ply, "start-use-time", curTime )
+		Run( "PlayerHoldUse", ply, entity, 0 )
 	else
 		local startUseTime = ply:GetNW2Int( "start-use-time" )
-		if startUseTime ~= 0 and Run("PlayerHoldUse", ply, entity, curTime - startUseTime) == true then
-			SetNW2Var(ply, "start-use-time", 0)
+		if startUseTime ~= 0 and Run( "PlayerHoldUse", ply, entity, curTime - startUseTime ) == true then
+			SetNW2Var( ply, "start-use-time", 0 )
 			return false
 		end
 	end
+
 	if not isReleased then
 		return
 	end
-	if Run("PlayerUsedEntity", ply, entity) == false then
+
+	if Run( "PlayerUsedEntity", ply, entity ) == false then
 		return false
 	end
+
 	if entity:IsWeapon() then
 		if entity.m_bPickupForbidden then
 			return false
 		end
+
 		if entity.IsTemporaryWeapon then
 			entity = entity:GetParent()
 			if not (entity:IsValid() and entity:IsWeapon()) then
 				return false
 			end
 		end
+
 		if ply:HasWeapon( className ) then
 			local clip1, clip1Type = entity:Clip1(), entity:GetPrimaryAmmoType()
 			if clip1 > 0 and clip1Type >= 0 then
-				local canPickup = min(clip1, ply:GetPickupAmmoCount( clip1Type ))
+				local canPickup = min( clip1, ply:GetPickupAmmoCount( clip1Type ) )
 				if canPickup > 0 then
-					entity:SetClip1(clip1 - canPickup)
-					ply:GiveAmmo(canPickup, clip1Type, false)
+					entity:SetClip1( clip1 - canPickup )
+					ply:GiveAmmo( canPickup, clip1Type, false )
 				end
 			end
+
 			local clip2, clip2Type = entity:Clip2(), entity:GetSecondaryAmmoType()
 			if clip2 > 0 and clip2Type >= 0 then
-				local canPickup = min(clip2, ply:GetPickupAmmoCount( clip2Type ))
+				local canPickup = min( clip2, ply:GetPickupAmmoCount( clip2Type ) )
 				if canPickup > 0 then
-					entity:SetClip2(clip2 - canPickup)
-					ply:GiveAmmo(canPickup, clip2Type, false)
+					entity:SetClip2( clip2 - canPickup )
+					ply:GiveAmmo( canPickup, clip2Type, false )
 				end
 			end
+
 			return false
 		end
+
 		local slot = entity:GetSlot()
 		if slot > 0 and slot < 5 then
 			if slot == 1 or slot == 4 then
 				local weapons, length = ply:GetWeaponsInSlot( slot )
 				if length ~= 0 then
-					ply:DropWeapon( weapons[length] )
+					ply:DropWeapon( weapons[ length ] )
 				end
 			else
 				for i = 1, 2 do
-					local weapons, length = ply:GetWeaponsInSlot(i + 1)
+					local weapons, length = ply:GetWeaponsInSlot( i + 1 )
 					if length ~= 0 then
-						ply:DropWeapon( weapons[length] )
+						ply:DropWeapon( weapons[ length ] )
 					end
 				end
 			end
 		end
-		if Run("PlayerCanPickupWeapon", ply, entity) ~= false then
-			ply:PickupWeapon(entity, false)
+
+		if Run( "PlayerCanPickupWeapon", ply, entity ) ~= false then
+			ply:PickupWeapon( entity, false )
 			return false
 		end
 	end
+
 	return true
 end
-function GM:OnEntityCreated( entity)
+
+function GM:OnEntityCreated( entity )
 	if entity:IsPlayer() then
-		Run("OnPlayerCreated", entity)
+		Run( "OnPlayerCreated", entity )
 		return
 	end
+
 	local className = entity:GetClass()
 	if className == "game_player_equip" then
 		entity:Remove()
 		return
 	end
+
 	if className == "func_button" then
-		SetNW2Var(entity, "is-button", true)
+		SetNW2Var( entity, "is-button", true )
 		return
 	end
+
 	entity:AddToObserveTargets()
 	if entity:IsWeapon() then
-		Run("OnWeaponCreated", entity)
+		Run( "OnWeaponCreated", entity )
 		return
 	end
 end
+
 do
 	local FreezeWeaponsOnSpawn = Jailbreak.FreezeWeaponsOnSpawn
 	local FindInSphere = ents.FindInSphere
-	function GM:OnWeaponCreated( weapon)
-		return Simple(0, function()
+	function GM:OnWeaponCreated( weapon )
+		return Simple( 0, function()
 			if not weapon:IsValid() or weapon:GetOwner():IsValid() then
 				return
 			end
+
 			local phys = weapon:GetPhysicsObject()
 			if not (phys and phys:IsValid() and phys:IsMotionEnabled()) then
 				return
 			end
+
 			local counter = 0
-			local _list_0 = FindInSphere(weapon:GetPos(), 32)
+			local _list_0 = FindInSphere( weapon:GetPos(), 32 )
 			for _index_0 = 1, #_list_0 do
-				local other = _list_0[_index_0]
+				local other = _list_0[ _index_0 ]
 				if other:IsWeapon() and not other:GetOwner():IsValid() then
 					counter = counter + 1
 					if counter >= 5 then
@@ -607,20 +694,23 @@ do
 						else
 							phys:Sleep()
 						end
+
 						return
 					end
 				end
 			end
-		end)
+		end )
 	end
 end
-function GM:EntityRemoved( entity, fullUpdate)
+function GM:EntityRemoved( entity, fullUpdate )
 	if fullUpdate then
 		return
 	end
+
 	if entity:IsValidObserveTarget() then
 		entity:RemoveFromObserveTargets()
 	end
+
 	if entity.RagdollMover then
 		local weld = entity.Weld
 		if weld and weld:IsValid() then
@@ -628,94 +718,108 @@ function GM:EntityRemoved( entity, fullUpdate)
 		end
 	end
 end
+
 do
 	local AltrenativeWeapons = Jailbreak.AltrenativeWeapons
 	local Iterator = ents.Iterator
 	function GM:MapInitialized()
 		Jailbreak.HasMapWeapons = false
 		for _, entity in Iterator() do
-			if entity:IsWeapon() and AltrenativeWeapons[entity:GetClass()] ~= nil and not entity:GetOwner():IsValid() then
+			if entity:IsWeapon() and AltrenativeWeapons[ entity:GetClass() ] ~= nil and not entity:GetOwner():IsValid() then
 				Jailbreak.HasMapWeapons = true
 				break
 			end
 		end
 	end
 end
-function GM:PlayerLoadout( ply)
+function GM:PlayerLoadout( ply )
 	if not Jailbreak.HasMapWeapons and ply:IsGuard() then
 		ply:GiveRandomWeapons( 4 )
 	end
-	ply:Give("jb_hands", false, true)
+
+	ply:Give( "jb_hands", false, true )
 	return ply:SelectWeapon( "jb_hands" )
 end
-hook.Add("PlayerSpawn", "Jailbreak::AmmoControler", function( ply )
+
+hook.Add( "PlayerSpawn", "Jailbreak::AmmoControler", function( ply )
 	ply.m_tGivedAmmo = nil
-end)
-function GM:WeaponEquip( weapon, owner)
+end )
+function GM:WeaponEquip( weapon, owner )
 	local mult = (owner:IsGuard() or owner:IsEscaped()) and 1 or 0.25
 	local givedAmmo = owner.m_tGivedAmmo
 	if not givedAmmo then
 		givedAmmo = {}
 		owner.m_tGivedAmmo = givedAmmo
 	end
+
 	local primaryAmmoType = weapon:GetPrimaryAmmoType()
-	if primaryAmmoType >= 0 and givedAmmo[primaryAmmoType] == nil then
-		local amount = floor(owner:GetPickupAmmoCount( primaryAmmoType ) * mult)
+	if primaryAmmoType >= 0 and givedAmmo[ primaryAmmoType ] == nil then
+		local amount = floor( owner:GetPickupAmmoCount( primaryAmmoType ) * mult )
 		if amount ~= 0 then
-			owner:GiveAmmo(amount, primaryAmmoType, false)
-			givedAmmo[primaryAmmoType] = true
+			owner:GiveAmmo( amount, primaryAmmoType, false )
+			givedAmmo[ primaryAmmoType ] = true
 		end
 	end
+
 	local secondaryAmmoType = weapon:GetSecondaryAmmoType()
-	if secondaryAmmoType >= 0 and givedAmmo[secondaryAmmoType] == nil then
-		local amount = floor(owner:GetPickupAmmoCount( secondaryAmmoType ) * mult)
+	if secondaryAmmoType >= 0 and givedAmmo[ secondaryAmmoType ] == nil then
+		local amount = floor( owner:GetPickupAmmoCount( secondaryAmmoType ) * mult )
 		if amount ~= 0 then
-			owner:GiveAmmo(amount, secondaryAmmoType, false)
-			givedAmmo[secondaryAmmoType] = true
+			owner:GiveAmmo( amount, secondaryAmmoType, false )
+			givedAmmo[ secondaryAmmoType ] = true
 		end
 	end
 end
-function GM:PlayerCanPickupWeapon( ply, weapon)
-	if not ply:Alive() or ply:HasWeapon(weapon:GetClass()) then
+
+function GM:PlayerCanPickupWeapon( ply, weapon )
+	if not ply:Alive() or ply:HasWeapon( weapon:GetClass() ) then
 		return false
 	end
+
 	local slot = weapon:GetSlot()
 	if slot < 1 or slot > 4 then
 		return true
 	end
+
 	if ply:HasWeaponsInSlot( slot ) then
 		return false
 	end
+
 	if slot == 1 or slot == 4 then
 		return true
 	end
+
 	if ply:HasWeaponsInSlot( 2 ) or ply:HasWeaponsInSlot( 3 ) then
 		return false
 	end
+
 	return true
 end
-function GM:FinishMove( ply, mv)
+
+function GM:FinishMove( ply, mv )
 	if ply:Alive() then
 		ply.m_vLastVelocity = mv:GetVelocity()
 	end
 end
-function GM:OnPlayerPhysicsPickup( ply, entity)
-	SetNW2Var(ply, "holding-entity", entity)
+
+function GM:OnPlayerPhysicsPickup( ply, entity )
+	SetNW2Var( ply, "holding-entity", entity )
 	entity.m_eHolder = ply
 end
+
 do
 	local NULL = NULL
-	function GM:OnPlayerPhysicsDrop( ply, entity)
-		SetNW2Var(ply, "holding-entity", NULL)
+	function GM:OnPlayerPhysicsDrop( ply, entity )
+		SetNW2Var( ply, "holding-entity", NULL )
 		entity.m_eHolder = nil
 		ply:SetupMovement()
 		return
 	end
 end
-return hook.Add("EntityRemoved", "Jailbreak::PhysicsDropFix", function( entity )
+return hook.Add( "EntityRemoved", "Jailbreak::PhysicsDropFix", function( entity )
 	local holder = entity.m_eHolder
 	if holder and holder:IsValid() and holder:IsPlayer() then
-		Run("OnPlayerPhysicsDrop", holder, entity)
+		Run( "OnPlayerPhysicsDrop", holder, entity )
 		return
 	end
-end)
+end )

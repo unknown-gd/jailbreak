@@ -1,4 +1,6 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
+
 local Colors = Jailbreak.ColorScheme
 local blue, butterfly_bush, dark_white, white = Colors.blue, Colors.butterfly_bush, Colors.dark_white, Colors.white
 local isstring = isstring
@@ -10,22 +12,27 @@ if not istable( messageHandlers ) then
 	messageHandlers = {}
 	Jailbreak.MessageHandlers = messageHandlers
 end
+
 local message = {}
 local pointer = 1
-local insert
-insert = function(value, borders, isTag)
+
+local function insert( value, borders, isTag )
 	if isstring( value ) then
 		if isstring( borders ) then
-			value = borders[1] .. value .. borders[2]
+			value = borders[ 1 ] .. value .. borders[ 2 ]
 		end
+
 		if isTag then
 			value = value .. " "
 		end
 	end
-	message[pointer] = value
+
+	message[ pointer ] = value
 	pointer = pointer + 1
 end
+
 Jailbreak.InsertChatValue = insert
+
 do
 	local TEXT_FILTER_GAME_CONTENT = TEXT_FILTER_GAME_CONTENT
 	local ReadBool, ReadUInt, ReadTable
@@ -51,108 +58,127 @@ do
 	local NULL = NULL
 	local band = bit.band
 	local date = os.date
-	local chatSound = CreateClientConVar("jb_chat_sound", "1", true, false, "Play sound of chat messages.", 0, 1)
-	local chatTime = CreateClientConVar("jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1)
+
+	local chatSound = CreateClientConVar( "jb_chat_sound", "1", true, false, "Play sound of chat messages.", 0, 1 )
+	local chatTime = CreateClientConVar( "jb_chat_time", "1", true, false, "Draw time of chat messages.", 0, 1 )
 	local cl_chatfilters = GetConVar( "cl_chatfilters" )
-	local function performChatMessage(speaker, messageType, data)
+
+	local function performChatMessage( speaker, messageType, data )
 		for index = 1, pointer - 1 do
-			message[index] = nil
+			message[ index ] = nil
 		end
+
 		pointer = 1
-		local handler = messageHandlers[messageType]
+		local handler = messageHandlers[ messageType ]
 		if not handler then
 			return false
 		end
-		if speaker:IsValid() and speaker:IsPlayer() and isstring( data[1] ) then
-			data[1] = FilterText(data[1], (band(cl_chatfilters:GetInt(), 64) ~= 0) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker)
-			if Call("OnPlayerChat", nil, speaker, data[1], false, speaker:Alive()) then
+
+		if speaker:IsValid() and speaker:IsPlayer() and isstring( data[ 1 ] ) then
+			data[ 1 ] = FilterText( data[ 1 ], (band( cl_chatfilters:GetInt(), 64 ) ~= 0) and TEXT_FILTER_CHAT or TEXT_FILTER_GAME_CONTENT, speaker )
+			if Call( "OnPlayerChat", nil, speaker, data[ 1 ], false, speaker:Alive() ) then
 				return false
 			end
 		end
+
 		local listener = Jailbreak.Player
-		Run("OnChatText", listener, speaker, data)
-		if handler(listener, speaker, data) then
+		Run( "OnChatText", listener, speaker, data )
+		if handler( listener, speaker, data ) then
 			return false
 		end
+
 		if chatTime:GetBool() then
-			AddText(light_grey, date("[%H:%M:%S] "), unpack( message ))
+			AddText( light_grey, date( "[%H:%M:%S] " ), unpack( message ) )
 		else
-			AddText(unpack( message ))
+			AddText( unpack( message ) )
 		end
+
 		if chatSound:GetBool() then
 			PlaySound()
 		end
+
 		return true
 	end
+
 	Jailbreak.PerformChatMessage = performChatMessage
-	function GM:OnAchievementAchieved( ply, achievementID)
-		performChatMessage(ply, CHAT_ACHIEVEMENT, {
+
+	function GM:OnAchievementAchieved( ply, achievementID )
+		performChatMessage( ply, CHAT_ACHIEVEMENT, {
 			achievementID,
 			ply:Nick()
-		})
-		return
+		} )
 	end
+
 	do
+
 		local buffer = {}
-		function GM:ChatText( _, __, text, messageType)
+
+		function GM:ChatText( _, __, text, messageType )
 			if "servermsg" == messageType then
-				buffer[1] = text
-				buffer[2] = nil
-				performChatMessage(NULL, CHAT_SERVERMESSAGE, buffer)
+				buffer[ 1 ] = text
+				buffer[ 2 ] = nil
+				performChatMessage( NULL, CHAT_SERVERMESSAGE, buffer )
 			elseif "chat" == messageType then
-				buffer[1] = text
-				buffer[2] = nil
-				performChatMessage(NULL, CHAT_TEXT, buffer)
+				buffer[ 1 ] = text
+				buffer[ 2 ] = nil
+				performChatMessage( NULL, CHAT_TEXT, buffer )
 			end
+
 			return true
 		end
-		function PLAYER:ChatPrint( text)
-			buffer[1] = text
-			buffer[2] = white
-			performChatMessage(NULL, CHAT_SERVERMESSAGE, buffer)
-			return
+
+		function PLAYER:ChatPrint( text )
+			buffer[ 1 ] = text
+			buffer[ 2 ] = white
+			performChatMessage( NULL, CHAT_SERVERMESSAGE, buffer )
 		end
 	end
-	net.Receive("Jailbreak::Chat", function()
-		performChatMessage(ReadBool() and Entity(ReadUInt( 8 )) or NULL, ReadUInt( 5 ), ReadTable( true ))
-		return
-	end)
+
+	net.Receive( "Jailbreak::Chat", function()
+		performChatMessage( ReadBool() and Entity( ReadUInt( 8 ) ) or NULL, ReadUInt( 5 ), ReadTable( true ) )
+	end )
+
 end
+
 function GM:OnPlayerChat()
 	return true
 end
+
 do
 	local GESTURE_SLOT_VCD = GESTURE_SLOT_VCD
 	local ACT_GMOD_IN_CHAT = ACT_GMOD_IN_CHAT
 	local FrameTime = FrameTime
 	local Approach = math.Approach
-	function GM:GrabEarAnimation( ply)
+	function GM:GrabEarAnimation( ply )
 		if ply:IsPlayingTaunt() then
 			return
 		end
+
 		local weight = ply.ChatGestureWeight or 0
 		if ply:IsTyping() or (ply:IsSpeaking() and ply:UsingSecurityRadio()) then
-			weight = Approach(weight, 1, FrameTime() * 5)
+			weight = Approach( weight, 1, FrameTime() * 5 )
 		else
-			weight = Approach(weight, 0, FrameTime() * 5)
+			weight = Approach( weight, 0, FrameTime() * 5 )
 		end
+
 		ply.ChatGestureWeight = weight
 		if weight > 0 then
-			ply:AnimRestartGesture(GESTURE_SLOT_VCD, ACT_GMOD_IN_CHAT, true)
-			return ply:AnimSetGestureWeight(GESTURE_SLOT_VCD, weight)
+			ply:AnimRestartGesture( GESTURE_SLOT_VCD, ACT_GMOD_IN_CHAT, true )
+			return ply:AnimSetGestureWeight( GESTURE_SLOT_VCD, weight )
 		end
 	end
 end
 do
 	local TrimLeft, sub, match = string.TrimLeft, string.sub, string.match
-	function GM:OnChatTab( text)
+	function GM:OnChatTab( text )
 		text = TrimLeft( text )
-		if sub(text, 1, 1) == "/" then
-			local command = match(text, "/( [^%s]+ )")
+		if sub( text, 1, 1 ) == "/" then
+			local command = match( text, "/( [^%s]+ )" )
 			if not command then
-				return "/whisper " .. sub(text, 2)
+				return "/whisper " .. sub( text, 2 )
 			end
-			local arguments = sub(text, #command + 2)
+
+			local arguments = sub( text, #command + 2 )
 			if "whisper" == command then
 				text = "/emotion" .. arguments
 			elseif "emotion" == command then
@@ -169,36 +195,43 @@ do
 		else
 			text = "/whisper " .. text
 		end
+
 		return text
 	end
 end
+
 local GetTeamColor, Translate = Jailbreak.GetTeamColor, Jailbreak.Translate
 local GetPhrase = language.GetPhrase
+
 do
 	local horizon = Colors.horizon
-	messageHandlers[CHAT_TEXT] = function(listener, speaker, data)
-		if data[3] then
+	messageHandlers[ CHAT_TEXT ] = function( listener, speaker, data )
+		if data[ 3 ] then
 			insert( dark_white )
-			insert(GetPhrase( "jb.chat.dead" ), "[]", true)
+			insert( GetPhrase( "jb.chat.dead" ), "[]", true )
 		end
-		local teamID = data[4]
+
+		local teamID = data[ 4 ]
 		if teamID then
-			insert(GetTeamColor( teamID ))
-			insert(GetPhrase("jb.chat.team." .. teamID), "[]", true)
+			insert( GetTeamColor( teamID ) )
+			insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
 		end
-		if data[5] then
+
+		if data[ 5 ] then
 			insert( horizon )
-			insert(GetPhrase( "jb.walkie-talkie" ), "[]", true)
+			insert( GetPhrase( "jb.walkie-talkie" ), "[]", true )
 		end
-		local text, nickname, isMuted = data[1], data[2], false
+
+		local text, nickname, isMuted = data[ 1 ], data[ 2 ], false
 		if speaker:IsValid() then
 			if speaker:IsPlayer() then
 				if speaker:IsDeveloper() then
 					insert( butterfly_bush )
-					insert("/", "<>", true)
+					insert( "/", "<>", true )
 				end
-				insert(speaker:GetModelColor())
-				insert(nickname or speaker:Nick())
+
+				insert( speaker:GetModelColor() )
+				insert( nickname or speaker:Nick() )
 				if speaker:IsMuted() then
 					text, isMuted = GetPhrase( "jb.chat.muted" ), true
 				end
@@ -208,47 +241,57 @@ do
 			insert( nickname )
 		else
 			insert( butterfly_bush )
-			insert(GetPhrase( "jb.chat.console" ))
+			insert( GetPhrase( "jb.chat.console" ) )
 		end
+
 		insert( white )
-		insert(" " .. GetPhrase( "jb.chat.says" ) .. ": \"")
+		insert( " " .. GetPhrase( "jb.chat.says" ) .. ": \"" )
 		if isMuted then
 			insert( dark_white )
 		end
+
 		insert( text )
 		if isMuted then
 			insert( white )
 		end
+
 		return insert( "\"" )
 	end
 end
+
 do
+
 	local turquoise = Colors.turquoise
-	local function OOCHandler(listener, speaker, data, isLocal)
+
+	local function OOCHandler( listener, speaker, data, isLocal )
 		if isLocal then
 			insert( blue )
-			insert(GetPhrase( "jb.chat.looc" ), "[]", true)
+			insert( GetPhrase( "jb.chat.looc" ), "[]", true )
 		else
 			insert( turquoise )
-			insert(GetPhrase( "jb.chat.ooc" ), "[]", true)
+			insert( GetPhrase( "jb.chat.ooc" ), "[]", true )
 		end
-		if not data[3] then
+
+		if not data[ 3 ] then
 			insert( dark_white )
-			insert(GetPhrase( "jb.chat.dead" ), "[]", true)
+			insert( GetPhrase( "jb.chat.dead" ), "[]", true )
 		end
-		local teamID = data[4]
+
+		local teamID = data[ 4 ]
 		if teamID then
-			insert(GetTeamColor( teamID ))
-			insert(GetPhrase("jb.chat.team." .. teamID), "[]", true)
+			insert( GetTeamColor( teamID ) )
+			insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
 		end
-		local text, nickname, isMuted = data[1], data[2], false
+
+		local text, nickname, isMuted = data[ 1 ], data[ 2 ], false
 		if speaker:IsValid() and speaker:IsPlayer() then
 			if speaker:IsDeveloper() then
 				insert( butterfly_bush )
-				insert("/", "<>", true)
+				insert( "/", "<>", true )
 			end
-			insert(speaker:GetModelColor())
-			insert(nickname or speaker:Nick())
+
+			insert( speaker:GetModelColor() )
+			insert( nickname or speaker:Nick() )
 			if speaker:IsMuted() then
 				text, isMuted = GetPhrase( "jb.chat.muted" ), true
 			end
@@ -256,56 +299,75 @@ do
 			insert( dark_white )
 			insert( nickname )
 		end
+
 		insert( white )
-		insert(": ")
+		insert( ": " )
 		if isMuted then
 			insert( dark_white )
 		end
+
 		return insert( text )
 	end
-	messageHandlers[CHAT_OOC] = OOCHandler
-	messageHandlers[CHAT_LOOC] = function(listener, speaker, data)
-		return OOCHandler(listener, speaker, data, true)
+
+	messageHandlers[ CHAT_OOC ] = OOCHandler
+
+	messageHandlers[ CHAT_LOOC ] = function( listener, speaker, data )
+		return OOCHandler( listener, speaker, data, true )
 	end
+
 end
+
 do
+
 	local remove = table.remove
-	messageHandlers[CHAT_EMOTION] = function(listener, speaker, data)
-		if not remove(data, 2) then
+
+	messageHandlers[ CHAT_EMOTION ] = function( listener, speaker, data )
+		if not remove( data, 2 ) then
 			insert( dark_white )
-			insert(GetPhrase( "jb.chat.dead" ), "[]", true)
+			insert( GetPhrase( "jb.chat.dead" ), "[]", true )
 		end
-		local nickname = remove(data, 1)
+
+		local nickname = remove( data, 1 )
 		if speaker:IsValid() and speaker:IsPlayer() then
 			if speaker:IsMuted() then
 				return true
 			end
+
 			if speaker:IsDeveloper() then
 				insert( butterfly_bush )
-				insert("/", "<>", true)
+				insert( "/", "<>", true )
 			end
-			insert(speaker:GetModelColor())
-			insert(nickname or speaker:Nick())
+
+			insert( speaker:GetModelColor() )
+			insert( nickname or speaker:Nick() )
 		else
 			insert( dark_white )
 			insert( nickname )
 		end
+
 		insert( white )
-		insert(" ")
+		insert( " " )
 		for _index_0 = 1, #data do
-			local value = data[_index_0]
-			insert(isstring( value ) and Translate( value ) or value)
+			local value = data[ _index_0 ]
+			insert( isstring( value ) and Translate( value ) or value )
 		end
+
 	end
+
 end
+
 do
+
 	local MinWhisperDistance, MaxWhisperDistance = Jailbreak.MinWhisperDistance, Jailbreak.MaxWhisperDistance
+
 	local floor, random, max
 	do
 		local _obj_0 = math
 		floor, random, max = _obj_0.floor, _obj_0.random, _obj_0.max
 	end
+
 	local sub = utf8.sub
+
 	local replaceSymbols = {
 		"#",
 		"*",
@@ -313,178 +375,204 @@ do
 		"-",
 		" "
 	}
-	messageHandlers[CHAT_WHISPER] = function(listener, speaker, data)
-		if not data[3] then
+	messageHandlers[ CHAT_WHISPER ] = function( listener, speaker, data )
+		if not data[ 3 ] then
 			insert( dark_white )
-			insert(GetPhrase( "jb.chat.dead" ), "[]", true)
+			insert( GetPhrase( "jb.chat.dead" ), "[]", true )
 		end
-		local teamID = data[4]
+
+		local teamID = data[ 4 ]
 		if teamID then
-			insert(GetTeamColor( teamID ))
-			insert(GetPhrase("jb.chat.team." .. teamID), "[]", true)
+			insert( GetTeamColor( teamID ) )
+			insert( GetPhrase( "jb.chat.team." .. teamID ), "[]", true )
 		end
-		local text, nickname, isMuted = data[1], data[2], false
+
+		local text, nickname, isMuted = data[ 1 ], data[ 2 ], false
 		if speaker:IsValid() and speaker:IsPlayer() then
 			if speaker:IsDeveloper() then
 				insert( butterfly_bush )
-				insert("/", "<>", true)
+				insert( "/", "<>", true )
 			end
-			insert(speaker:GetModelColor())
-			insert(nickname or speaker:Nick())
+
+			insert( speaker:GetModelColor() )
+			insert( nickname or speaker:Nick() )
 			if speaker:IsMuted() then
 				text, isMuted = GetPhrase( "jb.chat.muted" ), true
 			end
-			local distance, minDistance = speaker:EyePos():Distance(listener:EyePos()), MinWhisperDistance:GetInt()
+
+			local distance, minDistance = speaker:EyePos():Distance( listener:EyePos() ), MinWhisperDistance:GetInt()
 			if distance > minDistance then
 				local maxDistance = MaxWhisperDistance:GetInt()
 				if distance > maxDistance then
 					return true
 				end
+
 				local lostSymbols = {}
 				local length = #text
 				local fraction = (distance - minDistance) / (maxDistance - minDistance)
-				for i = 1, floor(length * fraction) do
-					local index = random(1, length)
-					while lostSymbols[index] ~= nil do
-						index = random(1, length)
+				for i = 1, floor( length * fraction ) do
+					local index = random( 1, length )
+					while lostSymbols[ index ] ~= nil do
+						index = random( 1, length )
 					end
-					lostSymbols[index] = true
+
+					lostSymbols[ index ] = true
 				end
+
 				local newText = ""
-				for i = 1, floor(length * max(1 - fraction, 0.25)) do
-					if lostSymbols[i] then
-						newText = newText .. replaceSymbols[random(1, #replaceSymbols)]
+				for i = 1, floor( length * max( 1 - fraction, 0.25 ) ) do
+					if lostSymbols[ i ] then
+						newText = newText .. replaceSymbols[ random( 1, #replaceSymbols ) ]
 					else
-						newText = newText .. sub(text, i, i)
+						newText = newText .. sub( text, i, i )
 					end
 				end
+
 				text = newText
 			end
 		else
 			insert( dark_white )
 			insert( nickname )
 		end
+
 		insert( white )
-		insert(" " .. GetPhrase( "jb.chat.whispers" ) .. ": \"")
+		insert( " " .. GetPhrase( "jb.chat.whispers" ) .. ": \"" )
 		if isMuted then
 			insert( dark_white )
 		end
+
 		insert( text )
 		if isMuted then
 			insert( white )
 		end
+
 		return insert( "\"" )
 	end
 end
-messageHandlers[CHAT_CUSTOM] = function(_, __, data)
+
+messageHandlers[ CHAT_CUSTOM ] = function( _, __, data )
 	for _index_0 = 1, #data do
-		local value = data[_index_0]
-		insert(isstring( value ) and Translate( value ) or value)
+		local value = data[ _index_0 ]
+		insert( isstring( value ) and Translate( value ) or value )
 	end
 end
-messageHandlers[CHAT_SERVERMESSAGE] = function(_, __, data)
-	insert(data[2] or dark_white)
-	return insert(Translate( data[1] ), nil)
+
+messageHandlers[ CHAT_SERVERMESSAGE ] = function( _, __, data )
+	insert( data[ 2 ] or dark_white )
+	return insert( Translate( data[ 1 ] ), nil )
 end
-messageHandlers[CHAT_CONNECTED] = function(_, __, data)
+
+messageHandlers[ CHAT_CONNECTED ] = function( _, __, data )
 	insert( white )
-	insert(GetPhrase( "jb.player" ) .. " ")
-	insert( data[1] )
-	insert( data[2] )
-	local steamID = data[3]
+	insert( GetPhrase( "jb.player" ) .. " " )
+	insert( data[ 1 ] )
+	insert( data[ 2 ] )
+	local steamID = data[ 3 ]
 	if steamID then
 		insert( white )
-		insert(" ( ")
+		insert( " ( " )
 		insert( blue )
 		insert( steamID )
 		insert( white )
-		insert(" )")
+		insert( " )" )
 	end
+
 	insert( white )
-	return insert(" " .. GetPhrase( "jb.chat.player.connected" ))
+	return insert( " " .. GetPhrase( "jb.chat.player.connected" ) )
 end
+
 do
 	local asparagus = Colors.asparagus
-	messageHandlers[CHAT_CONNECT] = function(_, __, data)
+	messageHandlers[ CHAT_CONNECT ] = function( _, __, data )
 		insert( white )
-		insert(GetPhrase( "jb.player" ) .. " ")
+		insert( GetPhrase( "jb.player" ) .. " " )
 		insert( asparagus )
-		insert( data[1] )
-		local address = data[2]
+		insert( data[ 1 ] )
+		local address = data[ 2 ]
 		if address then
 			insert( white )
-			insert(" ( ")
+			insert( " ( " )
 			insert( blue )
 			insert( address )
 			insert( white )
-			insert(" )")
+			insert( " )" )
 		end
+
 		insert( white )
-		return insert(" " .. GetPhrase( "jb.chat.player.connecting" ))
+		return insert( " " .. GetPhrase( "jb.chat.player.connecting" ) )
 	end
 end
+
 do
 	local au_chico = Colors.au_chico
-	messageHandlers[CHAT_DISCONNECT] = function(_, __, data)
+	messageHandlers[ CHAT_DISCONNECT ] = function( _, __, data )
 		insert( white )
-		insert(GetPhrase( "jb.player" ) .. " ")
+		insert( GetPhrase( "jb.player" ) .. " " )
 		insert( au_chico )
-		insert( data[1] )
-		local steamID = data[2]
+		insert( data[ 1 ] )
+		local steamID = data[ 2 ]
 		if steamID then
 			insert( white )
-			insert(" ( ")
+			insert( " ( " )
 			insert( blue )
 			insert( steamID )
 			insert( white )
-			insert(" )")
+			insert( " )" )
 		end
+
 		insert( white )
-		local reason = data[3]
+		local reason = data[ 3 ]
 		if reason ~= nil then
-			insert(" " .. GetPhrase( "jb.chat.player.disconnected-with-reason" ) .. ": \"")
+			insert( " " .. GetPhrase( "jb.chat.player.disconnected-with-reason" ) .. ": \"" )
 			insert( dark_white )
 			insert( reason )
 			insert( white )
 			return insert( "\"" )
 		else
-			return insert(" " .. GetPhrase( "jb.chat.player.disconnected" ))
+			return insert( " " .. GetPhrase( "jb.chat.player.disconnected" ) )
 		end
 	end
 end
-messageHandlers[CHAT_NAMECHANGE] = function(_, __, data)
+
+messageHandlers[ CHAT_NAMECHANGE ] = function( _, __, data )
 	insert( white )
-	insert(GetPhrase( "jb.player" ) .. " ")
-	local color = data[3]
+	insert( GetPhrase( "jb.player" ) .. " " )
+	local color = data[ 3 ]
 	insert( color )
-	insert( data[1] )
+	insert( data[ 1 ] )
 	insert( white )
-	insert(" " .. GetPhrase( "jb.chat.player.changed-name" ) .. " ")
+	insert( " " .. GetPhrase( "jb.chat.player.changed-name" ) .. " " )
 	insert( color )
-	insert( data[2] )
+	insert( data[ 2 ] )
 	insert( white )
-	return insert( "." )
+	insert( "." )
 end
+
 do
+
 	local GetName = achievements.GetName
 	local vivid_orange = Colors.vivid_orange
-	messageHandlers[CHAT_ACHIEVEMENT] = function(_, speaker, data)
+
+	messageHandlers[ CHAT_ACHIEVEMENT ] = function( _, speaker, data )
 		insert( white )
-		insert(GetPhrase( "jb.player" ) .. " ")
+		insert( GetPhrase( "jb.player" ) .. " " )
 		if speaker:IsValid() and speaker:IsPlayer() then
-			insert(speaker:GetModelColor())
-			insert(speaker:Nick())
+			insert( speaker:GetModelColor() )
+			insert( speaker:Nick() )
 		else
 			insert( white )
-			insert( data[2] )
+			insert( data[ 2 ] )
 		end
+
 		insert( white )
-		insert(" " .. GetPhrase( "jb.chat.got-achievement" ) .. " ")
+		insert( " " .. GetPhrase( "jb.chat.got-achievement" ) .. " " )
 		insert( vivid_orange )
-		if isstring( data[1] ) then
-			return insert( data[1] )
+
+		if isstring( data[ 1 ] ) then
+			return insert( data[ 1 ] )
 		else
-			return insert(GetName(isnumber( data[1] ) and data[1] or 2))
+			return insert( GetName( isnumber( data[ 1 ] ) and data[ 1 ] or 2 ) )
 		end
 	end
+
 end

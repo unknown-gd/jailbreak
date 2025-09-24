@@ -36,7 +36,7 @@ do
 
 	local net_Start, net_WriteUInt, net_WriteString, net_Broadcast = net.Start, net.WriteUInt, net.WriteString, net.Broadcast
 
- 	function Jailbreak.PlaySound( soundPath )
+	function Jailbreak.PlaySound( soundPath )
 		net_Start( "Jailbreak::Networking" )
 		net_WriteUInt( 3, 4 )
 		net_WriteString( soundPath )
@@ -47,37 +47,39 @@ end
 
 do
 	local BlastDamage = util.BlastDamage
-	Jailbreak.Explosion = function(inflictor, attacker, origin, radius, damage)
+	Jailbreak.Explosion = function( inflictor, attacker, origin, radius, damage )
 		local fx = EffectData()
 		fx:SetOrigin( origin )
-		local scale = ceil(radius / 125)
+		local scale = ceil( radius / 125 )
 		fx:SetRadius( scale )
 		fx:SetScale( scale )
-		fx:SetMagnitude(ceil(damage / 18.75))
-		Effect("Sparks", fx)
-		Effect("Explosion", fx)
-		BlastDamage(inflictor, attacker, origin, radius, damage)
+		fx:SetMagnitude( ceil( damage / 18.75 ) )
+		Effect( "Sparks", fx )
+		Effect( "Explosion", fx )
+		BlastDamage( inflictor, attacker, origin, radius, damage )
 		return
 	end
 end
 do
 	local Teams = Jailbreak.Teams
-	local function changeTeam(self, teamID, force)
+	local function changeTeam( self, teamID, force )
 		local oldTeamID = self:Team()
 		if not force then
-			local allowed, reason, lifetime = Run("PlayerCanJoinTeam", self, teamID, oldTeamID)
+			local allowed, reason, lifetime = Run( "PlayerCanJoinTeam", self, teamID, oldTeamID )
 			if not allowed then
-				self:SendNotify(reason or "#jb.error.cant-do-that", NOTIFY_ERROR, lifetime or 3)
+				self:SendNotify( reason or "#jb.error.cant-do-that", NOTIFY_ERROR, lifetime or 3 )
 				return
 			end
 		end
+
 		if self:Alive() then
-			if Teams[oldTeamID] then
+			if Teams[ oldTeamID ] then
 				self:Kill()
 			else
 				self:KillSilent()
 			end
 		end
+
 		self:SetTeam( teamID )
 		return
 	end
@@ -92,20 +94,23 @@ do
 			if bool == IsFemalePrison() then
 				return
 			end
-			SetGlobal2Bool("female-prison", bool)
+
+			SetGlobal2Bool( "female-prison", bool )
 			return
 		end
 	end
 	do
 		local IsShockCollarsActive = Jailbreak.IsShockCollarsActive
-		Jailbreak.SetShockCollars = function(bool, silent)
+		Jailbreak.SetShockCollars = function( bool, silent )
 			if bool == IsShockCollarsActive() then
 				return
 			end
-			SetGlobal2Bool("shock-collars", bool)
+
+			SetGlobal2Bool( "shock-collars", bool )
 			if not silent then
-				Run("ShockCollarsToggled", bool)
+				Run( "ShockCollarsToggled", bool )
 			end
+
 			return
 		end
 	end
@@ -113,24 +118,26 @@ end
 do
 	local SetGlobal2Int = SetGlobal2Int
 	local GetWardenCoins = Jailbreak.GetWardenCoins
-	local function setWardenCoins(value, silent)
+	local function setWardenCoins( value, silent )
 		local oldValue = GetWardenCoins()
 		if oldValue == value then
 			return
 		end
-		SetGlobal2Int("warden-coins", value)
+
+		SetGlobal2Int( "warden-coins", value )
 		if not silent then
-			Run("WardenCoins", oldValue, value)
+			Run( "WardenCoins", oldValue, value )
 		end
+
 		return
 	end
 	Jailbreak.SetWardenCoins = setWardenCoins
-	Jailbreak.TakeWardenCoins = function(value, silent)
-		setWardenCoins(max(0, GetWardenCoins() - value), silent)
+	Jailbreak.TakeWardenCoins = function( value, silent )
+		setWardenCoins( max( 0, GetWardenCoins() - value ), silent )
 		return
 	end
-	Jailbreak.GiveWardenCoins = function(value, silent)
-		setWardenCoins(max(0, GetWardenCoins() + value), silent)
+	Jailbreak.GiveWardenCoins = function( value, silent )
+		setWardenCoins( max( 0, GetWardenCoins() + value ), silent )
 		return
 	end
 end
@@ -140,6 +147,7 @@ do
 		shopItems = {}
 		Jailbreak.ShopItems = shopItems
 	end
+
 	local ShopItem
 	do
 		local _class_0
@@ -147,39 +155,40 @@ do
 			GetModel = function( self )
 				return self.model
 			end,
-			SetModel = function(self, model)
+			SetModel = function( self, model )
 				self.model = model or "models/weapons/w_bugbait.mdl"
 			end,
 			GetSkin = function( self )
 				return self.skin
 			end,
-			SetSkin = function(self, skin)
+			SetSkin = function( self, skin )
 				self.skin = skin
 			end,
 			GetBodygroups = function( self )
 				return self.bodygroups
 			end,
-			SetBodygroups = function(self, bodygroups)
+			SetBodygroups = function( self, bodygroups )
 				self.bodygroups = bodygroups
 			end,
 			GetPrice = function( self )
 				return self.price
 			end,
-			SetPrice = function(self, price)
-				self.price = max(1, price)
+			SetPrice = function( self, price )
+				self.price = max( 1, price )
 			end,
 			GetAction = function( self )
 				return self.action
 			end,
-			SetAction = function(self, action)
+			SetAction = function( self, action )
 				self.action = action
 			end
 		}
 		if _base_0.__index == nil then
 			_base_0.__index = _base_0
 		end
-		_class_0 = setmetatable({
-			__init = function(self, name)
+
+		_class_0 = setmetatable( {
+			__init = function( self, name )
 				self.title = "#jb." .. name
 				self.bodygroups = ""
 				self.name = name
@@ -189,45 +198,47 @@ do
 			__name = "ShopItem"
 		}, {
 			__index = _base_0,
-			__call = function(cls, ...)
-				local _self_0 = setmetatable({}, _base_0)
-				cls.__init(_self_0, ...)
+			__call = function( cls, ... )
+				local _self_0 = setmetatable( {}, _base_0 )
+				cls.__init( _self_0, ... )
 				return _self_0
 			end
-		})
+		} )
 		_base_0.__class = _class_0
 		ShopItem = _class_0
 	end
 	Jailbreak.ShopItem = ShopItem
-	Jailbreak.AddShopItem = function(name, model, price, action)
+	Jailbreak.AddShopItem = function( name, model, price, action )
 		if not name or #name == 0 then
 			name = "shopitem"
 		end
-		local item = shopItems[name]
+
+		local item = shopItems[ name ]
 		if item == nil then
 			item = ShopItem( name )
-			shopItems[name] = item
-			shopItems[#shopItems + 1] = item
+			shopItems[ name ] = item
+			shopItems[ #shopItems + 1 ] = item
 		end
+
 		item:SetModel( model )
 		item:SetPrice( price )
 		item:SetAction( action )
 		return item
 	end
-	Simple(0.5, function()
+	Simple( 0.5, function()
 		table.Empty( shopItems )
-		Run("ShopItems", Jailbreak.AddShopItem)
+		Run( "ShopItems", Jailbreak.AddShopItem )
 		return
-	end)
+	end )
 end
 do
 	local timer_Create = timer.Create
 	local CleanUpMap = game.CleanUpMap
 	Jailbreak.SafeCleanUpMap = function()
-		return timer_Create("Jailbreak::CleanUpMap", 0.25, 1, function()
+		return timer_Create( "Jailbreak::CleanUpMap", 0.25, 1, function()
 			CleanUpMap( false )
 			return
-		end)
+		end )
 	end
 end
 do
@@ -235,11 +246,12 @@ do
 	function ENTITY:GetPhysicsMass()
 		local objectMass = 0
 		for physNum = 0, GetPhysicsObjectCount( self ) - 1 do
-			local phys = GetPhysicsObjectNum(self, physNum)
+			local phys = GetPhysicsObjectNum( self, physNum )
 			if IsValid( phys ) then
 				objectMass = objectMass + phys:GetMass()
 			end
 		end
+
 		return ceil( objectMass )
 	end
 end
@@ -248,33 +260,38 @@ function ENTITY:Dissolve()
 	if not IsValid( dissolver ) then
 		dissolver = ents.Create( "env_entity_dissolver" )
 		ENTITY.Dissolver = dissolver
-		dissolver:SetKeyValue("dissolvetype", 0)
-		dissolver:SetKeyValue("magnitude", 0)
+		dissolver:SetKeyValue( "dissolvetype", 0 )
+		dissolver:SetKeyValue( "magnitude", 0 )
 		dissolver:Spawn()
 	end
+
 	if not IsValid( dissolver ) then
 		return false
 	end
-	dissolver:SetPos(self:WorldSpaceCenter())
+
+	dissolver:SetPos( self:WorldSpaceCenter() )
 	local temporaryName = "dissolver" .. dissolver:EntIndex() .. "_request" .. self:EntIndex()
 	self:SetName( temporaryName )
-	dissolver:Fire("dissolve", temporaryName, 0)
-	timer.Create("Jailbreak::Dissolver", 0.25, 1, function()
+	dissolver:Fire( "dissolve", temporaryName, 0 )
+	timer.Create( "Jailbreak::Dissolver", 0.25, 1, function()
 		if self:IsValid() then
 			return self:SetName( "" )
 		end
-	end)
+	end )
 	return true
 end
+
 do
 	local AllowRagdollSpectate = Jailbreak.AllowRagdollSpectate
 	function ENTITY:IsValidObserveTarget()
 		if self:IsPlayer() and self:Alive() then
 			return true
 		end
+
 		if self:IsPlayerRagdoll() then
 			return AllowRagdollSpectate:GetBool()
 		end
+
 		return GetClass( self ) == "info_observer_point"
 	end
 end
@@ -283,8 +300,8 @@ do
 	local remove = table.remove
 	local function removeAsObserveTarget( self )
 		for index = 1, #ObserveTargets do
-			if ObserveTargets[index] == self then
-				remove(ObserveTargets, index)
+			if ObserveTargets[ index ] == self then
+				remove( ObserveTargets, index )
 				break
 			end
 		end
@@ -293,35 +310,41 @@ do
 	function ENTITY:AddToObserveTargets()
 		if self:IsValidObserveTarget() then
 			removeAsObserveTarget( self )
-			ObserveTargets[#ObserveTargets + 1] = self
+			ObserveTargets[ #ObserveTargets + 1 ] = self
 			return true
 		end
+
 		return false
 	end
+
 	Jailbreak.ClearObserveTargets = function()
 		for key in pairs( ObserveTargets ) do
-			ObserveTargets[key] = nil
+			ObserveTargets[ key ] = nil
 		end
 	end
 end
 do
 	local GetInternalVariable = ENTITY.GetInternalVariable
 	function ENTITY:IsDoorLocked()
-		return GetInternalVariable(self, "m_bLocked")
+		return GetInternalVariable( self, "m_bLocked" )
 	end
+
 	function ENTITY:GetDoorState()
 		if GetClass( self ) == "prop_door_rotating" then
-			return GetInternalVariable(self, "m_eDoorState")
+			return GetInternalVariable( self, "m_eDoorState" )
 		end
+
 		return 0
 	end
 end
-function ENTITY:SetTeam( teamID)
-	return self:SetNW2Int("player-team", teamID)
+function ENTITY:SetTeam( teamID )
+	return self:SetNW2Int( "player-team", teamID )
 end
-function ENTITY:SetAlive( alive)
-	return self:SetNW2Bool("alive", alive)
+
+function ENTITY:SetAlive( alive )
+	return self:SetNW2Bool( "alive", alive )
 end
+
 do
 	local CTAKE_DAMAGE_INFO = CTAKE_DAMAGE_INFO
 	local GetDamageType = CTAKE_DAMAGE_INFO.GetDamageType
@@ -329,25 +352,25 @@ do
 	do
 		local DMG_NEVERGIB = DMG_NEVERGIB
 		function CTAKE_DAMAGE_INFO:IsNeverGibDamage()
-			return band(GetDamageType( self ), DMG_NEVERGIB) == DMG_NEVERGIB
+			return band( GetDamageType( self ), DMG_NEVERGIB ) == DMG_NEVERGIB
 		end
 	end
 	do
 		local DMG_BURN = DMG_BURN
 		function CTAKE_DAMAGE_INFO:IsBurnDamage()
-			return band(GetDamageType( self ), DMG_BURN) ~= 0
+			return band( GetDamageType( self ), DMG_BURN ) ~= 0
 		end
 	end
 	do
-		local DMG_CLOSE_RANGE = bit.bor(DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH)
+		local DMG_CLOSE_RANGE = bit.bor( DMG_SLASH, DMG_FALL, DMG_CLUB, DMG_CRUSH )
 		function CTAKE_DAMAGE_INFO:IsCloseRangeDamage()
-			return band(GetDamageType( self ), DMG_CLOSE_RANGE) ~= 0
+			return band( GetDamageType( self ), DMG_CLOSE_RANGE ) ~= 0
 		end
 	end
 	do
 		local DMG_DISSOLVE = DMG_DISSOLVE
 		function CTAKE_DAMAGE_INFO:IsDissolveDamage()
-			return band(GetDamageType( self ), DMG_DISSOLVE) == DMG_DISSOLVE
+			return band( GetDamageType( self ), DMG_DISSOLVE ) == DMG_DISSOLVE
 		end
 	end
 	do
@@ -366,44 +389,46 @@ do
 		function CTAKE_DAMAGE_INFO:IsNonPhysicalDamage()
 			damageType = GetDamageType( self )
 			for index = 1, damageTypesLength do
-				if band(damageType, damageTypes[index]) ~= 0 then
+				if band( damageType, damageTypes[ index ] ) ~= 0 then
 					return true
 				end
 			end
+
 			return false
 		end
 	end
 	do
 		local DMG_CRUSH = DMG_CRUSH
 		function CTAKE_DAMAGE_INFO:IsCrushDamage()
-			return band(GetDamageType( self ), DMG_CRUSH) == DMG_CRUSH
+			return band( GetDamageType( self ), DMG_CRUSH ) == DMG_CRUSH
 		end
 	end
 	do
 		local DMG_SHOCK = DMG_SHOCK
 		function CTAKE_DAMAGE_INFO:IsShockDamage()
-			return band(GetDamageType( self ), DMG_SHOCK) == DMG_SHOCK
+			return band( GetDamageType( self ), DMG_SHOCK ) == DMG_SHOCK
 		end
 	end
 end
 do
 	local tobool = tobool
 	local lower = string.lower
-	function GM:AcceptInput( entity, key)
+	function GM:AcceptInput( entity, key )
 		local className = GetClass( entity )
 		if className == "prop_door_rotating" or className == "func_door_rotating" then
 			local _exp_0 = lower( key )
 			if "lock" == _exp_0 then
-				return entity:SetNW2Bool("m_bLocked", true)
+				return entity:SetNW2Bool( "m_bLocked", true )
 			elseif "unlock" == _exp_0 then
-				return entity:SetNW2Bool("m_bLocked", false)
+				return entity:SetNW2Bool( "m_bLocked", false )
 			end
 		end
 	end
-	function GM:EntityKeyValue( entity, key, value)
+
+	function GM:EntityKeyValue( entity, key, value )
 		local className = GetClass( entity )
 		if (className == "prop_door_rotating" or className == "func_door_rotating") and lower( key ) == "m_bLocked" then
-			entity:SetNW2Bool(key, tobool( value ))
+			entity:SetNW2Bool( key, tobool( value ) )
 			return
 		end
 	end
@@ -414,20 +439,21 @@ do
 	local trace = {
 		output = traceResult
 	}
-	function Jailbreak:BloodSplashes( damageInfo, death, velocity)
+	function Jailbreak:BloodSplashes( damageInfo, death, velocity )
 		if not velocity then
 			velocity = self:GetVelocity() + damageInfo:GetDamageForce()
 		end
+
 		local damagePosition = damageInfo:GetDamagePosition()
 		local speed = velocity:Length()
 		local fx = EffectData()
-		fx:SetNormal(velocity:GetNormalized())
-		fx:SetMagnitude(speed / 100)
+		fx:SetNormal( velocity:GetNormalized() )
+		fx:SetMagnitude( speed / 100 )
 		fx:SetScale( 10 )
 		fx:SetFlags( 3 )
 		fx:SetColor( 0 )
 		fx:SetOrigin( damagePosition )
-		Effect("BloodImpact", fx, true, true)
+		Effect( "BloodImpact", fx, true, true )
 		trace.start = damagePosition
 		trace.filter = self
 		if not death then
@@ -436,16 +462,18 @@ do
 			if not traceResult.Hit then
 				return
 			end
-			Decal("Blood", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal)
+
+			Decal( "Blood", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
 			return
 		end
+
 		local decal = damageInfo:IsShockDamage() and "FadingScorch" or "Blood"
 		for bone = 0, self:GetBoneCount() - 1 do
 			local origin = self:GetBonePosition( bone )
 			trace.endpos = origin + (origin - damagePosition) * speed
 			TraceLine( trace )
 			if traceResult.Hit then
-				Decal(decal, traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal)
+				Decal( decal, traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
 			end
 		end
 	end

@@ -1,6 +1,8 @@
 local properties = properties
-local Jailbreak = Jailbreak
 local IsValid = IsValid
+
+---@class Jailbreak
+local Jailbreak = Jailbreak
 
 if CLIENT then
 	hook.Remove( "PreventScreenClicks", "PropertiesPreventClicks" )
@@ -21,7 +23,7 @@ if CLIENT then
 	local trace = {
 		output = traceResult
 	}
-	hook.Add( "Think", "Jailbreak::Properties", function (self)
+	hook.Add( "Think", "Jailbreak::Properties", function()
 		local panel = GetHoveredPanel()
 		if not (panel and panel:IsValid() and panel:IsWorldClicker()) then
 			entity = NULL
@@ -55,7 +57,7 @@ if CLIENT then
 
 		local DrawModel = ENTITY.DrawModel
 
-		hook.Add( "HUDPaint3D", "Jailbreak::Properties", function ()
+		hook.Add( "HUDPaint3D", "Jailbreak::Properties", function()
 			if not entity:IsValid() then
 				return
 			end
@@ -94,7 +96,7 @@ if CLIENT then
 	end
 end
 
-function GM:CanProperty(ply, propertyName, entity)
+function GM:CanProperty( ply, propertyName, entity )
 	if not IsValid( entity ) then
 		return
 	end

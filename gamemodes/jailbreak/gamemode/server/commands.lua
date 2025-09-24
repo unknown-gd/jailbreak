@@ -1,3 +1,4 @@
+---@class Jailbreak
 local Jailbreak = Jailbreak
 
 local NOTIFY_ERROR = NOTIFY_ERROR
