@@ -1,10 +1,9 @@
-local _G = _G
-local include = _G.include
+local include = include
 
 do
 
-    local AddCSLuaFile = _G.AddCSLuaFile
-    local file_Find = _G.file.Find
+    local AddCSLuaFile = AddCSLuaFile
+    local file_Find = file.Find
 
     AddCSLuaFile( "shared.lua" )
 
@@ -25,20 +24,20 @@ end
 include( "shared.lua" )
 
 ---@class Jailbreak
-local Jailbreak = _G.Jailbreak
+local Jailbreak = Jailbreak
 
 if Jailbreak.ObserveTargets == nil then
     Jailbreak.ObserveTargets = {}
 end
 
 Jailbreak.DefaultTeamColors = {
-    [ _G.TEAM_PRISONER ] = Vector( 0.62, 0.35, 0.07 ),
-    [ _G.TEAM_GUARD ] = Vector( 0, 0, 0 )
+    [ TEAM_PRISONER ] = Vector( 0.62, 0.35, 0.07 ),
+    [ TEAM_GUARD ] = Vector( 0, 0, 0 )
 }
 
 do
-    local FCVAR_SERVER = _G.bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
-    local CreateConVar = _G.CreateConVar
+    local FCVAR_SERVER = bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY )
+    local CreateConVar = CreateConVar
 
     ---@diagnostic disable: param-type-mismatch
     Jailbreak.PlayerWalkSpeed = CreateConVar( "jb_player_walk_speed", "220", FCVAR_SERVER, "The speed of the player while walking.", 0, 3000 )
@@ -85,7 +84,7 @@ include( "server/game.lua" )
 
 do
 
-    local hook_Run = _G.hook.Run
+    local hook_Run = hook.Run
 
     function GM:InitPostEntity()
         RunConsoleCommand( "sv_defaultdeployspeed", "1" )
@@ -108,7 +107,7 @@ do
 
         timer.Simple( 0, Jailbreak.ReloadLocalization )
 
-        local mapName = _G.game.GetMap()
+        local mapName = game.GetMap()
         Jailbreak.MapName = mapName
 
         hook_Run( "MapInitialized", mapName )

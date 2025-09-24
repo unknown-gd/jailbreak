@@ -1,19 +1,17 @@
-local _G = _G
-local include = _G.include
+local include = include
 
 include( "shared.lua" )
 
 ---@class Jailbreak
-local Jailbreak = _G.Jailbreak
+local Jailbreak = Jailbreak
 
 do
 
-	local CreateConVar = _G.CreateConVar
-	local bit_bor = _G.bit.bor
+	local CreateConVar = CreateConVar
+	local bit_bor = bit.bor
 
 	local FCVAR_NETWORKED = bit_bor( FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD )
 	local FCVAR_CLIENT = bit_bor( FCVAR_ARCHIVE, FCVAR_DONTRECORD )
-
 
 	---@diagnostic disable: param-type-mismatch
 	Jailbreak.PlayerWeaponColor = CreateConVar( "cl_weaponcolor", "0.30 1.80 2.10", FCVAR_NETWORKED, "The value is a Vector - so between 0-1 - not between 0-255" )
