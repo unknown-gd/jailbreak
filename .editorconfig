@@ -49,7 +49,7 @@ space_before_function_open_parenthesis = false
 
 space_before_function_call_open_parenthesis = false
 
-space_before_closure_open_parenthesis = true
+space_before_closure_open_parenthesis = false
 
 # optional always/only_string/only_table/none
 # or true/false
@@ -64,12 +64,12 @@ space_before_open_square_bracket = false
 
 space_inside_function_call_parentheses = true
 
-space_inside_function_param_list_parentheses = false
+space_inside_function_param_list_parentheses = true
 
 space_inside_square_brackets = true
 
 # like t[#t+1] = 1
-space_around_table_append_operator = true
+space_around_table_append_operator = false
 
 ignore_spaces_inside_function_call = false
 

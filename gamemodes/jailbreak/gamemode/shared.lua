@@ -51,7 +51,6 @@ do
 	local FindMetaTable = FindMetaTable
 
 	---@diagnostic disable: assign-type-mismatch
-
 	---@type CTakeDamageInfo
 	CTAKE_DAMAGE_INFO = FindMetaTable( "CTakeDamageInfo" )
 
@@ -184,10 +183,8 @@ end
 
 Jailbreak.Developer = cvars.Number( "developer", 0 ) > 2
 
-cvars.AddChangeCallback( "developer", function (_, __, value)
-
+cvars.AddChangeCallback( "developer", function( _, __, value )
 	Jailbreak.Developer = (tonumber( value, 10 ) or 0) > 2
-
 end, "Jailbreak::Developer" )
 
 local GuardMaleModels = {
@@ -201,62 +198,52 @@ local GuardFemaleModels = {
 	"models/player/police_fem.mdl"
 }
 
-do
+function GM:CreateTeams()
+	team.SetUp( TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, color_scheme.spectators, true )
+	team.SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, color_scheme.prisoners, true )
+	team.SetUp( TEAM_GUARD, "#jb.team." .. TEAM_GUARD, color_scheme.guards, true )
 
-	local team_SetUp, team_SetSpawnPoint = team.SetUp, team.SetSpawnPoint
+	team.SetSpawnPoint( TEAM_PRISONER, {
+		"info_player_zombiemaster",
+		"info_survivor_position",
+		"info_player_terrorist",
+		"info_player_teamspawn",
+		"diprip_start_team_red",
+		"info_survivor_rescue",
+		"info_player_pirate",
+		"info_player_viking",
+		"info_player_zombie",
+		"info_player_rebel",
+		"info_player_start",
+		"gmod_player_start",
+		"info_player_axis",
+		"info_player_coop",
+		"info_player_red",
+		"dys_spawn_point",
+		"ins_spawnpoint",
+		"aoc_spawnpoint"
+	} )
 
-	function GM:CreateTeams()
-
-		team_SetUp( TEAM_PRISONER, "#jb.team." .. TEAM_PRISONER, color_scheme.prisoners, true )
-
-		team_SetSpawnPoint( TEAM_PRISONER, {
-			"info_player_zombiemaster",
-			"info_survivor_position",
-			"info_player_terrorist",
-			"info_player_teamspawn",
-			"diprip_start_team_red",
-			"info_survivor_rescue",
-			"info_player_pirate",
-			"info_player_viking",
-			"info_player_zombie",
-			"info_player_rebel",
-			"info_player_start",
-			"gmod_player_start",
-			"info_player_axis",
-			"info_player_coop",
-			"info_player_red",
-			"dys_spawn_point",
-			"ins_spawnpoint",
-			"aoc_spawnpoint"
-		} )
-
-		team_SetUp( TEAM_GUARD, "#jb.team." .. TEAM_GUARD, color_scheme.guards, true )
-
-		team_SetSpawnPoint( TEAM_GUARD, {
-			"info_player_counterterrorist",
-			"info_player_zombiemaster",
-			"diprip_start_team_blue",
-			"info_survivor_position",
-			"info_player_deathmatch",
-			"info_player_teamspawn",
-			"info_survivor_rescue",
-			"info_player_combine",
-			"info_player_knight",
-			"info_player_allies",
-			"info_player_start",
-			"gmod_player_start",
-			"info_player_human",
-			"info_player_coop",
-			"info_player_blue",
-			"dys_spawn_point",
-			"ins_spawnpoint",
-			"aoc_spawnpoint"
-		} )
-
-		team_SetUp( TEAM_SPECTATOR, "#jb.team." .. TEAM_SPECTATOR, color_scheme.spectators, true )
-
-	end
-
+	team.SetSpawnPoint( TEAM_GUARD, {
+		"info_player_counterterrorist",
+		"info_player_zombiemaster",
+		"diprip_start_team_blue",
+		"info_survivor_position",
+		"info_player_deathmatch",
+		"info_player_teamspawn",
+		"info_survivor_rescue",
+		"info_player_combine",
+		"info_player_knight",
+		"info_player_allies",
+		"info_player_start",
+		"gmod_player_start",
+		"info_player_human",
+		"info_player_coop",
+		"info_player_blue",
+		"dys_spawn_point",
+		"ins_spawnpoint",
+		"aoc_spawnpoint"
+	} )
 end
 
 include( "shared/utils.lua" )
@@ -270,13 +257,11 @@ do
 	local female_guards = {}
 
 	for i = 1, #GuardFemaleModels, 1 do
-
 		local model_path = FixModelPath( GuardFemaleModels[ i ] )
 		PrecacheModel( model_path )
 
-		female_guards[ #female_guards+1 ] = model_path
+		female_guards[ #female_guards + 1 ] = model_path
 		female_guards[ TranslateToPlayerModelName( model_path ) ] = model_path
-
 	end
 
 	local male_guards = {}
@@ -286,7 +271,7 @@ do
 		local model_path = FixModelPath( GuardMaleModels[ i ] )
 		PrecacheModel( model_path )
 
-		male_guards[ #male_guards+1 ] = model_path
+		male_guards[ #male_guards + 1 ] = model_path
 		male_guards[ TranslateToPlayerModelName( model_path ) ] = model_path
 
 	end
@@ -294,35 +279,29 @@ do
 	local female_prisoners = {}
 
 	for i = 1, 6, 1 do
-
 		local model_path = FixModelPath( "models/player/group01/female_0" .. i .. ".mdl" )
 		PrecacheModel( model_path )
 
-		female_prisoners[ #female_prisoners+1 ] = model_path
+		female_prisoners[ #female_prisoners + 1 ] = model_path
 		female_prisoners[ TranslateToPlayerModelName( model_path ) ] = model_path
-
 	end
 
 	local male_prisoners = {}
 
 	for i = 1, 9, 1 do
-
 		local model_path = FixModelPath( "models/player/group01/male_0" .. i .. ".mdl" )
 		PrecacheModel( model_path )
 
-		male_prisoners[ #male_prisoners+1 ] = model_path
+		male_prisoners[ #male_prisoners + 1 ] = model_path
 		male_prisoners[ TranslateToPlayerModelName( model_path ) ] = model_path
-
 	end
 
 	for i = 2, 8, 2 do
-
 		local model_path = FixModelPath( "models/player/group02/male_0" .. i .. ".mdl" )
 		PrecacheModel( model_path )
 
-		male_prisoners[ #male_prisoners+1 ] = model_path
+		male_prisoners[ #male_prisoners + 1 ] = model_path
 		male_prisoners[ TranslateToPlayerModelName( model_path ) ] = model_path
-
 	end
 
 	Jailbreak.PlayerModels = {
