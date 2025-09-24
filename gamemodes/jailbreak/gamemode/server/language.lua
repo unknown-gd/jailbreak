@@ -6,21 +6,22 @@ end
 
 ---@class Jailbreak
 local Jailbreak = Jailbreak
-
 local IsValid = IsValid
-language = language or {}
-local getPhrase
-getPhrase = function( languageCode, placeholder )
-	local phrases = language[ languageCode ]
-	if not phrases then
-		return placeholder
-	end
 
-	return phrases[ placeholder ] or placeholder
+language = language or {}
+
+local function getPhrase( languageCode, placeholder )
+	local phrases = language[ languageCode ]
+	if phrases == nil then
+		return placeholder
+	else
+		return phrases[ placeholder ] or placeholder
+	end
 end
+
 language.GetPhrase = getPhrase
-local add
-add = function( languageCode, placeholder, fulltext )
+
+local function add( languageCode, placeholder, fulltext )
 	local phrases = language[ languageCode ]
 	if not phrases then
 		phrases = {}
@@ -29,64 +30,76 @@ add = function( languageCode, placeholder, fulltext )
 
 	phrases[ placeholder ] = fulltext
 end
+
 language.Add = add
+
 do
+
 	local parseUnicode = nil
 	do
-		local bor, band, rshift
-		do
-			local _obj_0 = bit
-			bor, band, rshift = _obj_0.bor, _obj_0.band, _obj_0.rshift
-		end
+
+		local bit_bor, bit_band, bit_rshift = bit.bor, bit.band, bit.rshift
 		local tonumber = tonumber
+
 		parseUnicode = function( str )
-			return gsub( str, "\\u( [0-9a-f][0-9a-f][0-9a-f][0-9a-f] )", function( value )
+			return gsub( str, "\\u([0-9a-f][0-9a-f][0-9a-f][0-9a-f])", function( value )
 				local byte = tonumber( value, 16 )
 				if byte < 0x80 then
 					return char( byte )
 				elseif byte < 0x800 then
-					local b1 = bor( 0xC0, band( rshift( byte, 6 ), 0x1F ) )
-					local b2 = bor( 0x80, band( byte, 0x3F ) )
+					local b1 = bit_bor( 0xC0, bit_band( bit_rshift( byte, 6 ), 0x1F ) )
+					local b2 = bit_bor( 0x80, bit_band( byte, 0x3F ) )
 					return char( b1, b2 )
 				elseif byte < 0x10000 then
-					local b1 = bor( 0xE0, band( rshift( byte, 12 ), 0x0F ) )
-					local b2 = bor( 0x80, band( rshift( byte, 6 ), 0x3F ) )
-					local b3 = bor( 0x80, band( byte, 0x3F ) )
+					local b1 = bit_bor( 0xE0, bit_band( bit_rshift( byte, 12 ), 0x0F ) )
+					local b2 = bit_bor( 0x80, bit_band( bit_rshift( byte, 6 ), 0x3F ) )
+					local b3 = bit_bor( 0x80, bit_band( byte, 0x3F ) )
 					return char( b1, b2, b3 )
 				else
-					local b1 = bor( 0xF0, band( rshift( byte, 18 ), 0x07 ) )
-					local b2 = bor( 0x80, band( rshift( byte, 12 ), 0x3F ) )
-					local b3 = bor( 0x80, band( rshift( byte, 6 ), 0x3F ) )
-					local b4 = bor( 0x80, band( byte, 0x3F ) )
+					local b1 = bit_bor( 0xF0, bit_band( bit_rshift( byte, 18 ), 0x07 ) )
+					local b2 = bit_bor( 0x80, bit_band( bit_rshift( byte, 12 ), 0x3F ) )
+					local b3 = bit_bor( 0x80, bit_band( bit_rshift( byte, 6 ), 0x3F ) )
+					local b4 = bit_bor( 0x80, bit_band( byte, 0x3F ) )
 					return char( b1, b2, b3, b4 )
 				end
 			end )
 		end
 	end
+
 	string.ParseUnicode = parseUnicode
+
 	local parseEscapedChars = nil
+
 	do
+
 		local escapedChars = {
 			[ "\\n" ] = "\n",
 			[ "\\t" ] = "\t",
 			[ "\\0" ] = "\0"
 		}
+
 		parseEscapedChars = function( str )
 			return gsub( str, "\\.", function( value )
 				return escapedChars[ value ] or value[ 2 ]
 			end )
 		end
+
 	end
+
 	string.ParseEscapedChars = parseEscapedChars
+
 	local loadLocalization = nil
 	do
+
 		local AsyncRead, Find
 		do
 			local _obj_0 = file
 			AsyncRead, Find = _obj_0.AsyncRead, _obj_0.Find
 		end
+
 		local select = select
 		local print = print
+
 		loadLocalization = function( folderPath )
 			local _list_0 = select( 2, Find( folderPath .. "/*", "GAME" ) )
 			for _index_0 = 1, #_list_0 do
@@ -103,7 +116,7 @@ do
 							return
 						end
 
-						for line in gmatch( data, "( .- )\n" ) do
+						for line in gmatch( data, "(.-)\n" ) do
 							if #line >= 3 then
 								local separatorPos = find( line, "=" )
 								if not separatorPos then
@@ -119,15 +132,23 @@ do
 				end
 			end
 		end
+
 		Jailbreak.LoadLocalization = loadLocalization
+
 	end
+
 	Jailbreak.ReloadLocalization = function()
 		loadLocalization( "resource/localization" )
-		return loadLocalization( "gamemodes/jailbreak/content/resource/localization" )
+		loadLocalization( "gamemodes/jailbreak/content/resource/localization" )
 	end
+
 end
-function Jailbreak:GetPhrase( placeholder )
-	local languageCode = self:GetInfo( "gmod_language" )
+
+---@param ply Player
+---@param placeholder string
+---@return string
+function Jailbreak.GetPlayerPhrase( ply, placeholder )
+	local languageCode = ply:GetInfo( "gmod_language" )
 	if not languageCode or #languageCode == 0 then
 		return placeholder
 	end
@@ -140,12 +161,20 @@ function Jailbreak:GetPhrase( placeholder )
 	return fulltext
 end
 
-function Jailbreak:Translate( str )
-	if not (IsValid( self ) and self:IsPlayer()) then
+---@param ply Player
+---@param str string
+---@return string
+function Jailbreak.PlayerTranslate( ply, str )
+	if not (IsValid( ply ) and ply:IsPlayer()) then
 		return str
 	end
 
-	return gsub( str, "#( [%w%.-_]+ )", function( placeholder )
+	local languageCode = ply:GetInfo( "gmod_language" )
+	if not languageCode or #languageCode == 0 then
+		return str
+	end
+
+	str = gsub( str, "#([%w%.-_]+)", function( placeholder )
 		local fulltext = getPhrase( languageCode, placeholder )
 		if fulltext == placeholder and sub( placeholder, 1, 3 ) == "jb." then
 			return sub( placeholder, 4 )
@@ -153,4 +182,6 @@ function Jailbreak:Translate( str )
 
 		return fulltext
 	end )
+
+	return str
 end

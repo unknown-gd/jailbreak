@@ -114,6 +114,7 @@ do
 	end )
 end
 do
+
 	local proxyVector, eyePos = Vector()
 	hook.Add( "HUDPaint3D", "Jailbreak::Markers", function()
 		if not Markers:GetBool() then
@@ -166,12 +167,16 @@ do
 		end
 	end )
 end
+
 do
+
 	local IN_WALK = IN_WALK
-	return hook.Add( "PreventScreenClicks", "Jailbreak::Markers", function()
+
+	hook.Add( "PreventScreenClicks", "Jailbreak::Markers", function()
 		local ply = Jailbreak.Player
 		if ply:IsValid() and ply:KeyDown( IN_WALK ) then
 			return true
 		end
 	end )
+
 end

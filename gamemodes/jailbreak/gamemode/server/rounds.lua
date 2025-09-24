@@ -41,7 +41,7 @@ do
 	Jailbreak.SetRoundTime = setRoundTime
 end
 do
-	local GetPlayersCount = Jailbreak.GetPlayersCount
+	local GetPlayersCount = Jailbreak.GetPlayerCount
 	local Create = timer.Create
 	local lastPrisonersCount = 0
 	local function playerChangedTeam( self )

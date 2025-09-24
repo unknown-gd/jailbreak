@@ -1,7 +1,6 @@
 local entity_GetNetworkValue, entity_SetNetworkValue = ENTITY.GetNW2Var, ENTITY.SetNW2Var
 local move_GetVelocity, move_SetVelocity = CMOVEDATA.GetVelocity, CMOVEDATA.SetVelocity
 local CLIENT, SERVER = CLIENT, SERVER
-local player_IsAlive = PLAYER.Alive
 local hook_Add = hook.Add
 local CurTime = CurTime
 
@@ -10,15 +9,17 @@ local Jailbreak = Jailbreak
 
 do
 
-	local move_KeyDown = CMOVEDATA.KeyDown
-	local IN_ATTACK2 = IN_ATTACK2
-	local IN_ATTACK = IN_ATTACK
+	local bit_band = bit.band
 	local IN_WALK = IN_WALK
 
+	local attack_filter = bit.bnot( bit.bor( 1, 2048 ) )
+
 	hook_Add( "StartCommand", "Jailbreak::Markers", function( ply, cmd )
-		if player_IsAlive( ply ) and move_KeyDown( cmd, IN_WALK ) then
-			cmd:RemoveKey( IN_ATTACK )
-			cmd:RemoveKey( IN_ATTACK2 )
+		if ply:Alive() then
+			local buttons = cmd:GetButtons()
+			if bit_band( buttons, IN_WALK ) ~= 0 then
+				cmd:SetButtons( bit_band( buttons, attack_filter ) )
+			end
 		end
 	end )
 
@@ -128,36 +129,35 @@ do
 			local _update_0 = 3
 			velocity[ _update_0 ] = velocity[ _update_0 ] + ((ply:GetGravity() + 1) * sv_gravity:GetFloat() * 0.5 * frameTime)
 			move_SetVelocity( mv, velocity )
-			return mv:SetButtons( buttons )
+			mv:SetButtons( buttons )
 		elseif not CLIENT and mv:KeyPressed( IN_JUMP ) then
-			return entity_SetNetworkValue( ply, "in-flight", true )
+			entity_SetNetworkValue( ply, "in-flight", true )
 		end
 	end )
 
 end
 
 hook_Add( "Move", "Jailbreak::Shock", function( ply, mv )
-	local shockTime = entity_GetNetworkValue( ply, "shock-time" )
-	if not shockTime or CurTime() > shockTime then
+	local shock_time = entity_GetNetworkValue( ply, "shock-time" )
+	if shock_time == nil or CurTime() > shock_time then
 		return
 	end
 
 	mv:SetMaxSpeed( ply:GetWalkSpeed() / 4 )
-	return
 end )
 
 hook_Add( "PlayerEmitSound", "Jailbreak::SilentDeath", function( ply, data )
-	if not player_IsAlive( ply ) then
+	if not ply:Alive() then
 		return false
 	end
 end )
 
 do
 
-	local IsSpawning = PLAYER.IsSpawning
+	local player_IsSpawning = PLAYER.IsSpawning
 
 	hook_Add( "AllowPlayerMove", "Jailbreak::PlayerSpawning", function( ply )
-		if IsSpawning( ply ) then
+		if player_IsSpawning( ply ) then
 			return false
 		end
 	end )
@@ -166,16 +166,16 @@ end
 
 do
 
-	local IsPlayingTaunt = PLAYER.IsPlayingTaunt
+	local player_IsPlayingTaunt = PLAYER.IsPlayingTaunt
 
 	hook_Add( "StartCommand", "Jailbreak::Taunts", function( ply, cmd )
-		if IsPlayingTaunt( ply ) then
+		if player_IsPlayingTaunt( ply ) then
 			cmd:SetImpulse( 0 )
 		end
 	end, PRE_HOOK )
 
 	hook_Add( "SetupMove", "Jailbreak::Taunts", function( ply, _, cmd )
-		if IsPlayingTaunt( ply ) then
+		if player_IsPlayingTaunt( ply ) then
 			cmd:ClearMovement()
 			cmd:ClearButtons()
 		end
@@ -184,13 +184,16 @@ do
 end
 
 do
+
+	local player_GetObserverMode = PLAYER.GetObserverMode
 	local OBS_MODE_NONE = OBS_MODE_NONE
-	local GetObserverMode = PLAYER.GetObserverMode
+
 	hook_Add( "AllowPlayerMove", "Jailbreak::AliveSpectator", function( ply )
-		if player_IsAlive( ply ) and GetObserverMode( ply ) ~= OBS_MODE_NONE then
+		if ply:Alive() and player_GetObserverMode( ply ) ~= OBS_MODE_NONE then
 			return false
 		end
 	end )
+
 end
 
 hook_Add( "PlayerFootstep", "Jailbreak::LoseConsciousness", function( ply )
@@ -211,7 +214,7 @@ do
 
 	hook_Add( "Move", "Jailbreak::PlayerPush", function( ply, mv )
 		local target = entity_GetNetworkValue( ply, "push-target" )
-		if target and target:IsValid() and player_IsAlive( target ) then
+		if target and target:IsValid() and target:Alive() then
 			local velocity = move_GetVelocity( mv )
 			local direction
 			speed, direction = Length2D( velocity ), nil
@@ -228,7 +231,7 @@ do
 		end
 
 		local pushing_player = entity_GetNetworkValue( ply, "pushing-player" )
-		if pushing_player and pushing_player:IsValid() and player_IsAlive( pushing_player ) then
+		if pushing_player and pushing_player:IsValid() and pushing_player:Alive() then
 			if SERVER and ply:GetPos():DistToSqr( pushing_player:GetPos() ) > 5184 then
 				entity_SetNetworkValue( pushing_player, "push-target", nil )
 				entity_SetNetworkValue( ply, "pushing-player", nil )

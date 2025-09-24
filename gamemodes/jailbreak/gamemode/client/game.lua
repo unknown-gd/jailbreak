@@ -94,19 +94,19 @@ do
 
 		local bind = LookupKeyBinding( keyCode )
 		if keyCode == 17 and (not bind or bind == "drop" or #bind == 0) then
-			return RunConsoleCommand( "drop" )
-		elseif keyCode == 109 and (not bind or bind == "marker" or #bind == 0) then
-			return RunConsoleCommand( "marker" )
+			RunConsoleCommand( "drop" )
+		elseif keyCode == 109 and (not bind or bind == "jb_marker" or #bind == 0) then
+			RunConsoleCommand( "jb_marker" )
 		elseif (keyCode == 58 or keyCode == 23) and (not bind or bind == "jb_showteam" or #bind == 0) then
-			return RunConsoleCommand( "jb_showteam" )
+			RunConsoleCommand( "jb_showteam" )
 		elseif keyCode == 18 and (not bind or #bind == 0) then
-			return RunConsoleCommand( "pe_drop", "movement" )
+			RunConsoleCommand( "pe_drop", "movement" )
 		end
 	end
 
 	function GM:PlayerButtonDown( ply, keyCode )
 		if (keyCode == 107 or keyCode == 108) and IsKeyDown( 81 ) and IsFirstTimePredicted() then
-			return RunConsoleCommand( "marker" )
+			RunConsoleCommand( "jb_marker" )
 		end
 	end
 end
