@@ -247,20 +247,28 @@ Set( "DesktopWindows", "shock-collars", {
 		return RunConsoleCommand( "jb_shock_collars" )
 	end
 } )
+
 local margin = 0
+
 do
+
 	Jailbreak.Font( "Jailbreak::Coins", "Roboto Mono Bold", 1.8 )
+
 	local PANEL = {}
+
 	function PANEL:Init()
 		self.OverlayFade = nil
+
 		local label = self:Add( "DLabel" )
 		self.Label = label
+
 		label:SetExpensiveShadow( 3, Color( 0, 0, 0, 125 ) )
 		label:SetFont( "Jailbreak::Coins" )
 		label:SetContentAlignment( 1 )
 		label:SetWrap( true )
 		label:Dock( FILL )
-		return self.Icon:Dock( FILL )
+
+		self.Icon:Dock( FILL )
 	end
 
 	function PANEL:Setup( item )
@@ -273,54 +281,64 @@ do
 		self.Price = item.price
 	end
 
-	PANEL.DoRightClick = function() end
+	function PANEL.DoRightClick()
+	end
+
 	function PANEL:DoClick()
-		return RunConsoleCommand( "jb_buy", self.ItemName )
+		RunConsoleCommand( "jb_buy", self.ItemName )
 	end
 
 	function PANEL:PerformLayout()
 		local size = VMin( 10 )
 		self:SetSize( size, size )
+
 		margin = VMin( 0.5 )
-		return self:DockPadding( margin, margin, margin, margin )
+		self:DockPadding( margin, margin, margin, margin )
 	end
 
 	do
+
 		local CanWardenAfford = Jailbreak.CanWardenAfford
 		local spectators, grey = Colors.spectators, Colors.grey
-		local color = nil
+
 		function PANEL:Think()
-			color = CanWardenAfford( self.Price or 0 ) and spectators or grey
-			if self.Label:GetTextColor() ~= color then
-				self.Label:SetTextColor( color )
-				return self:InvalidateLayout()
+			local color = CanWardenAfford( self.Price or 0 ) and spectators or grey
+			local label = self.Label
+
+			if label:GetTextColor() ~= color then
+				label:SetTextColor( color )
+				self:InvalidateLayout()
 			end
 		end
+
 	end
+
 	do
-		local SetDrawColor, DrawRect
-		do
-			local _obj_0 = surface
-			SetDrawColor, DrawRect = _obj_0.SetDrawColor, _obj_0.DrawRect
-		end
+
+		local surface_SetDrawColor, surface_DrawRect = surface.SetDrawColor, surface.DrawRect
+
 		function PANEL:Paint( width, height )
 			if self:IsHovered() and not dragndrop.IsDragging() then
 				if self:IsDown() and not self.Dragging then
-					SetDrawColor( 255, 255, 255, 25 )
+					surface_SetDrawColor( 255, 255, 255, 25 )
 				else
-					SetDrawColor( 255, 255, 255, 10 )
+					surface_SetDrawColor( 255, 255, 255, 10 )
 				end
 
-				return DrawRect( 0, 0, width, height )
+				surface_DrawRect( 0, 0, width, height )
 			end
 		end
+
 	end
+
 	function PANEL:PaintOver( width, height )
 		return self:DrawSelections()
 	end
 
 	vgui.Register( "Jailbreak:ShopItem", PANEL, "SpawnIcon" )
+
 end
+
 Set( "DesktopWindows", "warden-shop", {
 	title = "#jb.warden.shop",
 	icon = "icon16/cart.png",
@@ -354,28 +372,36 @@ Set( "DesktopWindows", "warden-shop", {
 		window:SetSize( VMin( 60 ), VMin( 40 ) )
 		window:SetSizable( true )
 		window:Center()
-		window.PerformLayout = function( ... )
+
+		function window.PerformLayout( ... )
 			window:SetMinWidth( VMin( 40 ) )
 			window:SetMinHeight( VMin( 20 ) )
 			return DFrame.PerformLayout( ... )
 		end
+
 		hook.Add( "LanguageChanged", window, function()
 			hook.Remove( "LanguageChanged", window )
 			return window:Remove()
 		end )
+
 		local ShopItems = Jailbreak.ShopItems
+
 		do
+
 			local menuBar = vgui.Create( "DMenuBar", window )
 			menuBar:DockMargin( -3, -6, -3, 0 )
 			menuBar:Dock( TOP )
+
 			do
 				local coins = menuBar:Add( "DLabel" )
 				coins:SetFont( "Jailbreak::Coins" )
 				coins:SetMouseInputEnabled( true )
 				coins:SetTextColor( black )
 				coins:Dock( RIGHT )
+
 				local GetWardenCoins = Jailbreak.GetWardenCoins
 				local count = 0
+
 				function coins:Think()
 					count = GetWardenCoins()
 					if self.Count ~= count then
@@ -385,7 +411,9 @@ Set( "DesktopWindows", "warden-shop", {
 						return self:SizeToContentsX( VMin( 1 ) )
 					end
 				end
+
 			end
+
 			local other = menuBar:AddMenu( "#jb.shop.other" )
 			menuBar.Other = other
 			other:AddOption( "#jb.shop.buy.random", function()

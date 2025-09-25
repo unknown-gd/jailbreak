@@ -12,13 +12,12 @@ do
 	ceil, max = _obj_0.ceil, _obj_0.max
 end
 
+local util_Effect = util.Effect
 local IsValid = IsValid
-local Simple = timer.Simple
 
 local pairs = pairs
 local Run = hook.Run
-local util = util
-local Effect = util.Effect
+
 local GetClass = ENTITY.GetClass
 
 util.AddNetworkString( "Jailbreak::Networking" )
@@ -50,9 +49,9 @@ end
 
 do
 
-	local BlastDamage = util.BlastDamage
+	local util_BlastDamage = util.BlastDamage
 
-	Jailbreak.Explosion = function( inflictor, attacker, origin, radius, damage )
+	function Jailbreak.Explosion( inflictor, attacker, origin, radius, damage )
 		local fx = EffectData()
 		fx:SetOrigin( origin )
 
@@ -61,10 +60,10 @@ do
 		fx:SetScale( scale )
 		fx:SetMagnitude( ceil( damage / 18.75 ) )
 
-		Effect( "Sparks", fx )
-		Effect( "Explosion", fx )
+		util_Effect( "Sparks", fx )
+		util_Effect( "Explosion", fx )
 
-		BlastDamage( inflictor, attacker, origin, radius, damage )
+		util_BlastDamage( inflictor, attacker, origin, radius, damage )
 	end
 
 end
@@ -232,7 +231,7 @@ do
 
 	Jailbreak.ShopItem = ShopItem
 
-	Jailbreak.AddShopItem = function( name, model, price, action )
+	function Jailbreak.AddShopItem( name, model, price, action )
 		if not name or #name == 0 then
 			name = "shopitem"
 		end
@@ -250,7 +249,7 @@ do
 		return item
 	end
 
-	Simple( 0.5, function()
+	timer.Simple( 0.5, function()
 		table.Empty( shopItems )
 		Run( "ShopItems", Jailbreak.AddShopItem )
 	end )
@@ -260,11 +259,11 @@ end
 do
 
 	local timer_Create = timer.Create
-	local CleanUpMap = game.CleanUpMap
+	local game_CleanUpMap = game.CleanUpMap
 
-	Jailbreak.SafeCleanUpMap = function()
+	function Jailbreak.SafeCleanUpMap()
 		timer_Create( "Jailbreak::CleanUpMap", 0.25, 1, function()
-			CleanUpMap( false )
+			game_CleanUpMap( false )
 		end )
 	end
 
@@ -482,8 +481,10 @@ do
 end
 
 do
-	local tobool = tobool
+
 	local lower = string.lower
+	local tobool = tobool
+
 	function GM:AcceptInput( entity, key )
 		local className = GetClass( entity )
 		if className == "prop_door_rotating" or className == "func_door_rotating" then
@@ -503,13 +504,18 @@ do
 			return
 		end
 	end
+
 end
+
 do
-	local TraceLine, Decal = util.TraceLine, util.Decal
+
+	local util_TraceLine, util_Decal = util.TraceLine, util.Decal
+
 	local traceResult = {}
 	local trace = {
 		output = traceResult
 	}
+
 	function Jailbreak.BloodSplashes( entity, damageInfo, death, velocity )
 		if not velocity then
 			velocity = entity:GetVelocity() + damageInfo:GetDamageForce()
@@ -517,6 +523,7 @@ do
 
 		local damagePosition = damageInfo:GetDamagePosition()
 		local speed = velocity:Length()
+
 		local fx = EffectData()
 		fx:SetNormal( velocity:GetNormalized() )
 		fx:SetMagnitude( speed / 100 )
@@ -524,28 +531,35 @@ do
 		fx:SetFlags( 3 )
 		fx:SetColor( 0 )
 		fx:SetOrigin( damagePosition )
-		Effect( "BloodImpact", fx, true, true )
+		util_Effect( "BloodImpact", fx, true, true )
+
 		trace.start = damagePosition
 		trace.filter = entity
+
 		if not death then
 			trace.endpos = damagePosition + velocity
-			TraceLine( trace )
+			util_TraceLine( trace )
+
 			if not traceResult.Hit then
 				return
 			end
 
-			Decal( "Blood", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
+			util_Decal( "Blood", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
 			return
 		end
 
 		local decal = damageInfo:IsShockDamage() and "FadingScorch" or "Blood"
-		for bone = 0, entity:GetBoneCount() - 1 do
+
+		for bone = 0, entity:GetBoneCount() - 1, 1 do
 			local origin = entity:GetBonePosition( bone )
 			trace.endpos = origin + (origin - damagePosition) * speed
-			TraceLine( trace )
+
+			util_TraceLine( trace )
+
 			if traceResult.Hit then
-				Decal( decal, traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
+				util_Decal( decal, traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
 			end
 		end
 	end
+
 end
