@@ -449,11 +449,7 @@ do
 
 	do
 
-		local ClearMovement, ClearButtons
-		do
-			local _obj_0 = CUSERCMD
-			ClearMovement, ClearButtons = _obj_0.ClearMovement, _obj_0.ClearButtons
-		end
+		local ClearMovement, ClearButtons = CUSERCMD.ClearMovement, CUSERCMD.ClearButtons
 
 		hook_Add( "StartCommand", "Jailbreak::MovementBlocking", function( self, cmd )
 			if Call( "AllowPlayerMove", nil, self ) == false then

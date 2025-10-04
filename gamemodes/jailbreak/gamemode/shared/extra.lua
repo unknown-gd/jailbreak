@@ -174,13 +174,18 @@ do
 		end
 	end, PRE_HOOK )
 
-	hook_Add( "SetupMove", "Jailbreak::Taunts", function( ply, _, cmd )
+	hook_Add( "AllowPlayerMove", "Jailbreak::Taunts", function( ply )
 		if player_IsPlayingTaunt( ply ) then
-			cmd:ClearMovement()
-			cmd:ClearButtons()
+			return false
 		end
-	end, PRE_HOOK )
+	end)
 
+	-- hook_Add( "SetupMove", "Jailbreak::Taunts", function( ply, _, cmd )
+		-- if player_IsPlayingTaunt( ply ) then
+		-- 	cmd:ClearMovement()
+		-- 	cmd:ClearButtons()
+		-- end
+	-- end, PRE_HOOK )
 end
 
 do
