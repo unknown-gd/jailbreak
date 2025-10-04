@@ -246,7 +246,7 @@ do
 
 	do
 
-		local InVehicle, GetWalkSpeed, GetRunSpeed, GetActiveWeapon, IsPrisoner, GetVehicle, GetAllowWeaponsInVehicle, InNoclip = PLAYER.InVehicle, PLAYER.GetWalkSpeed, PLAYER.GetRunSpeed, PLAYER.GetActiveWeapon, PLAYER.IsPrisoner, PLAYER.GetVehicle, PLAYER.GetAllowWeaponsInVehicle, PLAYER.InNoclip
+		local InVehicle, GetWalkSpeed, GetRunSpeed, GetActiveWeapon, IsPrisoner, GetVehicle, GetAllowWeaponsInVehicle, InNoclip = PLAYER.InVehicle, PLAYER.GetWalkSpeed, PLAYER.GetRunSpeed, PLAYER.GetActiveWeapon, ENTITY.IsPrisoner, PLAYER.GetVehicle, PLAYER.GetAllowWeaponsInVehicle, PLAYER.InNoclip
 		local LookupSequence, GetParent, GetModel = ENTITY.LookupSequence, ENTITY.GetParent, ENTITY.GetModel
 
 		local ACT_HL2MP_RUN_PANICKED = ACT_HL2MP_RUN_PANICKED
