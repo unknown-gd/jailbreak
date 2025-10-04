@@ -517,6 +517,7 @@ do
 	local MOVETYPE_WALK = MOVETYPE_WALK
 	function GM:PlayerShouldTaunt( ply )
 		if ply:Alive() and ply:IsOnGround() and not (ply:Crouching() or ply:InVehicle()) and ply:GetMoveType() == MOVETYPE_WALK and ply:WaterLevel() < 2 then
+			ply:Freeze()
 			return true
 		end
 
